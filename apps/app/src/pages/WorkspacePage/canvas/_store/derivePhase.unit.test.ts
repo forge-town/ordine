@@ -32,6 +32,10 @@ describe("derivePhase", () => {
     expect(derivePhase({ activeJob: { status: "running" }, nodes: [node] })).toBe("running");
   });
 
+  it("returns running for an active paused job", () => {
+    expect(derivePhase({ activeJob: { status: "paused" }, nodes: [node] })).toBe("running");
+  });
+
   it("returns empty when the graph has no nodes", () => {
     expect(derivePhase({ nodes: [], latestJob: { status: "done" } })).toBe("empty");
   });

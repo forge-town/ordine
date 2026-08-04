@@ -66,6 +66,15 @@ describe("runSlice", () => {
     expect(store.getState().latestJob?.status).toBe("done");
   });
 
+  it("keeps paused jobs active so they can be resumed", () => {
+    const store = createRunStore();
+
+    store.getState().applyJobSnapshot(makeJob({ status: "paused" }));
+
+    expect(store.getState().activeJobId).toBe("job-1");
+    expect(store.getState().activeJob?.status).toBe("paused");
+  });
+
   it("derives checkpoint waiting state from waitingForUser node status", () => {
     const store = createRunStore();
 
@@ -105,11 +114,13 @@ describe("runSlice", () => {
     const store = createRunStore();
 
     store.getState().markNodeFailed("operation");
+    store.getState().applyNodeLlmContent("operation", "stale result");
     store.getState().setRunTraces([trace]);
     store.getState().beginRun("job-9");
 
     expect(store.getState().activeJobId).toBe("job-9");
     expect(store.getState().nodeRunStatuses).toEqual({});
+    expect(store.getState().nodeLlmContent).toEqual({});
     expect(store.getState().runTraces).toEqual([]);
     expect(store.getState().checkpointWait).toBeNull();
   });

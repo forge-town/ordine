@@ -64,6 +64,15 @@ type GraphSliceInitialState = {
   nodes?: CanvasNode[];
 };
 
+type GraphSnapshot = {
+  edges: CanvasEdge[];
+  nodes: CanvasNode[];
+};
+
+type OptionalGraphHistory = {
+  recordHistory?: (previous: GraphSnapshot) => void;
+};
+
 const createId = (prefix: string): string => `${prefix}-${globalThis.crypto.randomUUID()}`;
 
 const hasValidConnectionRule = (source: CanvasNode, target: CanvasNode): boolean =>
@@ -133,6 +142,36 @@ const boundaryEdgeRewireId = (
   return `e-${source}-${target}-${edge.id}`;
 };
 
+const withEdgeData = (edge: CanvasEdge, data: Partial<PipelineEdgeData>): CanvasEdge => ({
+  ...edge,
+  data: { label: "", ...edge.data, ...data },
+});
+
+const updateStoredCompoundEdge = (
+  node: CanvasNode,
+  edgeId: string,
+  data: Partial<PipelineEdgeData>,
+): CanvasNode => {
+  if (!isCompoundNode(node)) {
+    return node;
+  }
+
+  return {
+    ...node,
+    data: {
+      ...node.data,
+      boundaryEdges: (node.data.boundaryEdges ?? []).map((edge) =>
+        boundaryEdgeRewireId(node.id, node.data.childNodeIds, edge) === edgeId
+          ? withEdgeData(edge, data)
+          : edge,
+      ),
+      childEdges: (node.data.childEdges ?? []).map((edge) =>
+        edge.id === edgeId ? withEdgeData(edge, data) : edge,
+      ),
+    },
+  };
+};
+
 const removeEdgeReferencesFromCompound = (
   node: CanvasNode,
   removedEdgeIds: ReadonlySet<string>,
@@ -192,22 +231,28 @@ const removeNodeReferencesFromCompound = (
 };
 
 export const createGraphSlice =
-  <T extends GraphSlice = GraphSlice>(
+  <T extends GraphSlice & OptionalGraphHistory = GraphSlice>(
     initialState: GraphSliceInitialState = {},
   ): StateCreator<T, [], [], GraphSlice> =>
   (set, get) => {
     const castGraphState = (state: Partial<GraphSlice>) => state as unknown as Partial<T>;
+    const getGraphSnapshot = (): GraphSnapshot => ({ edges: get().edges, nodes: get().nodes });
+    const recordGraphChange = (previous: GraphSnapshot) => get().recordHistory?.(previous);
+    const dragHistory = { start: null as GraphSnapshot | null };
 
     return {
       drillStack: [],
       edges: initialState.edges ?? [],
       nodes: sortParentBeforeChildren(initialState.nodes ?? []),
-      addNode: (node, childNodes = []) =>
+      addNode: (node, childNodes = []) => {
+        const previous = getGraphSnapshot();
         set((state) =>
           castGraphState({
             nodes: sortParentBeforeChildren([...state.nodes, node, ...childNodes]),
           }),
-        ),
+        );
+        recordGraphChange(previous);
+      },
       addNodeFromCatalog: (input) => {
         const node: CanvasNode = {
           id: input.id ?? createId(input.type),
@@ -230,6 +275,7 @@ export const createGraphSlice =
           return null;
         }
 
+        const previous = getGraphSnapshot();
         const childEdges = state.edges.filter(
           (edge) => selectedIdSet.has(edge.source) && selectedIdSet.has(edge.target),
         );
@@ -286,10 +332,12 @@ export const createGraphSlice =
             ]),
           }),
         );
+        recordGraphChange(previous);
 
         return compound;
       },
-      deleteEdge: (edgeId) =>
+      deleteEdge: (edgeId) => {
+        const previous = getGraphSnapshot();
         set((state) =>
           castGraphState({
             edges: state.edges.filter((edge) => edge.id !== edgeId),
@@ -297,8 +345,11 @@ export const createGraphSlice =
               removeEdgeReferencesFromCompound(node, new Set([edgeId])),
             ),
           }),
-        ),
-      deleteNode: (nodeId) =>
+        );
+        recordGraphChange(previous);
+      },
+      deleteNode: (nodeId) => {
+        const previous = getGraphSnapshot();
         set((state) => {
           const compound = state.nodes.find((node) => node.id === nodeId);
           const removedIds = new Set([nodeId]);
@@ -337,13 +388,16 @@ export const createGraphSlice =
                   : removeNodeReferencesFromCompound(node, removedIds),
               ),
           });
-        }),
+        });
+        recordGraphChange(previous);
+      },
       deleteSelected: (ids) => {
         const selectedIdSet = new Set(ids);
         if (selectedIdSet.size === 0) {
           return;
         }
 
+        const previous = getGraphSnapshot();
         set((state) => {
           const removedCompounds = state.nodes
             .filter(isCompoundNode)
@@ -401,6 +455,7 @@ export const createGraphSlice =
               ),
           });
         });
+        recordGraphChange(previous);
       },
       duplicateNode: (nodeId, id) => {
         const source = get().nodes.find((node) => node.id === nodeId);
@@ -452,14 +507,60 @@ export const createGraphSlice =
           return;
         }
 
-        set((state) =>
-          castGraphState({
-            edges: addEdge(makeEdge(connection), state.edges),
-          }),
-        );
-      },
-      handleEdgesChange: (changes) =>
+        const previous = getGraphSnapshot();
+        const edge = makeEdge(connection);
         set((state) => {
+          const activeCompoundId = state.drillStack.at(-1);
+          const activeCompound = state.nodes.find((node) => node.id === activeCompoundId);
+          const activeChildIds = isCompoundNode(activeCompound)
+            ? new Set(activeCompound.data.childNodeIds)
+            : null;
+
+          if (
+            isCompoundNode(activeCompound) &&
+            activeChildIds?.has(connection.source) &&
+            activeChildIds.has(connection.target)
+          ) {
+            return castGraphState({
+              nodes: state.nodes.map((node) =>
+                node.id === activeCompound.id
+                  ? {
+                      ...node,
+                      data: {
+                        ...activeCompound.data,
+                        childEdges: addEdge(edge, activeCompound.data.childEdges ?? []),
+                      },
+                    }
+                  : node,
+              ),
+            });
+          }
+
+          return castGraphState({ edges: addEdge(edge, state.edges) });
+        });
+        recordGraphChange(previous);
+      },
+      handleEdgesChange: (changes) => {
+        const previous = getGraphSnapshot();
+        set((state) => {
+          const activeCompoundId = state.drillStack.at(-1);
+          const activeCompound = state.nodes.find((node) => node.id === activeCompoundId);
+          if (isCompoundNode(activeCompound)) {
+            return castGraphState({
+              nodes: state.nodes.map((node) =>
+                node.id === activeCompound.id
+                  ? {
+                      ...node,
+                      data: {
+                        ...activeCompound.data,
+                        childEdges: applyEdgeChanges(changes, activeCompound.data.childEdges ?? []),
+                      },
+                    }
+                  : node,
+              ),
+            });
+          }
+
           const removedEdgeIds = new Set(
             changes.filter((change) => change.type === "remove").map((change) => change.id),
           );
@@ -470,13 +571,53 @@ export const createGraphSlice =
               removeEdgeReferencesFromCompound(node, removedEdgeIds),
             ),
           });
-        }),
-      handleNodesChange: (changes) =>
+        });
+        if (changes.some((change) => change.type !== "select")) {
+          recordGraphChange(previous);
+        }
+      },
+      handleNodesChange: (changes) => {
+        const removedNodeIds = changes
+          .filter((change) => change.type === "remove")
+          .map((change) => change.id);
+        if (removedNodeIds.length > 0) {
+          get().deleteSelected(removedNodeIds);
+          const remainingChanges = changes.filter((change) => change.type !== "remove");
+          if (remainingChanges.length > 0) {
+            get().handleNodesChange(remainingChanges);
+          }
+
+          return;
+        }
+
+        const continuesDrag = changes.some(
+          (change) => change.type === "position" && change.dragging === true,
+        );
+        const endsDrag = changes.some(
+          (change) => change.type === "position" && change.dragging === false,
+        );
+        const shouldRecord = changes.some(
+          (change) => change.type !== "select" && change.type !== "dimensions",
+        );
+        const previous = continuesDrag
+          ? null
+          : (endsDrag && dragHistory.start) || (shouldRecord ? getGraphSnapshot() : null);
+        if (continuesDrag) {
+          dragHistory.start ??= getGraphSnapshot();
+        }
+        if (endsDrag) {
+          dragHistory.start = null;
+        }
+
         set((state) =>
           castGraphState({
             nodes: sortParentBeforeChildren(applyNodeChanges(changes, state.nodes)),
           }),
-        ),
+        );
+        if (previous) {
+          recordGraphChange(previous);
+        }
+      },
       popDrillStack: () =>
         set((state) =>
           castGraphState({
@@ -498,6 +639,7 @@ export const createGraphSlice =
           return;
         }
 
+        const previous = getGraphSnapshot();
         const childIdSet = new Set(compound.data.childNodeIds);
         const childEdges = compound.data.childEdges ?? [];
         const boundaryEdges = compound.data.boundaryEdges ?? [];
@@ -529,21 +671,22 @@ export const createGraphSlice =
               ),
           }),
         );
+        recordGraphChange(previous);
       },
-      updateEdgeData: (edgeId, data) =>
+      updateEdgeData: (edgeId, data) => {
+        const previous = getGraphSnapshot();
         set((state) =>
           castGraphState({
             edges: state.edges.map((edge) =>
-              edge.id === edgeId
-                ? {
-                    ...edge,
-                    data: { label: "", ...edge.data, ...data },
-                  }
-                : edge,
+              edge.id === edgeId ? withEdgeData(edge, data) : edge,
             ),
+            nodes: state.nodes.map((node) => updateStoredCompoundEdge(node, edgeId, data)),
           }),
-        ),
-      updateNodeData: (nodeId, data) =>
+        );
+        recordGraphChange(previous);
+      },
+      updateNodeData: (nodeId, data) => {
+        const previous = getGraphSnapshot();
         set((state) =>
           castGraphState({
             nodes: state.nodes.map((node) =>
@@ -555,6 +698,8 @@ export const createGraphSlice =
                 : node,
             ),
           }),
-        ),
+        );
+        recordGraphChange(previous);
+      },
     };
   };

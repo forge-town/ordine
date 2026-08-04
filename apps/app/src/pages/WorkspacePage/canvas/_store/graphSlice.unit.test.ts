@@ -174,6 +174,24 @@ describe("graphSlice", () => {
     ]);
   });
 
+  it("stores new connections in the active compound while drilled in", () => {
+    const store = createGraphStore([makeFileNode("node-a"), makeOperationNode("node-b", 260, 0)]);
+
+    store.getState().composeNodes(["node-a", "node-b"], { id: "compound-1" });
+    store.getState().pushDrillStack("compound-1");
+    store.getState().handleConnect({
+      source: "node-a",
+      sourceHandle: null,
+      target: "node-b",
+      targetHandle: null,
+    });
+
+    expect(store.getState().edges).toEqual([]);
+    expect(store.getState().getVisibleGraph().edges).toEqual([
+      expect.objectContaining({ source: "node-a", target: "node-b" }),
+    ]);
+  });
+
   it("ungroups a compound node and restores internal and boundary edges", () => {
     const store = createGraphStore(
       [
@@ -251,6 +269,36 @@ describe("graphSlice", () => {
       y: 0,
     });
     expect(store.getState().edges.map((edge) => edge.id)).toEqual(["edge-child", "edge-boundary"]);
+  });
+
+  it("routes xyflow compound removals through compound cleanup", () => {
+    const store = createGraphStore(
+      [makeFileNode("outside", -240, 0), makeFileNode("node-a"), makeFileNode("node-b", 260, 0)],
+      [makeEdge("edge-boundary", "outside", "node-a"), makeEdge("edge-child", "node-a", "node-b")],
+    );
+
+    store.getState().composeNodes(["node-a", "node-b"], { id: "compound-1" });
+    store.getState().handleNodesChange([{ id: "compound-1", type: "remove" }]);
+
+    expect(store.getState().nodes.every((node) => node.parentId === undefined)).toBe(true);
+    expect(store.getState().edges.map((edge) => edge.id)).toEqual(["edge-child", "edge-boundary"]);
+  });
+
+  it("syncs rewired boundary edge edits back to the original edge", () => {
+    const store = createGraphStore(
+      [makeFileNode("outside", -240, 0), makeFileNode("node-a"), makeFileNode("node-b", 260, 0)],
+      [makeEdge("edge-boundary", "outside", "node-a")],
+    );
+
+    store.getState().composeNodes(["node-a", "node-b"], { id: "compound-1" });
+    store
+      .getState()
+      .updateEdgeData("e-outside-compound-1-edge-boundary", { label: "Updated boundary" });
+    store.getState().ungroupCompound("compound-1");
+
+    expect(store.getState().edges).toEqual([
+      expect.objectContaining({ id: "edge-boundary", data: { label: "Updated boundary" } }),
+    ]);
   });
 
   it("restores compound children while respecting other selected deletions", () => {

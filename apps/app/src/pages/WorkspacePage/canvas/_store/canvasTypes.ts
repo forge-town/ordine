@@ -17,43 +17,64 @@ type CanvasSnapshot = {
 type SnapshotNode = PipelineGraphSnapshot["nodes"][number];
 type SnapshotEdge = PipelineGraphSnapshot["edges"][number];
 
-const isAncestor = (
-  ancestorId: string,
-  node: CanvasNode,
-  nodeById: ReadonlyMap<string, CanvasNode>,
-): boolean => {
-  const visited = new Set<string>();
-  const cursor = { parentId: node.parentId };
-
-  while (cursor.parentId) {
-    if (cursor.parentId === ancestorId) {
-      return true;
-    }
-    if (visited.has(cursor.parentId)) {
-      return false;
-    }
-
-    visited.add(cursor.parentId);
-    cursor.parentId = nodeById.get(cursor.parentId)?.parentId;
-  }
-
-  return false;
-};
-
 export const sortParentBeforeChildren = (nodes: readonly CanvasNode[]): CanvasNode[] => {
   const nodeById = new Map(nodes.map((node) => [node.id, node]));
   const originalIndex = new Map(nodes.map((node, index) => [node.id, index]));
+  const childrenByParent = new Map<string, CanvasNode[]>();
 
-  return [...nodes].sort((a, b) => {
-    if (isAncestor(a.id, b, nodeById)) {
-      return -1;
+  for (const node of nodes) {
+    if (!node.parentId || !nodeById.has(node.parentId)) {
+      continue;
     }
-    if (isAncestor(b.id, a, nodeById)) {
-      return 1;
+    const children = childrenByParent.get(node.parentId) ?? [];
+    children.push(node);
+    childrenByParent.set(node.parentId, children);
+  }
+
+  const sorted: CanvasNode[] = [];
+  const visited = new Set<string>();
+  const treeIndexById = new Map<string, number>();
+  const getTreeIndex = (node: CanvasNode, visiting = new Set<string>()): number => {
+    const cached = treeIndexById.get(node.id);
+    if (cached !== undefined) {
+      return cached;
+    }
+    if (visiting.has(node.id)) {
+      return originalIndex.get(node.id) ?? 0;
     }
 
-    return (originalIndex.get(a.id) ?? 0) - (originalIndex.get(b.id) ?? 0);
-  });
+    visiting.add(node.id);
+    const index = Math.min(
+      originalIndex.get(node.id) ?? 0,
+      ...(childrenByParent.get(node.id) ?? []).map((child) => getTreeIndex(child, visiting)),
+    );
+    visiting.delete(node.id);
+    treeIndexById.set(node.id, index);
+
+    return index;
+  };
+  const visit = (node: CanvasNode) => {
+    if (visited.has(node.id)) {
+      return;
+    }
+    visited.add(node.id);
+    sorted.push(node);
+    for (const child of childrenByParent.get(node.id) ?? []) {
+      visit(child);
+    }
+  };
+
+  const roots = nodes
+    .filter((node) => !node.parentId || !nodeById.has(node.parentId))
+    .sort((a, b) => getTreeIndex(a) - getTreeIndex(b));
+  for (const node of roots) {
+    visit(node);
+  }
+  for (const node of nodes) {
+    visit(node);
+  }
+
+  return sorted;
 };
 
 export const fromPipelineSnapshot = (snapshot: PipelineGraphSnapshot): CanvasSnapshot => ({

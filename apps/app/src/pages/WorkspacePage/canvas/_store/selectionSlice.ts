@@ -101,6 +101,16 @@ const getPrimarySelection = (
     [...selectedIds].reverse().find((id) => nodes.some((node) => node.id === id)) ?? null,
 });
 
+const getSelectableEdges = (
+  nodes: readonly CanvasNode[],
+  edges: readonly CanvasEdge[],
+): CanvasEdge[] => [
+  ...edges,
+  ...nodes.flatMap((node) =>
+    node.type === "compound" ? ((node.data as { childEdges?: CanvasEdge[] }).childEdges ?? []) : [],
+  ),
+];
+
 export const createSelectionSlice =
   <T extends SelectionGraphState & SelectionSlice>(): StateCreator<T, [], [], SelectionSlice> =>
   (set, get) => {
@@ -120,16 +130,11 @@ export const createSelectionSlice =
         ),
       getSelectedRefs: () => {
         const state = get();
-        const childEdges = state.nodes.flatMap((node) =>
-          node.type === "compound"
-            ? ((node.data as { childEdges?: CanvasEdge[] }).childEdges ?? [])
-            : [],
-        );
 
         return toSelectedRefs(
           state.selectedIds,
           state.nodes,
-          [...state.edges, ...childEdges],
+          getSelectableEdges(state.nodes, state.edges),
           state.drillStack,
         );
       },
@@ -138,7 +143,11 @@ export const createSelectionSlice =
           const selectedIds = getNextSelectedIds(state.selectedIds, edgeId, mode);
 
           return {
-            ...getPrimarySelection(selectedIds, state.nodes, state.edges),
+            ...getPrimarySelection(
+              selectedIds,
+              state.nodes,
+              getSelectableEdges(state.nodes, state.edges),
+            ),
             selectedIds,
           } as unknown as Partial<T>;
         }),
@@ -147,7 +156,11 @@ export const createSelectionSlice =
           const selectedIds = getNextSelectedIds(state.selectedIds, nodeId, mode);
 
           return {
-            ...getPrimarySelection(selectedIds, state.nodes, state.edges),
+            ...getPrimarySelection(
+              selectedIds,
+              state.nodes,
+              getSelectableEdges(state.nodes, state.edges),
+            ),
             selectedIds,
           } as unknown as Partial<T>;
         }),
@@ -164,7 +177,7 @@ export const createSelectionSlice =
           }
 
           return castSelectionState({
-            ...getPrimarySelection(ids, state.nodes, state.edges),
+            ...getPrimarySelection(ids, state.nodes, getSelectableEdges(state.nodes, state.edges)),
             selectedIds: [...ids],
           });
         }),

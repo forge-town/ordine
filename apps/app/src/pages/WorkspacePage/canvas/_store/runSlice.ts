@@ -37,7 +37,7 @@ export type RunSlice = {
   setRunTraces: (traces: JobTrace[]) => void;
 };
 
-const LIVE_JOB_STATUSES = new Set<Job["status"]>(["queued", "running"]);
+const LIVE_JOB_STATUSES = new Set<Job["status"]>(["paused", "queued", "running"]);
 const ACTIVE_NODE_STATUSES = new Set<NodeRunStatus>(["queued", "running", "retrying"]);
 
 const normalizeNodeRunStatuses = (
@@ -97,6 +97,7 @@ export const createRunSlice =
         activeJobId: jobId,
         checkpointWait: null,
         nodeArtifacts: {},
+        nodeLlmContent: {},
         nodeRunStatuses: {},
         runTraces: [],
         runningNodeId: null,

@@ -13,7 +13,7 @@ export type DerivePhaseInput = {
   pendingProposal?: unknown | null;
 };
 
-const ACTIVE_JOB_STATUSES = new Set<JobStatus>(["queued", "running"]);
+const ACTIVE_JOB_STATUSES = new Set<JobStatus>(["paused", "queued", "running"]);
 
 export const derivePhase = ({
   activeJob,

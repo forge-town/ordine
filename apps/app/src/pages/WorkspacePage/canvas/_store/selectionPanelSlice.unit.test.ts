@@ -98,6 +98,19 @@ describe("selection and panel slices", () => {
     ]);
   });
 
+  it("uses an internal edge as the primary selection while drilled in", () => {
+    const store = createTestStore();
+
+    store.getState().composeNodes(["node-a", "node-b"], { id: "compound-1" });
+    store.getState().pushDrillStack("compound-1");
+    store.getState().setSelectedIds(["edge-a"]);
+
+    expect(store.getState().selectedEdgeId).toBe("edge-a");
+    expect(store.getState().getSelectedRefs()).toEqual([
+      expect.objectContaining({ baseId: "edge-a", id: "compound-1/edge-a", type: "edge" }),
+    ]);
+  });
+
   it("keeps state identity when the selection content is unchanged", () => {
     const store = createTestStore();
 
