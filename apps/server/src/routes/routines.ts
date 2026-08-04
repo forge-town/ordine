@@ -30,7 +30,9 @@ routinesRoutes.get("/", async (c) => {
       : await routinesService.getAll();
 
   const filtered =
-    parsed.data.enabled === "false" ? routines.filter((routine) => !routine.enabled) : routines;
+    parsed.data.enabled === undefined
+      ? routines
+      : routines.filter((routine) => routine.enabled === (parsed.data.enabled === "true"));
 
   return c.json(filtered);
 });

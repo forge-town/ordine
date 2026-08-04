@@ -7,10 +7,15 @@ import { resultJson, resultNoContent, validateJson, validationErrorJson } from "
 
 export const conversationsRoutes = new Hono();
 
-const listQuerySchema = z.object({
-  pipelineId: z.string().optional(),
-  limit: z.coerce.number().int().positive().optional(),
-});
+const listQuerySchema = z
+  .object({
+    pipelineId: z.string().optional(),
+    limit: z.coerce.number().int().positive().optional(),
+  })
+  .refine(({ limit, pipelineId }) => limit === undefined || pipelineId !== undefined, {
+    message: "limit requires pipelineId",
+    path: ["limit"],
+  });
 
 const CreateConversationMessageRouteSchema = CreateConversationMessageSchema.extend({
   id: z.string().default(() => randomUUID()),

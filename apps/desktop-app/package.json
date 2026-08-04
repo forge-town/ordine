@@ -13,7 +13,8 @@
     "bundle-server": "bun run scripts/bundle-server.ts",
     "lint": "oxlint --config ./.oxlintrc.json src/",
     "format": "oxfmt --config node_modules/@repo/oxc-formatter-config/oxfmt.json --write src/",
-    "format:check": "oxfmt --config node_modules/@repo/oxc-formatter-config/oxfmt.json --check src/"
+    "format:check": "oxfmt --config node_modules/@repo/oxc-formatter-config/oxfmt.json --check src/",
+    "test": "vitest run"
   },
   "dependencies": {
     "@refinedev/core": "^5.0.12",
@@ -45,6 +46,7 @@
     "@vitejs/plugin-react": "^4.5.2",
     "tailwindcss": "^4.2.2",
     "typescript": "^5.8.3",
-    "vite": "^6.3.5"
+    "vite": "^6.3.5",
+    "vitest": "^4.1.6"
   }
 }

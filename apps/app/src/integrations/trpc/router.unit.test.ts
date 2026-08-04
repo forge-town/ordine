@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { ok } from "neverthrow";
+import { err, ok } from "neverthrow";
 
 vi.hoisted(() => {
   process.env.BETTER_AUTH_SECRET = "test-secret";
@@ -14,6 +14,7 @@ const mocks = vi.hoisted(() => ({
   pipelineAssetsGetAll: vi.fn(),
   pipelineAssetsGetUsageCount: vi.fn(),
   projectsGetAll: vi.fn(),
+  routinesGetByPipelineId: vi.fn(),
   routinesGetAll: vi.fn(),
   routinesRunNow: vi.fn(),
   usageGetDailyTokenSeries: vi.fn(),
@@ -46,6 +47,7 @@ vi.mock("./services", () => ({
   refinementsService: {},
   routinesService: {
     getAll: mocks.routinesGetAll,
+    getByPipelineId: mocks.routinesGetByPipelineId,
     runNow: mocks.routinesRunNow,
   },
   settingsService: {},
@@ -80,6 +82,7 @@ beforeEach(() => {
   mocks.pipelineAssetsGetUsageCount.mockResolvedValue(ok({ assetId: "asset-1", count: 1 }));
   mocks.projectsGetAll.mockResolvedValue(ok([]));
   mocks.routinesGetAll.mockResolvedValue([]);
+  mocks.routinesGetByPipelineId.mockResolvedValue([]);
   mocks.routinesRunNow.mockResolvedValue(ok({ jobId: "job-1" }));
   mocks.usageGetDailyTokenSeries.mockResolvedValue(ok([]));
 });
@@ -87,6 +90,7 @@ beforeEach(() => {
 describe("domain tRPC routers", () => {
   it("exposes the newly added service procedures", async () => {
     const caller = domainRouter.createCaller({ session: null });
+    const authedCaller = domainRouter.createCaller({ session: { user: { id: "user-1" } } });
 
     await expect(caller.connectors.getMany()).resolves.toEqual([]);
     await expect(caller.conversations.getMany()).resolves.toEqual([]);
@@ -96,7 +100,7 @@ describe("domain tRPC routers", () => {
     await expect(caller.routines.runNow({ id: "routine-1" })).resolves.toEqual({
       jobId: "job-1",
     });
-    await expect(caller.connectors.connect({ id: "connector-1" })).resolves.toEqual({
+    await expect(authedCaller.connectors.connect({ id: "connector-1" })).resolves.toEqual({
       id: "connector-1",
     });
     await expect(caller.conversations.clearAll()).resolves.toEqual({ cleared: true });
@@ -110,5 +114,46 @@ describe("domain tRPC routers", () => {
         to: new Date("2026-07-31T00:00:00.000Z"),
       }),
     ).resolves.toEqual([]);
+  });
+
+  it("requires a session for connector mutations", async () => {
+    const caller = domainRouter.createCaller({ session: null });
+
+    await expect(caller.connectors.connect({ id: "connector-1" })).rejects.toMatchObject({
+      code: "UNAUTHORIZED",
+    });
+    expect(mocks.connectorsConnect).not.toHaveBeenCalled();
+  });
+
+  it("filters pipeline routines by enabled status", async () => {
+    mocks.routinesGetByPipelineId.mockResolvedValue([
+      { id: "enabled", enabled: true },
+      { id: "disabled", enabled: false },
+    ]);
+    const caller = domainRouter.createCaller({ session: null });
+
+    await expect(caller.routines.getMany({ pipelineId: "p1", enabled: true })).resolves.toEqual([
+      { id: "enabled", enabled: true },
+    ]);
+  });
+
+  it("maps missing routine runs to NOT_FOUND", async () => {
+    const notFound = new Error("Routine:missing not found");
+    notFound.name = "NotFoundError";
+    mocks.routinesRunNow.mockResolvedValue(err(notFound));
+    const caller = domainRouter.createCaller({ session: null });
+
+    await expect(caller.routines.runNow({ id: "missing" })).rejects.toMatchObject({
+      code: "NOT_FOUND",
+    });
+  });
+
+  it("rejects conversation limit without a pipelineId", async () => {
+    const caller = domainRouter.createCaller({ session: null });
+
+    await expect(caller.conversations.getMany({ limit: 1 })).rejects.toMatchObject({
+      code: "BAD_REQUEST",
+    });
+    expect(mocks.conversationsGetAll).not.toHaveBeenCalled();
   });
 });

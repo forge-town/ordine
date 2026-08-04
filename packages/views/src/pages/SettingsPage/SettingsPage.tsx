@@ -5,7 +5,9 @@ import { SettingsPageContent } from "./SettingsPageContent";
 const STORAGE_KEY = "ordine_settings_v1";
 
 const loadInitialSettings = (): Partial<AppSettings> | undefined => {
-  const raw = localStorage.getItem(STORAGE_KEY);
+  if (typeof globalThis.localStorage === "undefined") return undefined;
+
+  const raw = globalThis.localStorage.getItem(STORAGE_KEY);
   if (!raw) return undefined;
   const result = safeJsonParse<Partial<AppSettings>>(raw);
 

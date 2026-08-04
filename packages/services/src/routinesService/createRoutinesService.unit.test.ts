@@ -1,5 +1,6 @@
 import { err, ok } from "neverthrow";
 import { describe, expect, it, vi, beforeEach } from "vitest";
+import { NotFoundError } from "../serviceErrors";
 
 const now = new Date("2026-06-10T09:00:00.000Z");
 const storedRoutine = {
@@ -190,6 +191,7 @@ describe("createRoutinesService", () => {
     const svc = makeService();
     const result = await svc.runNow("missing");
     expect(result.isErr()).toBe(true);
+    expect(result._unsafeUnwrapErr()).toBeInstanceOf(NotFoundError);
     expect(startRun).not.toHaveBeenCalled();
   });
 });

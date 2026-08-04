@@ -3,6 +3,7 @@ import { createRoutinesDao, type DbConnection } from "@repo/models";
 import { mapWithMeta, withMeta } from "@repo/schemas";
 import { getNextCronRunAt, toStringInputs } from "@repo/utils";
 import type { RoutineStartRun } from "../routineSchedulerService/routineScheduler";
+import { NotFoundError } from "../serviceErrors";
 
 // Disabled routines never have a pending occurrence; enabled routines get the
 // next occurrence of their cron expression (null when the expression is
@@ -46,7 +47,7 @@ export const createRoutinesService = (
     },
     update: async (id: string, patch: Parameters<typeof dao.update>[1]) => {
       const existing = await dao.findById(id);
-      if (!existing) return err(new Error(`Routine not found: ${id}`));
+      if (!existing) return err(new NotFoundError("Routine", id));
 
       // The enabled/cron cross-check lives here (not in UpdateRoutineSchema)
       // because it needs the stored routine: a pure { enabled: true } patch is
@@ -63,14 +64,14 @@ export const createRoutinesService = (
       const effectivePatch = scheduleTouched ? { ...patch, nextRunAt: schedule.value } : patch;
 
       const updated = await dao.update(id, effectivePatch);
-      if (!updated) return err(new Error(`Routine not found: ${id}`));
+      if (!updated) return err(new NotFoundError("Routine", id));
 
       return ok(withMeta(updated));
     },
     delete: (id: string) => dao.delete(id),
     runNow: async (id: string): Promise<Result<{ jobId: string }, Error>> => {
       const routine = await dao.findById(id);
-      if (!routine) return err(new Error(`Routine not found: ${id}`));
+      if (!routine) return err(new NotFoundError("Routine", id));
 
       const result = await deps.startRun({
         inputs: toStringInputs(routine.inputConfig),

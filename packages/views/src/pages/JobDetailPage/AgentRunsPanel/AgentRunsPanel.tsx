@@ -46,7 +46,7 @@ export const AgentRunsPanel = ({ jobId }: AgentRunsPanelProps) => {
       ) : (
         <div className="p-3 space-y-2">
           {runs.map((run) => (
-            <AgentRunCard key={run.id} run={run} />
+            <AgentRunCard key={run.id} jobId={jobId} run={run} />
           ))}
         </div>
       )}

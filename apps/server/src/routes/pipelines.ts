@@ -1,13 +1,13 @@
 import { Hono } from "hono";
 import { ResultAsync } from "neverthrow";
 import { z } from "zod/v4";
-import { ConversationAttachmentSchema, PipelineGraphSnapshotSchema } from "@repo/schemas";
+import { PipelineGraphSnapshotSchema, ProposeAttachmentSchema } from "@repo/schemas";
 import { pipelinesService, pipelineRunnerService } from "../services.js";
 
 export const pipelinesRoutes = new Hono();
 
 const proposeActionsBodySchema = z.object({
-  attachments: z.array(ConversationAttachmentSchema).optional(),
+  attachments: z.array(ProposeAttachmentSchema).optional(),
   diagnostics: z.array(z.string()).optional(),
   failedProposal: z.unknown().optional(),
   snapshot: PipelineGraphSnapshotSchema,

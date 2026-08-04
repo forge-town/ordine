@@ -27,7 +27,9 @@ export const routinesRouter = router({
           ? await routinesService.getEnabled()
           : await routinesService.getAll();
 
-      return input?.enabled === false ? routines.filter((routine) => !routine.enabled) : routines;
+      return input?.enabled === undefined
+        ? routines
+        : routines.filter((routine) => routine.enabled === input.enabled);
     }),
 
   getById: publicProcedure.input(z.object({ id: z.string() })).query(async ({ input }) => {

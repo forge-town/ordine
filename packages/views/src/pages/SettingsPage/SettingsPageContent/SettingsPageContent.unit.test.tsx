@@ -4,6 +4,7 @@ import { SettingsPageContent } from "./SettingsPageContent";
 
 vi.mock("../sections", () => ({
   DeveloperSection: () => <div>DeveloperSection</div>,
+  GeneralSection: () => <div>GeneralSection</div>,
   LanguageSection: () => <div>LanguageSection</div>,
 }));
 
@@ -16,10 +17,11 @@ describe("SettingsPageContent", () => {
   it("renders navigation sidebar items", () => {
     render(<SettingsPageContent />);
     expect(screen.getByText("语言与地区")).toBeTruthy();
+    expect(screen.getByText("通用")).toBeTruthy();
   });
 
-  it("renders LanguageSection by default", () => {
+  it("renders GeneralSection by default", () => {
     render(<SettingsPageContent />);
-    expect(screen.getByText("LanguageSection")).toBeTruthy();
+    expect(screen.getByText("GeneralSection")).toBeTruthy();
   });
 });

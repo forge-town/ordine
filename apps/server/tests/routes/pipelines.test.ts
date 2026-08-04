@@ -97,4 +97,31 @@ describe("pipelinesRoutes propose-actions", () => {
       runtimeId: "runtime-codex",
     });
   });
+
+  it("preserves attachment content when forwarding propose-actions", async () => {
+    mocks.proposeActions.mockResolvedValue({ proposal: null, diagnostics: [] });
+    const attachment = {
+      name: "context.txt",
+      type: "text/plain",
+      content: "full attachment body",
+    };
+
+    const response = await makeApp().request("/pipelines/p1/propose-actions", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        attachments: [attachment],
+        snapshot: { nodes: [], edges: [] },
+        message: "use this context",
+      }),
+    });
+
+    expect(response.status).toBe(200);
+    expect(mocks.proposeActions).toHaveBeenCalledWith({
+      pipelineId: "p1",
+      attachments: [attachment],
+      snapshot: { nodes: [], edges: [] },
+      message: "use this context",
+    });
+  });
 });

@@ -1,23 +1,28 @@
 import { useState } from "react";
-import { Globe, Code, ChevronRight, Settings } from "lucide-react";
+import { Globe, Code, ChevronRight, Settings, SlidersHorizontal } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
 import { cn } from "@repo/ui/lib/utils";
 import { PageHeader } from "../../../components/PageHeader";
-import { DeveloperSection, LanguageSection } from "../sections";
+import { DeveloperSection, GeneralSection, LanguageSection } from "../sections";
 
-type Section = "language" | "developer";
+type Section = "general" | "language" | "developer";
 
 const SECTION_ICONS: Record<Section, React.FC<{ className?: string }>> = {
+  general: SlidersHorizontal,
   language: Globe,
   developer: Code,
 };
 
-const SECTION_IDS: Section[] = ["language", ...(import.meta.env.DEV ? ["developer" as const] : [])];
+const SECTION_IDS: Section[] = [
+  "general",
+  "language",
+  ...(import.meta.env.DEV ? ["developer" as const] : []),
+];
 
 export const SettingsPageContent = () => {
   const { t } = useTranslation();
-  const [active, setActive] = useState<Section>("language");
+  const [active, setActive] = useState<Section>("general");
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
@@ -55,6 +60,7 @@ export const SettingsPageContent = () => {
 
         <div className="flex-1 overflow-y-auto p-8">
           <div className="mx-auto max-w-lg space-y-6">
+            {active === "general" && <GeneralSection />}
             {active === "language" && <LanguageSection />}
             {active === "developer" && <DeveloperSection />}
           </div>

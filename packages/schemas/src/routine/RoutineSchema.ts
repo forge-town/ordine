@@ -1,5 +1,5 @@
 import { z } from "zod/v4";
-import { isValidCronExpression } from "@repo/utils";
+import { isValidCronExpression } from "@repo/utils/cron";
 
 interface RoutineScheduleShape {
   cronExpression?: string | null | undefined;
