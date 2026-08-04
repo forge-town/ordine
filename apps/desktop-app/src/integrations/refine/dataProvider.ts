@@ -47,14 +47,31 @@ type CustomRequest = {
   url: string;
   method: string;
   body?: unknown;
+  transform?: (data: unknown) => unknown;
 };
 
 const payloadRecord = (payload: unknown) => (payload ?? {}) as Record<string, unknown>;
+
+const payloadWithout = (payload: unknown, ...fields: string[]) => {
+  const body = { ...payloadRecord(payload) };
+  for (const field of fields) delete body[field];
+
+  return body;
+};
 
 const requiredPayloadString = (payload: unknown, field: string) => {
   const value = payloadRecord(payload)[field];
   if (typeof value !== "string" || value.length === 0) {
     throw new Error(`Custom request requires payload.${field}`);
+  }
+
+  return value;
+};
+
+const requiredPayloadNumber = (payload: unknown, field: string) => {
+  const value = payloadRecord(payload)[field];
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    throw new TypeError(`Custom request requires numeric payload.${field}`);
   }
 
   return value;
@@ -73,6 +90,38 @@ const resolveCustomRequest = (url: string, method: string, payload: unknown): Cu
   if (url.startsWith("http")) return { url, method, body: payload };
 
   switch (url) {
+    case "pipelines/run": {
+      const id = requiredPayloadString(payload, "id");
+
+      return {
+        url: `${DESKTOP_API_BASE}/pipelines/${id}/run`,
+        method: "POST",
+        body: payloadWithout(payload, "id"),
+      };
+    }
+    case "pipelines/analyzeIntent": {
+      return {
+        url: `${DESKTOP_API_BASE}/pipelines/analyze-intent`,
+        method: "POST",
+        body: payloadRecord(payload),
+      };
+    }
+    case "pipelines/generateStructure": {
+      return {
+        url: `${DESKTOP_API_BASE}/pipelines/generate-structure`,
+        method: "POST",
+        body: payloadRecord(payload),
+      };
+    }
+    case "pipelines/proposeActions": {
+      const id = requiredPayloadString(payload, "id");
+
+      return {
+        url: `${DESKTOP_API_BASE}/pipelines/${id}/propose-actions`,
+        method: "POST",
+        body: payloadWithout(payload, "id"),
+      };
+    }
     case "connectors/connect": {
       return {
         url: `${DESKTOP_API_BASE}/connectors/${requiredPayloadString(payload, "id")}/connect`,
@@ -119,8 +168,56 @@ const resolveCustomRequest = (url: string, method: string, payload: unknown): Cu
     case "usage/byAgent": {
       return usageRequest("by-agent", payload);
     }
+    case "jobs/traces": {
+      return {
+        url: `${DESKTOP_API_BASE}/jobs/${requiredPayloadString(payload, "jobId")}/traces`,
+        method: "GET",
+        transform: (traces) => ({ traces }),
+      };
+    }
+    case "jobs/agentRuns": {
+      return {
+        url: `${DESKTOP_API_BASE}/jobs/${requiredPayloadString(payload, "jobId")}/agent-runs`,
+        method: "GET",
+        transform: (agentRuns) => ({ agentRuns }),
+      };
+    }
+    case "jobs/agentRunSpans": {
+      const jobId = requiredPayloadString(payload, "jobId");
+      const rawExportId = requiredPayloadNumber(payload, "rawExportId");
+
+      return {
+        url: `${DESKTOP_API_BASE}/jobs/${jobId}/agent-runs/${rawExportId}/spans`,
+        method: "GET",
+        transform: (spans) => ({ spans }),
+      };
+    }
+    case "distillations/run": {
+      return {
+        url: `${DESKTOP_API_BASE}/distillations/${requiredPayloadString(payload, "id")}/run`,
+        method: "POST",
+      };
+    }
+    case "operations/run": {
+      const operationId = requiredPayloadString(payload, "operationId");
+
+      return {
+        url: `${DESKTOP_API_BASE}/operations/${operationId}/run`,
+        method: "POST",
+        body: payloadWithout(payload, "operationId"),
+      };
+    }
+    case "pipelines/optimizeFromDistillation":
+    case "refinements/start":
+    case "settings/scanRuntimes":
+    case "agentRuntimes/syncAll":
+    case "agentRuntimes/scanAndSync":
+    case "skills/previewImport":
+    case "skills/importCandidates": {
+      throw new Error(`Unsupported Desktop custom endpoint "${url}"`);
+    }
     default: {
-      return { url: `${DESKTOP_API_BASE}/${url}`, method, body: payload };
+      throw new Error(`Unknown Desktop custom endpoint "${url}"`);
     }
   }
 };
@@ -133,7 +230,8 @@ const LIST_FILTERS: Partial<Record<string, string[]>> = {
 };
 
 const getListUrl = (params: GetListParams) => {
-  const url = new URL(`${DESKTOP_API_BASE}/${getPath(params.resource)}`);
+  const path = params.resource === "filesystem" ? "filesystem/browse" : getPath(params.resource);
+  const url = new URL(`${DESKTOP_API_BASE}/${path}`);
   const allowedFields = LIST_FILTERS[params.resource] ?? [];
   for (const filter of params.filters ?? []) {
     if (!("field" in filter) || !("value" in filter) || !allowedFields.includes(filter.field)) {
@@ -145,6 +243,45 @@ const getListUrl = (params: GetListParams) => {
   }
 
   return url.toString();
+};
+
+const executeCustomRequest = async (request: CustomRequest) => {
+  const hasBody = request.body !== undefined;
+  const response = await desktopRequest(request.url, {
+    method: request.method,
+    headers: hasBody ? { "Content-Type": "application/json" } : undefined,
+    body: hasBody ? JSON.stringify(request.body) : undefined,
+  });
+  if (!response.ok) {
+    throw new Error(`Custom request failed: ${request.method} ${request.url} ${response.status}`);
+  }
+
+  const data = response.status === 204 ? {} : await response.json();
+
+  return request.transform ? request.transform(data) : data;
+};
+
+const executeJobAnalysis = async (payload: unknown) => {
+  const jobId = requiredPayloadString(payload, "jobId");
+  const [tracesResult, agentRunsResult] = await Promise.all([
+    executeCustomRequest(resolveCustomRequest("jobs/traces", "GET", { jobId })),
+    executeCustomRequest(resolveCustomRequest("jobs/agentRuns", "GET", { jobId })),
+  ]);
+  const traces = payloadRecord(tracesResult).traces;
+  const agentRunsValue = payloadRecord(agentRunsResult).agentRuns;
+  const agentRuns = Array.isArray(agentRunsValue) ? agentRunsValue : [];
+  const spansByRunEntries = await Promise.all(
+    agentRuns.map(async (run) => {
+      const rawExportId = requiredPayloadNumber(run, "id");
+      const result = await executeCustomRequest(
+        resolveCustomRequest("jobs/agentRunSpans", "GET", { jobId, rawExportId }),
+      );
+
+      return [rawExportId, payloadRecord(result).spans] as const;
+    }),
+  );
+
+  return { traces, agentRuns, spansByRun: Object.fromEntries(spansByRunEntries) };
 };
 
 export const dataProvider: DataProvider = {
@@ -239,17 +376,12 @@ export const dataProvider: DataProvider = {
     params: CustomParams,
   ): Promise<CustomResponse<TData>> => {
     const { url, method = "get", payload } = params;
-    const request = resolveCustomRequest(url, method.toUpperCase(), payload);
-
-    const response = await desktopRequest(request.url, {
-      method: request.method,
-      headers: request.body ? { "Content-Type": "application/json" } : undefined,
-      body: request.body ? JSON.stringify(request.body) : undefined,
-    });
-    if (!response.ok) {
-      throw new Error(`Custom request failed: ${request.method} ${request.url} ${response.status}`);
+    if (url === "jobs/analysis") {
+      return { data: (await executeJobAnalysis(payload)) as unknown as TData };
     }
-    const data = response.status === 204 ? ({} as TData) : ((await response.json()) as TData);
+
+    const request = resolveCustomRequest(url, method.toUpperCase(), payload);
+    const data = (await executeCustomRequest(request)) as TData;
 
     return { data };
   },

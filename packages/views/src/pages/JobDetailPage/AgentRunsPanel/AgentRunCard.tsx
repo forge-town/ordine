@@ -19,10 +19,11 @@ import { SpanRow } from "./SpanRow";
 import { formatDuration, formatTokens } from "./agentRunsHelpers";
 
 interface AgentRunCardProps {
+  jobId: string;
   run: AgentRawExport;
 }
 
-export const AgentRunCard = ({ run }: AgentRunCardProps) => {
+export const AgentRunCard = ({ jobId, run }: AgentRunCardProps) => {
   const [expanded, setExpanded] = useState(false);
   const [rawExpanded, setRawExpanded] = useState(false);
   const handleToggleRawButtonClick = () => setRawExpanded((prev) => !prev);
@@ -32,7 +33,7 @@ export const AgentRunCard = ({ run }: AgentRunCardProps) => {
   const { result: spansResult } = useCustom<{ spans: AgentSpan[] }>({
     url: "jobs/agentRunSpans",
     method: "get",
-    config: { payload: { rawExportId: run.id } },
+    config: { payload: { jobId, rawExportId: run.id } },
     queryOptions: { enabled: expanded },
   });
   const spans = spansResult.data?.spans ?? [];
