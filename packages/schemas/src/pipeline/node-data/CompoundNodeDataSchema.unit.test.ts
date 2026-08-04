@@ -19,10 +19,12 @@ describe("CompoundNodeDataSchema backward compatibility", () => {
       nodeType: "compound",
       compoundKind: "verify",
       childNodeIds: ["v0", "vg", "vc", "vgate", "vout"],
+      boundaryEdges: [{ id: "vin", source: "input", target: "v0", data: { label: "input" } }],
       childEdges: [{ id: "ve0", source: "v0", target: "vg", data: { label: "candidate" } }],
       verifyConfig: { maxRounds: 3, criteria: "All answers must cite the source text." },
     });
     expect(parsed.compoundKind).toBe("verify");
+    expect(parsed.boundaryEdges).toHaveLength(1);
     expect(parsed.childEdges).toHaveLength(1);
     expect(parsed.verifyConfig?.maxRounds).toBe(3);
   });
