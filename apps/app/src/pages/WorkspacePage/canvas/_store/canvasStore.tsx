@@ -64,3 +64,12 @@ export const useCanvasStore = <T,>(selector: (state: CanvasStoreState) => T): T 
 
   return useStore(store, selector);
 };
+
+export const useCanvasStoreApi = (): CanvasStore => {
+  const store = useContext(CanvasStoreContext);
+  if (!store) {
+    throw new Error("useCanvasStoreApi must be used within CanvasStoreProvider");
+  }
+
+  return store;
+};
