@@ -4,7 +4,7 @@ import { useShallow } from "zustand/shallow";
 import { cn } from "@repo/ui/lib/utils";
 import { normalizeNodeRunStatus, type NodeRunStatus } from "@repo/schemas";
 import { selectNodePortCounts, selectNodeRunState } from "../_store/selectors";
-import { useCanvasStore } from "../_store/canvasStore";
+import { useCanvasStore, useCanvasStoreApi } from "../_store/canvasStore";
 import type { ProposalPreviewDiff } from "../_store/proposalSlice";
 import type { NodeTheme } from "./support/nodeCardTheme";
 import { NodeCardPorts } from "./support/NodeCardPorts";
@@ -13,6 +13,7 @@ export type GNodeShellStatus = NodeRunStatus | "preview";
 
 export interface GNodeShellProps {
   children?: React.ReactNode;
+  canDuplicate?: boolean;
   dataStatus?: string;
   detail?: string;
   icon: LucideIcon;
@@ -72,6 +73,7 @@ const GNodeStatusDot = ({ label, status }: { label: string; status: NodeRunStatu
 
 export const GNodeShell = ({
   children,
+  canDuplicate = true,
   dataStatus,
   detail,
   icon: Icon,
@@ -84,6 +86,7 @@ export const GNodeShell = ({
   title,
 }: GNodeShellProps) => {
   const { t } = useTranslation();
+  const canvasStore = useCanvasStoreApi();
   const previewDiff = useCanvasStore((state) =>
     state.proposalPreview && state.drillStack.length === 0
       ? (state.proposalPreview.diffById[id] ?? "reuse")
@@ -102,24 +105,37 @@ export const GNodeShell = ({
     rightConnectedPortMask,
     rightPortCount,
   } = useCanvasStore(useShallow(selectNodePortCounts(id)));
-  const duplicateNode = useCanvasStore((state) => state.duplicateNode);
-  const deleteNode = useCanvasStore((state) => state.deleteNode);
-  const setConfigNodeId = useCanvasStore((state) => state.setConfigNodeId);
+  const openNodeConfig = useCanvasStore((state) => state.openNodeConfig);
+  const isDrilling = useCanvasStore((state) => state.drillStack.length > 0);
   const normalizedStatus = normalizeNodeRunStatus(runStatus ?? dataStatus ?? "idle");
   const preview = previewDiff !== null;
   const statusLabel = t(getStatusKey(normalizedStatus));
 
   const handleConfigClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
-    setConfigNodeId(id);
+    openNodeConfig(id);
   };
   const handleDuplicateClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
-    duplicateNode(id);
+    if (isDrilling) {
+      return;
+    }
+
+    const state = canvasStore.getState();
+    const previous = { edges: state.edges, nodes: state.nodes };
+    state.duplicateNode(id);
+    canvasStore.getState().recordHistory(previous);
   };
   const handleDeleteClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
-    deleteNode(id);
+    if (isDrilling) {
+      return;
+    }
+
+    const state = canvasStore.getState();
+    const previous = { edges: state.edges, nodes: state.nodes };
+    state.deleteNode(id);
+    canvasStore.getState().recordHistory(previous);
   };
 
   return (
@@ -144,26 +160,30 @@ export const GNodeShell = ({
           >
             <Settings2 className="h-3 w-3" />
           </button>
-          <button
-            aria-label={t("workspace.canvas.nodes.actions.duplicate")}
-            className="rounded-full p-1 text-foreground/70 hover:bg-accent/70"
-            data-testid="canvas-v2-node-duplicate"
-            title={t("workspace.canvas.nodes.actions.duplicate")}
-            type="button"
-            onClick={handleDuplicateClick}
-          >
-            <Copy className="h-3 w-3" />
-          </button>
-          <button
-            aria-label={t("workspace.canvas.nodes.actions.delete")}
-            className="rounded-full p-1 text-foreground/70 hover:bg-destructive/10 hover:text-destructive"
-            data-testid="canvas-v2-node-delete"
-            title={t("workspace.canvas.nodes.actions.delete")}
-            type="button"
-            onClick={handleDeleteClick}
-          >
-            <Trash2 className="h-3 w-3" />
-          </button>
+          {canDuplicate && !isDrilling && (
+            <button
+              aria-label={t("workspace.canvas.nodes.actions.duplicate")}
+              className="rounded-full p-1 text-foreground/70 hover:bg-accent/70"
+              data-testid="canvas-v2-node-duplicate"
+              title={t("workspace.canvas.nodes.actions.duplicate")}
+              type="button"
+              onClick={handleDuplicateClick}
+            >
+              <Copy className="h-3 w-3" />
+            </button>
+          )}
+          {!isDrilling && (
+            <button
+              aria-label={t("workspace.canvas.nodes.actions.delete")}
+              className="rounded-full p-1 text-foreground/70 hover:bg-destructive/10 hover:text-destructive"
+              data-testid="canvas-v2-node-delete"
+              title={t("workspace.canvas.nodes.actions.delete")}
+              type="button"
+              onClick={handleDeleteClick}
+            >
+              <Trash2 className="h-3 w-3" />
+            </button>
+          )}
         </div>
       )}
       <div

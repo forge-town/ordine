@@ -1,4 +1,9 @@
-import type { Operation, OperationNodeData, Skill } from "@repo/schemas";
+import {
+  buildDraftOperation,
+  type Operation,
+  type OperationNodeData,
+  type Skill,
+} from "@repo/schemas";
 
 export const makeOperationNodeData = (operation: Operation): OperationNodeData => ({
   config: {},
@@ -9,11 +14,17 @@ export const makeOperationNodeData = (operation: Operation): OperationNodeData =
   status: "idle",
 });
 
-export const makeSkillOperationNodeData = (skill: Skill): OperationNodeData => ({
-  config: {},
-  label: skill.label || skill.name,
-  nodeType: "operation",
-  operationId: `skill:${skill.id}`,
-  operationName: skill.label || skill.name,
-  status: "idle",
+export const makeSkillBackedOperation = (skill: Skill): Operation => ({
+  ...buildDraftOperation(skill),
+  id: `skill-operation-${skill.id}`,
+  name: skill.label || skill.name,
 });
+
+export const isSkillBackedOperation = (operation: Operation, skill: Skill): boolean => {
+  const executor = operation.config.executor;
+
+  return (
+    operation.sourceSkillId === skill.id ||
+    (executor?.type === "agent" && executor.agentMode === "skill" && executor.skillId === skill.id)
+  );
+};

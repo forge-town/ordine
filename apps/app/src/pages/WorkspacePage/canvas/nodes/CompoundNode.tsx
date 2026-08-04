@@ -17,6 +17,7 @@ export const CompoundNode = ({ data, id, selected }: CompoundNodeProps) => {
     <GNodeShell
       leftHandle
       rightHandle
+      canDuplicate={false}
       detail={t("workspace.canvas.nodes.compound.childCount", {
         count: data.childNodeIds.length,
       })}

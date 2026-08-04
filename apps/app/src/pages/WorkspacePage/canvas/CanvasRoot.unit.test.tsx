@@ -3,6 +3,10 @@ import type { PipelineData } from "@repo/schemas";
 import { describe, expect, it, vi } from "vitest";
 import { CanvasRoot } from "./CanvasRoot";
 
+vi.mock("@refinedev/core", () => ({
+  useDataProvider: () => () => ({}),
+}));
+
 vi.mock("@xyflow/react", () => ({
   BaseEdge: () => null,
   EdgeLabelRenderer: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
@@ -16,7 +20,9 @@ vi.mock("@xyflow/react", () => ({
   ReactFlowProvider: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
   getBezierPath: () => ["M0,0 C0,0 0,0 0,0", 0, 0],
   useNodeId: () => "node-a",
+  useNodesInitialized: () => false,
   useReactFlow: () => ({
+    fitView: vi.fn(),
     screenToFlowPosition: ({ x, y }: { x: number; y: number }) => ({ x, y }),
   }),
   useUpdateNodeInternals: () => () => undefined,

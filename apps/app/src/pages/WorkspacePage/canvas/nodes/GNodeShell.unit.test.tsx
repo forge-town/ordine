@@ -82,6 +82,7 @@ describe("Canvas V2 node shell variants", () => {
     expect(
       screen.getByText(i18n.t("workspace.canvas.nodes.compound.childCount", { count: 2 })),
     ).toBeInTheDocument();
+    expect(screen.queryByTestId("canvas-v2-node-duplicate")).not.toBeInTheDocument();
   });
 
   it("renders folder, GitHub project, and local output variants", () => {
@@ -160,6 +161,8 @@ describe("Canvas V2 node shell variants", () => {
 
     expect(screen.queryByTestId("canvas-v2-node-preview-badge")).not.toBeInTheDocument();
     expect(screen.getByTestId("canvas-v2-node-configure")).toBeInTheDocument();
+    expect(screen.queryByTestId("canvas-v2-node-duplicate")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("canvas-v2-node-delete")).not.toBeInTheDocument();
   });
 
   it("applies selected node styling", () => {
@@ -235,6 +238,7 @@ describe("Canvas V2 node shell variants", () => {
 
   it("updates panel targets from interactive node controls", () => {
     const store = makeStore();
+    store.setState({ inspectEdgeId: "edge-a" });
 
     render(<GNodeShell icon={Zap} id="node-a" kind="Operation" theme="violet" title="Parse" />, {
       wrapper: makeWrapper(store),
@@ -242,17 +246,32 @@ describe("Canvas V2 node shell variants", () => {
 
     fireEvent.click(screen.getByTestId("canvas-v2-node-configure"));
     expect(store.getState().configNodeId).toBe("node-a");
+    expect(store.getState().inspectEdgeId).toBeNull();
   });
 
-  it("duplicates and deletes nodes through node controls", () => {
+  it("records duplicate in history and restores it with undo", () => {
     const store = makeStore([makeFileCanvasNode("node-a")]);
 
     render(<FileNode data={fileData} id="node-a" />, { wrapper: makeWrapper(store) });
 
     fireEvent.click(screen.getByTestId("canvas-v2-node-duplicate"));
     expect(store.getState().nodes).toHaveLength(2);
+    expect(store.getState().historyPast).toHaveLength(1);
+
+    store.getState().undo();
+    expect(store.getState().nodes.map((node) => node.id)).toEqual(["node-a"]);
+  });
+
+  it("records toolbar deletion in history and restores it with undo", () => {
+    const store = makeStore([makeFileCanvasNode("node-a")]);
+
+    render(<FileNode data={fileData} id="node-a" />, { wrapper: makeWrapper(store) });
 
     fireEvent.click(screen.getByTestId("canvas-v2-node-delete"));
     expect(store.getState().nodes.map((node) => node.id)).not.toContain("node-a");
+    expect(store.getState().historyPast).toHaveLength(1);
+
+    store.getState().undo();
+    expect(store.getState().nodes.map((node) => node.id)).toEqual(["node-a"]);
   });
 });

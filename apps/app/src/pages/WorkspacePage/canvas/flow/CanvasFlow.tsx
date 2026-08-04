@@ -1,9 +1,12 @@
-import { useMemo, useRef, type DragEvent } from "react";
+import { useEffect, useMemo, useRef, type DragEvent } from "react";
+import { useDataProvider } from "@refinedev/core";
+import { ResultAsync } from "neverthrow";
 import { useHotkeys } from "react-hotkeys-hook";
 import { useTranslation } from "react-i18next";
 import {
   ReactFlow,
   useReactFlow,
+  useNodesInitialized,
   type Connection,
   type EdgeChange,
   type NodeChange,
@@ -11,6 +14,7 @@ import {
   type ProOptions,
 } from "@xyflow/react";
 import type { CompoundNodeData } from "@repo/schemas";
+import { toastStore } from "@/store/toastStore";
 import {
   CompoundNode,
   FileNode,
@@ -30,7 +34,8 @@ import {
   hasCanvasComponentDragPayload,
 } from "../utils/canvasComponentDragPayload";
 import { makeDefaultNodeData } from "../utils/makeDefaultNodeData";
-import { makeOperationNodeData, makeSkillOperationNodeData } from "../utils/makeOperationNodeData";
+import { makeOperationNodeData } from "../utils/makeOperationNodeData";
+import { resolveSkillOperation } from "../utils/resolveSkillOperation";
 
 const nodeTypes = {
   compound: CompoundNode,
@@ -81,6 +86,7 @@ const handleComponentDragOver = (event: DragEvent<HTMLDivElement>) => {
 
 export const CanvasFlow = () => {
   const { i18n } = useTranslation();
+  const getDataProvider = useDataProvider();
   const canvasStore = useCanvasStoreApi();
   const nodeDragSnapshotRef = useRef<ReturnType<typeof makeSnapshot> | null>(null);
   const nodes = useCanvasStore((state) => state.nodes);
@@ -105,8 +111,10 @@ export const CanvasFlow = () => {
   const setSelectedIds = useCanvasStore((state) => state.setSelectedIds);
   const undo = useCanvasStore((state) => state.undo);
   const proposalPreview = useCanvasStore((state) => state.proposalPreview);
-  const { screenToFlowPosition } = useReactFlow<CanvasNode, CanvasEdge>();
+  const nodesInitialized = useNodesInitialized();
+  const { fitView, screenToFlowPosition } = useReactFlow<CanvasNode, CanvasEdge>();
   const isPreviewing = proposalPreview !== null && drillStack.length === 0;
+  const isDrilling = drillStack.length > 0;
   const visibleGraph =
     proposalPreview && drillStack.length === 0
       ? { edges: proposalPreview.edges, nodes: proposalPreview.nodes }
@@ -121,6 +129,15 @@ export const CanvasFlow = () => {
     () => routedEdges.map((edge) => ({ ...edge, animated: false, type: "default" })),
     [routedEdges],
   );
+  const visibleNodeIds = visibleGraph.nodes.map((node) => node.id).join("\u0000");
+
+  useEffect(() => {
+    if (!nodesInitialized || visibleGraph.nodes.length === 0) {
+      return;
+    }
+
+    void fitView({ padding: 0.1 });
+  }, [fitView, nodesInitialized, visibleNodeIds, visibleGraph.nodes.length]);
 
   const getCurrentGraphSnapshot = () => {
     const state = canvasStore.getState();
@@ -128,8 +145,8 @@ export const CanvasFlow = () => {
     return makeSnapshot(state.nodes, state.edges);
   };
 
-  const handleDrop = (event: DragEvent<HTMLDivElement>) => {
-    if (isPreviewing) {
+  const handleDrop = async (event: DragEvent<HTMLDivElement>) => {
+    if (isPreviewing || isDrilling) {
       return;
     }
 
@@ -143,9 +160,8 @@ export const CanvasFlow = () => {
     event.preventDefault();
     event.stopPropagation();
     const position = screenToFlowPosition({ x: event.clientX, y: event.clientY });
-    const previous = getCurrentGraphSnapshot();
-
     if (payload.kind === "object") {
+      const previous = getCurrentGraphSnapshot();
       addNodeFromCatalog({ position, type: payload.type });
       recordHistory(previous);
 
@@ -153,6 +169,7 @@ export const CanvasFlow = () => {
     }
 
     if (payload.kind === "operation") {
+      const previous = getCurrentGraphSnapshot();
       addNodeFromCatalog({
         data: makeOperationNodeData(payload.operation),
         position,
@@ -164,16 +181,37 @@ export const CanvasFlow = () => {
     }
 
     if (payload.kind === "skill") {
-      addNodeFromCatalog({
-        data: makeSkillOperationNodeData(payload.skill),
+      const operationResult = await ResultAsync.fromPromise(
+        resolveSkillOperation(getDataProvider(), payload.skill),
+        () => null,
+      );
+      if (operationResult.isErr()) {
+        toastStore.getState().addToast({
+          description: payload.skill.label || payload.skill.name,
+          title: i18n.t("workspace.canvas.nodes.skillCreateFailed"),
+          type: "error",
+        });
+
+        return;
+      }
+
+      const state = canvasStore.getState();
+      if (state.proposalPreview !== null || state.drillStack.length > 0) {
+        return;
+      }
+
+      const previous = makeSnapshot(state.nodes, state.edges);
+      state.addNodeFromCatalog({
+        data: makeOperationNodeData(operationResult.value),
         position,
         type: "operation",
       });
-      recordHistory(previous);
+      canvasStore.getState().recordHistory(previous);
 
       return;
     }
 
+    const previous = getCurrentGraphSnapshot();
     addNodeFromCatalog({
       data: {
         ...(makeDefaultNodeData("compound", { label: payload.compoundKind }) as CompoundNodeData),
@@ -186,7 +224,7 @@ export const CanvasFlow = () => {
   };
 
   const handleFlowConnect = (connection: Connection) => {
-    if (isPreviewing) {
+    if (isPreviewing || isDrilling) {
       return;
     }
 
@@ -196,7 +234,7 @@ export const CanvasFlow = () => {
   };
 
   const handleFlowEdgesChange = (changes: EdgeChange<CanvasEdge>[]) => {
-    if (isPreviewing && hasEdgeChangeMutation(changes)) {
+    if ((isPreviewing || isDrilling) && hasEdgeChangeMutation(changes)) {
       return;
     }
 
@@ -280,7 +318,7 @@ export const CanvasFlow = () => {
   };
 
   const handleDeleteSelection = () => {
-    if (isPreviewing || selectedIds.length === 0) {
+    if (isPreviewing || isDrilling || selectedIds.length === 0) {
       return;
     }
 
@@ -290,17 +328,35 @@ export const CanvasFlow = () => {
     recordHistory(previous);
   };
 
+  const handleUndo = () => {
+    if (!isPreviewing) {
+      undo();
+    }
+  };
+
+  const handleRedo = () => {
+    if (!isPreviewing) {
+      redo();
+    }
+  };
+
+  const handleFlowDragOver = (event: DragEvent<HTMLDivElement>) => {
+    if (!isDrilling) {
+      handleComponentDragOver(event);
+    }
+  };
+
   useHotkeys("backspace, delete", handleDeleteSelection, {
     enableOnContentEditable: false,
     enableOnFormTags: false,
     preventDefault: true,
   });
-  useHotkeys("mod+z", undo, {
+  useHotkeys("mod+z", handleUndo, {
     enableOnContentEditable: false,
     enableOnFormTags: false,
     preventDefault: true,
   });
-  useHotkeys("mod+shift+z, mod+y", redo, {
+  useHotkeys("mod+shift+z, mod+y", handleRedo, {
     enableOnContentEditable: false,
     enableOnFormTags: false,
     preventDefault: true,
@@ -326,11 +382,10 @@ export const CanvasFlow = () => {
       className="h-full w-full"
       data-testid="canvas-v2-flow"
       lang={i18n.language}
-      onDragOver={handleComponentDragOver}
+      onDragOver={handleFlowDragOver}
       onDrop={handleDrop}
     >
       <ReactFlow<CanvasNode, CanvasEdge>
-        fitView
         panOnScroll
         zoomOnPinch
         className="bg-transparent"
@@ -342,7 +397,7 @@ export const CanvasFlow = () => {
         minZoom={0.35}
         nodeDragThreshold={2}
         nodes={visibleGraph.nodes}
-        nodesConnectable={!isPreviewing}
+        nodesConnectable={!isPreviewing && !isDrilling}
         nodesDraggable={!isPreviewing}
         nodeTypes={nodeTypes}
         panOnDrag={canvasTool === "hand" ? true : [1, 2]}

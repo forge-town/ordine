@@ -1,6 +1,8 @@
-import { act, createEvent, fireEvent, render, screen } from "@testing-library/react";
+import { act, createEvent, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import type * as ReactFlowModule from "@xyflow/react";
-import { describe, expect, it, vi } from "vitest";
+import type { Connection } from "@xyflow/react";
+import type { Operation, Skill } from "@repo/schemas";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { CanvasStoreContext, createCanvasStore, type CanvasStore } from "../_store/canvasStore";
 import type { CanvasNode } from "../_store/canvasTypes";
 import {
@@ -10,6 +12,9 @@ import {
 import { CanvasFlow } from "./CanvasFlow";
 
 type ReactFlowProps = {
+  nodesConnectable?: boolean;
+  onConnect?: (connection: Connection) => void;
+  onEdgesChange?: (changes: unknown[]) => void;
   onNodeDoubleClick?: (event: unknown, node: CanvasNode) => void;
   onNodesChange?: (changes: unknown[]) => void;
   onPaneClick?: () => void;
@@ -18,6 +23,15 @@ type ReactFlowProps = {
 
 const hotkeyHandlers = new Map<string, () => void>();
 const latestReactFlowPropsRef = { current: null as ReactFlowProps | null };
+const refineMocks = vi.hoisted(() => ({ create: vi.fn(), getList: vi.fn() }));
+const reactFlowMocks = vi.hoisted(() => ({ fitView: vi.fn(async () => true) }));
+
+vi.mock("@refinedev/core", () => ({
+  useDataProvider: () => () => ({
+    create: refineMocks.create,
+    getList: refineMocks.getList,
+  }),
+}));
 
 vi.mock("react-hotkeys-hook", () => ({
   useHotkeys: (keys: string, handler: () => void) => {
@@ -36,10 +50,34 @@ vi.mock("@xyflow/react", async (importOriginal) => {
       return <div data-testid="mock-react-flow">{props.children}</div>;
     },
     useReactFlow: () => ({
+      fitView: reactFlowMocks.fitView,
       screenToFlowPosition: ({ x, y }: { x: number; y: number }) => ({ x, y }),
     }),
+    useNodesInitialized: () => true,
   };
 });
+
+const skill = {
+  category: "quality",
+  description: "Reviews files",
+  id: "review",
+  label: "Review",
+  name: "review",
+  tags: [],
+} satisfies Skill;
+
+const skillOperation = {
+  acceptedObjectTypes: ["file", "folder", "github-project", "prompt"],
+  config: {
+    executor: { agentMode: "skill", skillId: skill.id, type: "agent" },
+    inputs: [],
+    outputs: [],
+  },
+  description: skill.description,
+  id: `skill-operation-${skill.id}`,
+  name: skill.label,
+  sourceSkillId: skill.id,
+} satisfies Operation;
 
 const makeNode = (id: string): CanvasNode => ({
   data: {
@@ -58,21 +96,26 @@ const makeWrapper =
     <CanvasStoreContext.Provider value={store}>{children}</CanvasStoreContext.Provider>
   );
 
+const makeDataTransfer = (payload: Parameters<typeof encodeCanvasComponentDragPayload>[0]) => ({
+  dropEffect: "move",
+  getData: vi.fn(() => encodeCanvasComponentDragPayload(payload)),
+  types: [CANVAS_COMPONENT_DRAG_MIME],
+});
+
 describe("CanvasFlow", () => {
+  beforeEach(() => {
+    hotkeyHandlers.clear();
+    latestReactFlowPropsRef.current = null;
+    reactFlowMocks.fitView.mockClear();
+    refineMocks.create.mockReset();
+    refineMocks.getList.mockReset();
+  });
+
   it("creates a node from a dropped component payload", () => {
     const store = createCanvasStore();
     render(<CanvasFlow />, { wrapper: makeWrapper(store) });
 
-    const dataTransfer = {
-      dropEffect: "move",
-      getData: vi.fn(() =>
-        encodeCanvasComponentDragPayload({
-          kind: "object",
-          type: "folder",
-        }),
-      ),
-      types: [CANVAS_COMPONENT_DRAG_MIME],
-    };
+    const dataTransfer = makeDataTransfer({ kind: "object", type: "folder" });
     const flow = screen.getByTestId("canvas-v2-flow");
     const dropEvent = createEvent.drop(flow, { dataTransfer });
     Object.defineProperty(dropEvent, "clientX", { value: 120 });
@@ -88,6 +131,29 @@ describe("CanvasFlow", () => {
       }),
     ]);
     expect(store.getState().canUndo).toBe(true);
+  });
+
+  it("adds a skill node with a persisted operation id", async () => {
+    refineMocks.getList.mockResolvedValue({ data: [skillOperation], total: 1 });
+    const store = createCanvasStore();
+    render(<CanvasFlow />, { wrapper: makeWrapper(store) });
+    const flow = screen.getByTestId("canvas-v2-flow");
+    const dropEvent = createEvent.drop(flow, {
+      dataTransfer: makeDataTransfer({ kind: "skill", skill }),
+    });
+    Object.defineProperty(dropEvent, "clientX", { value: 120 });
+    Object.defineProperty(dropEvent, "clientY", { value: 240 });
+
+    fireEvent(flow, dropEvent);
+
+    await waitFor(() =>
+      expect(store.getState().nodes[0]?.data).toMatchObject({
+        operationId: skillOperation.id,
+        operationName: skillOperation.name,
+      }),
+    );
+    expect(refineMocks.create).not.toHaveBeenCalled();
+    expect(store.getState().historyPast).toHaveLength(1);
   });
 
   it("deletes selected items and restores them with undo", () => {
@@ -178,6 +244,69 @@ describe("CanvasFlow", () => {
 
     expect(store.getState().drillStack).toEqual([]);
     expect(store.getState().proposalPreview).not.toBeNull();
+  });
+
+  it("disables dropping and connecting while drilled into a compound", () => {
+    const store = createCanvasStore({ nodes: [makeNode("node-a"), makeNode("node-b")] });
+    store.setState({ drillStack: ["compound-a"] });
+    render(<CanvasFlow />, { wrapper: makeWrapper(store) });
+    const flow = screen.getByTestId("canvas-v2-flow");
+    const dropEvent = createEvent.drop(flow, {
+      dataTransfer: makeDataTransfer({ kind: "object", type: "folder" }),
+    });
+
+    fireEvent(flow, dropEvent);
+    act(() => {
+      latestReactFlowPropsRef.current?.onConnect?.({
+        source: "node-a",
+        sourceHandle: null,
+        target: "node-b",
+        targetHandle: null,
+      });
+      latestReactFlowPropsRef.current?.onEdgesChange?.([{ id: "edge-a", type: "remove" }]);
+    });
+
+    expect(store.getState().nodes).toHaveLength(2);
+    expect(store.getState().edges).toEqual([]);
+    expect(latestReactFlowPropsRef.current?.nodesConnectable).toBe(false);
+  });
+
+  it("does not delete selected nodes while drilled into a compound", () => {
+    const store = createCanvasStore({ nodes: [makeNode("node-a")] });
+    store.setState({ drillStack: ["compound-a"], selectedIds: ["node-a"] });
+    render(<CanvasFlow />, { wrapper: makeWrapper(store) });
+
+    act(() => {
+      hotkeyHandlers.get("backspace, delete")?.();
+    });
+
+    expect(store.getState().nodes.map((node) => node.id)).toEqual(["node-a"]);
+    expect(store.getState().historyPast).toHaveLength(0);
+  });
+
+  it("disables undo and redo while previewing a proposal", () => {
+    const store = createCanvasStore({ nodes: [makeNode("node-a")] });
+    const previous = { edges: store.getState().edges, nodes: store.getState().nodes };
+    store.getState().duplicateNode("node-a", "node-b");
+    store.getState().recordHistory(previous);
+    store.getState().setPendingProposal({ actions: [], summary: "Preview" });
+    render(<CanvasFlow />, { wrapper: makeWrapper(store) });
+
+    act(() => {
+      hotkeyHandlers.get("mod+z")?.();
+      hotkeyHandlers.get("mod+shift+z, mod+y")?.();
+    });
+
+    expect(store.getState().nodes.map((node) => node.id)).toEqual(["node-a", "node-b"]);
+    expect(store.getState().proposalPreview).not.toBeNull();
+  });
+
+  it("fits the visible graph after node dimensions initialize", () => {
+    const store = createCanvasStore({ nodes: [makeNode("node-a")] });
+
+    render(<CanvasFlow />, { wrapper: makeWrapper(store) });
+
+    expect(reactFlowMocks.fitView).toHaveBeenCalledWith({ padding: 0.1 });
   });
 
   it("syncs selection from React Flow", () => {
