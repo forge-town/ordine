@@ -80,7 +80,7 @@ describe("buildPipelineMetrics", () => {
   });
 
   it("combines project, text, tag, and category filters", () => {
-    const pipeline = {
+    const assignedPipeline = {
       id: "pipeline-1",
       name: "Release",
       description: "Publish artifacts",
@@ -88,21 +88,33 @@ describe("buildPipelineMetrics", () => {
       projectId: "project-1",
       status: "draft",
     } as PipelineData;
-    const metricsByPipeline = buildPipelineMetrics([pipeline.id], [], [], []);
+    const unassignedPipeline = {
+      ...assignedPipeline,
+      id: "pipeline-2",
+      name: "Legacy release",
+      projectId: null,
+    } as PipelineData;
+    const pipelines = [assignedPipeline, unassignedPipeline];
+    const metricsByPipeline = buildPipelineMetrics(
+      pipelines.map((pipeline) => pipeline.id),
+      [],
+      [],
+      [],
+    );
 
     expect(
       filterPipelines({
-        pipelines: [pipeline],
+        pipelines,
         metricsByPipeline,
         search: "publish",
         selectedTags: ["shipping"],
         currentProjectId: "project-1",
         activeFilter: "drafts",
       }),
-    ).toEqual([pipeline]);
+    ).toEqual([assignedPipeline]);
     expect(
       filterPipelines({
-        pipelines: [pipeline],
+        pipelines,
         metricsByPipeline,
         search: "",
         selectedTags: [],
@@ -110,5 +122,15 @@ describe("buildPipelineMetrics", () => {
         activeFilter: "all",
       }),
     ).toEqual([]);
+    expect(
+      filterPipelines({
+        pipelines,
+        metricsByPipeline,
+        search: "",
+        selectedTags: [],
+        currentProjectId: null,
+        activeFilter: "all",
+      }),
+    ).toEqual(pipelines);
   });
 });

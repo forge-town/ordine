@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, type ChangeEvent, type KeyboardEvent } from "react";
 import { useCreate, useList } from "@refinedev/core";
+import { ResultAsync } from "neverthrow";
 import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
 import {
@@ -50,6 +51,8 @@ export const ProjectSwitcher = () => {
   const projects = result.data;
   const projectIds = useMemo(() => projects.map((project) => project.id), [projects]);
   const currentProject = projects.find((project) => project.id === currentProjectId);
+  const currentProjectName =
+    currentProject?.name ?? t("nav.allProjects", { defaultValue: "All projects" });
 
   useEffect(() => {
     if (!query.isLoading) syncCurrentProjectId(projectIds);
@@ -63,11 +66,14 @@ export const ProjectSwitcher = () => {
       return;
     }
 
-    const createResult = await createProject({
-      resource: PROJECT_RESOURCE,
-      values: { name, description: "" },
-    }).catch(() => null);
-    if (!createResult) {
+    const createResult = await ResultAsync.fromPromise(
+      createProject({
+        resource: PROJECT_RESOURCE,
+        values: { name, description: "" },
+      }),
+      () => "create-project-failed" as const,
+    );
+    if (createResult.isErr()) {
       setCreateError(
         t("nav.createProjectFailed", { defaultValue: "Could not create the project" }),
       );
@@ -75,7 +81,7 @@ export const ProjectSwitcher = () => {
       return;
     }
 
-    const project = createResult.data as Project;
+    const project = createResult.value.data as Project;
     await query.refetch();
     setCurrentProjectId(project.id);
     setCreateOpen(false);
@@ -109,17 +115,10 @@ export const ProjectSwitcher = () => {
       <DropdownMenu>
         <DropdownMenuTrigger
           aria-label={t("nav.projects", { defaultValue: "Projects" })}
-          render={
-            <SidebarMenuButton
-              className="h-9 w-full"
-              tooltip={currentProject?.name ?? t("nav.projects", { defaultValue: "Projects" })}
-            />
-          }
+          render={<SidebarMenuButton className="h-9 w-full" tooltip={currentProjectName} />}
         >
           <FolderKanban />
-          <span className="truncate text-left">
-            {currentProject?.name ?? t("nav.selectProject", { defaultValue: "Select project" })}
-          </span>
+          <span className="truncate text-left">{currentProjectName}</span>
           {query.isLoading || mutation.isPending ? (
             <Loader2 className="ml-auto animate-spin" />
           ) : (
@@ -129,6 +128,12 @@ export const ProjectSwitcher = () => {
         <DropdownMenuContent align="start" className="w-64">
           <DropdownMenuGroup>
             <DropdownMenuLabel>{t("nav.projects", { defaultValue: "Projects" })}</DropdownMenuLabel>
+            <DropdownMenuItem onClick={() => setCurrentProjectId(null)}>
+              <span className="truncate">
+                {t("nav.allProjects", { defaultValue: "All projects" })}
+              </span>
+              {currentProjectId === null && <Check className="ml-auto" />}
+            </DropdownMenuItem>
             {projects.map((project) => {
               const handleProjectClick = () => setCurrentProjectId(project.id);
 

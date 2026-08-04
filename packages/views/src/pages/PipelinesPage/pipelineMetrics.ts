@@ -101,7 +101,7 @@ export const filterPipelines = ({
       pipeline.description.toLowerCase().includes(query) ||
       pipeline.id.toLowerCase().includes(query);
     const matchesTags = selectedTags.every((tag) => pipeline.tags.includes(tag));
-    const matchesProject = !currentProjectId || pipeline.projectId === currentProjectId;
+    const matchesProject = currentProjectId === null || pipeline.projectId === currentProjectId;
     const metrics = metricsByPipeline.get(pipeline.id);
     const matchesFilter =
       activeFilter === "all" ||

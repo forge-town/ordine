@@ -56,9 +56,10 @@ describe("sidebarStore", () => {
     expect(localStorage.getItem("ordine.sidebar.currentProjectId")).toBe("project-2");
 
     store.getState().syncCurrentProjectId(["project-1", "project-3"]);
-    expect(store.getState().currentProjectId).toBe("project-1");
-    expect(localStorage.getItem("ordine.sidebar.currentProjectId")).toBe("project-1");
+    expect(store.getState().currentProjectId).toBeNull();
+    expect(localStorage.getItem("ordine.sidebar.currentProjectId")).toBeNull();
 
+    store.getState().setCurrentProjectId("project-3");
     store.getState().syncCurrentProjectId([]);
     expect(store.getState().currentProjectId).toBeNull();
     expect(localStorage.getItem("ordine.sidebar.currentProjectId")).toBeNull();

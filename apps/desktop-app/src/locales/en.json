@@ -42,6 +42,7 @@
     "jobs": "Jobs",
     "distillations": "Distillations",
     "projects": "Projects",
+    "allProjects": "All projects",
     "selectProject": "Select project",
     "newProject": "New project",
     "newProjectDescription": "Create a project to organize your pipelines.",

@@ -146,6 +146,7 @@ export const PipelineCard = ({ pipeline, metrics }: PipelineCardProps) => {
         <Button
           aria-label={t("pipelines.viewDetails", { name: pipeline.name })}
           className="size-7 text-muted-foreground"
+          nativeButton={false}
           render={<Link params={{ pipelineId: pipeline.id }} to="/pipelines/$pipelineId" />}
           size="icon"
           variant="ghost"

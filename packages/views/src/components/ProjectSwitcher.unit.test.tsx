@@ -76,15 +76,22 @@ describe("ProjectSwitcher", () => {
     expect(trigger.parentElement).not.toHaveClass("px-2");
   });
 
-  it("selects the first project and lets the user switch projects", async () => {
+  it("shows all projects by default and lets the user switch the project filter", async () => {
     const store = renderSwitcher();
 
-    await waitFor(() => expect(store.getState().currentProjectId).toBe("project-1"));
+    await waitFor(() => expect(store.getState().currentProjectId).toBeNull());
+    expect(screen.getByText("所有项目")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "项目" }));
     fireEvent.click(await screen.findByText("Beta"));
 
     expect(store.getState().currentProjectId).toBe("project-2");
     expect(localStorage.getItem("ordine.sidebar.currentProjectId")).toBe("project-2");
+
+    fireEvent.click(screen.getByRole("button", { name: "项目" }));
+    fireEvent.click(await screen.findByRole("menuitem", { name: "所有项目" }));
+
+    expect(store.getState().currentProjectId).toBeNull();
+    expect(localStorage.getItem("ordine.sidebar.currentProjectId")).toBeNull();
   });
 
   it("creates and selects a project through the dialog", async () => {

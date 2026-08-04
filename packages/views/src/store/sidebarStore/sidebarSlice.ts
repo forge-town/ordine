@@ -80,14 +80,9 @@ export const createSidebarSlice: StateCreator<SidebarSlice> = (set, get) => ({
   },
   syncCurrentProjectId: (projectIds) => {
     const currentProjectId = get().currentProjectId;
-    const nextProjectId =
-      currentProjectId && projectIds.includes(currentProjectId)
-        ? currentProjectId
-        : (projectIds[0] ?? null);
+    if (currentProjectId === null || projectIds.includes(currentProjectId)) return;
 
-    if (nextProjectId === currentProjectId) return;
-
-    writeStoredCurrentProjectId(nextProjectId);
-    set({ currentProjectId: nextProjectId });
+    writeStoredCurrentProjectId(null);
+    set({ currentProjectId: null });
   },
 });

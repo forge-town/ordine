@@ -45,6 +45,7 @@
     "jobs": "任务",
     "distillations": "蒸馏",
     "projects": "项目",
+    "allProjects": "所有项目",
     "selectProject": "选择项目",
     "newProject": "新建项目",
     "newProjectDescription": "创建项目以组织流水线。",
