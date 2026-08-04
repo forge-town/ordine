@@ -6,6 +6,7 @@ import { dataProvider, ResourceName } from "@/integrations/refine/dataProvider";
 import i18n from "@/lib/i18n";
 import { router } from "@/router";
 import type { PipelineData } from "@repo/schemas";
+import { sidebarStore as sharedSidebarStore } from "@repo/views/store/sidebarStore";
 
 type MatchedOperation = { operationId: string; operationName: string; reason: string };
 type UnmatchedStep = { step: string; reason: string };
@@ -150,10 +151,13 @@ export const createNewPipelineDialogSlice: SidebarStoreSlice<NewPipelineDialogSl
       edges: generated.edges,
     };
 
+    const currentProjectId = sharedSidebarStore.getState().currentProjectId;
+
     const result = await dataProvider.create({
       resource: ResourceName.pipelines,
       variables: {
         ...newPipeline,
+        ...(currentProjectId ? { projectId: currentProjectId } : {}),
         ...(generated.pendingOperations ? { pendingOperations: generated.pendingOperations } : {}),
       },
     });

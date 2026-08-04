@@ -5,6 +5,7 @@ const isPipelinePathname = (pathname: string): boolean =>
   pathname.startsWith("/canvas") || pathname.startsWith("/pipelines");
 
 const CAPABILITIES_OPEN_STORAGE_KEY = "ordine.sidebar.capabilitiesOpen";
+const CURRENT_PROJECT_STORAGE_KEY = "ordine.sidebar.currentProjectId";
 
 const readStoredCapabilitiesOpen = () => {
   if (globalThis.localStorage === undefined) return true;
@@ -20,11 +21,28 @@ const writeStoredCapabilitiesOpen = (value: boolean) => {
   globalThis.localStorage.setItem(CAPABILITIES_OPEN_STORAGE_KEY, String(value));
 };
 
+const readStoredCurrentProjectId = (): string | null => {
+  if (globalThis.localStorage === undefined) return null;
+
+  return globalThis.localStorage.getItem(CURRENT_PROJECT_STORAGE_KEY);
+};
+
+const writeStoredCurrentProjectId = (value: string | null) => {
+  if (globalThis.localStorage === undefined) return;
+
+  if (value === null) {
+    globalThis.localStorage.removeItem?.(CURRENT_PROJECT_STORAGE_KEY);
+  } else {
+    globalThis.localStorage.setItem(CURRENT_PROJECT_STORAGE_KEY, value);
+  }
+};
+
 export interface SidebarSlice {
   view: SidebarViewType;
   searchOpen: boolean;
   newPipelineOpen: boolean;
   capabilitiesOpen: boolean;
+  currentProjectId: string | null;
 
   handleSidebarLocationChange: (pathname: string) => void;
   handleSearchDialogOpenChange: (open: boolean) => void;
@@ -33,6 +51,8 @@ export interface SidebarSlice {
   handleSearchButtonClick: () => void;
   handleNewPipelineButtonClick: () => void;
   handleCapabilitiesToggle: () => void;
+  setCurrentProjectId: (projectId: string | null) => void;
+  syncCurrentProjectId: (projectIds: string[]) => void;
 }
 
 export const createSidebarSlice: StateCreator<SidebarSlice> = (set, get) => ({
@@ -40,6 +60,7 @@ export const createSidebarSlice: StateCreator<SidebarSlice> = (set, get) => ({
   searchOpen: false,
   newPipelineOpen: false,
   capabilitiesOpen: readStoredCapabilitiesOpen(),
+  currentProjectId: readStoredCurrentProjectId(),
 
   handleSidebarLocationChange: (pathname) =>
     set({ view: isPipelinePathname(pathname) ? SidebarView.Pipeline : SidebarView.Main }),
@@ -52,5 +73,16 @@ export const createSidebarSlice: StateCreator<SidebarSlice> = (set, get) => ({
     const capabilitiesOpen = !get().capabilitiesOpen;
     writeStoredCapabilitiesOpen(capabilitiesOpen);
     set({ capabilitiesOpen });
+  },
+  setCurrentProjectId: (currentProjectId) => {
+    writeStoredCurrentProjectId(currentProjectId);
+    set({ currentProjectId });
+  },
+  syncCurrentProjectId: (projectIds) => {
+    const currentProjectId = get().currentProjectId;
+    if (currentProjectId === null || projectIds.includes(currentProjectId)) return;
+
+    writeStoredCurrentProjectId(null);
+    set({ currentProjectId: null });
   },
 });

@@ -7,13 +7,17 @@ import { Input } from "@repo/ui/input";
 import { Badge } from "@repo/ui/badge";
 import { cn } from "@repo/ui/lib/utils";
 import { useCreate, useList } from "@refinedev/core";
-import type { PipelineData } from "@repo/schemas";
+import type { Job, PipelineAsset, PipelineData, Routine } from "@repo/schemas";
 import { useStore } from "zustand";
 import { ResourceName } from "../../../constants";
 import { PageLoadingState } from "../../../components/PageLoadingState";
 import { PageHeader } from "../../../components/PageHeader";
 import { usePipelinesPageStore } from "../_store";
 import { PipelineCard } from "../PipelineCard";
+import { buildPipelineMetrics, filterPipelines } from "../pipelineMetrics";
+import { sidebarStore } from "../../../store/sidebarStore";
+
+const filterKeys = ["all", "savedSkills", "drafts", "scheduled"] as const;
 
 export const PipelinesPageContent = () => {
   const { t } = useTranslation();
@@ -22,15 +26,33 @@ export const PipelinesPageContent = () => {
   });
   const pipelinesData = pipelinesResult?.data;
   const pipelines = pipelinesData ?? [];
+  const { result: assetsResult } = useList<PipelineAsset>({
+    resource: ResourceName.pipelineAssets,
+  });
+  const { result: jobsResult } = useList<Job>({ resource: ResourceName.jobs });
+  const { result: routinesResult } = useList<Routine>({ resource: ResourceName.routines });
   const store = usePipelinesPageStore();
   const search = useStore(store, (s) => s.search);
   const selectedTags = useStore(store, (s) => s.selectedTags);
+  const activeFilter = useStore(store, (s) => s.activeFilter);
+  const currentProjectId = useStore(sidebarStore, (s) => s.currentProjectId);
   const handleSearchInputChange = useStore(store, (s) => s.handleSearchInputChange);
   const handleClearSearchButtonClick = useStore(store, (s) => s.handleClearSearchButtonClick);
   const handleTagBadgeClick = useStore(store, (s) => s.handleTagBadgeClick);
   const handleClearTagsButtonClick = useStore(store, (s) => s.handleClearTagsButtonClick);
+  const handleFilterChange = useStore(store, (s) => s.handleFilterChange);
   const navigate = useNavigate();
   const { mutateAsync: createPipelineMutate } = useCreate();
+  const metricsByPipeline = useMemo(
+    () =>
+      buildPipelineMetrics(
+        (pipelinesData ?? []).map((pipeline) => pipeline.id),
+        jobsResult.data,
+        assetsResult.data,
+        routinesResult.data,
+      ),
+    [assetsResult.data, jobsResult.data, pipelinesData, routinesResult.data],
+  );
 
   const allTags = useMemo(() => {
     const items = pipelinesData ?? [];
@@ -43,20 +65,15 @@ export const PipelinesPageContent = () => {
   }, [pipelinesData]);
 
   const filtered = useMemo(() => {
-    const items = pipelinesData ?? [];
-    const q = search.toLowerCase();
-
-    return items.filter((p: PipelineData) => {
-      const matchesSearch =
-        !q ||
-        p.name.toLowerCase().includes(q) ||
-        (p.description ?? "").toLowerCase().includes(q) ||
-        p.id.toLowerCase().includes(q);
-      const matchesTags = selectedTags.every((tag) => p.tags.includes(tag));
-
-      return matchesSearch && matchesTags;
+    return filterPipelines({
+      pipelines: pipelinesData ?? [],
+      metricsByPipeline,
+      search,
+      selectedTags,
+      currentProjectId,
+      activeFilter,
     });
-  }, [pipelinesData, search, selectedTags]);
+  }, [activeFilter, currentProjectId, metricsByPipeline, pipelinesData, search, selectedTags]);
 
   const handleCreate = async () => {
     const id = `pipeline-${Date.now()}`;
@@ -70,6 +87,9 @@ export const PipelinesPageContent = () => {
       createdAt: now,
       updatedAt: now,
       timeoutMs: null,
+      projectId: currentProjectId,
+      status: "draft",
+      version: 1,
       nodes: [],
       edges: [],
     };
@@ -107,25 +127,46 @@ export const PipelinesPageContent = () => {
 
       {/* Toolbar */}
       <div className="flex flex-col gap-2 border-b border-border bg-background px-6 py-3">
-        <div className="relative max-w-xs">
-          <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            className="h-8 pl-8 pr-8 text-sm"
-            placeholder={t("common.search")}
-            type="text"
-            value={search}
-            onChange={handleSearchInputChange}
-          />
-          {search && (
-            <Button
-              className="absolute right-1 top-1/2 size-6 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-              size="icon"
-              variant="ghost"
-              onClick={handleClearSearchButtonClick}
-            >
-              <X className="h-3 w-3" />
-            </Button>
-          )}
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div
+            aria-label={t("pipelines.filters.label")}
+            className="flex flex-wrap gap-1"
+            role="group"
+          >
+            {filterKeys.map((filter) => (
+              <Button
+                key={filter}
+                aria-pressed={activeFilter === filter}
+                className="h-8"
+                size="sm"
+                variant={activeFilter === filter ? "secondary" : "ghost"}
+                onClick={() => handleFilterChange(filter)}
+              >
+                {t(`pipelines.filters.${filter}`)}
+              </Button>
+            ))}
+          </div>
+          <div className="relative w-full sm:w-64">
+            <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              className="h-8 pl-8 pr-8 text-sm"
+              placeholder={t("common.search")}
+              type="text"
+              value={search}
+              onChange={handleSearchInputChange}
+            />
+            {search && (
+              <Button
+                aria-label={t("common.clearSearch")}
+                className="absolute right-1 top-1/2 size-6 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                size="icon"
+                variant="ghost"
+                onClick={handleClearSearchButtonClick}
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            )}
+          </div>
         </div>
         {allTags.length > 0 && (
           <div className="flex flex-wrap items-center gap-1">
@@ -168,9 +209,9 @@ export const PipelinesPageContent = () => {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
             {filtered.map((p) => (
-              <PipelineCard key={p.id} pipelineId={p.id} />
+              <PipelineCard key={p.id} metrics={metricsByPipeline.get(p.id)!} pipeline={p} />
             ))}
           </div>
         )}
