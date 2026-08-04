@@ -3,6 +3,7 @@ import { AppSidebar } from "./AppSidebar";
 import { ToastContainer } from "./ToastContainer";
 import { toastStore, ToastStoreProvider } from "@/store/toastStore";
 import { SidebarStoreProvider } from "@/store/sidebarStore";
+import { SidebarStoreProvider as SharedSidebarStoreProvider } from "@repo/views/store/sidebarStore";
 import { SearchPipelineDialog } from "./SearchPipelineDialog";
 import { NewPipelineDialog } from "./NewPipelineDialog";
 import { AutonomyStoreProvider } from "@repo/views/store/autonomyStore";
@@ -19,15 +20,17 @@ export const AppLayout = ({ children }: { children: React.ReactNode }) => {
         <AutonomyStoreProvider>
           <ToastStoreProvider>
             <SidebarStoreProvider>
-              <ThemeApplier />
-              <ToastNotificationBridge toastStore={toastStore} />
-              <SidebarProvider>
-                <AppSidebar />
-                <SidebarInset>{children}</SidebarInset>
-                <ToastContainer />
-                <SearchPipelineDialog />
-                <NewPipelineDialog />
-              </SidebarProvider>
+              <SharedSidebarStoreProvider>
+                <ThemeApplier />
+                <ToastNotificationBridge toastStore={toastStore} />
+                <SidebarProvider widthStorageKey="ordine.sidebar.width">
+                  <AppSidebar />
+                  <SidebarInset>{children}</SidebarInset>
+                  <ToastContainer />
+                  <SearchPipelineDialog />
+                  <NewPipelineDialog />
+                </SidebarProvider>
+              </SharedSidebarStoreProvider>
             </SidebarStoreProvider>
           </ToastStoreProvider>
         </AutonomyStoreProvider>

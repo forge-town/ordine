@@ -17,7 +17,7 @@ export const AppLayout = ({ children }: { children: React.ReactNode }) => {
             <SidebarStoreProvider>
               <ThemeApplier />
               <ToastNotificationBridge toastStore={toastStore} />
-              <SidebarProvider>
+              <SidebarProvider widthStorageKey="ordine.sidebar.width">
                 <AppSidebar />
                 <SidebarInset>{children}</SidebarInset>
                 <ToastContainer />

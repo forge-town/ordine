@@ -32,7 +32,8 @@
     "new": "New",
     "clear": "Clear",
     "noResults": "No matching results",
-    "generating": "Generating..."
+    "generating": "Generating...",
+    "clearSearch": "Clear search"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -40,7 +41,13 @@
     "pipelines": "Pipelines",
     "jobs": "Jobs",
     "distillations": "Distillations",
-    "projects": "GitHub Projects",
+    "projects": "Projects",
+    "selectProject": "Select project",
+    "newProject": "New project",
+    "newProjectDescription": "Create a project to organize your pipelines.",
+    "projectName": "Project name",
+    "projectNameRequired": "Enter a project name",
+    "createProjectFailed": "Could not create the project",
     "objects": "Objects",
     "operations": "Operations",
     "skills": "Skills",
@@ -57,7 +64,12 @@
     "preview": "Preview",
     "plugins": "Plugins",
     "agents": "Agents",
-    "logout": "Log out"
+    "logout": "Log out",
+    "groups": {
+      "assembly": "Assembly",
+      "capabilities": "Capabilities",
+      "monitor": "Monitor"
+    }
   },
   "plugins": {
     "title": "Plugins",
@@ -318,6 +330,34 @@
     "doneStatus": "Done",
     "failedStatus": "Failed",
     "nodeList": "Node List",
+    "noDescription": "No description",
+    "openPipeline": "Open {{name}} in Canvas",
+    "deletePipeline": "Delete {{name}}",
+    "viewDetails": "View {{name}} details",
+    "nodes_one": "{{count}} node",
+    "nodes_other": "{{count}} nodes",
+    "savedSkill": "Saved skill",
+    "scheduled": "Scheduled",
+    "filters": {
+      "label": "Pipeline filters",
+      "all": "All",
+      "savedSkills": "Saved Skills",
+      "drafts": "Drafts",
+      "scheduled": "Scheduled"
+    },
+    "stats": {
+      "runs": "Runs",
+      "success": "Success",
+      "avgDuration": "Avg. time"
+    },
+    "status": {
+      "draft": "Draft",
+      "ready": "Ready",
+      "running": "Running",
+      "completed": "Completed",
+      "failed": "Failed",
+      "archived": "Archived"
+    },
     "nodeTypes": {
       "operation": "Operation",
       "file": "File",

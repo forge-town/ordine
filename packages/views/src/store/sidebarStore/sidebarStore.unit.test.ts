@@ -8,6 +8,7 @@ describe("sidebarStore", () => {
     vi.stubGlobal("localStorage", {
       getItem: vi.fn((key: string) => values.get(key) ?? null),
       setItem: vi.fn((key: string, value: string) => values.set(key, value)),
+      removeItem: vi.fn((key: string) => values.delete(key)),
     });
   });
 
@@ -45,5 +46,21 @@ describe("sidebarStore", () => {
     expect(store.getState().capabilitiesOpen).toBe(false);
     expect(localStorage.getItem("ordine.sidebar.capabilitiesOpen")).toBe("false");
     expect(createSidebarStore().getState().capabilitiesOpen).toBe(false);
+  });
+
+  it("persists and validates the current project", () => {
+    const store = createSidebarStore();
+
+    store.getState().setCurrentProjectId("project-2");
+    expect(store.getState().currentProjectId).toBe("project-2");
+    expect(localStorage.getItem("ordine.sidebar.currentProjectId")).toBe("project-2");
+
+    store.getState().syncCurrentProjectId(["project-1", "project-3"]);
+    expect(store.getState().currentProjectId).toBe("project-1");
+    expect(localStorage.getItem("ordine.sidebar.currentProjectId")).toBe("project-1");
+
+    store.getState().syncCurrentProjectId([]);
+    expect(store.getState().currentProjectId).toBeNull();
+    expect(localStorage.getItem("ordine.sidebar.currentProjectId")).toBeNull();
   });
 });

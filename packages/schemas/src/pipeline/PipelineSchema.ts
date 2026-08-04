@@ -1,6 +1,7 @@
 import { z } from "zod/v4";
 import { PipelineNodeSchema } from "./node/PipelineNodeSchema";
 import { PipelineEdgeSchema } from "./edge/PipelineEdgeSchema";
+import { PipelineStatusSchema } from "./PipelineStatusSchema";
 
 export const PipelineSchema = z.object({
   id: z.string(),
@@ -9,6 +10,9 @@ export const PipelineSchema = z.object({
   sharedContext: z.string().default(""),
   tags: z.array(z.string()),
   timeoutMs: z.number().nullable(),
+  projectId: z.string().nullable().optional(),
+  status: PipelineStatusSchema.optional(),
+  version: z.number().int().positive().optional(),
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date(),
   nodes: z.array(PipelineNodeSchema),
