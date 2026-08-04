@@ -387,6 +387,7 @@ function SidebarRail({
     setOpen,
     toggleSidebar,
     width,
+    minWidth,
     maxWidth,
     collapseThreshold,
     isResizing,
@@ -490,7 +491,11 @@ function SidebarRail({
       suppressClickRef.current = false;
     }, 0);
 
-    if (!dragState.open || dragState.liveWidth <= collapseThreshold) {
+    if (
+      !dragState.open ||
+      dragState.liveWidth <= collapseThreshold ||
+      (dragState.initialOpen && dragState.liveWidth < minWidth)
+    ) {
       setOpen(false);
       setLiveWidth(width);
 
@@ -538,7 +543,14 @@ function SidebarRail({
       return;
     }
 
-    commitWidth(width + widthDirection * SIDEBAR_KEYBOARD_RESIZE_STEP);
+    const nextWidth = width + widthDirection * SIDEBAR_KEYBOARD_RESIZE_STEP;
+    if (nextWidth < minWidth) {
+      setOpen(false);
+
+      return;
+    }
+
+    commitWidth(nextWidth);
   };
 
   return (

@@ -95,6 +95,24 @@ describe("SidebarRail", () => {
     expect(localStorage.getItem(STORAGE_KEY)).toBe("208");
   });
 
+  it("collapses instead of rebounding when released below the minimum width", () => {
+    const { rail, sidebar, wrapper } = renderRail();
+
+    dragRail(rail, 256, 208, 4);
+    expect(sidebar).toHaveAttribute("data-state", "expanded");
+    expect(wrapper.style.getPropertyValue("--sidebar-width")).toBe("208px");
+
+    dragRail(rail, 208, 192, 5);
+    expect(sidebar).toHaveAttribute("data-state", "collapsed");
+    expect(wrapper.style.getPropertyValue("--sidebar-width")).toBe("208px");
+    expect(localStorage.getItem(STORAGE_KEY)).toBe("208");
+
+    fireEvent.keyDown(rail, { key: "ArrowRight" });
+    expect(sidebar).toHaveAttribute("data-state", "expanded");
+    fireEvent.keyDown(rail, { key: "ArrowLeft" });
+    expect(sidebar).toHaveAttribute("data-state", "collapsed");
+  });
+
   it("ignores invalid stored widths and clamps out-of-range values", () => {
     localStorage.setItem(STORAGE_KEY, "not-a-number");
     const first = renderRail();
