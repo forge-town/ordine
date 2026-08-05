@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useRef } from "react";
 import { ResultAsync } from "neverthrow";
 import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
@@ -35,6 +35,10 @@ export const useAgentConversation = ({ pipelineId }: { pipelineId: string | null
   const messages = useAgentBarStore((state) => state.messages);
   const streamingAssistantText = useAgentBarStore((state) => state.streamingAssistantText);
   const streamingProgress = useAgentBarStore((state) => state.streamingProgress);
+  const sessionCreationRef = useRef<{
+    graphSignature: string;
+    promise: Promise<string>;
+  } | null>(null);
   const {
     isLoading,
     isSending: isPersisting,
@@ -46,30 +50,68 @@ export const useAgentConversation = ({ pipelineId }: { pipelineId: string | null
 
   const ensureSession = useCallback(async () => {
     const graphSignature = JSON.stringify({ edges, nodes, pipelineId });
-    const current = agentBarStore.getState();
-    if (current.sessionId && current.sessionGraphSignature === graphSignature) {
-      return current.sessionId;
+    const existingSessionId = () => {
+      const current = agentBarStore.getState();
+
+      return current.sessionGraphSignature === graphSignature ? current.sessionId : null;
+    };
+    const existing = existingSessionId();
+    if (existing) {
+      return existing;
     }
 
-    const session = await client.createSession({
-      entrypoint: "canvas-agent-panel",
-      mode: "edit",
-      ...(pipelineId ? { pipelineId } : {}),
-      snapshot: { edges, nodes },
-    });
+    while (sessionCreationRef.current) {
+      const pending = sessionCreationRef.current;
+      if (pending.graphSignature === graphSignature) {
+        return pending.promise;
+      }
 
-    const history = current.messages.slice(-HISTORY_WINDOW_LIMIT);
-    for (const message of history) {
-      await client.appendMessage(session.id, {
-        content: message.content,
-        kind: "text",
-        role: message.role,
+      try {
+        await pending.promise;
+      } catch {
+        // A failed creation for an obsolete graph must not prevent a retry for this graph.
+      }
+
+      const sessionId = existingSessionId();
+      if (sessionId) {
+        return sessionId;
+      }
+    }
+
+    let creationPromise: Promise<string>;
+    creationPromise = (async () => {
+      const currentSessionId = existingSessionId();
+      if (currentSessionId) {
+        return currentSessionId;
+      }
+
+      const session = await client.createSession({
+        entrypoint: "canvas-agent-panel",
+        mode: "edit",
+        ...(pipelineId ? { pipelineId } : {}),
+        snapshot: { edges, nodes },
       });
-    }
 
-    agentBarStore.getState().setSession(session.id, graphSignature);
+      const history = agentBarStore.getState().messages.slice(-HISTORY_WINDOW_LIMIT);
+      for (const message of history) {
+        await client.appendMessage(session.id, {
+          content: message.content,
+          kind: "text",
+          role: message.role,
+        });
+      }
 
-    return session.id;
+      agentBarStore.getState().setSession(session.id, graphSignature);
+
+      return session.id;
+    })().finally(() => {
+      if (sessionCreationRef.current?.promise === creationPromise) {
+        sessionCreationRef.current = null;
+      }
+    });
+    sessionCreationRef.current = { graphSignature, promise: creationPromise };
+
+    return creationPromise;
   }, [agentBarStore, client, edges, nodes, pipelineId]);
 
   const finishWithAssistantMessage = useCallback(
@@ -142,6 +184,7 @@ export const useAgentConversation = ({ pipelineId }: { pipelineId: string | null
       const trimmedContent = content.trim();
       if (
         !pipelineId ||
+        isLoading ||
         trimmedContent.length === 0 ||
         conversationState === "thinking" ||
         conversationState === "streaming"
@@ -275,6 +318,7 @@ export const useAgentConversation = ({ pipelineId }: { pipelineId: string | null
       ensureSession,
       finishWithAssistantMessage,
       handlePlanEvent,
+      isLoading,
       pipelineId,
       sendMessage,
       t,

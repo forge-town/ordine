@@ -342,12 +342,49 @@ describe("AgentPanel", () => {
     });
   });
 
+  it("keeps send and upload controls disabled until history hydration completes", async () => {
+    let resolveHistory: ((value: { data: never[]; total: number }) => void) | null = null;
+    mockGetList.mockImplementation(({ resource }: { resource: string }) => {
+      if (resource === "conversationMessages") {
+        return new Promise<{ data: never[]; total: number }>((resolve) => {
+          resolveHistory = resolve;
+        });
+      }
+
+      return Promise.resolve({
+        data: [
+          {
+            id: "runtime-codex",
+            name: "Codex Local",
+            type: "codex",
+            connection: { mode: "local" },
+          },
+        ],
+        total: 1,
+      });
+    });
+
+    render(<AgentPanel />, { wrapper: wrapperWithState() });
+
+    expect(screen.getByPlaceholderText("canvas.agentPanel.inputPlaceholder")).toBeDisabled();
+    expect(screen.getByLabelText("canvas.agentPanel.upload")).toBeDisabled();
+    expect(screen.getByRole("button", { name: "canvas.agentPanel.upload" })).toBeDisabled();
+
+    resolveHistory?.({ data: [], total: 0 });
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText("canvas.agentPanel.inputPlaceholder")).toBeEnabled();
+      expect(screen.getByRole("button", { name: "canvas.agentPanel.upload" })).toBeEnabled();
+    });
+  });
+
   it("clears uploaded attachments when graph signature changes", async () => {
     const { store, Wrapper } = wrapperWithMutableStore();
     render(<AgentPanel />, { wrapper: Wrapper });
 
     const file = new File(["hello"], "brief.txt", { type: "text/plain" });
-    await userEvent.upload(screen.getByLabelText("canvas.agentPanel.upload"), file);
+    const uploadInput = screen.getByLabelText("canvas.agentPanel.upload");
+    await waitFor(() => expect(uploadInput).toBeEnabled());
+    await userEvent.upload(uploadInput, file);
     await waitFor(() => {
       expect(screen.getByText("brief.txt")).toBeInTheDocument();
     });

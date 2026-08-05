@@ -13,6 +13,7 @@ const mocks = vi.hoisted(() => ({
   createSession: vi.fn(),
   getLatestAssistantQuestion: vi.fn(),
   getLatestReadyProposal: vi.fn(),
+  isHistoryLoading: false,
   planSessionStream: vi.fn(),
   sendMessage: vi.fn(),
 }));
@@ -35,7 +36,7 @@ vi.mock("../../../lib/pipelineAgentSessionsClient", () => ({
 
 vi.mock("./useAgentConversationPersistence", () => ({
   useAgentConversationPersistence: () => ({
-    isLoading: false,
+    isLoading: mocks.isHistoryLoading,
     isSending: false,
     sendMessage: (...args: unknown[]) => mocks.sendMessage(...args),
   }),
@@ -68,9 +69,25 @@ const Harness = () => {
   );
 };
 
+const EnsureSessionHarness = () => {
+  const { ensureSession } = useAgentConversation({ pipelineId: "pipe-1" });
+
+  return (
+    <div>
+      <button type="button" onClick={() => void ensureSession()}>
+        Ensure A
+      </button>
+      <button type="button" onClick={() => void ensureSession()}>
+        Ensure B
+      </button>
+    </div>
+  );
+};
+
 describe("useAgentConversation", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mocks.isHistoryLoading = false;
     mocks.createSession.mockResolvedValue({
       entrypoint: "canvas-agent-panel",
       id: "session-1",
@@ -142,5 +159,37 @@ describe("useAgentConversation", () => {
       kind: "text",
       role: "user",
     });
+  });
+
+  it("does not create a session while conversation history is loading", async () => {
+    mocks.isHistoryLoading = true;
+
+    render(<Harness />, { wrapper: Wrapper });
+    await userEvent.click(screen.getByRole("button", { name: "Send" }));
+
+    expect(mocks.createSession).not.toHaveBeenCalled();
+    expect(mocks.sendMessage).not.toHaveBeenCalled();
+  });
+
+  it("shares one session creation across concurrent callers", async () => {
+    let resolveSession: ((session: { id: string }) => void) | null = null;
+    mocks.createSession.mockImplementation(
+      () =>
+        new Promise<{ id: string }>((resolve) => {
+          resolveSession = resolve;
+        }),
+    );
+
+    render(<EnsureSessionHarness />, { wrapper: Wrapper });
+    await userEvent.click(screen.getByRole("button", { name: "Ensure A" }));
+    await userEvent.click(screen.getByRole("button", { name: "Ensure B" }));
+
+    expect(mocks.createSession).toHaveBeenCalledTimes(1);
+    act(() =>
+      resolveSession?.({
+        id: "session-1",
+      }),
+    );
+    await waitFor(() => expect(mocks.createSession).toHaveBeenCalledTimes(1));
   });
 });
