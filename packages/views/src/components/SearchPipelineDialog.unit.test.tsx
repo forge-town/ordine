@@ -70,7 +70,7 @@ describe("SearchPipelineDialog", () => {
     render(<SearchPipelineDialog />);
 
     fireEvent.keyDown(document, { code: "KeyK", ctrlKey: true, key: "k" });
-    const input = await screen.findByRole("textbox");
+    const input = await screen.findByRole("textbox", { name: /搜索/ });
     await user.type(input, "triage");
 
     expect(screen.getByText("Issue triage")).toBeInTheDocument();

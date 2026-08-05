@@ -36,7 +36,7 @@ export const Chip = ({ active = false, children, className, count, onClick }: Ch
 
   if (onClick) {
     return (
-      <button className={classes} type="button" onClick={handleClick}>
+      <button aria-pressed={active} className={classes} type="button" onClick={handleClick}>
         {content}
       </button>
     );

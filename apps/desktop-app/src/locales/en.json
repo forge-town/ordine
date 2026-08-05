@@ -180,6 +180,8 @@
       "deleteFailed": "Could not remove the routine",
       "enabledToggle": "Enabled",
       "invalidCron": "Enter a valid five-field Cron expression",
+      "newRoutine": "New schedule",
+      "noCron": "No Cron",
       "presets": {
         "daily": "Daily 06:00",
         "dailyHuman": "Runs every day at 06:00",
@@ -191,6 +193,7 @@
         "weeklyHuman": "Runs every Monday at 09:00"
       },
       "presetsLabel": "Presets",
+      "routineLabel": "Pipeline schedules",
       "save": "Save schedule",
       "saveFailed": "Could not save the schedule",
       "saving": "Saving...",

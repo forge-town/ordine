@@ -1,4 +1,5 @@
 import {
+  Archive,
   Ban,
   Circle,
   CircleAlert,
@@ -16,6 +17,8 @@ import { Icon } from "./Icon";
 
 export const STATUS_PILL_STATUSES = [
   "idle",
+  "draft",
+  "ready",
   "queued",
   "running",
   "retrying",
@@ -29,6 +32,8 @@ export const STATUS_PILL_STATUSES = [
   "error",
   "skipped",
   "cancelled",
+  "expired",
+  "archived",
 ] as const;
 
 export type StatusPillStatus = (typeof STATUS_PILL_STATUSES)[number];
@@ -41,16 +46,20 @@ type StatusPillMeta = {
 };
 
 const STATUS_META: Record<StatusPillStatus, StatusPillMeta> = {
+  archived: { className: "status-wash-muted", icon: Archive, label: "Archived" },
   cancelled: { className: "status-wash-muted", icon: Ban, label: "Cancelled" },
   completed: { className: "status-wash-success", icon: CircleCheck, label: "Completed" },
   connected: { className: "status-wash-success", icon: CircleCheck, label: "Connected" },
   done: { className: "status-wash-success", icon: CircleCheck, label: "Done" },
   error: { className: "status-wash-error", icon: CircleAlert, label: "Error" },
+  expired: { className: "status-wash-muted", icon: Clock, label: "Expired" },
   failed: { className: "status-wash-error", icon: CircleAlert, label: "Failed" },
+  draft: { className: "status-wash-muted", icon: Circle, label: "Draft" },
   idle: { className: "status-wash-muted", icon: Circle, label: "Idle" },
   pass: { className: "status-wash-success", icon: CircleCheck, label: "Passed" },
   paused: { className: "status-wash-muted", icon: Pause, label: "Paused" },
   queued: { className: "status-wash-muted", icon: Clock, label: "Queued" },
+  ready: { className: "status-wash-success", icon: CircleCheck, label: "Ready" },
   retrying: { className: "status-wash-muted", icon: RotateCw, label: "Retrying", spin: true },
   running: { className: "status-wash-muted", icon: LoaderCircle, label: "Running", spin: true },
   skipped: { className: "status-wash-muted", icon: SkipForward, label: "Skipped" },

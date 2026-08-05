@@ -65,6 +65,7 @@ export const SearchPipelineDialog = () => {
         <div className="flex items-center border-b px-3">
           <Search className="mr-2 h-4 w-4 shrink-0 text-muted-foreground" />
           <Input
+            aria-label={t("nav.search")}
             autoFocus
             className="h-10 border-0 shadow-none focus-visible:ring-0 px-0"
             placeholder={t("nav.search")}

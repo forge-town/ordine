@@ -7,6 +7,7 @@ import { cn } from "@repo/ui/lib/utils";
 export type SearchInputProps = {
   className?: string;
   clearLabel?: string;
+  label?: string;
   onChange?: (value: string) => void;
   onClear?: () => void;
   placeholder?: string;
@@ -16,6 +17,7 @@ export type SearchInputProps = {
 export const SearchInput = ({
   className,
   clearLabel = "Clear search",
+  label,
   onChange,
   onClear,
   placeholder = "Search...",
@@ -33,6 +35,7 @@ export const SearchInput = ({
         className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground"
       />
       <Input
+        aria-label={label ?? placeholder}
         className="h-8 bg-surface-2 pl-8 pr-8 text-xs"
         placeholder={placeholder}
         value={value}

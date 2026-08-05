@@ -8,6 +8,7 @@ import { Card } from "@repo/ui/card";
 import { cn } from "@repo/ui/lib/utils";
 import type { PipelineData } from "@repo/schemas";
 import { ResourceName } from "../../../constants";
+import { StatusPill, Tag } from "../../../components/primitives";
 import type { PipelineMetrics } from "../pipelineMetrics";
 
 const NODE_TYPE_COLORS: Record<string, string> = {
@@ -112,18 +113,15 @@ export const PipelineCard = ({ metrics, onSchedule, pipeline }: PipelineCardProp
           {metrics.isSavedSkill && <Badge variant="secondary">{t("pipelines.savedSkill")}</Badge>}
           {metrics.isScheduled && <Badge variant="secondary">{t("pipelines.scheduled")}</Badge>}
           {pipeline.status && (
-            <Badge variant={pipeline.status === "draft" ? "outline" : "secondary"}>
-              {t(`pipelines.status.${pipeline.status}`)}
-            </Badge>
+            <StatusPill label={t(`pipelines.status.${pipeline.status}`)} status={pipeline.status} />
           )}
           {Object.entries(typeCounts).map(([type, count]) => (
-            <Badge
+            <Tag
               key={type}
               className={cn(NODE_TYPE_COLORS[type] ?? "bg-muted text-muted-foreground")}
-              variant="secondary"
             >
               {count} {t(`pipelines.nodeTypes.${type}`, { defaultValue: type })}
-            </Badge>
+            </Tag>
           ))}
         </div>
 

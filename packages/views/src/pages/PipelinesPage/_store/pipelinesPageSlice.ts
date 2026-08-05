@@ -1,4 +1,3 @@
-import type { ChangeEvent } from "react";
 import type { StateCreator } from "zustand";
 
 export interface PipelinesPageSlice {
@@ -6,7 +5,7 @@ export interface PipelinesPageSlice {
   selectedTags: string[];
   activeFilter: PipelineFilter;
 
-  handleSearchInputChange: (event: ChangeEvent<HTMLInputElement>) => void;
+  handleSearchInputChange: (value: string) => void;
   handleClearSearchButtonClick: () => void;
   handleTagBadgeClick: (tag: string) => void;
   handleClearTagsButtonClick: () => void;
@@ -21,7 +20,7 @@ export const createPipelinesPageSlice: StateCreator<PipelinesPageSlice> = (set) 
   selectedTags: [],
   activeFilter: "all",
 
-  handleSearchInputChange: (event) => set({ search: event.target.value }),
+  handleSearchInputChange: (search) => set({ search }),
   handleClearSearchButtonClick: () => set({ search: "" }),
   handleTagBadgeClick: (tag) =>
     set((state) => ({

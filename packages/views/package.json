@@ -7,7 +7,6 @@
     "./AppLayout": "./src/components/AppLayout.tsx",
     "./AppSidebar": "./src/components/AppSidebar.tsx",
     "./NotificationCenter": "./src/components/NotificationCenter/index.ts",
-    "./ResizeHandle": "./src/components/ResizeHandle/index.ts",
     "./ScheduleEditor": "./src/components/ScheduleEditor/index.ts",
     "./SearchPipelineDialog": "./src/components/SearchPipelineDialog.tsx",
     "./primitives": "./src/components/primitives/index.ts",

@@ -1,4 +1,4 @@
-import { useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useCreate, useDelete, useUpdate } from "@refinedev/core";
 import { CalendarClock, Info, Trash2, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -21,6 +21,7 @@ export type ScheduleEditorProps = {
   pipelineId: string;
   pipelineName: string;
   routine?: Routine | null;
+  routines?: Routine[];
 };
 
 const CRON_PRESETS = [
@@ -43,12 +44,24 @@ export const ScheduleEditor = ({
   pipelineId,
   pipelineName,
   routine = null,
+  routines,
 }: ScheduleEditorProps) => {
   const { t } = useTranslation();
-  const [cronParts, setCronParts] = useState(() =>
-    toCronParts(routine?.cronExpression ?? "0 6 * * *"),
+  const availableRoutines = routines ?? (routine ? [routine] : []);
+  const initialRoutine = routine ?? availableRoutines[0] ?? null;
+  const [selectedRoutineId, setSelectedRoutineId] = useState<string | null>(
+    initialRoutine?.id ?? null,
   );
-  const [enabled, setEnabled] = useState(routine?.enabled ?? true);
+  const [isNewRoutineSelected, setIsNewRoutineSelected] = useState(false);
+  const selectedRoutine =
+    availableRoutines.find((candidate) => candidate.id === selectedRoutineId) ?? null;
+  const [cronParts, setCronParts] = useState(() =>
+    toCronParts(initialRoutine?.cronExpression ?? "0 6 * * *"),
+  );
+  const [enabled, setEnabled] = useState(initialRoutine?.enabled ?? true);
+  const [hasExplicitCron, setHasExplicitCron] = useState(
+    initialRoutine === null || initialRoutine.cronExpression !== null,
+  );
   const [validationError, setValidationError] = useState<string | null>(null);
   const { mutate: createRoutine, mutation: createMutation } = useCreate();
   const { mutate: updateRoutine, mutation: updateMutation } = useUpdate();
@@ -65,24 +78,55 @@ export const ScheduleEditor = ({
     [activePreset, cronExpression, t],
   );
 
+  useEffect(() => {
+    if (isNewRoutineSelected) return;
+    if (availableRoutines.some((candidate) => candidate.id === selectedRoutineId)) return;
+
+    const nextRoutine = routine ?? availableRoutines[0] ?? null;
+    if (!nextRoutine) return;
+
+    setSelectedRoutineId(nextRoutine.id);
+    setCronParts(toCronParts(nextRoutine.cronExpression ?? "0 6 * * *"));
+    setEnabled(nextRoutine.enabled);
+    setHasExplicitCron(nextRoutine.cronExpression !== null);
+    setValidationError(null);
+  }, [availableRoutines, isNewRoutineSelected, routine, selectedRoutineId]);
+
   const handleCronPartChange = (index: number, value: string) => {
     setValidationError(null);
+    setHasExplicitCron(true);
     setCronParts((parts) => parts.map((part, partIndex) => (partIndex === index ? value : part)));
   };
 
   const handlePresetClick = (cron: string) => {
     setValidationError(null);
+    setHasExplicitCron(true);
     setCronParts(toCronParts(cron));
+  };
+
+  const handleRoutineChange = (routineId: string) => {
+    const nextRoutine = availableRoutines.find((candidate) => candidate.id === routineId) ?? null;
+    setIsNewRoutineSelected(nextRoutine === null);
+    setSelectedRoutineId(nextRoutine?.id ?? null);
+    setCronParts(toCronParts(nextRoutine?.cronExpression ?? "0 6 * * *"));
+    setEnabled(nextRoutine?.enabled ?? true);
+    setHasExplicitCron(nextRoutine === null || nextRoutine.cronExpression !== null);
+    setValidationError(null);
   };
 
   const handleSave = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (selectedRoutineId !== null && selectedRoutine === null) {
+      setValidationError(t("jobs.scheduleEditor.saveFailed"));
+
+      return;
+    }
     const parsed = CreateRoutineSchema.safeParse({
-      cronExpression,
-      description: routine?.description ?? null,
+      cronExpression: enabled || hasExplicitCron ? cronExpression : null,
+      description: selectedRoutine?.description ?? null,
       enabled,
-      inputConfig: routine?.inputConfig ?? null,
-      name: routine?.name ?? pipelineName,
+      inputConfig: selectedRoutine?.inputConfig ?? null,
+      name: selectedRoutine?.name ?? pipelineName,
       pipelineId,
     });
 
@@ -103,20 +147,20 @@ export const ScheduleEditor = ({
       values: parsed.data,
     };
 
-    if (routine) {
-      updateRoutine({ ...mutationInput, id: routine.id }, mutationOptions);
+    if (selectedRoutine) {
+      updateRoutine({ ...mutationInput, id: selectedRoutine.id }, mutationOptions);
     } else {
       createRoutine(mutationInput, mutationOptions);
     }
   };
 
   const handleDelete = () => {
-    if (!routine) return;
+    if (!selectedRoutine) return;
 
     deleteRoutine(
       {
         errorNotification: false,
-        id: routine.id,
+        id: selectedRoutine.id,
         resource: ResourceName.routines,
         successNotification: false,
       },
@@ -179,6 +223,26 @@ export const ScheduleEditor = ({
           </DialogHeader>
 
           <div className="space-y-5 overflow-y-auto px-4 py-4">
+            {availableRoutines.length > 0 ? (
+              <label className="block text-xs font-semibold text-muted-foreground">
+                {t("jobs.scheduleEditor.routineLabel")}
+                <select
+                  className="mt-2 h-8 w-full rounded-md border border-input bg-background px-2 text-sm font-normal text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  data-testid="schedule-routine-select"
+                  value={selectedRoutine?.id ?? "__new__"}
+                  onChange={(event) => handleRoutineChange(event.target.value)}
+                >
+                  {availableRoutines.map((candidate) => (
+                    <option key={candidate.id} value={candidate.id}>
+                      {candidate.name} -
+                      {candidate.cronExpression ?? t("jobs.scheduleEditor.noCron")}
+                    </option>
+                  ))}
+                  <option value="__new__">{t("jobs.scheduleEditor.newRoutine")}</option>
+                </select>
+              </label>
+            ) : null}
+
             <div>
               <div className="mb-2 text-xs font-semibold text-muted-foreground">
                 {t("jobs.scheduleEditor.presetsLabel")}
@@ -234,7 +298,7 @@ export const ScheduleEditor = ({
           </div>
 
           <DialogFooter className="m-0 rounded-none px-4 py-3">
-            {routine ? (
+            {selectedRoutine ? (
               <Button
                 className="mr-auto"
                 data-testid="schedule-delete"
