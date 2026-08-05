@@ -25,27 +25,15 @@ import {
 } from "@repo/ui/select";
 import { cn } from "@repo/ui/lib/utils";
 import { ResultAsync } from "neverthrow";
-import type {
-  AgentRuntimeConfig,
-  PipelineActionProposal,
-  PipelineAction,
-  PipelineActionDiagnostic,
-} from "@repo/schemas";
+import type { AgentRuntimeConfig, PipelineAction } from "@repo/schemas";
 import { useCanvasPageStore } from "../_store";
 import { ResourceName } from "../../../constants";
 import { getCanvasDataProvider } from "../../../lib/canvasDataProvider";
-import {
-  createPipelineAgentSessionsClient,
-  type PipelineAgentPlanEvent,
-} from "../../../lib/pipelineAgentSessionsClient";
+import { createPipelineAgentSessionsClient } from "../../../lib/pipelineAgentSessionsClient";
 import { usePlatform } from "../../../platform";
 import { toastStore } from "../../../store/toastStore";
-
-interface Message {
-  id: string;
-  role: "user" | "assistant";
-  content: string;
-}
+import { useAgentBarStore } from "./_store";
+import { useAgentConversation } from "./useAgentConversation";
 
 interface RuntimeState {
   runtimeOptions: AgentRuntimeConfig[];
@@ -56,11 +44,6 @@ interface AttachmentItem {
   id: string;
   filename: string;
   parseStatus: string;
-}
-
-interface LocalProposalPreview {
-  diagnosticsPreview: PipelineActionDiagnostic[] | null;
-  proposal: PipelineActionProposal;
 }
 
 const getActionLabel = (
@@ -109,37 +92,33 @@ export const AgentPanel = () => {
 
   const agentPanel = useStore(store, (state) => state.agentPanel);
   const handleToggleAgentPanel = useStore(store, (state) => state.toggleAgentPanel);
-  const setPendingProposal = useStore(store, (state) => state.setPendingProposal);
-  const clearPendingProposal = useStore(store, (state) => state.clearPendingProposal);
-  const applyAgentProposal = useStore(store, (state) => state.applyAgentProposal);
   const pipelineId = useStore(store, (state) => state.pipelineId);
   const nodes = useStore(store, (state) => state.nodes);
   const edges = useStore(store, (state) => state.edges);
-
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: "welcome",
-      role: "assistant",
-      content: t("canvas.agentPanel.welcome"),
-    },
-  ]);
   const [inputValue, setInputValue] = useState("");
-  const [isSending, setIsSending] = useState(false);
+  const [isPreparingSend, setIsPreparingSend] = useState(false);
   const [isLoadingRuntimes, setIsLoadingRuntimes] = useState(true);
   const [needsRuntimeSetup, setNeedsRuntimeSetup] = useState(false);
   const [runtimeOptions, setRuntimeOptions] = useState<AgentRuntimeConfig[]>([]);
   const [selectedRuntimeId, setSelectedRuntimeId] = useState<string | null>(null);
   const [attachments, setAttachments] = useState<AttachmentItem[]>([]);
-  const [localProposalPreview, setLocalProposalPreview] = useState<LocalProposalPreview | null>(
-    null,
-  );
-  const [streamingAssistantText, setStreamingAssistantText] = useState("");
-  const [streamingProgress, setStreamingProgress] = useState<string | null>(null);
+  const addMessage = useAgentBarStore((state) => state.addMessage);
+  const {
+    applyProposal,
+    discardProposal,
+    ensureSession,
+    isSending: isConversationSending,
+    messages,
+    resetSession,
+    streamingAssistantText,
+    streamingProgress,
+    submitMessage,
+  } = useAgentConversation({ pipelineId });
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const sessionIdRef = useRef<string | null>(null);
-  const sessionGraphSignatureRef = useRef<string | null>(null);
-  const proposalIdRef = useRef<string | null>(null);
+  const attachmentGraphSignatureRef = useRef<string | null>(null);
+  const sendInFlightRef = useRef(false);
+  const isSending = isPreparingSend || isConversationSending;
 
   const scrollToBottom = useCallback(() => {
     requestAnimationFrame(() => {
@@ -198,294 +177,104 @@ export const AgentPanel = () => {
     );
   }, [fetchRuntimeState]);
 
-  const ensureSession = useCallback(async () => {
-    const graphSignature = JSON.stringify({
-      pipelineId,
-      nodes,
-      edges,
-    });
-    if (sessionIdRef.current && sessionGraphSignatureRef.current === graphSignature) {
-      return sessionIdRef.current;
-    }
-    const session = await pipelineAgentSessionsClient.createSession({
-      entrypoint: "canvas-agent-panel",
-      mode: "edit",
-      ...(pipelineId ? { pipelineId } : {}),
-      snapshot: { nodes, edges },
-    });
-    sessionIdRef.current = session.id;
-    sessionGraphSignatureRef.current = graphSignature;
-
-    return session.id;
-  }, [edges, nodes, pipelineAgentSessionsClient, pipelineId]);
-
   useEffect(() => {
-    const nextSignature = JSON.stringify({
-      pipelineId,
-      nodes,
-      edges,
-    });
+    const graphSignature = JSON.stringify({ edges, nodes, pipelineId });
     if (
-      sessionGraphSignatureRef.current &&
-      sessionGraphSignatureRef.current !== nextSignature &&
-      attachments.length > 0
+      attachments.length > 0 &&
+      attachmentGraphSignatureRef.current &&
+      attachmentGraphSignatureRef.current !== graphSignature
     ) {
       setAttachments([]);
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: `system-context-reset-${Date.now()}`,
-          role: "assistant",
-          content: t("canvas.agentPanel.contextReset"),
-        },
-      ]);
-      sessionIdRef.current = null;
-      sessionGraphSignatureRef.current = null;
-      proposalIdRef.current = null;
+      attachmentGraphSignatureRef.current = null;
+      addMessage({
+        content: t("canvas.agentPanel.contextReset"),
+        id: `system-context-reset-${Date.now()}`,
+        role: "assistant",
+      });
+      resetSession();
     }
-  }, [attachments.length, edges, nodes, pipelineId, t]);
+  }, [addMessage, attachments.length, edges, nodes, pipelineId, resetSession, t]);
 
-  const handlePlanEvent = useCallback(
-    (event: PipelineAgentPlanEvent) => {
-      if (event.type === "phase") {
-        setStreamingProgress(event.phase);
-
-        return;
-      }
-
-      if (event.type === "progress") {
-        setStreamingProgress(event.message);
-
-        return;
-      }
-
-      if (event.type === "assistant_chunk") {
-        setStreamingAssistantText((current) =>
-          current.length === 0 ? event.text : `${current}\n${event.text}`,
-        );
-
-        return;
-      }
-
-      if (event.type === "question") {
-        setStreamingAssistantText("");
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: `assistant-question-${Date.now()}`,
-            role: "assistant",
-            content: event.question,
-          },
-        ]);
-        setStreamingProgress(null);
-        setIsSending(false);
-        scrollToBottom();
-
-        return;
-      }
-
-      if (event.type === "proposal_ready" && event.proposal.mode === "edit") {
-        const editProposal = event.proposal;
-        setStreamingAssistantText("");
-        proposalIdRef.current = event.proposalId;
-        const nextProposal: PipelineActionProposal = {
-          summary: editProposal.summary,
-          actions: editProposal.actions,
-        };
-        setLocalProposalPreview({
-          proposal: nextProposal,
-          diagnosticsPreview: editProposal.diagnosticsPreview,
-        });
-        setPendingProposal(nextProposal, editProposal.diagnosticsPreview);
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: `assistant-proposal-${Date.now()}`,
-            role: "assistant",
-            content: editProposal.summary,
-          },
-        ]);
-        setStreamingProgress(null);
-        setIsSending(false);
-        scrollToBottom();
-
-        return;
-      }
-
-      if (event.type === "error") {
-        setStreamingAssistantText("");
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: `assistant-error-${Date.now()}`,
-            role: "assistant",
-            content: event.message,
-          },
-        ]);
-        setStreamingProgress(null);
-        setIsSending(false);
-        scrollToBottom();
-      }
-    },
-    [scrollToBottom, setPendingProposal],
-  );
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages.length, scrollToBottom, streamingAssistantText, streamingProgress]);
 
   const doSend = useCallback(async () => {
-    if (isSending) {
+    if (isSending || sendInFlightRef.current) {
       return;
     }
-    const text = inputValue.trim();
-    if (!text) {
-      return;
-    }
-    if (!pipelineId) {
-      toastStore.getState().addToast({
-        type: "error",
-        title: t("canvas.runFailed"),
-        description: t("canvas.noPipelineId"),
-      });
-
-      return;
-    }
-
-    const previousProposalId = proposalIdRef.current;
-    clearPendingProposal();
-
-    const userMessage: Message = {
-      id: `user-${Date.now()}`,
-      role: "user",
-      content: text,
-    };
-
-    setMessages((prev) => [...prev, userMessage]);
-    setInputValue("");
-    setLocalProposalPreview(null);
-    setStreamingAssistantText("");
-    scrollToBottom();
-    setIsSending(true);
-    setStreamingProgress(null);
-
-    const runtimeSetupResult = await fetchRuntimeState();
-
-    if (runtimeSetupResult.isErr()) {
-      const assistantMessage: Message = {
-        id: `assistant-${Date.now()}`,
-        role: "assistant",
-        content: t("canvas.agentPanel.error"),
-      };
-      setMessages((prev) => [...prev, assistantMessage]);
-      toastStore.getState().addToast({
-        type: "error",
-        title: t("canvas.agentPanel.errorTitle"),
-        description: runtimeSetupResult.error.message,
-      });
-      setIsSending(false);
-      scrollToBottom();
-
-      return;
-    }
-
-    const { runtimeOptions: nextRuntimeOptions, suggestedRuntimeId } = runtimeSetupResult.value;
-    setRuntimeOptions(nextRuntimeOptions);
-    const effectiveRuntimeId =
-      selectedRuntimeId && nextRuntimeOptions.some((runtime) => runtime.id === selectedRuntimeId)
-        ? selectedRuntimeId
-        : suggestedRuntimeId;
-    setSelectedRuntimeId(effectiveRuntimeId);
-
-    if (!effectiveRuntimeId) {
-      setNeedsRuntimeSetup(true);
-      const assistantMessage: Message = {
-        id: `assistant-${Date.now()}`,
-        role: "assistant",
-        content: t("canvas.agentPanel.runtimeNotConfigured"),
-      };
-      setMessages((prev) => [...prev, assistantMessage]);
-      setIsSending(false);
-      scrollToBottom();
-
-      return;
-    }
-
-    setNeedsRuntimeSetup(false);
-
-    const sessionId = await ensureSession();
-    const sendResult = await ResultAsync.fromPromise(
-      (async () => {
-        await pipelineAgentSessionsClient.appendMessage(sessionId, {
-          role: "user",
-          kind: "text",
-          content: text,
+    sendInFlightRef.current = true;
+    setIsPreparingSend(true);
+    try {
+      const text = inputValue.trim();
+      if (!text) {
+        return;
+      }
+      if (!pipelineId) {
+        toastStore.getState().addToast({
+          type: "error",
+          title: t("canvas.runFailed"),
+          description: t("canvas.noPipelineId"),
         });
 
-        const streamedTerminalEvent = { current: false };
-        await pipelineAgentSessionsClient.planSessionStream(sessionId, {
-          runtimeId: effectiveRuntimeId,
-          onEvent: (event) => {
-            if (
-              event.type === "question" ||
-              event.type === "error" ||
-              (event.type === "proposal_ready" && event.proposal.mode === "edit")
-            ) {
-              streamedTerminalEvent.current = true;
-            }
-            handlePlanEvent(event);
-          },
-        });
-        if (!streamedTerminalEvent.current) {
-          const latestProposal = await pipelineAgentSessionsClient.getLatestReadyProposal(
-            sessionId,
-            "edit",
-            { excludeProposalId: previousProposalId },
-          );
-          if (latestProposal && latestProposal.proposal.mode === "edit") {
-            handlePlanEvent({
-              type: "proposal_ready",
-              proposal: latestProposal.proposal,
-              proposalId: latestProposal.proposalId,
-            });
+        return;
+      }
 
-            return;
-          }
+      const runtimeSetupResult = await fetchRuntimeState();
 
-          const latestQuestion =
-            await pipelineAgentSessionsClient.getLatestAssistantQuestion(sessionId);
-          if (latestQuestion) {
-            handlePlanEvent({
-              type: "question",
-              question: latestQuestion.question,
-            });
-          }
-        }
-      })(),
-      (error) => (error instanceof Error ? error : new Error(String(error))),
-    );
-    if (sendResult.isErr()) {
-      setStreamingAssistantText("");
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: `assistant-error-${Date.now()}`,
+      if (runtimeSetupResult.isErr()) {
+        addMessage({
+          content: t("canvas.agentPanel.error"),
+          id: `assistant-${Date.now()}`,
           role: "assistant",
-          content: sendResult.error.message,
-        },
-      ]);
-      setStreamingProgress(null);
-      setIsSending(false);
-      scrollToBottom();
+        });
+        toastStore.getState().addToast({
+          type: "error",
+          title: t("canvas.agentPanel.errorTitle"),
+          description: runtimeSetupResult.error.message,
+        });
+        scrollToBottom();
+
+        return;
+      }
+
+      const { runtimeOptions: nextRuntimeOptions, suggestedRuntimeId } = runtimeSetupResult.value;
+      setRuntimeOptions(nextRuntimeOptions);
+      const effectiveRuntimeId =
+        selectedRuntimeId && nextRuntimeOptions.some((runtime) => runtime.id === selectedRuntimeId)
+          ? selectedRuntimeId
+          : suggestedRuntimeId;
+      setSelectedRuntimeId(effectiveRuntimeId);
+
+      if (!effectiveRuntimeId) {
+        setNeedsRuntimeSetup(true);
+        addMessage({
+          content: t("canvas.agentPanel.runtimeNotConfigured"),
+          id: `assistant-${Date.now()}`,
+          role: "assistant",
+        });
+        scrollToBottom();
+
+        return;
+      }
+
+      setNeedsRuntimeSetup(false);
+      setInputValue("");
+      await submitMessage({ content: text, runtimeId: effectiveRuntimeId });
+    } finally {
+      sendInFlightRef.current = false;
+      setIsPreparingSend(false);
     }
   }, [
+    addMessage,
+    fetchRuntimeState,
     inputValue,
     isSending,
-    clearPendingProposal,
     pipelineId,
-    ensureSession,
-    fetchRuntimeState,
-    handlePlanEvent,
-    pipelineAgentSessionsClient,
     selectedRuntimeId,
-    t,
     scrollToBottom,
+    submitMessage,
+    t,
   ]);
 
   const handleKeyDown = useCallback(
@@ -545,6 +334,7 @@ export const AgentPanel = () => {
 
       const attachment = uploadResult.value.attachment;
       if (attachment) {
+        attachmentGraphSignatureRef.current = JSON.stringify({ edges, nodes, pipelineId });
         setAttachments((prev) => [
           ...prev,
           {
@@ -555,112 +345,25 @@ export const AgentPanel = () => {
         ]);
       }
     },
-    [ensureSession, pipelineAgentSessionsClient, selectedRuntimeId, t],
+    [edges, ensureSession, nodes, pipelineAgentSessionsClient, pipelineId, selectedRuntimeId, t],
   );
 
   const hasBlockingDiagnostics =
     agentPanel.diagnostics?.some((diagnostic) => diagnostic.severity === "error") ?? false;
 
-  const activeProposal = agentPanel.pendingProposal ?? localProposalPreview?.proposal ?? null;
-  const activeDiagnostics =
-    agentPanel.diagnostics ?? localProposalPreview?.diagnosticsPreview ?? null;
+  const activeProposal = agentPanel.pendingProposal;
+  const activeDiagnostics = agentPanel.diagnostics;
 
   const handleApply = useCallback(() => {
     if (!activeProposal || hasBlockingDiagnostics) {
       return;
     }
-
-    const run = async () => {
-      const approvalResult = await ResultAsync.fromPromise(
-        sessionIdRef.current && proposalIdRef.current
-          ? pipelineAgentSessionsClient.approveProposal(sessionIdRef.current, proposalIdRef.current)
-          : Promise.resolve(),
-        (error) => (error instanceof Error ? error : new Error(String(error))),
-      );
-      if (approvalResult.isErr()) {
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: `assistant-error-${Date.now()}`,
-            role: "assistant",
-            content: approvalResult.error.message,
-          },
-        ]);
-        scrollToBottom();
-
-        return;
-      }
-
-      const applied = applyAgentProposal(activeProposal);
-      if (!applied) {
-        return;
-      }
-
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: `system-${Date.now()}`,
-          role: "assistant",
-          content: t("canvas.agentPanel.applied"),
-        },
-      ]);
-      setLocalProposalPreview(null);
-      sessionIdRef.current = null;
-      sessionGraphSignatureRef.current = null;
-      proposalIdRef.current = null;
-      scrollToBottom();
-    };
-
-    void run();
-  }, [
-    activeProposal,
-    applyAgentProposal,
-    hasBlockingDiagnostics,
-    pipelineAgentSessionsClient,
-    scrollToBottom,
-    t,
-  ]);
+    void applyProposal();
+  }, [activeProposal, applyProposal, hasBlockingDiagnostics]);
 
   const handleDiscard = useCallback(() => {
-    const run = async () => {
-      const sessionId = sessionIdRef.current;
-      const proposalId = proposalIdRef.current;
-      const supersedeResult = await ResultAsync.fromPromise(
-        sessionId && proposalId
-          ? pipelineAgentSessionsClient.supersedeProposal(sessionId, proposalId)
-          : Promise.resolve(),
-        (error) => (error instanceof Error ? error : new Error(String(error))),
-      );
-      if (supersedeResult.isErr()) {
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: `assistant-error-${Date.now()}`,
-            role: "assistant",
-            content: supersedeResult.error.message,
-          },
-        ]);
-        scrollToBottom();
-
-        return;
-      }
-
-      clearPendingProposal();
-      setLocalProposalPreview(null);
-      proposalIdRef.current = null;
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: `system-${Date.now()}`,
-          role: "assistant",
-          content: t("canvas.agentPanel.discarded"),
-        },
-      ]);
-      scrollToBottom();
-    };
-
-    void run();
-  }, [clearPendingProposal, pipelineAgentSessionsClient, scrollToBottom, t]);
+    void discardProposal();
+  }, [discardProposal]);
 
   const proposal = activeProposal;
   const hasProposal = proposal !== null;
@@ -738,6 +441,11 @@ export const AgentPanel = () => {
 
       <ScrollArea className="flex-1">
         <div className="flex flex-col gap-3 p-3">
+          {messages.length === 0 && (
+            <div className="mr-auto max-w-[90%] rounded-lg bg-muted px-3 py-2 text-sm">
+              {t("canvas.agentPanel.welcome")}
+            </div>
+          )}
           {messages.map((msg) => (
             <div
               key={msg.id}

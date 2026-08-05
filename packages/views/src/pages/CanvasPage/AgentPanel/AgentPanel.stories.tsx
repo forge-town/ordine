@@ -5,6 +5,7 @@ import { CanvasPageStoreContext, createCanvasPageStore, type CanvasPageStore } f
 import { AgentPanel } from "./AgentPanel";
 import { setCanvasDataProvider } from "../../../lib/canvasDataProvider";
 import { canvasStoryDataProvider } from "../storybookData";
+import { AgentBarStoreProvider } from "./_store";
 
 setCanvasDataProvider(canvasStoryDataProvider);
 
@@ -94,9 +95,11 @@ const AgentPanelStory = ({
 
   return (
     <CanvasPageStoreContext.Provider value={storeRef.current}>
-      <div className="relative h-[540px] w-[420px] overflow-hidden rounded-md border bg-slate-50">
-        <AgentPanel />
-      </div>
+      <AgentBarStoreProvider pipelineId="story-pipeline">
+        <div className="relative h-[540px] w-[420px] overflow-hidden rounded-md border bg-slate-50">
+          <AgentPanel />
+        </div>
+      </AgentBarStoreProvider>
     </CanvasPageStoreContext.Provider>
   );
 };

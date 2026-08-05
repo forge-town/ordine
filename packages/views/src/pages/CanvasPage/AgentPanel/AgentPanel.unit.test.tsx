@@ -1,5 +1,5 @@
 import { render } from "../../../test/test-wrapper";
-import { screen, waitFor } from "@testing-library/react";
+import { fireEvent, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AgentPanel } from "./AgentPanel";
@@ -11,8 +11,13 @@ import {
   type CanvasPageStore,
 } from "../_store";
 import { useRef, type ReactNode } from "react";
-import type { PipelineActionProposal, PipelineActionDiagnostic } from "@repo/schemas";
+import type {
+  AgentRuntimeConfig,
+  PipelineActionProposal,
+  PipelineActionDiagnostic,
+} from "@repo/schemas";
 import { ok } from "neverthrow";
+import { AgentBarStoreProvider } from "./_store";
 
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({
@@ -164,7 +169,9 @@ const wrapperWithMutableStore = () => {
     },
   });
   const Wrapper = ({ children }: { children?: ReactNode }) => (
-    <CanvasPageStoreContext.Provider value={store}>{children}</CanvasPageStoreContext.Provider>
+    <CanvasPageStoreContext.Provider value={store}>
+      <AgentBarStoreProvider pipelineId="pipe-1">{children}</AgentBarStoreProvider>
+    </CanvasPageStoreContext.Provider>
   );
 
   return { store: store as CanvasPageStore, Wrapper };
@@ -256,6 +263,41 @@ describe("AgentPanel", () => {
     await waitFor(() => {
       expect(screen.getByText("Which output node should receive the report?")).toBeInTheDocument();
     });
+  });
+
+  it("deduplicates submits while runtime validation is in flight", async () => {
+    render(<AgentPanel />, { wrapper: wrapperWithState() });
+    const input = screen.getByPlaceholderText("canvas.agentPanel.inputPlaceholder");
+    await waitFor(() => {
+      expect(mockGetList).toHaveBeenCalled();
+    });
+
+    let resolveRuntimeOptions!: (value: { data: AgentRuntimeConfig[]; total: number }) => void;
+    mockGetList.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveRuntimeOptions = resolve;
+        }),
+    );
+
+    await userEvent.type(input, "Tighten the graph");
+    fireEvent.keyDown(input, { key: "Enter" });
+    fireEvent.keyDown(input, { key: "Enter" });
+
+    expect(mockGetList).toHaveBeenCalledTimes(2);
+    resolveRuntimeOptions({
+      data: [
+        {
+          id: "runtime-codex",
+          name: "Codex Local",
+          type: "codex",
+          connection: { mode: "local" },
+        },
+      ],
+      total: 1,
+    });
+
+    await waitFor(() => expect(mockCreateSession).toHaveBeenCalledTimes(1));
   });
 
   it("uploads a file into the edit session context", async () => {
