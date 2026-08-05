@@ -3,6 +3,7 @@ import { useDataProvider } from "@refinedev/core";
 import { setCanvasDataProvider } from "../../../lib/canvasDataProvider";
 import { CanvasPageStoreContext, createCanvasPageStore } from "./canvasPageStore";
 import type { PipelineNode, PipelineEdge } from "./canvasSlice";
+import { AgentBarStoreProvider } from "../AgentPanel/_store";
 
 interface LoadedPipeline {
   id: string;
@@ -40,7 +41,7 @@ export const CanvasPageStoreProvider = ({ children, pipeline }: Props) => {
 
   return (
     <CanvasPageStoreContext.Provider value={storeRef.current}>
-      {children}
+      <AgentBarStoreProvider pipelineId={pipeline?.id ?? null}>{children}</AgentBarStoreProvider>
     </CanvasPageStoreContext.Provider>
   );
 };

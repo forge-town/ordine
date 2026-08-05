@@ -1,5 +1,5 @@
 import { render } from "../../../test/test-wrapper";
-import { screen, waitFor } from "@testing-library/react";
+import { fireEvent, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AgentPanel } from "./AgentPanel";
@@ -11,8 +11,13 @@ import {
   type CanvasPageStore,
 } from "../_store";
 import { useRef, type ReactNode } from "react";
-import type { PipelineActionProposal, PipelineActionDiagnostic } from "@repo/schemas";
+import type {
+  AgentRuntimeConfig,
+  PipelineActionProposal,
+  PipelineActionDiagnostic,
+} from "@repo/schemas";
 import { ok } from "neverthrow";
+import { AgentBarStoreProvider } from "./_store";
 
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({
@@ -164,7 +169,9 @@ const wrapperWithMutableStore = () => {
     },
   });
   const Wrapper = ({ children }: { children?: ReactNode }) => (
-    <CanvasPageStoreContext.Provider value={store}>{children}</CanvasPageStoreContext.Provider>
+    <CanvasPageStoreContext.Provider value={store}>
+      <AgentBarStoreProvider pipelineId="pipe-1">{children}</AgentBarStoreProvider>
+    </CanvasPageStoreContext.Provider>
   );
 
   return { store: store as CanvasPageStore, Wrapper };
@@ -223,6 +230,21 @@ describe("AgentPanel", () => {
     expect(screen.getByText("canvas.agentPanel.title")).toBeInTheDocument();
     expect(screen.getByText("canvas.agentPanel.welcome")).toBeInTheDocument();
     expect(screen.getByText("canvas.agentPanel.runtimeLabel")).toBeInTheDocument();
+    expect(screen.getByTestId("canvas-agent-panel")).toHaveClass("bg-surface");
+    expect(screen.getByTestId("canvas-agent-panel")).toHaveClass("w-[min(22.5rem,100%)]");
+    expect(screen.getByTestId("canvas-agent-panel-header")).toBeInTheDocument();
+    expect(screen.getByTestId("canvas-agent-panel-status-dot")).toHaveClass("bg-success");
+    expect(screen.getByTestId("canvas-agent-panel-collapse")).toBeInTheDocument();
+    expect(screen.getByTestId("canvas-agent-panel-runtime-context")).toHaveClass(
+      "mx-3",
+      "mb-1",
+      "rounded-lg",
+      "bg-surface-2",
+    );
+    expect(screen.getByPlaceholderText("canvas.agentPanel.inputPlaceholder")).toHaveClass(
+      "bg-surface-2",
+    );
+    expect(screen.getByTestId("agent-assistant")).toHaveClass("text-[12px]");
   });
 
   it("creates an edit session, sends a message, and displays a streamed follow-up question", async () => {
@@ -256,6 +278,47 @@ describe("AgentPanel", () => {
     await waitFor(() => {
       expect(screen.getByText("Which output node should receive the report?")).toBeInTheDocument();
     });
+    expect(screen.getByText("Tighten the graph").closest("div")).toHaveClass("bg-foreground");
+    expect(
+      screen
+        .getByText("Which output node should receive the report?")
+        .closest('[data-testid="agent-assistant"]'),
+    ).toHaveClass("text-[12px]");
+  });
+
+  it("deduplicates submits while runtime validation is in flight", async () => {
+    render(<AgentPanel />, { wrapper: wrapperWithState() });
+    const input = screen.getByPlaceholderText("canvas.agentPanel.inputPlaceholder");
+    await waitFor(() => {
+      expect(mockGetList).toHaveBeenCalled();
+    });
+
+    let resolveRuntimeOptions!: (value: { data: AgentRuntimeConfig[]; total: number }) => void;
+    mockGetList.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveRuntimeOptions = resolve;
+        }),
+    );
+
+    await userEvent.type(input, "Tighten the graph");
+    fireEvent.keyDown(input, { key: "Enter" });
+    fireEvent.keyDown(input, { key: "Enter" });
+
+    expect(mockGetList).toHaveBeenCalledTimes(2);
+    resolveRuntimeOptions({
+      data: [
+        {
+          id: "runtime-codex",
+          name: "Codex Local",
+          type: "codex",
+          connection: { mode: "local" },
+        },
+      ],
+      total: 1,
+    });
+
+    await waitFor(() => expect(mockCreateSession).toHaveBeenCalledTimes(1));
   });
 
   it("uploads a file into the edit session context", async () => {
@@ -279,12 +342,90 @@ describe("AgentPanel", () => {
     });
   });
 
+  it("opens the file picker after session preparation without disabling the file input", async () => {
+    render(<AgentPanel />, { wrapper: wrapperWithState() });
+
+    const input = screen.getByLabelText("canvas.agentPanel.upload") as HTMLInputElement;
+    await waitFor(() => expect(input).toBeEnabled());
+    const clickInput = vi.spyOn(input, "click");
+
+    await userEvent.click(screen.getByRole("button", { name: "canvas.agentPanel.upload" }));
+
+    await waitFor(() => expect(clickInput).toHaveBeenCalledTimes(1));
+    expect(input).toBeEnabled();
+  });
+
+  it("blocks sending while an attachment upload is in flight", async () => {
+    let resolveUpload: (value: {
+      attachment: { filename: string; id: string; parseStatus: string };
+    }) => void = () => undefined;
+    mockUploadAttachment.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveUpload = resolve;
+        }),
+    );
+    render(<AgentPanel />, { wrapper: wrapperWithState() });
+
+    const uploadInput = screen.getByLabelText("canvas.agentPanel.upload");
+    await waitFor(() => expect(uploadInput).toBeEnabled());
+    await userEvent.upload(uploadInput, new File(["hello"], "brief.txt", { type: "text/plain" }));
+    await waitFor(() => expect(mockUploadAttachment).toHaveBeenCalledTimes(1));
+
+    const messageInput = screen.getByPlaceholderText("canvas.agentPanel.inputPlaceholder");
+    expect(messageInput).toBeDisabled();
+    fireEvent.keyDown(messageInput, { key: "Enter" });
+    expect(mockPlanSessionStream).not.toHaveBeenCalled();
+
+    resolveUpload({
+      attachment: { filename: "brief.txt", id: "attachment-1", parseStatus: "parsed" },
+    });
+    await waitFor(() => expect(messageInput).toBeEnabled());
+  });
+
+  it("keeps send and upload controls disabled until history hydration completes", async () => {
+    let resolveHistory: (value: { data: never[]; total: number }) => void = () => undefined;
+    mockGetList.mockImplementation(({ resource }: { resource: string }) => {
+      if (resource === "conversationMessages") {
+        return new Promise<{ data: never[]; total: number }>((resolve) => {
+          resolveHistory = resolve;
+        });
+      }
+
+      return Promise.resolve({
+        data: [
+          {
+            id: "runtime-codex",
+            name: "Codex Local",
+            type: "codex",
+            connection: { mode: "local" },
+          },
+        ],
+        total: 1,
+      });
+    });
+
+    render(<AgentPanel />, { wrapper: wrapperWithState() });
+
+    expect(screen.getByPlaceholderText("canvas.agentPanel.inputPlaceholder")).toBeDisabled();
+    expect(screen.getByLabelText("canvas.agentPanel.upload")).toBeDisabled();
+    expect(screen.getByRole("button", { name: "canvas.agentPanel.upload" })).toBeDisabled();
+
+    resolveHistory({ data: [], total: 0 });
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText("canvas.agentPanel.inputPlaceholder")).toBeEnabled();
+      expect(screen.getByRole("button", { name: "canvas.agentPanel.upload" })).toBeEnabled();
+    });
+  });
+
   it("clears uploaded attachments when graph signature changes", async () => {
     const { store, Wrapper } = wrapperWithMutableStore();
     render(<AgentPanel />, { wrapper: Wrapper });
 
     const file = new File(["hello"], "brief.txt", { type: "text/plain" });
-    await userEvent.upload(screen.getByLabelText("canvas.agentPanel.upload"), file);
+    const uploadInput = screen.getByLabelText("canvas.agentPanel.upload");
+    await waitFor(() => expect(uploadInput).toBeEnabled());
+    await userEvent.upload(uploadInput, file);
     await waitFor(() => {
       expect(screen.getByText("brief.txt")).toBeInTheDocument();
     });
