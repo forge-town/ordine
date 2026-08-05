@@ -4,7 +4,8 @@ import { ToastContainer } from "./ToastContainer";
 import { toastStore, ToastStoreProvider } from "@/store/toastStore";
 import { SidebarStoreProvider } from "@/store/sidebarStore";
 import { SidebarStoreProvider as SharedSidebarStoreProvider } from "@repo/views/store/sidebarStore";
-import { SearchPipelineDialog } from "./SearchPipelineDialog";
+import { NotificationCenter } from "@repo/views/NotificationCenter";
+import { SearchPipelineDialog } from "@repo/views/SearchPipelineDialog";
 import { NewPipelineDialog } from "./NewPipelineDialog";
 import { AutonomyStoreProvider } from "@repo/views/store/autonomyStore";
 import {
@@ -29,6 +30,7 @@ export const AppLayout = ({ children }: { children: React.ReactNode }) => {
                   <ToastContainer />
                   <SearchPipelineDialog />
                   <NewPipelineDialog />
+                  <NotificationCenter />
                 </SidebarProvider>
               </SharedSidebarStoreProvider>
             </SidebarStoreProvider>

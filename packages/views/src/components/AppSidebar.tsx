@@ -112,6 +112,8 @@ export const AppSidebar = ({
   const capabilitiesOpen = useStore(store, (state) => state.capabilitiesOpen);
   const handleSidebarLocationChange = useStore(store, (state) => state.handleSidebarLocationChange);
   const handleCapabilitiesToggle = useStore(store, (state) => state.handleCapabilitiesToggle);
+  const handleDefaultSearch = useStore(store, (state) => state.handleSearchButtonClick);
+  const handleSearchClick = handleSearch ?? handleDefaultSearch;
   const currentPath = location.pathname;
 
   useEffect(() => {
@@ -134,34 +136,30 @@ export const AppSidebar = ({
           <SidebarTrigger className="absolute right-0.5 top-0.5 z-10 shrink-0 rounded-md shadow-none transition-[right] duration-200 ease-out motion-reduce:transition-none active:translate-y-0! focus-visible:border-transparent focus-visible:ring-2 focus-visible:ring-inset group-data-[state=collapsed]/sidebar:right-[calc(50%_-_0.875rem)]" />
         </div>
         <ProjectSwitcher />
-        {(handleSearch || handleNewPipeline) && (
-          <SidebarMenu className="gap-1">
-            {handleSearch && (
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  className="h-8 text-muted-foreground"
-                  tooltip={t("nav.search")}
-                  onClick={handleSearch}
-                >
-                  <Search />
-                  <span className="truncate">{t("nav.search")}</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            )}
-            {handleNewPipeline && (
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  className="h-8 text-muted-foreground"
-                  tooltip={t("nav.newPipeline")}
-                  onClick={handleNewPipeline}
-                >
-                  <SquarePen />
-                  <span className="truncate">{t("nav.newPipeline")}</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            )}
-          </SidebarMenu>
-        )}
+        <SidebarMenu className="gap-1">
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              className="h-8 text-muted-foreground"
+              tooltip={t("nav.search")}
+              onClick={handleSearchClick}
+            >
+              <Search />
+              <span className="truncate">{t("nav.search")}</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          {handleNewPipeline && (
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                className="h-8 text-muted-foreground"
+                tooltip={t("nav.newPipeline")}
+                onClick={handleNewPipeline}
+              >
+                <SquarePen />
+                <span className="truncate">{t("nav.newPipeline")}</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          )}
+        </SidebarMenu>
       </SidebarHeader>
 
       <SidebarContent className="py-2">

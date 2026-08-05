@@ -1,13 +1,12 @@
 import { useStore } from "zustand";
-import { Activity, Search, Filter } from "lucide-react";
+import { Activity, Filter } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { Button } from "@repo/ui/button";
-import { Input } from "@repo/ui/input";
 import type { Job, JobStatus } from "@repo/schemas";
 import { useList } from "@refinedev/core";
 import { ResourceName } from "../../../constants";
 import { PageLoadingState } from "../../../components/PageLoadingState";
 import { PageHeader } from "../../../components/PageHeader";
+import { Chip, SearchInput } from "../../../components/primitives";
 import { useJobsPageStore } from "../_store";
 import { StatCard } from "../StatCard";
 import { JobRow } from "../JobRow";
@@ -126,31 +125,26 @@ export const JobsPageContent = () => {
 
       {/* Toolbar */}
       <div className="flex shrink-0 items-center gap-3 border-b border-border bg-background px-6 py-3">
-        <div className="relative w-60">
-          <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            className="h-8 pl-8 text-sm"
-            placeholder={t("common.search")}
-            type="text"
-            value={search}
-            onChange={handleSearchInputChange}
-          />
-        </div>
+        <SearchInput
+          className="w-60"
+          clearLabel={t("common.clearSearch")}
+          label={t("common.search")}
+          placeholder={t("common.search")}
+          value={search}
+          onChange={handleSearchInputChange}
+          onClear={() => handleSearchInputChange("")}
+        />
         <Filter className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
         <div className="flex items-center gap-1">
           {STATUS_FILTERS.map((f) => (
-            <Button
+            <Chip
               key={f.value}
-              className="h-7 px-3 text-xs"
-              size="sm"
-              variant={statusFilter === f.value ? "default" : "ghost"}
+              active={statusFilter === f.value}
+              count={f.value === "all" ? jobs.length : counts[f.value as JobStatus]}
               onClick={() => handleStatusFilterButtonClick(f.value)}
             >
               {f.label}
-              {f.value !== "all" && (
-                <span className="ml-1 opacity-70">{counts[f.value as JobStatus]}</span>
-              )}
-            </Button>
+            </Chip>
           ))}
         </div>
         <span className="ml-auto text-xs text-muted-foreground">

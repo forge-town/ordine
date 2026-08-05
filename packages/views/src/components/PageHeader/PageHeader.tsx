@@ -35,7 +35,7 @@ export const PageHeader = ({
   return (
     <div
       className={cn(
-        "flex h-14 shrink-0 items-center gap-3 border-b border-border bg-background px-6",
+        "flex h-14 shrink-0 items-center gap-3 border-b border-border bg-background py-0 pl-6 pr-16",
         className,
       )}
     >

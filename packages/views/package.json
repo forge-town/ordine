@@ -6,6 +6,10 @@
   "exports": {
     "./AppLayout": "./src/components/AppLayout.tsx",
     "./AppSidebar": "./src/components/AppSidebar.tsx",
+    "./NotificationCenter": "./src/components/NotificationCenter/index.ts",
+    "./ScheduleEditor": "./src/components/ScheduleEditor/index.ts",
+    "./SearchPipelineDialog": "./src/components/SearchPipelineDialog.tsx",
+    "./primitives": "./src/components/primitives/index.ts",
     "./DashboardPage": "./src/pages/DashboardPage/index.ts",
     "./OperationsPage": "./src/pages/OperationsPage/index.ts",
     "./OperationCreatePage": "./src/pages/OperationCreatePage/index.ts",

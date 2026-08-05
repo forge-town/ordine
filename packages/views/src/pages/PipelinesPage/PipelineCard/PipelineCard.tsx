@@ -1,4 +1,4 @@
-import { ArrowRight, Clock, ExternalLink, GitBranch, Trash2 } from "lucide-react";
+import { ArrowRight, CalendarClock, Clock, ExternalLink, GitBranch, Trash2 } from "lucide-react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useDelete } from "@refinedev/core";
 import { useTranslation } from "react-i18next";
@@ -8,6 +8,7 @@ import { Card } from "@repo/ui/card";
 import { cn } from "@repo/ui/lib/utils";
 import type { PipelineData } from "@repo/schemas";
 import { ResourceName } from "../../../constants";
+import { StatusPill, Tag } from "../../../components/primitives";
 import type { PipelineMetrics } from "../pipelineMetrics";
 
 const NODE_TYPE_COLORS: Record<string, string> = {
@@ -26,11 +27,12 @@ const formatDuration = (durationMs: number | null) => {
 };
 
 export interface PipelineCardProps {
-  pipeline: PipelineData;
   metrics: PipelineMetrics;
+  onSchedule?: () => void;
+  pipeline: PipelineData;
 }
 
-export const PipelineCard = ({ pipeline, metrics }: PipelineCardProps) => {
+export const PipelineCard = ({ metrics, onSchedule, pipeline }: PipelineCardProps) => {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
   const { mutate: deletePipeline } = useDelete();
@@ -43,7 +45,9 @@ export const PipelineCard = ({ pipeline, metrics }: PipelineCardProps) => {
   const updatedAt =
     pipeline.updatedAt instanceof Date ? pipeline.updatedAt : new Date(pipeline.updatedAt);
   const relativeMinutes = Math.round((updatedAt.getTime() - Date.now()) / 60_000);
-  const relativeTime = new Intl.RelativeTimeFormat(i18n.language, { numeric: "auto" }).format(
+  const relativeTime = new Intl.RelativeTimeFormat(i18n.language, {
+    numeric: "auto",
+  }).format(
     Math.abs(relativeMinutes) < 60 ? relativeMinutes : Math.round(relativeMinutes / 60),
     Math.abs(relativeMinutes) < 60 ? "minute" : "hour",
   );
@@ -55,6 +59,7 @@ export const PipelineCard = ({ pipeline, metrics }: PipelineCardProps) => {
   const handleDelete = () => {
     deletePipeline({ resource: ResourceName.pipelines, id: pipeline.id });
   };
+  const handleSchedule = () => onSchedule?.();
 
   return (
     <Card className="group relative min-h-64 overflow-hidden p-5 transition-all duration-200 hover:border-primary/50 hover:shadow-sm focus-within:ring-2 focus-within:ring-ring">
@@ -108,18 +113,15 @@ export const PipelineCard = ({ pipeline, metrics }: PipelineCardProps) => {
           {metrics.isSavedSkill && <Badge variant="secondary">{t("pipelines.savedSkill")}</Badge>}
           {metrics.isScheduled && <Badge variant="secondary">{t("pipelines.scheduled")}</Badge>}
           {pipeline.status && (
-            <Badge variant={pipeline.status === "draft" ? "outline" : "secondary"}>
-              {t(`pipelines.status.${pipeline.status}`)}
-            </Badge>
+            <StatusPill label={t(`pipelines.status.${pipeline.status}`)} status={pipeline.status} />
           )}
           {Object.entries(typeCounts).map(([type, count]) => (
-            <Badge
+            <Tag
               key={type}
               className={cn(NODE_TYPE_COLORS[type] ?? "bg-muted text-muted-foreground")}
-              variant="secondary"
             >
               {count} {t(`pipelines.nodeTypes.${type}`, { defaultValue: type })}
-            </Badge>
+            </Tag>
           ))}
         </div>
 
@@ -132,7 +134,21 @@ export const PipelineCard = ({ pipeline, metrics }: PipelineCardProps) => {
         </div>
       </div>
 
-      <div className="absolute right-3 top-3 z-20 flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
+      <div className="absolute right-3 top-3 z-20 flex items-center gap-1 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100">
+        {onSchedule ? (
+          <Button
+            aria-label={t("pipelines.schedulePipeline", {
+              name: pipeline.name,
+            })}
+            className="size-7 text-muted-foreground"
+            size="icon"
+            type="button"
+            variant="ghost"
+            onClick={handleSchedule}
+          >
+            <CalendarClock className="h-3.5 w-3.5" />
+          </Button>
+        ) : null}
         <Button
           aria-label={t("pipelines.deletePipeline", { name: pipeline.name })}
           className="size-7 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"

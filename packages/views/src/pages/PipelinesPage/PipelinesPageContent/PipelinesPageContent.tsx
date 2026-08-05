@@ -1,17 +1,16 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { GitBranch, Plus, Layers, Search, X } from "lucide-react";
+import { GitBranch, Plus, Layers } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
-import { Input } from "@repo/ui/input";
-import { Badge } from "@repo/ui/badge";
-import { cn } from "@repo/ui/lib/utils";
 import { useCreate, useList } from "@refinedev/core";
 import type { Job, PipelineAsset, PipelineData, Routine } from "@repo/schemas";
 import { useStore } from "zustand";
 import { ResourceName } from "../../../constants";
 import { PageLoadingState } from "../../../components/PageLoadingState";
 import { PageHeader } from "../../../components/PageHeader";
+import { ScheduleEditor } from "../../../components/ScheduleEditor";
+import { Chip, SearchInput } from "../../../components/primitives";
 import { usePipelinesPageStore } from "../_store";
 import { PipelineCard } from "../PipelineCard";
 import { buildPipelineMetrics, filterPipelines } from "../pipelineMetrics";
@@ -30,7 +29,9 @@ export const PipelinesPageContent = () => {
     resource: ResourceName.pipelineAssets,
   });
   const { result: jobsResult } = useList<Job>({ resource: ResourceName.jobs });
-  const { result: routinesResult } = useList<Routine>({ resource: ResourceName.routines });
+  const { result: routinesResult, query: routinesQuery } = useList<Routine>({
+    resource: ResourceName.routines,
+  });
   const store = usePipelinesPageStore();
   const search = useStore(store, (s) => s.search);
   const selectedTags = useStore(store, (s) => s.selectedTags);
@@ -43,6 +44,7 @@ export const PipelinesPageContent = () => {
   const handleFilterChange = useStore(store, (s) => s.handleFilterChange);
   const navigate = useNavigate();
   const { mutateAsync: createPipelineMutate } = useCreate();
+  const [schedulePipelineId, setSchedulePipelineId] = useState<string | null>(null);
   const metricsByPipeline = useMemo(
     () =>
       buildPipelineMetrics(
@@ -102,6 +104,12 @@ export const PipelinesPageContent = () => {
   };
 
   const handleCreateClick = () => void handleCreate();
+  const handleScheduleOpen = (pipelineId: string) => () => setSchedulePipelineId(pipelineId);
+  const handleScheduleClose = () => setSchedulePipelineId(null);
+  const scheduledPipeline = pipelines.find((pipeline) => pipeline.id === schedulePipelineId);
+  const scheduledRoutines = routinesResult.data.filter(
+    (routine) => routine.pipelineId === schedulePipelineId,
+  );
 
   if (pipelinesQuery?.isLoading) {
     return (
@@ -134,39 +142,24 @@ export const PipelinesPageContent = () => {
             role="group"
           >
             {filterKeys.map((filter) => (
-              <Button
+              <Chip
                 key={filter}
-                aria-pressed={activeFilter === filter}
-                className="h-8"
-                size="sm"
-                variant={activeFilter === filter ? "secondary" : "ghost"}
+                active={activeFilter === filter}
                 onClick={() => handleFilterChange(filter)}
               >
                 {t(`pipelines.filters.${filter}`)}
-              </Button>
+              </Chip>
             ))}
           </div>
-          <div className="relative w-full sm:w-64">
-            <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              className="h-8 pl-8 pr-8 text-sm"
-              placeholder={t("common.search")}
-              type="text"
-              value={search}
-              onChange={handleSearchInputChange}
-            />
-            {search && (
-              <Button
-                aria-label={t("common.clearSearch")}
-                className="absolute right-1 top-1/2 size-6 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                size="icon"
-                variant="ghost"
-                onClick={handleClearSearchButtonClick}
-              >
-                <X className="h-3 w-3" />
-              </Button>
-            )}
-          </div>
+          <SearchInput
+            className="w-full sm:w-64"
+            clearLabel={t("common.clearSearch")}
+            label={t("common.search")}
+            placeholder={t("common.search")}
+            value={search}
+            onChange={handleSearchInputChange}
+            onClear={handleClearSearchButtonClick}
+          />
         </div>
         {allTags.length > 0 && (
           <div className="flex flex-wrap items-center gap-1">
@@ -181,19 +174,13 @@ export const PipelinesPageContent = () => {
               </Button>
             )}
             {allTags.map((tag) => (
-              <Badge
+              <Chip
                 key={tag}
-                className={cn(
-                  "cursor-pointer select-none text-[11px] transition-colors",
-                  selectedTags.includes(tag)
-                    ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                    : "bg-muted text-muted-foreground hover:bg-muted/80",
-                )}
-                variant="secondary"
+                active={selectedTags.includes(tag)}
                 onClick={() => handleTagBadgeClick(tag)}
               >
                 #{tag}
-              </Badge>
+              </Chip>
             ))}
           </div>
         )}
@@ -211,11 +198,28 @@ export const PipelinesPageContent = () => {
         ) : (
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
             {filtered.map((p) => (
-              <PipelineCard key={p.id} metrics={metricsByPipeline.get(p.id)!} pipeline={p} />
+              <PipelineCard
+                key={p.id}
+                metrics={metricsByPipeline.get(p.id)!}
+                pipeline={p}
+                onSchedule={
+                  routinesQuery?.isLoading || routinesQuery?.isError
+                    ? undefined
+                    : handleScheduleOpen(p.id)
+                }
+              />
             ))}
           </div>
         )}
       </div>
+      {scheduledPipeline ? (
+        <ScheduleEditor
+          pipelineId={scheduledPipeline.id}
+          pipelineName={scheduledPipeline.name}
+          routines={scheduledRoutines}
+          onClose={handleScheduleClose}
+        />
+      ) : null}
     </div>
   );
 };

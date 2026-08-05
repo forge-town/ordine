@@ -164,7 +164,52 @@
     "typeCustom": "Custom",
     "typePipeline": "Pipeline",
     "inProgress": "In Progress",
-    "result": "Result"
+    "result": "Result",
+    "scheduleEditor": {
+      "cancel": "Cancel",
+      "close": "Close",
+      "cronExpression": "Cron expression",
+      "cronParts": {
+        "day": "day",
+        "hour": "hour",
+        "minute": "min",
+        "month": "month",
+        "weekday": "wday"
+      },
+      "delete": "Remove routine",
+      "deleteFailed": "Could not remove the routine",
+      "enabledToggle": "Enabled",
+      "invalidCron": "Enter a valid five-field Cron expression",
+      "newRoutine": "New schedule",
+      "noCron": "No Cron",
+      "presets": {
+        "daily": "Daily 06:00",
+        "dailyHuman": "Runs every day at 06:00",
+        "hourly": "Every hour",
+        "hourlyHuman": "Runs at minute 0 of every hour",
+        "weekdays": "Weekdays 09:00",
+        "weekdaysHuman": "Runs Mon-Fri at 09:00",
+        "weekly": "Weekly Mon",
+        "weeklyHuman": "Runs every Monday at 09:00"
+      },
+      "presetsLabel": "Presets",
+      "routineLabel": "Pipeline schedules",
+      "save": "Save schedule",
+      "saveFailed": "Could not save the schedule",
+      "saving": "Saving...",
+      "summary": {
+        "cron": "Runs on cron {{cron}}"
+      },
+      "title": "Schedule"
+    }
+  },
+  "notifications": {
+    "clear": "Clear all",
+    "emptyBody": "Run and application events show here.",
+    "emptyTitle": "All clear",
+    "markRead": "Mark read",
+    "open": "open",
+    "title": "Notifications"
   },
   "distillations": {
     "title": "Distillations",
@@ -334,6 +379,7 @@
     "noDescription": "No description",
     "openPipeline": "Open {{name}} in Canvas",
     "deletePipeline": "Delete {{name}}",
+    "schedulePipeline": "Schedule {{name}}",
     "viewDetails": "View {{name}} details",
     "nodes_one": "{{count}} node",
     "nodes_other": "{{count}} nodes",

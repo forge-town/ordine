@@ -20,6 +20,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { useDelete } from "@refinedev/core";
 import type { Job, JobStatus, JobType } from "@repo/schemas";
 import { ResourceName } from "../../../constants";
+import { StatusPill } from "../../../components/primitives";
 
 const STATUS_META: Record<JobStatus, { icon: React.ElementType; cls: string; dot: string }> = {
   queued: { icon: Clock, cls: "bg-gray-100 text-gray-600", dot: "bg-gray-400" },
@@ -127,9 +128,11 @@ export const JobRow = ({ job }: JobRowProps) => {
           </span>
         </div>
       </div>
-      <span className={cn("shrink-0 rounded-full px-2.5 py-1 text-[11px] font-medium", s.cls)}>
-        {t(`jobs.${job.status}`)}
-      </span>
+      <StatusPill
+        className="shrink-0 px-2.5 py-1 text-[11px]"
+        label={t(`jobs.${job.status}`)}
+        status={job.status}
+      />
       <div className="flex shrink-0 items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
         <Button
           className="h-7 w-7 hover:bg-destructive/10"

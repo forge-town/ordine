@@ -76,14 +76,7 @@ const WebUserFooter = () => {
 
 export const AppSidebar = () => {
   const store = useSidebarStore();
-  const handleSearch = useStore(store, (state) => state.handleSearchButtonClick);
   const handleNewPipeline = useStore(store, (state) => state.handleNewPipelineButtonClick);
 
-  return (
-    <SharedAppSidebar
-      footer={<WebUserFooter />}
-      onNewPipeline={handleNewPipeline}
-      onSearch={handleSearch}
-    />
-  );
+  return <SharedAppSidebar footer={<WebUserFooter />} onNewPipeline={handleNewPipeline} />;
 };
