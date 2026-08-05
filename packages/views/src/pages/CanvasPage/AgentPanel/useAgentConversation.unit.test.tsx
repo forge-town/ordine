@@ -1,7 +1,7 @@
 import { act, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { render } from "../../../test/test-wrapper";
 import { CanvasPageStoreContext, createCanvasPageStore } from "../_store";
 import type { PipelineAgentPlanEvent } from "../../../lib/pipelineAgentSessionsClient";
@@ -71,15 +71,19 @@ const Harness = () => {
 
 const EnsureSessionHarness = () => {
   const { ensureSession } = useAgentConversation({ pipelineId: "pipe-1" });
+  const [sessionA, setSessionA] = useState("");
+  const [sessionB, setSessionB] = useState("");
 
   return (
     <div>
-      <button type="button" onClick={() => void ensureSession()}>
+      <button type="button" onClick={() => void ensureSession().then(setSessionA)}>
         Ensure A
       </button>
-      <button type="button" onClick={() => void ensureSession()}>
+      <button type="button" onClick={() => void ensureSession().then(setSessionB)}>
         Ensure B
       </button>
+      <span data-testid="session-a">{sessionA}</span>
+      <span data-testid="session-b">{sessionB}</span>
     </div>
   );
 };
@@ -190,6 +194,10 @@ describe("useAgentConversation", () => {
         id: "session-1",
       }),
     );
-    await waitFor(() => expect(mocks.createSession).toHaveBeenCalledTimes(1));
+    await waitFor(() => {
+      expect(screen.getByTestId("session-a")).toHaveTextContent("session-1");
+      expect(screen.getByTestId("session-b")).toHaveTextContent("session-1");
+    });
+    expect(mocks.createSession).toHaveBeenCalledTimes(1);
   });
 });

@@ -122,6 +122,7 @@ export const AgentPanel = () => {
   const sendInFlightRef = useRef(false);
   const isSending = isPreparingSend || isConversationSending;
   const isUploadBlocked = isHistoryLoading || isPreparingUpload || isSending;
+  const isUploadInputBlocked = isHistoryLoading || isSending;
 
   const scrollToBottom = useCallback(() => {
     requestAnimationFrame(() => {
@@ -203,7 +204,7 @@ export const AgentPanel = () => {
   }, [messages.length, scrollToBottom, streamingAssistantText, streamingProgress]);
 
   const doSend = useCallback(async () => {
-    if (isHistoryLoading || isSending || sendInFlightRef.current) {
+    if (isHistoryLoading || isPreparingUpload || isSending || sendInFlightRef.current) {
       return;
     }
     sendInFlightRef.current = true;
@@ -273,6 +274,7 @@ export const AgentPanel = () => {
     fetchRuntimeState,
     inputValue,
     isHistoryLoading,
+    isPreparingUpload,
     isSending,
     pipelineId,
     selectedRuntimeId,
@@ -311,12 +313,23 @@ export const AgentPanel = () => {
 
     setIsPreparingUpload(true);
     try {
-      await ensureSession();
+      const sessionResult = await ResultAsync.fromPromise(ensureSession(), (error) =>
+        error instanceof Error ? error : new Error(String(error)),
+      );
+      if (sessionResult.isErr()) {
+        toastStore.getState().addToast({
+          type: "error",
+          title: t("canvas.agentPanel.errorTitle"),
+          description: sessionResult.error.message,
+        });
+
+        return;
+      }
       fileInputRef.current?.click();
     } finally {
       setIsPreparingUpload(false);
     }
-  }, [ensureSession, isUploadBlocked]);
+  }, [ensureSession, isUploadBlocked, t]);
 
   const handleUploadChange = useCallback(
     async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -328,13 +341,16 @@ export const AgentPanel = () => {
 
       setIsPreparingUpload(true);
       try {
-        const sessionId = await ensureSession();
         const uploadResult = await ResultAsync.fromPromise(
-          pipelineAgentSessionsClient.uploadAttachment(
-            sessionId,
-            file,
-            selectedRuntimeId ? { runtimeId: selectedRuntimeId } : undefined,
-          ),
+          (async () => {
+            const sessionId = await ensureSession();
+
+            return pipelineAgentSessionsClient.uploadAttachment(
+              sessionId,
+              file,
+              selectedRuntimeId ? { runtimeId: selectedRuntimeId } : undefined,
+            );
+          })(),
           (error) => (error instanceof Error ? error : new Error(String(error))),
         );
         if (uploadResult.isErr()) {
@@ -471,7 +487,7 @@ export const AgentPanel = () => {
             ref={fileInputRef}
             aria-label={t("canvas.agentPanel.upload")}
             className="hidden"
-            disabled={isUploadBlocked}
+            disabled={isUploadInputBlocked}
             type="file"
             onChange={handleUploadChange}
           />
@@ -618,7 +634,13 @@ export const AgentPanel = () => {
       <div className="flex items-center gap-2 border-t border-border/70 bg-surface p-3">
         <Input
           className="h-9 flex-1 bg-surface-2 text-[12px]"
-          disabled={isSending || isHistoryLoading || agentPanel.isLoading || isLoadingRuntimes}
+          disabled={
+            isSending ||
+            isPreparingUpload ||
+            isHistoryLoading ||
+            agentPanel.isLoading ||
+            isLoadingRuntimes
+          }
           placeholder={t("canvas.agentPanel.inputPlaceholder")}
           value={inputValue}
           onChange={handleInputValueChange}
@@ -629,6 +651,7 @@ export const AgentPanel = () => {
           className="h-9 w-9"
           disabled={
             isSending ||
+            isPreparingUpload ||
             isHistoryLoading ||
             agentPanel.isLoading ||
             isLoadingRuntimes ||

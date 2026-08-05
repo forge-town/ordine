@@ -342,8 +342,49 @@ describe("AgentPanel", () => {
     });
   });
 
+  it("opens the file picker after session preparation without disabling the file input", async () => {
+    render(<AgentPanel />, { wrapper: wrapperWithState() });
+
+    const input = screen.getByLabelText("canvas.agentPanel.upload") as HTMLInputElement;
+    await waitFor(() => expect(input).toBeEnabled());
+    const clickInput = vi.spyOn(input, "click");
+
+    await userEvent.click(screen.getByRole("button", { name: "canvas.agentPanel.upload" }));
+
+    await waitFor(() => expect(clickInput).toHaveBeenCalledTimes(1));
+    expect(input).toBeEnabled();
+  });
+
+  it("blocks sending while an attachment upload is in flight", async () => {
+    let resolveUpload: (value: {
+      attachment: { filename: string; id: string; parseStatus: string };
+    }) => void = () => undefined;
+    mockUploadAttachment.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveUpload = resolve;
+        }),
+    );
+    render(<AgentPanel />, { wrapper: wrapperWithState() });
+
+    const uploadInput = screen.getByLabelText("canvas.agentPanel.upload");
+    await waitFor(() => expect(uploadInput).toBeEnabled());
+    await userEvent.upload(uploadInput, new File(["hello"], "brief.txt", { type: "text/plain" }));
+    await waitFor(() => expect(mockUploadAttachment).toHaveBeenCalledTimes(1));
+
+    const messageInput = screen.getByPlaceholderText("canvas.agentPanel.inputPlaceholder");
+    expect(messageInput).toBeDisabled();
+    fireEvent.keyDown(messageInput, { key: "Enter" });
+    expect(mockPlanSessionStream).not.toHaveBeenCalled();
+
+    resolveUpload({
+      attachment: { filename: "brief.txt", id: "attachment-1", parseStatus: "parsed" },
+    });
+    await waitFor(() => expect(messageInput).toBeEnabled());
+  });
+
   it("keeps send and upload controls disabled until history hydration completes", async () => {
-    let resolveHistory: ((value: { data: never[]; total: number }) => void) | null = null;
+    let resolveHistory: (value: { data: never[]; total: number }) => void = () => undefined;
     mockGetList.mockImplementation(({ resource }: { resource: string }) => {
       if (resource === "conversationMessages") {
         return new Promise<{ data: never[]; total: number }>((resolve) => {
@@ -370,7 +411,7 @@ describe("AgentPanel", () => {
     expect(screen.getByLabelText("canvas.agentPanel.upload")).toBeDisabled();
     expect(screen.getByRole("button", { name: "canvas.agentPanel.upload" })).toBeDisabled();
 
-    resolveHistory?.({ data: [], total: 0 });
+    resolveHistory({ data: [], total: 0 });
     await waitFor(() => {
       expect(screen.getByPlaceholderText("canvas.agentPanel.inputPlaceholder")).toBeEnabled();
       expect(screen.getByRole("button", { name: "canvas.agentPanel.upload" })).toBeEnabled();
