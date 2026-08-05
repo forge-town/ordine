@@ -702,6 +702,61 @@
       "inputPlaceholder": "Type your request...",
       "runtimeNotConfigured": "AI runtime is not configured yet.",
       "goToRuntimeSettings": "Go to configuration",
+      "messageActions": {
+        "copy": "Copy message",
+        "copied": "Copied",
+        "edit": "Edit message",
+        "retry": "Retry message"
+      },
+      "proposalDetails": {
+        "review": "Review the proposed operations",
+        "askFix": "Fix diagnostics",
+        "fixDiagnostics": "Please fix the blocking diagnostics in the proposal.",
+        "revisePrompt": "Please revise this proposal.",
+        "newOperationBadge": "new op",
+        "loopBadge": "loop x{{count}}",
+        "actionTitles": {
+          "addNode": "Add node: {{nodeType}}",
+          "removeNode": "Remove node",
+          "addEdge": "Add edge",
+          "removeEdge": "Remove edge",
+          "reconnectEdge": "Reconnect edge",
+          "replaceNodeData": "Replace node data"
+        }
+      },
+      "checkpoint": {
+        "waiting": "Waiting for review at {{node}}",
+        "nextNode": "the next node",
+        "controls": "Run checkpoint controls",
+        "pause": "Pause",
+        "resume": "Resume",
+        "review": "Review"
+      },
+      "error": {
+        "title": "Request failed",
+        "tryPrefix": "Try:"
+      },
+      "errorActions": {
+        "openSettings": "Open runtime settings",
+        "retry": "Retry request"
+      },
+      "userAction": {
+        "title": "Action needed ({{count}})",
+        "openConfig": "Open config",
+        "askAgent": "Ask assistant"
+      },
+      "reversing": {
+        "steps": {
+          "structure": "Read structure",
+          "structureDetail": "Understand the current graph",
+          "steps": "Map steps",
+          "stepsDetail": "Identify the requested operations",
+          "matched": "Match nodes",
+          "matchedDetail": "Match operations to the graph",
+          "draft": "Draft proposal",
+          "draftDetail": "Prepare a safe change"
+        }
+      },
       "action": {
         "addNode": "Add node: {{type}}",
         "removeNode": "Remove node: {{nodeId}}",

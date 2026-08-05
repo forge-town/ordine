@@ -1,16 +1,7 @@
 import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
-import {
-  ChevronsRight,
-  Send,
-  Loader2,
-  AlertCircle,
-  AlertTriangle,
-  Check,
-  Trash2,
-  Upload,
-} from "lucide-react";
+import { ChevronsRight, Send, Loader2, AlertCircle, AlertTriangle, Upload } from "lucide-react";
 import { Button } from "@repo/ui/button";
 import { ScrollArea } from "@repo/ui/scroll-area";
 import { Input } from "@repo/ui/input";
@@ -24,7 +15,7 @@ import {
 } from "@repo/ui/select";
 import { cn } from "@repo/ui/lib/utils";
 import { ResultAsync } from "neverthrow";
-import type { AgentRuntimeConfig, PipelineAction } from "@repo/schemas";
+import type { AgentRuntimeConfig } from "@repo/schemas";
 import { useCanvasPageStore } from "../_store";
 import { ResourceName } from "../../../constants";
 import { getCanvasDataProvider } from "../../../lib/canvasDataProvider";
@@ -32,7 +23,9 @@ import { createPipelineAgentSessionsClient } from "../../../lib/pipelineAgentSes
 import { usePlatform } from "../../../platform";
 import { toastStore } from "../../../store/toastStore";
 import { useAgentBarStore } from "./_store";
-import { Assistant, Bubble } from "./messages";
+import { Assistant, MessageTurn, ProposalCard } from "./messages";
+import type { MessageTurnSubmitInput } from "./messages/MessageTurn";
+import { buildProposalItems } from "./proposalView";
 import { useAgentConversation } from "./useAgentConversation";
 
 interface RuntimeState {
@@ -45,38 +38,6 @@ interface AttachmentItem {
   filename: string;
   parseStatus: string;
 }
-
-const getActionLabel = (
-  action: PipelineAction,
-  t: (key: string, options?: Record<string, unknown>) => string,
-): string => {
-  switch (action.type) {
-    case "addNode": {
-      return t("canvas.agentPanel.action.addNode", { type: action.node.type });
-    }
-    case "removeNode": {
-      return t("canvas.agentPanel.action.removeNode", { nodeId: action.nodeId });
-    }
-    case "addEdge": {
-      return t("canvas.agentPanel.action.addEdge", {
-        source: action.edge.source,
-        target: action.edge.target,
-      });
-    }
-    case "removeEdge": {
-      return t("canvas.agentPanel.action.removeEdge", { edgeId: action.edgeId });
-    }
-    case "reconnectEdge": {
-      return t("canvas.agentPanel.action.reconnectEdge", { edgeId: action.edgeId });
-    }
-    case "replaceNodeData": {
-      return t("canvas.agentPanel.action.replaceNodeData", { nodeId: action.nodeId });
-    }
-    default: {
-      return (action as { type: string }).type;
-    }
-  }
-};
 
 const formatRuntimeLabel = (runtime: AgentRuntimeConfig): string =>
   runtime.name === runtime.type ? runtime.name : `${runtime.name} (${runtime.type})`;
@@ -283,6 +244,35 @@ export const AgentPanel = () => {
     t,
   ]);
 
+  const handleMessageSubmit = useCallback(
+    ({ content, runtimeId }: MessageTurnSubmitInput) => {
+      const trimmedContent = content.trim();
+      if (
+        !runtimeId ||
+        !trimmedContent ||
+        isHistoryLoading ||
+        isPreparingUpload ||
+        isSending ||
+        agentPanel.isLoading ||
+        sendInFlightRef.current
+      ) {
+        return;
+      }
+
+      sendInFlightRef.current = true;
+      setIsPreparingSend(true);
+      void submitMessage({ content: trimmedContent, runtimeId }).finally(() => {
+        sendInFlightRef.current = false;
+        setIsPreparingSend(false);
+      });
+    },
+    [agentPanel.isLoading, isHistoryLoading, isPreparingUpload, isSending, submitMessage],
+  );
+
+  const handleOpenRuntimeSettings = useCallback(() => {
+    setNeedsRuntimeSetup(true);
+  }, []);
+
   const handleKeyDown = useCallback(
     (event: React.KeyboardEvent<HTMLInputElement>) => {
       if (event.key === "Enter" && !event.shiftKey) {
@@ -410,7 +400,18 @@ export const AgentPanel = () => {
 
   const proposal = activeProposal;
   const hasProposal = proposal !== null;
-  const canApplyProposal = hasProposal && !hasBlockingDiagnostics;
+  const proposalItems = useMemo(() => buildProposalItems(proposal, [], t), [proposal, t]);
+  const handleAskFix = useCallback(() => {
+    if (selectedRuntimeId) {
+      handleMessageSubmit({
+        content: t("canvas.agentPanel.proposalDetails.fixDiagnostics"),
+        runtimeId: selectedRuntimeId,
+      });
+    }
+  }, [handleMessageSubmit, selectedRuntimeId, t]);
+  const handleRevise = useCallback(() => {
+    setInputValue(t("canvas.agentPanel.proposalDetails.revisePrompt"));
+  }, [t]);
   const selectedRuntime = runtimeOptions.find((runtime) => runtime.id === selectedRuntimeId);
   const isConversationActive = isSending || agentPanel.isLoading;
   const headerSubtitle = isConversationActive
@@ -517,20 +518,19 @@ export const AgentPanel = () => {
       <ScrollArea className="min-h-0 flex-1" data-testid="canvas-agent-panel-messages">
         <div className="flex flex-col gap-3 p-3">
           {messages.length === 0 && <Assistant>{t("canvas.agentPanel.welcome")}</Assistant>}
-          {messages.map((msg) =>
-            msg.role === "user" ? (
-              <Bubble
-                key={msg.id}
-                attachmentLabel={msg.metadata?.attachments
-                  ?.map((attachment) => attachment.name)
-                  .join(", ")}
-              >
-                {msg.content}
-              </Bubble>
-            ) : (
-              <Assistant key={msg.id}>{msg.content}</Assistant>
-            ),
-          )}
+          {messages.map((msg, index) => (
+            <MessageTurn
+              key={msg.id}
+              isLast={index === messages.length - 1}
+              isSending={isSending || isPreparingUpload || isHistoryLoading || agentPanel.isLoading}
+              message={msg}
+              runtimeId={selectedRuntimeId}
+              visibleMessages={messages}
+              onEditDraft={setInputValue}
+              onOpenSettings={handleOpenRuntimeSettings}
+              onSubmit={handleMessageSubmit}
+            />
+          ))}
           {streamingAssistantText && (
             <Assistant className="whitespace-pre-wrap">{streamingAssistantText}</Assistant>
           )}
@@ -576,42 +576,18 @@ export const AgentPanel = () => {
                 <span className="text-xs font-medium text-muted-foreground">
                   {t("canvas.agentPanel.proposal")}
                 </span>
-                <div className="rounded-md border bg-muted/50 p-2.5">
-                  <p className="mb-2 text-xs font-medium">{proposal.summary}</p>
-                  <ul className="flex flex-col gap-1">
-                    {proposal.actions.map((action, i) => (
-                      <li
-                        key={i}
-                        className="flex items-center gap-1.5 text-xs text-muted-foreground"
-                      >
-                        <span className="inline-block h-1.5 w-1.5 rounded-full bg-primary" />
-                        {getActionLabel(action, t)}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button
-                    className="h-8 flex-1 gap-1 text-xs"
-                    disabled={isSending || agentPanel.isLoading || !canApplyProposal}
-                    size="sm"
-                    variant="default"
-                    onClick={handleApply}
-                  >
-                    <Check className="h-3.5 w-3.5" />
-                    {t("canvas.agentPanel.apply")}
-                  </Button>
-                  <Button
-                    className="h-8 flex-1 gap-1 text-xs"
-                    disabled={isSending || agentPanel.isLoading}
-                    size="sm"
-                    variant="outline"
-                    onClick={handleDiscard}
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                    {t("canvas.agentPanel.discard")}
-                  </Button>
-                </div>
+                <ProposalCard
+                  disabled={
+                    isSending || isPreparingUpload || isHistoryLoading || agentPanel.isLoading
+                  }
+                  items={proposalItems}
+                  onApply={handleApply}
+                  onAskFix={hasBlockingDiagnostics ? handleAskFix : undefined}
+                  onReject={handleDiscard}
+                  onRevise={handleRevise}
+                  subtitle={t("canvas.agentPanel.proposal.review")}
+                  title={proposal.summary}
+                />
               </div>
             </div>
           )}
