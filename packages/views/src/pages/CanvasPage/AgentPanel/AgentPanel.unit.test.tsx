@@ -230,6 +230,21 @@ describe("AgentPanel", () => {
     expect(screen.getByText("canvas.agentPanel.title")).toBeInTheDocument();
     expect(screen.getByText("canvas.agentPanel.welcome")).toBeInTheDocument();
     expect(screen.getByText("canvas.agentPanel.runtimeLabel")).toBeInTheDocument();
+    expect(screen.getByTestId("canvas-agent-panel")).toHaveClass("bg-surface");
+    expect(screen.getByTestId("canvas-agent-panel")).toHaveClass("w-[min(22.5rem,100%)]");
+    expect(screen.getByTestId("canvas-agent-panel-header")).toBeInTheDocument();
+    expect(screen.getByTestId("canvas-agent-panel-status-dot")).toHaveClass("bg-success");
+    expect(screen.getByTestId("canvas-agent-panel-collapse")).toBeInTheDocument();
+    expect(screen.getByTestId("canvas-agent-panel-runtime-context")).toHaveClass(
+      "mx-3",
+      "mb-1",
+      "rounded-lg",
+      "bg-surface-2",
+    );
+    expect(screen.getByPlaceholderText("canvas.agentPanel.inputPlaceholder")).toHaveClass(
+      "bg-surface-2",
+    );
+    expect(screen.getByTestId("agent-assistant")).toHaveClass("text-[12px]");
   });
 
   it("creates an edit session, sends a message, and displays a streamed follow-up question", async () => {
@@ -263,6 +278,12 @@ describe("AgentPanel", () => {
     await waitFor(() => {
       expect(screen.getByText("Which output node should receive the report?")).toBeInTheDocument();
     });
+    expect(screen.getByText("Tighten the graph").closest("div")).toHaveClass("bg-foreground");
+    expect(
+      screen
+        .getByText("Which output node should receive the report?")
+        .closest('[data-testid="agent-assistant"]'),
+    ).toHaveClass("text-[12px]");
   });
 
   it("deduplicates submits while runtime validation is in flight", async () => {

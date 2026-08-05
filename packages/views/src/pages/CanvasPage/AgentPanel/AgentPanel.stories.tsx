@@ -112,7 +112,7 @@ const meta: Meta<typeof AgentPanelStory> = {
     docs: {
       description: {
         component:
-          "Right-side AI assistant panel for proposing canvas graph edits. Stories focus on overflow behavior for diagnostics and proposal review without a backend.",
+          "Canvas conversation baseline reusing Alan's Agent Bar styling: a bg-surface panel with a compact status header, plain assistant text, and foreground user bubbles. Stories also cover diagnostics and proposal review without a backend.",
       },
     },
   },
@@ -124,6 +124,14 @@ type Story = StoryObj<typeof AgentPanelStory>;
 
 export const Default: Story = {
   args: {},
+  parameters: {
+    docs: {
+      description: {
+        story:
+          "Baseline conversation flow with Alan-style assistant text, user bubbles, runtime selection, context upload, and the pinned request input.",
+      },
+    },
+  },
 };
 
 export const OverflowContent: Story = {

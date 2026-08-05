@@ -2,8 +2,7 @@ import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
 import {
-  Bot,
-  X,
+  ChevronsRight,
   Send,
   Loader2,
   AlertCircle,
@@ -33,6 +32,7 @@ import { createPipelineAgentSessionsClient } from "../../../lib/pipelineAgentSes
 import { usePlatform } from "../../../platform";
 import { toastStore } from "../../../store/toastStore";
 import { useAgentBarStore } from "./_store";
+import { Assistant, Bubble } from "./messages";
 import { useAgentConversation } from "./useAgentConversation";
 
 interface RuntimeState {
@@ -368,36 +368,58 @@ export const AgentPanel = () => {
   const proposal = activeProposal;
   const hasProposal = proposal !== null;
   const canApplyProposal = hasProposal && !hasBlockingDiagnostics;
+  const selectedRuntime = runtimeOptions.find((runtime) => runtime.id === selectedRuntimeId);
+  const isConversationActive = isSending || agentPanel.isLoading;
+  const headerSubtitle = isConversationActive
+    ? (streamingProgress ?? t("canvas.agentPanel.thinking"))
+    : selectedRuntime
+      ? formatRuntimeLabel(selectedRuntime)
+      : t("canvas.agentPanel.runtimePlaceholder");
 
   return (
-    <div className="absolute bottom-0 right-0 top-0 z-30 flex w-80 flex-col border-l bg-background shadow-lg">
-      {/* Header */}
-      <div className="flex h-12 items-center justify-between border-b px-4">
-        <div className="flex items-center gap-2 text-sm font-medium">
-          <Bot className="h-4 w-4 text-primary" />
-          <span>{t("canvas.agentPanel.title")}</span>
+    <div
+      className="absolute bottom-0 right-0 top-0 z-30 flex w-[min(22.5rem,100%)] flex-col border-l bg-surface"
+      data-testid="canvas-agent-panel"
+    >
+      <header
+        className="flex shrink-0 items-center justify-between px-3.5 pb-2 pt-3"
+        data-testid="canvas-agent-panel-header"
+      >
+        <div className="flex min-w-0 items-center gap-2">
+          <span
+            className={cn(
+              "size-1.5 shrink-0 rounded-full",
+              isConversationActive ? "animate-pulse bg-foreground" : "bg-success",
+            )}
+            data-testid="canvas-agent-panel-status-dot"
+          />
+          <span className="text-[12px] font-semibold">{t("canvas.agentPanel.title")}</span>
+          <span className="truncate text-[10.5px] text-muted-foreground">· {headerSubtitle}</span>
         </div>
         <Button
           aria-label={t("canvas.agentPanel.close")}
-          className="h-7 w-7"
+          className="h-7 w-7 shrink-0"
+          data-testid="canvas-agent-panel-collapse"
           size="icon"
           title={t("canvas.agentPanel.close")}
           variant="ghost"
           onClick={handleToggleAgentPanel}
         >
-          <X className="h-4 w-4" />
+          <ChevronsRight className="size-3.5" />
         </Button>
-      </div>
+      </header>
 
-      {/* Messages */}
-      <div className="border-b px-3 py-2">
-        <div className="flex flex-col gap-1">
-          <span className="text-xs font-medium text-muted-foreground">
+      <div
+        className="mx-3 mb-1 rounded-lg bg-surface-2 px-2.5 py-2 ring-1 ring-border-strong"
+        data-testid="canvas-agent-panel-runtime-context"
+      >
+        <div className="flex flex-col gap-1.5">
+          <span className="text-[10.5px] font-medium text-muted-foreground">
             {t("canvas.agentPanel.runtimeLabel")}
           </span>
           <Select value={selectedRuntimeId} onValueChange={handleRuntimeValueChange}>
             <SelectTrigger
-              className="h-8 w-full text-xs"
+              className="h-7 w-full text-[11px]"
               disabled={isLoadingRuntimes || runtimeOptions.length === 0}
             >
               <SelectValue
@@ -425,13 +447,21 @@ export const AgentPanel = () => {
             type="file"
             onChange={handleUploadChange}
           />
-          <div className="flex flex-wrap gap-2 pt-2">
-            <Button size="sm" variant="outline" onClick={handleUploadButtonClick}>
+          <div className="flex flex-wrap items-center gap-1.5 pt-1.5">
+            <Button
+              className="h-7 px-2 text-[10.5px]"
+              size="sm"
+              variant="outline"
+              onClick={handleUploadButtonClick}
+            >
               <Upload className="h-3.5 w-3.5" />
               {t("canvas.agentPanel.upload")}
             </Button>
             {attachments.map((attachment) => (
-              <span key={attachment.id} className="rounded-md border px-2 py-1 text-xs">
+              <span
+                key={attachment.id}
+                className="rounded-md border border-border-strong bg-surface px-1.5 py-0.5 text-[10.5px]"
+              >
                 {attachment.filename}
               </span>
             ))}
@@ -439,37 +469,29 @@ export const AgentPanel = () => {
         </div>
       </div>
 
-      <ScrollArea className="flex-1">
+      <ScrollArea className="min-h-0 flex-1" data-testid="canvas-agent-panel-messages">
         <div className="flex flex-col gap-3 p-3">
-          {messages.length === 0 && (
-            <div className="mr-auto max-w-[90%] rounded-lg bg-muted px-3 py-2 text-sm">
-              {t("canvas.agentPanel.welcome")}
-            </div>
+          {messages.length === 0 && <Assistant>{t("canvas.agentPanel.welcome")}</Assistant>}
+          {messages.map((msg) =>
+            msg.role === "user" ? (
+              <Bubble
+                key={msg.id}
+                attachmentLabel={msg.metadata?.attachments
+                  ?.map((attachment) => attachment.name)
+                  .join(", ")}
+              >
+                {msg.content}
+              </Bubble>
+            ) : (
+              <Assistant key={msg.id}>{msg.content}</Assistant>
+            ),
           )}
-          {messages.map((msg) => (
-            <div
-              key={msg.id}
-              className={cn(
-                "max-w-[90%] rounded-lg px-3 py-2 text-sm",
-                msg.role === "user"
-                  ? "ml-auto bg-primary text-primary-foreground"
-                  : "mr-auto bg-muted",
-              )}
-            >
-              {msg.content}
-            </div>
-          ))}
           {streamingAssistantText && (
-            <div className="mr-auto max-w-[90%] whitespace-pre-wrap rounded-lg border border-dashed bg-muted/30 px-3 py-2 text-sm text-muted-foreground">
-              {streamingAssistantText}
-            </div>
+            <Assistant className="whitespace-pre-wrap">{streamingAssistantText}</Assistant>
           )}
 
-          {(isSending || agentPanel.isLoading) && (
-            <div className="mr-auto flex items-center gap-2 rounded-lg bg-muted px-3 py-2 text-sm text-muted-foreground">
-              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              {streamingProgress ?? t("canvas.agentPanel.thinking")}
-            </div>
+          {isConversationActive && (
+            <Assistant isThinking>{streamingProgress ?? t("canvas.agentPanel.thinking")}</Assistant>
           )}
           <div ref={messagesEndRef} />
 
@@ -564,9 +586,9 @@ export const AgentPanel = () => {
       )}
 
       {/* Input */}
-      <div className="flex items-center gap-2 border-t p-3">
+      <div className="flex items-center gap-2 border-t border-border/70 bg-surface p-3">
         <Input
-          className="h-9 flex-1 text-sm"
+          className="h-9 flex-1 bg-surface-2 text-[12px]"
           disabled={isSending || agentPanel.isLoading || isLoadingRuntimes}
           placeholder={t("canvas.agentPanel.inputPlaceholder")}
           value={inputValue}
