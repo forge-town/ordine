@@ -19,6 +19,12 @@ describe("notificationStore", () => {
     expect(store.getState().notifications).toHaveLength(60);
     expect(store.getState().notifications[0]?.message).toBe("event 69");
 
+    const newestId = store.getState().notifications[0]?.id;
+    expect(newestId).toBeDefined();
+    store.getState().markRead(newestId!);
+    expect(store.getState().notifications[0]?.read).toBe(true);
+    expect(store.getState().notifications[1]?.read).toBe(false);
+
     store.getState().markAllRead();
     expect(store.getState().notifications.every((notification) => notification.read)).toBe(true);
 

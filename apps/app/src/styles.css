@@ -27,6 +27,12 @@
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-border-strong: var(--border-strong);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
@@ -52,6 +58,8 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+  --shadow-soft: 0 1px 2px rgb(0 0 0 / 6%), 0 4px 12px rgb(0 0 0 / 4%);
+  --shadow-float: 0 16px 40px rgb(0 0 0 / 14%);
 }
 
 :root {
@@ -71,6 +79,12 @@
   --accent-foreground: oklch(0.205 0 0);
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: oklch(0.985 0 0);
+  --surface: oklch(1 0 0);
+  --surface-2: oklch(0.97 0 0);
+  --surface-3: oklch(0.922 0 0);
+  --border-strong: oklch(0.708 0 0);
+  --success: oklch(0.55 0.15 150);
+  --warning: oklch(0.65 0.16 75);
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
   --ring: oklch(0.708 0 0);
@@ -107,6 +121,12 @@
   --accent-foreground: oklch(0.985 0 0);
   --destructive: oklch(0.704 0.191 22.216);
   --destructive-foreground: oklch(0.637 0.237 25.331);
+  --surface: oklch(0.205 0 0);
+  --surface-2: oklch(0.269 0 0);
+  --surface-3: oklch(0.32 0 0);
+  --border-strong: oklch(1 0 0 / 22%);
+  --success: oklch(0.72 0.16 150);
+  --warning: oklch(0.78 0.14 75);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
   --ring: oklch(0.556 0 0);
@@ -123,6 +143,23 @@
   --chart-3: oklch(0.439 0 0);
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
+}
+
+@layer utilities {
+  .status-wash-success {
+    color: var(--success);
+    background-color: color-mix(in oklab, var(--success) 12%, transparent);
+  }
+
+  .status-wash-error {
+    color: var(--destructive);
+    background-color: color-mix(in oklab, var(--destructive) 12%, transparent);
+  }
+
+  .status-wash-muted {
+    color: var(--muted-foreground);
+    background-color: var(--muted);
+  }
 }
 
 @layer base {

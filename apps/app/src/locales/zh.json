@@ -225,8 +225,10 @@
         "weekday": "周"
       },
       "delete": "移除 Routine",
+      "deleteFailed": "无法移除 Routine",
       "enabledToggle": "启用",
       "event": "事件",
+      "invalidCron": "请输入有效的五段 Cron 表达式",
       "presets": {
         "daily": "每天 06:00",
         "dailyHuman": "每天 06:00 运行",
@@ -239,6 +241,8 @@
       },
       "presetsLabel": "预设",
       "save": "保存排程",
+      "saveFailed": "无法保存排程",
+      "saving": "保存中…",
       "summary": {
         "cron": "按 cron {{cron}} 运行",
         "event": "每次 {{event}} 时运行",
@@ -465,6 +469,7 @@
     "noDescription": "暂无描述",
     "openPipeline": "在 Canvas 中打开 {{name}}",
     "deletePipeline": "删除 {{name}}",
+    "schedulePipeline": "为 {{name}} 设置排程",
     "viewDetails": "查看 {{name}} 详情",
     "nodes": "{{count}} 个节点",
     "savedSkill": "已保存技能",

@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { GitBranch, Plus, Layers, Search, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -12,6 +12,7 @@ import { useStore } from "zustand";
 import { ResourceName } from "../../../constants";
 import { PageLoadingState } from "../../../components/PageLoadingState";
 import { PageHeader } from "../../../components/PageHeader";
+import { ScheduleEditor } from "../../../components/ScheduleEditor";
 import { usePipelinesPageStore } from "../_store";
 import { PipelineCard } from "../PipelineCard";
 import { buildPipelineMetrics, filterPipelines } from "../pipelineMetrics";
@@ -43,6 +44,7 @@ export const PipelinesPageContent = () => {
   const handleFilterChange = useStore(store, (s) => s.handleFilterChange);
   const navigate = useNavigate();
   const { mutateAsync: createPipelineMutate } = useCreate();
+  const [schedulePipelineId, setSchedulePipelineId] = useState<string | null>(null);
   const metricsByPipeline = useMemo(
     () =>
       buildPipelineMetrics(
@@ -102,6 +104,12 @@ export const PipelinesPageContent = () => {
   };
 
   const handleCreateClick = () => void handleCreate();
+  const handleScheduleOpen = (pipelineId: string) => () => setSchedulePipelineId(pipelineId);
+  const handleScheduleClose = () => setSchedulePipelineId(null);
+  const scheduledPipeline = pipelines.find((pipeline) => pipeline.id === schedulePipelineId);
+  const scheduledRoutine = routinesResult.data.find(
+    (routine) => routine.pipelineId === schedulePipelineId,
+  );
 
   if (pipelinesQuery?.isLoading) {
     return (
@@ -211,11 +219,24 @@ export const PipelinesPageContent = () => {
         ) : (
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
             {filtered.map((p) => (
-              <PipelineCard key={p.id} metrics={metricsByPipeline.get(p.id)!} pipeline={p} />
+              <PipelineCard
+                key={p.id}
+                metrics={metricsByPipeline.get(p.id)!}
+                pipeline={p}
+                onSchedule={handleScheduleOpen(p.id)}
+              />
             ))}
           </div>
         )}
       </div>
+      {scheduledPipeline ? (
+        <ScheduleEditor
+          pipelineId={scheduledPipeline.id}
+          pipelineName={scheduledPipeline.name}
+          routine={scheduledRoutine}
+          onClose={handleScheduleClose}
+        />
+      ) : null}
     </div>
   );
 };

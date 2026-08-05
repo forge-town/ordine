@@ -225,8 +225,10 @@
         "weekday": "wday"
       },
       "delete": "Remove routine",
+      "deleteFailed": "Could not remove the routine",
       "enabledToggle": "Enabled",
       "event": "Event",
+      "invalidCron": "Enter a valid five-field Cron expression",
       "presets": {
         "daily": "Daily 06:00",
         "dailyHuman": "Runs every day at 06:00",
@@ -239,6 +241,8 @@
       },
       "presetsLabel": "Presets",
       "save": "Save schedule",
+      "saveFailed": "Could not save the schedule",
+      "saving": "Saving…",
       "summary": {
         "cron": "Runs on cron {{cron}}",
         "event": "Runs on every {{event}}",
@@ -465,6 +469,7 @@
     "noDescription": "No description",
     "openPipeline": "Open {{name}} in Canvas",
     "deletePipeline": "Delete {{name}}",
+    "schedulePipeline": "Schedule {{name}}",
     "viewDetails": "View {{name}} details",
     "nodes_one": "{{count}} node",
     "nodes_other": "{{count}} nodes",

@@ -4,6 +4,7 @@ import { Search, Layers } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useList } from "@refinedev/core";
 import { useStore } from "zustand";
+import { useHotkeys } from "react-hotkeys-hook";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@repo/ui/dialog";
 import { Input } from "@repo/ui/input";
 import { Button } from "@repo/ui/button";
@@ -18,6 +19,13 @@ export const SearchPipelineDialog = () => {
   const open = useStore(store, (s) => s.searchOpen);
   const handleSearchDialogOpenChange = useStore(store, (s) => s.handleSearchDialogOpenChange);
   const [query, setQuery] = useState("");
+
+  useHotkeys(
+    "ctrl+k, meta+k",
+    () => handleSearchDialogOpenChange(true),
+    { enableOnFormTags: true, preventDefault: true },
+    [handleSearchDialogOpenChange],
+  );
 
   const { result: pipelinesResult } = useList<PipelineData>({
     resource: ResourceName.pipelines,
@@ -57,6 +65,7 @@ export const SearchPipelineDialog = () => {
         <div className="flex items-center border-b px-3">
           <Search className="mr-2 h-4 w-4 shrink-0 text-muted-foreground" />
           <Input
+            autoFocus
             className="h-10 border-0 shadow-none focus-visible:ring-0 px-0"
             placeholder={t("nav.search")}
             value={query}

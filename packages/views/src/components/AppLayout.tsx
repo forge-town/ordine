@@ -7,6 +7,7 @@ import { AutonomyStoreProvider } from "../store/autonomyStore";
 import { NotificationStoreProvider, ToastNotificationBridge } from "../store/notificationStore";
 import { ThemeApplier, ThemeStoreProvider } from "../store/themeStore";
 import { SearchPipelineDialog } from "./SearchPipelineDialog";
+import { NotificationCenter } from "./NotificationCenter";
 
 export const AppLayout = ({ children }: { children: React.ReactNode }) => {
   return (
@@ -22,6 +23,7 @@ export const AppLayout = ({ children }: { children: React.ReactNode }) => {
                 <SidebarInset>{children}</SidebarInset>
                 <ToastContainer />
                 <SearchPipelineDialog />
+                <NotificationCenter />
               </SidebarProvider>
             </SidebarStoreProvider>
           </ToastStoreProvider>

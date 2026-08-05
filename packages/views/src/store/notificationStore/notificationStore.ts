@@ -21,6 +21,7 @@ export interface NotificationState {
   addNotification: (
     input: Omit<AppNotification, "id" | "read" | "timestamp"> & { id?: string },
   ) => void;
+  markRead: (id: string) => void;
   markAllRead: () => void;
   clearNotifications: () => void;
 }
@@ -51,6 +52,12 @@ export const createNotificationStore = (): NotificationStore =>
               },
               ...state.notifications.filter((notification) => notification.id !== id),
             ].slice(0, MAX_NOTIFICATIONS),
+          })),
+        markRead: (id) =>
+          set((state) => ({
+            notifications: state.notifications.map((notification) =>
+              notification.id === id ? { ...notification, read: true } : notification,
+            ),
           })),
         markAllRead: () =>
           set((state) => ({
