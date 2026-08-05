@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, type DragEvent } from "react";
+import { useEffect, useMemo, type DragEvent } from "react";
 import { useDataProvider } from "@refinedev/core";
 import { ResultAsync } from "neverthrow";
 import { useHotkeys } from "react-hotkeys-hook";
@@ -15,6 +15,7 @@ import {
 } from "@xyflow/react";
 import type { CompoundNodeData } from "@repo/schemas";
 import { toastStore } from "@/store/toastStore";
+import { SemanticEdge } from "../edges";
 import {
   CompoundNode,
   FileNode,
@@ -48,32 +49,22 @@ const nodeTypes = {
   prompt: PromptNode,
 };
 
+const edgeTypes = {
+  semantic: SemanticEdge,
+};
+
 const defaultEdgeOptions = {
-  type: "default",
+  type: "semantic",
 } satisfies Partial<CanvasEdge>;
 
 const proOptions: ProOptions = { hideAttribution: true };
 const defaultViewport = { x: 0, y: 0, zoom: 0.9 };
-
-const makeSnapshot = (nodes: CanvasNode[], edges: CanvasEdge[]) => ({ edges, nodes });
 
 const hasNodeChangeMutation = (changes: NodeChange<CanvasNode>[]): boolean =>
   changes.some((change) => change.type !== "select" && change.type !== "dimensions");
 
 const hasEdgeChangeMutation = (changes: EdgeChange<CanvasEdge>[]): boolean =>
   changes.some((change) => change.type !== "select");
-
-const getNodeDragPhase = (changes: NodeChange<CanvasNode>[]): "dragging" | "ended" | null => {
-  const positionChanges = changes.filter((change) => change.type === "position");
-  if (positionChanges.some((change) => change.dragging === true)) {
-    return "dragging";
-  }
-  if (positionChanges.some((change) => change.dragging === false)) {
-    return "ended";
-  }
-
-  return null;
-};
 
 const handleComponentDragOver = (event: DragEvent<HTMLDivElement>) => {
   if (!hasCanvasComponentDragPayload(event.dataTransfer.types)) {
@@ -88,7 +79,6 @@ export const CanvasFlow = () => {
   const { i18n } = useTranslation();
   const getDataProvider = useDataProvider();
   const canvasStore = useCanvasStoreApi();
-  const nodeDragSnapshotRef = useRef<ReturnType<typeof makeSnapshot> | null>(null);
   const nodes = useCanvasStore((state) => state.nodes);
   const edges = useCanvasStore((state) => state.edges);
   const canvasTool = useCanvasStore((state) => state.canvasTool);
@@ -102,9 +92,12 @@ export const CanvasFlow = () => {
   const handleNodesChange = useCanvasStore((state) => state.handleNodesChange);
   const openEdgeInspector = useCanvasStore((state) => state.openEdgeInspector);
   const openNodeConfig = useCanvasStore((state) => state.openNodeConfig);
+  const configNodeId = useCanvasStore((state) => state.configNodeId);
+  const inspectEdgeId = useCanvasStore((state) => state.inspectEdgeId);
+  const setConfigNodeId = useCanvasStore((state) => state.setConfigNodeId);
+  const setInspectEdgeId = useCanvasStore((state) => state.setInspectEdgeId);
   const pushDrillStack = useCanvasStore((state) => state.pushDrillStack);
   const popDrillStack = useCanvasStore((state) => state.popDrillStack);
-  const recordHistory = useCanvasStore((state) => state.recordHistory);
   const redo = useCanvasStore((state) => state.redo);
   const selectEdge = useCanvasStore((state) => state.selectEdge);
   const selectNode = useCanvasStore((state) => state.selectNode);
@@ -126,7 +119,7 @@ export const CanvasFlow = () => {
     [visibleGraph.edges, visibleGraph.nodes],
   );
   const renderedEdges = useMemo(
-    () => routedEdges.map((edge) => ({ ...edge, animated: false, type: "default" })),
+    () => routedEdges.map((edge) => ({ ...edge, animated: false, type: "semantic" })),
     [routedEdges],
   );
   const visibleNodeIds = visibleGraph.nodes.map((node) => node.id).join("\u0000");
@@ -138,12 +131,6 @@ export const CanvasFlow = () => {
 
     void fitView({ padding: 0.1 });
   }, [fitView, nodesInitialized, visibleNodeIds, visibleGraph.nodes.length]);
-
-  const getCurrentGraphSnapshot = () => {
-    const state = canvasStore.getState();
-
-    return makeSnapshot(state.nodes, state.edges);
-  };
 
   const handleDrop = async (event: DragEvent<HTMLDivElement>) => {
     if (isPreviewing || isDrilling) {
@@ -161,21 +148,17 @@ export const CanvasFlow = () => {
     event.stopPropagation();
     const position = screenToFlowPosition({ x: event.clientX, y: event.clientY });
     if (payload.kind === "object") {
-      const previous = getCurrentGraphSnapshot();
       addNodeFromCatalog({ position, type: payload.type });
-      recordHistory(previous);
 
       return;
     }
 
     if (payload.kind === "operation") {
-      const previous = getCurrentGraphSnapshot();
       addNodeFromCatalog({
         data: makeOperationNodeData(payload.operation),
         position,
         type: "operation",
       });
-      recordHistory(previous);
 
       return;
     }
@@ -200,18 +183,15 @@ export const CanvasFlow = () => {
         return;
       }
 
-      const previous = makeSnapshot(state.nodes, state.edges);
       state.addNodeFromCatalog({
         data: makeOperationNodeData(operationResult.value),
         position,
         type: "operation",
       });
-      canvasStore.getState().recordHistory(previous);
 
       return;
     }
 
-    const previous = getCurrentGraphSnapshot();
     addNodeFromCatalog({
       data: {
         ...(makeDefaultNodeData("compound", { label: payload.compoundKind }) as CompoundNodeData),
@@ -220,7 +200,6 @@ export const CanvasFlow = () => {
       position,
       type: "compound",
     });
-    recordHistory(previous);
   };
 
   const handleFlowConnect = (connection: Connection) => {
@@ -228,9 +207,7 @@ export const CanvasFlow = () => {
       return;
     }
 
-    const previous = getCurrentGraphSnapshot();
     handleConnect(connection);
-    recordHistory(previous);
   };
 
   const handleFlowEdgesChange = (changes: EdgeChange<CanvasEdge>[]) => {
@@ -238,44 +215,11 @@ export const CanvasFlow = () => {
       return;
     }
 
-    const previous = getCurrentGraphSnapshot();
-    if (hasEdgeChangeMutation(changes)) {
-      handleEdgesChange(changes);
-      recordHistory(previous);
-
-      return;
-    }
     handleEdgesChange(changes);
   };
 
   const handleFlowNodesChange = (changes: NodeChange<CanvasNode>[]) => {
     if (isPreviewing && hasNodeChangeMutation(changes)) {
-      nodeDragSnapshotRef.current = null;
-
-      return;
-    }
-
-    const dragPhase = getNodeDragPhase(changes);
-    if (dragPhase === "dragging") {
-      nodeDragSnapshotRef.current ??= getCurrentGraphSnapshot();
-      handleNodesChange(changes);
-
-      return;
-    }
-    if (dragPhase === "ended" && nodeDragSnapshotRef.current) {
-      const previous = nodeDragSnapshotRef.current;
-      nodeDragSnapshotRef.current = null;
-      handleNodesChange(changes);
-      recordHistory(previous);
-
-      return;
-    }
-
-    const previous = getCurrentGraphSnapshot();
-    if (hasNodeChangeMutation(changes)) {
-      handleNodesChange(changes);
-      recordHistory(previous);
-
       return;
     }
     handleNodesChange(changes);
@@ -322,10 +266,8 @@ export const CanvasFlow = () => {
       return;
     }
 
-    const previous = getCurrentGraphSnapshot();
     deleteSelected(selectedIds);
     setSelectedIds([]);
-    recordHistory(previous);
   };
 
   const handleUndo = () => {
@@ -364,6 +306,12 @@ export const CanvasFlow = () => {
   useHotkeys(
     "escape",
     () => {
+      if (configNodeId || inspectEdgeId) {
+        setConfigNodeId(null);
+        setInspectEdgeId(null);
+
+        return;
+      }
       if (drillStack.length > 0) {
         popDrillStack();
 
@@ -373,7 +321,7 @@ export const CanvasFlow = () => {
     },
     {
       enableOnContentEditable: false,
-      enableOnFormTags: false,
+      enableOnFormTags: true,
     },
   );
 
@@ -393,6 +341,7 @@ export const CanvasFlow = () => {
         defaultViewport={defaultViewport}
         deleteKeyCode={null}
         edges={renderedEdges}
+        edgeTypes={edgeTypes}
         maxZoom={1.6}
         minZoom={0.35}
         nodeDragThreshold={2}

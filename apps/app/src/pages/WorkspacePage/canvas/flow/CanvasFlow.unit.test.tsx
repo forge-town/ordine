@@ -22,6 +22,7 @@ type ReactFlowProps = {
 };
 
 const hotkeyHandlers = new Map<string, () => void>();
+const hotkeyOptions = new Map<string, { enableOnFormTags?: boolean }>();
 const latestReactFlowPropsRef = { current: null as ReactFlowProps | null };
 const refineMocks = vi.hoisted(() => ({ create: vi.fn(), getList: vi.fn() }));
 const reactFlowMocks = vi.hoisted(() => ({ fitView: vi.fn(async () => true) }));
@@ -34,8 +35,9 @@ vi.mock("@refinedev/core", () => ({
 }));
 
 vi.mock("react-hotkeys-hook", () => ({
-  useHotkeys: (keys: string, handler: () => void) => {
+  useHotkeys: (keys: string, handler: () => void, options: { enableOnFormTags?: boolean } = {}) => {
     hotkeyHandlers.set(keys, handler);
+    hotkeyOptions.set(keys, options);
   },
 }));
 
@@ -105,6 +107,7 @@ const makeDataTransfer = (payload: Parameters<typeof encodeCanvasComponentDragPa
 describe("CanvasFlow", () => {
   beforeEach(() => {
     hotkeyHandlers.clear();
+    hotkeyOptions.clear();
     latestReactFlowPropsRef.current = null;
     reactFlowMocks.fitView.mockClear();
     refineMocks.create.mockReset();
@@ -299,6 +302,17 @@ describe("CanvasFlow", () => {
 
     expect(store.getState().nodes.map((node) => node.id)).toEqual(["node-a", "node-b"]);
     expect(store.getState().proposalPreview).not.toBeNull();
+  });
+
+  it("closes an inspector with Escape while a form control is focused", () => {
+    const store = createCanvasStore({ nodes: [makeNode("node-a")] });
+    store.getState().openNodeConfig("node-a");
+    render(<CanvasFlow />, { wrapper: makeWrapper(store) });
+
+    act(() => hotkeyHandlers.get("escape")?.());
+
+    expect(store.getState().configNodeId).toBeNull();
+    expect(hotkeyOptions.get("escape")?.enableOnFormTags).toBe(true);
   });
 
   it("fits the visible graph after node dimensions initialize", () => {

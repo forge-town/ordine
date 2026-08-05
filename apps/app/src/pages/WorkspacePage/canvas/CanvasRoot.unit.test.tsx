@@ -5,6 +5,7 @@ import { CanvasRoot } from "./CanvasRoot";
 
 vi.mock("@refinedev/core", () => ({
   useDataProvider: () => () => ({}),
+  useUpdate: () => ({ mutateAsync: vi.fn() }),
 }));
 
 vi.mock("@xyflow/react", () => ({

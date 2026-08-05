@@ -54,7 +54,10 @@ export const pipelinesRouter = router({
     .input(
       z.object({
         id: z.string(),
-        patch: PipelineSchema.omit({ createdAt: true, updatedAt: true }).partial(),
+        patch: PipelineSchema.omit({ createdAt: true, updatedAt: true }).partial().extend({
+          edges: PipelineGraphSnapshotSchema.shape.edges.optional(),
+          nodes: PipelineGraphSnapshotSchema.shape.nodes.optional(),
+        }),
       }),
     )
     .mutation(({ input }) =>
