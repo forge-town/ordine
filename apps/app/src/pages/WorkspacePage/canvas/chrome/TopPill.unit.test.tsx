@@ -7,11 +7,19 @@ import { TopPill } from "./TopPill";
 
 const mutateMock = vi.fn();
 const customMock = vi.fn();
+const getOneMock = vi.fn();
+const useOneMock = vi.fn();
 
-vi.mock("@refinedev/core", () => ({ useUpdate: () => ({ mutate: mutateMock }) }));
+vi.mock("@refinedev/core", () => ({
+  useOne: (...args: unknown[]) => useOneMock(...args),
+  useUpdate: () => ({ mutate: mutateMock }),
+}));
 vi.mock("@/integrations/refine/dataProvider", () => ({
-  ResourceName: { pipelines: "pipelines" },
-  dataProvider: { custom: (...args: unknown[]) => customMock(...args) },
+  ResourceName: { jobs: "jobs", pipelines: "pipelines" },
+  dataProvider: {
+    custom: (...args: unknown[]) => customMock(...args),
+    getOne: (...args: unknown[]) => getOneMock(...args),
+  },
 }));
 vi.mock("@repo/ui/dropdown-menu", () => ({
   DropdownMenu: ({ children }: React.PropsWithChildren) => <div>{children}</div>,
@@ -66,7 +74,10 @@ const makeWrapper =
 describe("TopPill", () => {
   beforeEach(() => {
     customMock.mockReset();
+    getOneMock.mockReset();
     mutateMock.mockReset();
+    useOneMock.mockReset();
+    useOneMock.mockReturnValue({ query: {} });
   });
 
   it("shows pipeline state and persists a renamed pipeline", async () => {
@@ -87,9 +98,17 @@ describe("TopPill", () => {
     );
   });
 
-  it("starts a runnable pipeline and exposes its running state", async () => {
+  it("starts and cancels a runnable pipeline", async () => {
     const user = userEvent.setup();
     customMock.mockResolvedValueOnce({ data: { jobId: "job-42" } });
+    customMock.mockResolvedValueOnce({ data: { cancelled: true, jobId: "job-42" } });
+    getOneMock.mockResolvedValueOnce({
+      data: {
+        id: "job-42",
+        nodeStatuses: null,
+        status: "cancelled",
+      },
+    });
     const store = createCanvasStore({ nodes: [operationNode] });
     render(<TopPill pipeline={{ id: "pipeline-1", name: "Quiz pipeline", version: 2 }} />, {
       wrapper: makeWrapper(store),
@@ -105,6 +124,45 @@ describe("TopPill", () => {
         url: "pipelines/run",
       }),
     );
-    expect(screen.getByTestId("canvas-v2-stop")).toBeDisabled();
+    await user.click(screen.getByTestId("canvas-v2-stop"));
+
+    await waitFor(() => expect(store.getState().activeJobId).toBeNull());
+    expect(customMock).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        payload: { jobId: "job-42" },
+        url: "pipelines/cancel",
+      }),
+    );
+  });
+
+  it("ignores a stale polling response after a newer run starts", async () => {
+    const deferred = {
+      resolve: null as
+        | null
+        | ((value: { data: { id: string; nodeStatuses: null; status: string } }) => void),
+    };
+    getOneMock.mockReturnValueOnce(
+      new Promise((resolve) => {
+        deferred.resolve = resolve;
+      }),
+    );
+    const store = createCanvasStore({ nodes: [operationNode] });
+    render(<TopPill pipeline={{ id: "pipeline-1", name: "Quiz pipeline", version: 2 }} />, {
+      wrapper: makeWrapper(store),
+    });
+
+    store.getState().beginRun("job-a");
+    await waitFor(() =>
+      expect(useOneMock).toHaveBeenLastCalledWith(expect.objectContaining({ id: "job-a" })),
+    );
+    const options = useOneMock.mock.lastCall?.[0] as {
+      queryOptions: { queryFn: () => Promise<unknown> };
+    };
+    const poll = options.queryOptions.queryFn();
+    store.getState().beginRun("job-b");
+    deferred.resolve?.({ data: { id: "job-a", nodeStatuses: null, status: "cancelled" } });
+    await poll;
+
+    expect(store.getState().activeJobId).toBe("job-b");
   });
 });

@@ -1,6 +1,6 @@
 import { z } from "zod/v4";
 import { TRPCError } from "@trpc/server";
-import { publicProcedure, router } from "../init";
+import { authedProcedure, publicProcedure, router } from "../init";
 import { pipelinesService, pipelineRunnerService } from "../services";
 import { getProposeProgress, setProposeProgress } from "@repo/services";
 import {
@@ -100,6 +100,15 @@ export const pipelinesRouter = router({
 
       return result.value;
     }),
+
+  cancel: authedProcedure.input(z.object({ jobId: z.string() })).mutation(async ({ input }) => {
+    const result = await pipelineRunnerService.cancelRun(input.jobId);
+    if (result.isErr()) {
+      throw new TRPCError({ code: "BAD_REQUEST", message: result.error.message });
+    }
+
+    return result.value;
+  }),
 
   optimizeFromDistillation: publicProcedure
     .input(

@@ -1,4 +1,4 @@
-import { ChevronDown, GitBranch, GitCommitHorizontal, Save } from "lucide-react";
+import { ChevronDown, Save } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import {
   DropdownMenu,
@@ -6,10 +6,8 @@ import {
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@repo/ui/dropdown-menu";
-import { ScrollArea } from "@repo/ui/scroll-area";
 
 export type VersionMenuRunState = "done" | "draft" | "running";
 
@@ -17,21 +15,12 @@ export type VersionMenuProps = {
   dirty: boolean;
   runState: VersionMenuRunState;
   version: number;
-  onOverwrite: () => void;
-  onSaveAsNew: () => void;
+  onSave: () => void;
 };
 
-export const VersionMenu = ({
-  dirty,
-  runState,
-  version,
-  onOverwrite,
-  onSaveAsNew,
-}: VersionMenuProps) => {
+export const VersionMenu = ({ dirty, runState, version, onSave }: VersionMenuProps) => {
   const { t } = useTranslation();
-  const versions = Array.from({ length: version }, (_, index) => version - index);
-  const handleOverwriteClick = () => onOverwrite();
-  const handleSaveAsNewClick = () => onSaveAsNew();
+  const handleSaveClick = () => onSave();
 
   return (
     <DropdownMenu>
@@ -61,40 +50,13 @@ export const VersionMenu = ({
           <DropdownMenuItem
             data-testid="canvas-v2-version-overwrite"
             disabled={!dirty}
-            onClick={handleOverwriteClick}
+            onClick={handleSaveClick}
           >
             <Save className="size-3.5 text-muted-foreground" />
             <span className="flex-1">
               {t("workspace.canvas.chrome.version.overwrite", { version })}
             </span>
           </DropdownMenuItem>
-          <DropdownMenuItem
-            data-testid="canvas-v2-version-save-as-new"
-            onClick={handleSaveAsNewClick}
-          >
-            <GitBranch className="size-3.5 text-muted-foreground" />
-            <span className="flex-1">{t("workspace.canvas.chrome.version.saveAsNew")}</span>
-            <span className="font-mono text-[10px] text-muted-foreground">v{version + 1}</span>
-          </DropdownMenuItem>
-        </DropdownMenuGroup>
-        <DropdownMenuSeparator />
-        <DropdownMenuGroup>
-          <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
-            {t("workspace.canvas.chrome.version.history")}
-          </DropdownMenuLabel>
-          <ScrollArea className="max-h-32">
-            {versions.map((entry) => (
-              <div key={entry} className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-xs">
-                <GitCommitHorizontal className="size-3.5 text-muted-foreground" />
-                <span className="flex-1 font-mono">v{entry}</span>
-                {entry === version ? (
-                  <span className="text-[10px] text-muted-foreground">
-                    {t("workspace.canvas.chrome.version.current")}
-                  </span>
-                ) : null}
-              </div>
-            ))}
-          </ScrollArea>
         </DropdownMenuGroup>
       </DropdownMenuContent>
     </DropdownMenu>

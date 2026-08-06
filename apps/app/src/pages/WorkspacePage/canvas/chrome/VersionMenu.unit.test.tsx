@@ -26,34 +26,19 @@ vi.mock("@repo/ui/scroll-area", () => ({
 }));
 
 describe("VersionMenu", () => {
-  it("only overwrites dirty graphs and can save a new version", async () => {
+  it("only saves dirty graphs without presenting synthetic history", async () => {
     const user = userEvent.setup();
-    const handleOverwrite = vi.fn();
-    const handleSaveAsNew = vi.fn();
+    const handleSave = vi.fn();
     const { rerender } = render(
-      <VersionMenu
-        dirty={false}
-        runState="draft"
-        version={3}
-        onOverwrite={handleOverwrite}
-        onSaveAsNew={handleSaveAsNew}
-      />,
+      <VersionMenu dirty={false} runState="draft" version={3} onSave={handleSave} />,
     );
 
     expect(screen.getByTestId("canvas-v2-version-overwrite")).toBeDisabled();
-    rerender(
-      <VersionMenu
-        dirty
-        runState="running"
-        version={3}
-        onOverwrite={handleOverwrite}
-        onSaveAsNew={handleSaveAsNew}
-      />,
-    );
+    rerender(<VersionMenu dirty runState="running" version={3} onSave={handleSave} />);
     await user.click(screen.getByTestId("canvas-v2-version-overwrite"));
-    await user.click(screen.getByTestId("canvas-v2-version-save-as-new"));
 
-    expect(handleOverwrite).toHaveBeenCalledOnce();
-    expect(handleSaveAsNew).toHaveBeenCalledOnce();
+    expect(handleSave).toHaveBeenCalledOnce();
+    expect(screen.queryByTestId("canvas-v2-version-save-as-new")).not.toBeInTheDocument();
+    expect(screen.queryByText("History")).not.toBeInTheDocument();
   });
 });

@@ -2,6 +2,7 @@ import { trpcClient } from "@/integrations/trpc/client";
 
 export const CustomEndpoint = {
   pipelinesRun: "pipelines/run",
+  pipelinesCancel: "pipelines/cancel",
   pipelinesAnalyzeIntent: "pipelines/analyzeIntent",
   pipelinesGenerateStructure: "pipelines/generateStructure",
   pipelinesOptimizeFromDistillation: "pipelines/optimizeFromDistillation",
@@ -36,6 +37,8 @@ type Input<T extends (...args: never[]) => unknown> = Parameters<T>[0];
 export const customEndpoints: Record<string, CustomHandler> = {
   [CustomEndpoint.pipelinesRun]: (payload) =>
     trpcClient.pipelines.run.mutate(payload as Input<typeof trpcClient.pipelines.run.mutate>),
+  [CustomEndpoint.pipelinesCancel]: (payload) =>
+    trpcClient.pipelines.cancel.mutate(payload as Input<typeof trpcClient.pipelines.cancel.mutate>),
   [CustomEndpoint.pipelinesAnalyzeIntent]: (payload) =>
     trpcClient.pipelines.analyzeIntent.mutate(
       payload as Input<typeof trpcClient.pipelines.analyzeIntent.mutate>,

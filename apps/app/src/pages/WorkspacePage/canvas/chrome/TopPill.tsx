@@ -1,13 +1,14 @@
 import { useMemo, useState, type FocusEvent, type KeyboardEvent } from "react";
-import { useUpdate } from "@refinedev/core";
+import { useOne, useUpdate } from "@refinedev/core";
 import { ResultAsync } from "neverthrow";
 import { ChevronRight, CornerUpLeft, Layers, Play, Square, Workflow } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import type { Job } from "@repo/schemas";
 import { cn } from "@repo/ui/lib/utils";
 import { dataProvider, ResourceName } from "@/integrations/refine/dataProvider";
 import { toastStore } from "@/store/toastStore";
 import { toPipelineSnapshot, type CanvasEdge, type CanvasNode } from "../_store/canvasTypes";
-import { useCanvasStore } from "../_store/canvasStore";
+import { useCanvasStore, useCanvasStoreApi } from "../_store/canvasStore";
 import { StateLegend } from "./StateLegend";
 import { VersionMenu, type VersionMenuRunState } from "./VersionMenu";
 
@@ -24,6 +25,15 @@ export type TopPillProps = {
 type RunStartResponse = {
   jobId: string;
 };
+
+const RUN_POLL_INTERVAL = 1000;
+const TERMINAL_JOB_STATUSES = new Set<Job["status"]>([
+  "cancelled",
+  "done",
+  "expired",
+  "failed",
+  "skipped",
+]);
 
 const stableGraphJson = (nodes: readonly CanvasNode[], edges: readonly CanvasEdge[]): string =>
   JSON.stringify({
@@ -47,6 +57,7 @@ const stableGraphJson = (nodes: readonly CanvasNode[], edges: readonly CanvasEdg
 
 export const TopPill = ({ pipeline }: TopPillProps) => {
   const { t } = useTranslation();
+  const canvasStore = useCanvasStoreApi();
   const nodes = useCanvasStore((state) => state.nodes);
   const edges = useCanvasStore((state) => state.edges);
   const drillStack = useCanvasStore((state) => state.drillStack);
@@ -54,14 +65,39 @@ export const TopPill = ({ pipeline }: TopPillProps) => {
   const popDrillStack = useCanvasStore((state) => state.popDrillStack);
   const activeJobId = useCanvasStore((state) => state.activeJobId);
   const latestJob = useCanvasStore((state) => state.latestJob);
+  const applyJobSnapshot = useCanvasStore((state) => state.applyJobSnapshot);
   const beginRun = useCanvasStore((state) => state.beginRun);
   const { mutate: updatePipeline } = useUpdate();
 
   const [renaming, setRenaming] = useState(false);
-  const [version, setVersion] = useState(pipeline.version);
   const [isStartingRun, setIsStartingRun] = useState(false);
+  const [isStoppingRun, setIsStoppingRun] = useState(false);
   const graphJson = useMemo(() => stableGraphJson(nodes, edges), [edges, nodes]);
   const [savedGraphJson, setSavedGraphJson] = useState(graphJson);
+
+  useOne<Job>({
+    resource: ResourceName.jobs,
+    id: activeJobId ?? "",
+    queryOptions: {
+      enabled: activeJobId !== null,
+      queryFn: async () => {
+        const response = await dataProvider.getOne!<Job>({
+          id: activeJobId ?? "",
+          resource: ResourceName.jobs,
+        });
+        if (canvasStore.getState().activeJobId === response.data.id) {
+          applyJobSnapshot(response.data);
+        }
+
+        return response;
+      },
+      refetchInterval: (query) => {
+        const status = (query.state.data?.data as Job | undefined)?.status;
+
+        return status && TERMINAL_JOB_STATUSES.has(status) ? false : RUN_POLL_INTERVAL;
+      },
+    },
+  });
 
   const dirty = graphJson !== savedGraphJson;
   const running = activeJobId !== null;
@@ -88,7 +124,7 @@ export const TopPill = ({ pipeline }: TopPillProps) => {
     ];
   }, [drillStack, nodes, pipeline.name, t]);
 
-  const handlePersistGraph = (nextVersion: number, successMessage: string) => {
+  const handlePersistGraph = () => {
     const snapshot = toPipelineSnapshot({ edges, nodes });
     updatePipeline(
       {
@@ -99,7 +135,6 @@ export const TopPill = ({ pipeline }: TopPillProps) => {
         values: {
           edges: snapshot.edges,
           nodes: snapshot.nodes,
-          version: nextVersion,
         },
       },
       {
@@ -110,9 +145,10 @@ export const TopPill = ({ pipeline }: TopPillProps) => {
           }),
         onSuccess: () => {
           setSavedGraphJson(graphJson);
-          setVersion(nextVersion);
           toastStore.getState().addToast({
-            title: successMessage,
+            title: t("workspace.canvas.chrome.version.saveSuccess", {
+              version: pipeline.version,
+            }),
             type: "success",
           });
         },
@@ -166,14 +202,49 @@ export const TopPill = ({ pipeline }: TopPillProps) => {
     );
   };
 
+  const handleStop = () => {
+    if (!activeJobId) {
+      return;
+    }
+
+    const jobId = activeJobId;
+    setIsStoppingRun(true);
+    void ResultAsync.fromPromise(
+      dataProvider.custom!({
+        method: "post",
+        payload: { jobId },
+        url: "pipelines/cancel",
+      }),
+      () => t("workspace.canvas.chrome.run.stopFailed"),
+    )
+      .andThen(() =>
+        ResultAsync.fromPromise(
+          dataProvider.getOne!<Job>({ id: jobId, resource: ResourceName.jobs }),
+          () => t("workspace.canvas.chrome.run.stopFailed"),
+        ),
+      )
+      .match(
+        (response) => {
+          if (canvasStore.getState().activeJobId === jobId) {
+            applyJobSnapshot(response.data);
+          }
+          setIsStoppingRun(false);
+          toastStore.getState().addToast({
+            title: t("workspace.canvas.chrome.run.stopped"),
+            type: "success",
+          });
+        },
+        (error) => {
+          setIsStoppingRun(false);
+          toastStore.getState().addToast({
+            title: error,
+            type: "error",
+          });
+        },
+      );
+  };
+
   const handleDrillOut = () => popDrillStack();
-  const handleOverwrite = () =>
-    handlePersistGraph(version, t("workspace.canvas.chrome.version.saveSuccess", { version }));
-  const handleSaveAsNew = () =>
-    handlePersistGraph(
-      version + 1,
-      t("workspace.canvas.chrome.version.saveAsNewSuccess", { version: version + 1 }),
-    );
 
   return (
     <div
@@ -256,9 +327,8 @@ export const TopPill = ({ pipeline }: TopPillProps) => {
             <VersionMenu
               dirty={dirty}
               runState={runState}
-              version={version}
-              onOverwrite={handleOverwrite}
-              onSaveAsNew={handleSaveAsNew}
+              version={pipeline.version}
+              onSave={handlePersistGraph}
             />
           ) : null}
         </div>
@@ -280,10 +350,11 @@ export const TopPill = ({ pipeline }: TopPillProps) => {
         {atRoot ? (
           running ? (
             <button
-              disabled
-              className="flex items-center gap-1.5 rounded-full bg-surface px-3.5 py-1.5 text-xs font-medium text-foreground shadow-pill ring-1 ring-border opacity-70"
+              className="flex items-center gap-1.5 rounded-full bg-surface px-3.5 py-1.5 text-xs font-medium text-foreground shadow-pill ring-1 ring-border transition-colors hover:ring-border-strong disabled:cursor-wait disabled:opacity-70"
               data-testid="canvas-v2-stop"
+              disabled={isStoppingRun}
               type="button"
+              onClick={handleStop}
             >
               <Square className="size-3.5" />
               {t("workspace.canvas.chrome.run.stop")}

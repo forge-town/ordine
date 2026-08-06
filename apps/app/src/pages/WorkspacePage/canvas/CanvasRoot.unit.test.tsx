@@ -6,6 +6,7 @@ import { CanvasRoot } from "./CanvasRoot";
 vi.mock("@refinedev/core", () => ({
   useDataProvider: () => () => ({}),
   useList: () => ({ result: { data: [], total: 0 } }),
+  useOne: () => ({ query: {} }),
   useUpdate: () => ({ mutate: vi.fn(), mutateAsync: vi.fn() }),
 }));
 
