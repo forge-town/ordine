@@ -23,6 +23,7 @@ import type {
   JobTrace,
   Operation,
   PipelineData,
+  Routine,
 } from "@repo/schemas";
 import { ResourceName } from "../../constants";
 
@@ -94,26 +95,113 @@ const canvasStoryFilesystem = [
   { name: "package.json", type: "file", path: "/workspace/ordine/apps/app/package.json" },
 ];
 
+const storyNow = new Date();
+const minutesAgo = (minutes: number) => new Date(storyNow.getTime() - minutes * 60_000);
+
 export const canvasStoryJobs: Job[] = [
   {
     id: "job-story",
-    title: "Story pipeline run",
+    title: "Release readiness review",
     type: "pipeline_run",
     status: "running",
+    pipelineId: "story-pipeline",
     parentJobId: null,
     error: null,
-    startedAt: new Date("2026-04-08T16:00:00.000Z"),
+    startedAt: minutesAgo(14),
     finishedAt: null,
+    nodeStatuses: { "review-op": "running" },
+    totalTokens: 18_420,
   },
   {
     id: "job-done-story",
-    title: "Completed story pipeline run",
+    title: "Dependency audit",
     type: "pipeline_run",
     status: "done",
+    pipelineId: "dependency-audit",
     parentJobId: null,
     error: null,
-    startedAt: new Date("2026-04-08T16:00:00.000Z"),
-    finishedAt: new Date("2026-04-08T16:00:05.000Z"),
+    startedAt: minutesAgo(58),
+    finishedAt: minutesAgo(51),
+    totalTokens: 8_790,
+    triggeredBy: "routine",
+  },
+  {
+    id: "job-waiting-story",
+    title: "Migration plan",
+    type: "pipeline_run",
+    status: "running",
+    pipelineId: "migration-plan",
+    parentJobId: null,
+    error: null,
+    startedAt: minutesAgo(33),
+    finishedAt: null,
+    nodeStatuses: { approval: "waitingForUser" },
+    totalTokens: 12_340,
+  },
+  {
+    id: "job-paused-story",
+    title: "Release readiness review",
+    type: "pipeline_run",
+    status: "paused",
+    pipelineId: "story-pipeline",
+    parentJobId: null,
+    error: null,
+    startedAt: minutesAgo(91),
+    finishedAt: null,
+    totalTokens: 4_520,
+  },
+  {
+    id: "job-queued-story",
+    title: "Dependency audit",
+    type: "pipeline_run",
+    status: "queued",
+    pipelineId: "dependency-audit",
+    parentJobId: null,
+    error: null,
+    startedAt: null,
+    finishedAt: null,
+    triggeredBy: "routine",
+  },
+  {
+    id: "job-failed-story",
+    title: "Migration plan",
+    type: "pipeline_run",
+    status: "failed",
+    pipelineId: "migration-plan",
+    parentJobId: null,
+    error: "Validation failed at the deployment gate.",
+    startedAt: minutesAgo(126),
+    finishedAt: minutesAgo(119),
+    totalTokens: 6_870,
+  },
+];
+
+export const canvasStoryRoutines: Routine[] = [
+  {
+    id: "routine-daily-audit",
+    pipelineId: "dependency-audit",
+    name: "Daily dependency audit",
+    description: "Runs every morning",
+    cronExpression: "0 9 * * *",
+    inputConfig: null,
+    enabled: true,
+    lastRunAt: minutesAgo(51),
+    nextRunAt: null,
+    createdAt: minutesAgo(10_000),
+    updatedAt: minutesAgo(51),
+  },
+  {
+    id: "routine-afternoon-review",
+    pipelineId: "story-pipeline",
+    name: "Afternoon release review",
+    description: "Runs on workdays",
+    cronExpression: "30 16 * * 1-5",
+    inputConfig: null,
+    enabled: true,
+    lastRunAt: null,
+    nextRunAt: null,
+    createdAt: minutesAgo(8_000),
+    updatedAt: minutesAgo(200),
   },
 ];
 
@@ -158,9 +246,62 @@ export const canvasStoryPipeline: PipelineData = {
   timeoutMs: null,
   createdAt: new Date("2026-04-08T16:00:00.000Z"),
   updatedAt: new Date("2026-04-08T16:00:00.000Z"),
-  nodes: [],
+  nodes: [
+    {
+      id: "review-op",
+      type: "operation",
+      position: { x: 80, y: 100 },
+      data: {
+        label: "Review changes",
+        nodeType: "operation",
+        operationId: "review-code",
+        operationName: "Review Code",
+        status: "running",
+      },
+    },
+    {
+      id: "validate-op",
+      type: "operation",
+      position: { x: 360, y: 100 },
+      data: {
+        label: "Validate checks",
+        nodeType: "operation",
+        operationId: "project-map",
+        operationName: "Project Map",
+        status: "idle",
+      },
+    },
+    {
+      id: "publish-op",
+      type: "operation",
+      position: { x: 640, y: 100 },
+      data: {
+        label: "Publish summary",
+        nodeType: "operation",
+        operationId: "clean-code",
+        operationName: "Clean Code",
+        status: "idle",
+      },
+    },
+  ],
   edges: [],
 };
+
+const canvasStoryPipelines: PipelineData[] = [
+  canvasStoryPipeline,
+  {
+    ...canvasStoryPipeline,
+    id: "dependency-audit",
+    name: "Dependency Audit",
+    description: "Checks dependency health and upgrade risk.",
+  },
+  {
+    ...canvasStoryPipeline,
+    id: "migration-plan",
+    name: "Migration Plan",
+    description: "Builds and reviews migration plans.",
+  },
+];
 
 const getFilterValue = (params: GetListParams, field: string): unknown => {
   const filter = params.filters?.find((item) => "field" in item && item.field === field);
@@ -174,7 +315,8 @@ const getCanvasStoryRecords = (resource: string, params?: GetListParams): BaseRe
   if (resource === ResourceName.operations) return canvasStoryOperations;
   if (resource === ResourceName.githubProjects) return canvasStoryGithubProjects;
   if (resource === ResourceName.jobs) return canvasStoryJobs;
-  if (resource === ResourceName.pipelines) return [canvasStoryPipeline];
+  if (resource === ResourceName.pipelines) return canvasStoryPipelines;
+  if (resource === ResourceName.routines) return canvasStoryRoutines;
   if (resource === ResourceName.filesystem) {
     const path = params ? getFilterValue(params, "path") : undefined;
     if (!path) return canvasStoryFilesystem;
@@ -273,7 +415,7 @@ const getCanvasStoryCustom = <
 ): Promise<CustomResponse<TData>> => {
   if (params.url === "jobs/traces") {
     const jobId = getPayloadJobId(params.payload);
-    const traces = getStoryJobTraces(jobId).map(({ message }) => ({ message }));
+    const traces = getStoryJobTraces(jobId);
 
     return Promise.resolve({ data: { traces } as unknown as TData });
   }

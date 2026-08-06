@@ -59,6 +59,7 @@
     "@repo/plugin": "workspace:*",
     "@repo/schemas": "workspace:*",
     "@repo/ui": "workspace:*",
+    "@repo/utils": "workspace:*",
     "@tanstack/react-query": "^5.95.2",
     "@tanstack/react-router": "^1.168.7",
     "@tanstack/react-table": "^8.21.3",

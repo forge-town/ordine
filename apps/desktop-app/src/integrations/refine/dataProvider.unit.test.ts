@@ -162,6 +162,21 @@ describe("desktop dataProvider", () => {
       request: ["http://desktop.test/api/jobs/job-1/agent-runs/42/spans", "GET"],
     },
     {
+      endpoint: "jobs/pause",
+      payload: { jobId: "job-1" },
+      request: ["http://desktop.test/api/jobs/job-1/pause", "POST"],
+    },
+    {
+      endpoint: "jobs/resume",
+      payload: { jobId: "job-1" },
+      request: ["http://desktop.test/api/jobs/job-1/resume", "POST"],
+    },
+    {
+      endpoint: "jobs/cancel",
+      payload: { jobId: "job-1" },
+      request: ["http://desktop.test/api/jobs/job-1/cancel", "POST"],
+    },
+    {
       endpoint: "distillations/run",
       payload: { id: "distillation-1" },
       request: ["http://desktop.test/api/distillations/distillation-1/run", "POST"],

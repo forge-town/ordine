@@ -192,6 +192,16 @@ const resolveCustomRequest = (url: string, method: string, payload: unknown): Cu
         transform: (spans) => ({ spans }),
       };
     }
+    case "jobs/pause":
+    case "jobs/resume":
+    case "jobs/cancel": {
+      const action = url.split("/")[1];
+
+      return {
+        url: `${DESKTOP_API_BASE}/jobs/${requiredPayloadString(payload, "jobId")}/${action}`,
+        method: "POST",
+      };
+    }
     case "distillations/run": {
       return {
         url: `${DESKTOP_API_BASE}/distillations/${requiredPayloadString(payload, "id")}/run`,

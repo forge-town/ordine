@@ -10,6 +10,9 @@ const mocks = vi.hoisted(() => ({
   connectorsGetAll: vi.fn(),
   conversationsClearAll: vi.fn(),
   conversationsGetAll: vi.fn(),
+  jobsCancel: vi.fn(),
+  jobsPause: vi.fn(),
+  jobsResume: vi.fn(),
   pipelineAssetsGetAll: vi.fn(),
   pipelineAssetsGetUsageCount: vi.fn(),
   projectsGetAll: vi.fn(),
@@ -40,7 +43,11 @@ vi.mock("../src/services.js", () => ({
     getAll: mocks.pipelineAssetsGetAll,
     getUsageCount: mocks.pipelineAssetsGetUsageCount,
   },
-  pipelineRunnerService: {},
+  pipelineRunnerService: {
+    cancelRun: mocks.jobsCancel,
+    pauseRun: mocks.jobsPause,
+    resumeRun: mocks.jobsResume,
+  },
   pipelinesService: {},
   projectsService: { getAll: mocks.projectsGetAll },
   routinesService: {
@@ -63,6 +70,9 @@ beforeEach(() => {
   mocks.connectorsGetAll.mockResolvedValue(ok([]));
   mocks.conversationsClearAll.mockResolvedValue(ok(undefined));
   mocks.conversationsGetAll.mockResolvedValue(ok([]));
+  mocks.jobsCancel.mockResolvedValue(ok({ cancelled: true, jobId: "job-1" }));
+  mocks.jobsPause.mockResolvedValue(ok({ jobId: "job-1", paused: true }));
+  mocks.jobsResume.mockResolvedValue(ok({ jobId: "job-1", resumed: true }));
   mocks.pipelineAssetsGetAll.mockResolvedValue(ok([]));
   mocks.pipelineAssetsGetUsageCount.mockResolvedValue(ok({ assetId: "asset-1", count: 1 }));
   mocks.projectsGetAll.mockResolvedValue(ok([]));
@@ -98,6 +108,31 @@ describe("domain REST routes", () => {
     expect(response.status).toBe(202);
     expect(await response.json()).toEqual({ jobId: "job-1" });
     expect(mocks.routinesRunNow).toHaveBeenCalledWith("routine-1");
+  });
+
+  it.each([
+    ["pause", mocks.jobsPause, { jobId: "job-1", paused: true }],
+    ["resume", mocks.jobsResume, { jobId: "job-1", resumed: true }],
+    ["cancel", mocks.jobsCancel, { cancelled: true, jobId: "job-1" }],
+  ])("%ss a job", async (action, serviceCall, body) => {
+    const response = await app.request(`/api/jobs/job-1/${action}`, { method: "POST" });
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual(body);
+    expect(serviceCall).toHaveBeenCalledWith("job-1");
+  });
+
+  it.each([
+    ["JobNotFoundError", 404],
+    ["InvalidJobStatusError", 409],
+  ])("maps %s from a job action to %i", async (name, status) => {
+    const error = new Error("Job action failed");
+    error.name = name;
+    mocks.jobsPause.mockResolvedValueOnce(err(error));
+
+    const response = await app.request("/api/jobs/job-1/pause", { method: "POST" });
+
+    expect(response.status).toBe(status);
   });
 
   it("maps a missing routine run to 404", async () => {

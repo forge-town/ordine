@@ -105,6 +105,30 @@ describe("dataProvider custom registry", () => {
     });
   });
 
+  it("routes job controls through their tRPC mutations", async () => {
+    await dataProvider.custom!({
+      url: CustomEndpoint.jobsPause,
+      method: "post",
+      payload: { jobId: "job-1" },
+    });
+    await dataProvider.custom!({
+      url: CustomEndpoint.jobsResume,
+      method: "post",
+      payload: { jobId: "job-1" },
+    });
+    await dataProvider.custom!({
+      url: CustomEndpoint.jobsCancel,
+      method: "post",
+      payload: { jobId: "job-1" },
+    });
+
+    expect(calls.slice(-3)).toEqual([
+      { path: "jobs.pause", kind: "mutate", args: { jobId: "job-1" } },
+      { path: "jobs.resume", kind: "mutate", args: { jobId: "job-1" } },
+      { path: "jobs.cancel", kind: "mutate", args: { jobId: "job-1" } },
+    ]);
+  });
+
   it("throws for unknown custom urls", async () => {
     await expect(dataProvider.custom!({ url: "unknown", method: "post" })).rejects.toThrow(
       'custom: unknown url "unknown"',

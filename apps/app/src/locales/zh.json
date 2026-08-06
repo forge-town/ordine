@@ -133,6 +133,7 @@
     "quickActionBestPracticesSub": "查看编码规范"
   },
   "jobs": {
+    "eyebrow": "监控",
     "title": "工单",
     "running": "运行中",
     "queued": "排队中",
@@ -204,14 +205,24 @@
       "openCanvas": "在画布中打开 Pipeline",
       "runtime_one": "运行时 · {{count}} 步",
       "runtime_other": "运行时 · {{count}} 步",
+      "title": "工单详情",
       "trace": "日志"
     },
     "emptyBody": "发起一次运行，或调整当前筛选。",
     "emptyTitle": "还没有工单",
     "hasRoutine": "已有 Routine",
+    "closePipelinePicker": "关闭 Pipeline 选择器",
+    "filters": {
+      "all": "全部",
+      "completed": "已完成",
+      "failed": "失败",
+      "running": "运行中",
+      "waiting": "等待处理"
+    },
     "newRoutine": "新建 Routine",
     "newRun": "新建运行",
     "noMatchTitle": "没有匹配的工单",
+    "noPipelines": "还没有 Pipeline",
     "pickPipeline": "为哪条 Pipeline 排程？",
     "scheduleEditor": {
       "cancel": "取消",
@@ -277,13 +288,18 @@
         "review": "去处理"
       },
       "byRoutine": "routine",
+      "nextPage": "下一页",
+      "page": "第 {{current}} / {{total}} 页",
+      "previousPage": "上一页",
+      "sortBy": "按{{column}}排序",
       "headers": {
         "actions": "操作",
         "cost": "花费",
         "duration": "耗时",
         "job": "工单",
         "started": "开始",
-        "status": "状态"
+        "status": "状态",
+        "tokens": "Tokens"
       }
     },
     "views": {

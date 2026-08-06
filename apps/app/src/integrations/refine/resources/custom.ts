@@ -18,6 +18,9 @@ export const CustomEndpoint = {
   usageByAgent: "usage/byAgent",
   jobsAnalysis: "jobs/analysis",
   jobsTraces: "jobs/traces",
+  jobsPause: "jobs/pause",
+  jobsCancel: "jobs/cancel",
+  jobsResume: "jobs/resume",
   jobsAgentRuns: "jobs/agentRuns",
   jobsAgentRunSpans: "jobs/agentRunSpans",
   refinementsStart: "refinements/start",
@@ -104,6 +107,12 @@ export const customEndpoints: Record<string, CustomHandler> = {
 
     return { traces: await trpcClient.jobs.getTraces.query({ jobId }) };
   },
+  [CustomEndpoint.jobsPause]: (payload) =>
+    trpcClient.jobs.pause.mutate(payload as Input<typeof trpcClient.jobs.pause.mutate>),
+  [CustomEndpoint.jobsCancel]: (payload) =>
+    trpcClient.jobs.cancel.mutate(payload as Input<typeof trpcClient.jobs.cancel.mutate>),
+  [CustomEndpoint.jobsResume]: (payload) =>
+    trpcClient.jobs.resume.mutate(payload as Input<typeof trpcClient.jobs.resume.mutate>),
   [CustomEndpoint.jobsAgentRuns]: async (payload) => {
     const { jobId } = payload as { jobId: string };
 
