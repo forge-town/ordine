@@ -5,7 +5,8 @@ import { CanvasRoot } from "./CanvasRoot";
 
 vi.mock("@refinedev/core", () => ({
   useDataProvider: () => () => ({}),
-  useUpdate: () => ({ mutateAsync: vi.fn() }),
+  useList: () => ({ result: { data: [], total: 0 } }),
+  useUpdate: () => ({ mutate: vi.fn(), mutateAsync: vi.fn() }),
 }));
 
 vi.mock("@xyflow/react", () => ({
@@ -25,7 +26,10 @@ vi.mock("@xyflow/react", () => ({
   useReactFlow: () => ({
     fitView: vi.fn(),
     screenToFlowPosition: ({ x, y }: { x: number; y: number }) => ({ x, y }),
+    zoomIn: vi.fn(),
+    zoomOut: vi.fn(),
   }),
+  useViewport: () => ({ x: 0, y: 0, zoom: 1 }),
   useUpdateNodeInternals: () => () => undefined,
 }));
 

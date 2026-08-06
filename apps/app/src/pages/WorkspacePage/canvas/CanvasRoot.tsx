@@ -7,10 +7,11 @@ import { CanvasStoreProvider } from "./_store/canvasStore";
 import { EdgeInspector } from "./panels/EdgeInspector";
 import { NodeConfig } from "./panels/NodeConfig";
 import { CanvasFlow } from "./flow";
+import { CanvasToolbar, ComponentPanel, TopPill } from "./chrome";
 import { CanvasEmptyState } from "./CanvasEmptyState";
 
 export type CanvasRootProps = {
-  pipeline: Pick<PipelineData, "edges" | "id" | "nodes">;
+  pipeline: Pick<PipelineData, "edges" | "id" | "name" | "nodes" | "version">;
 };
 
 export const CanvasRoot = ({ pipeline }: CanvasRootProps) => {
@@ -29,6 +30,11 @@ export const CanvasRoot = ({ pipeline }: CanvasRootProps) => {
           lang={i18n.language}
         >
           <CanvasFlow />
+          <TopPill
+            pipeline={{ id: pipeline.id, name: pipeline.name, version: pipeline.version ?? 1 }}
+          />
+          <CanvasToolbar />
+          <ComponentPanel />
           <EdgeInspector pipelineId={pipeline.id} />
           <NodeConfig pipelineId={pipeline.id} />
           <CanvasEmptyState />
