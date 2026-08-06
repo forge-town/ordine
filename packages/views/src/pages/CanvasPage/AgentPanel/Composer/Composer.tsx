@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type ChangeEvent, type KeyboardEvent } from "react";
 import { ArrowUp, X } from "lucide-react";
+import { ResultAsync } from "neverthrow";
 import { useTranslation } from "react-i18next";
 import type {
   AgentContextPayload,
@@ -154,20 +155,21 @@ export const Composer = ({
       referencedNodeIds: refs.map((ref) => ref.id),
     };
 
-    try {
-      const submitted = await onSubmit?.({ content, metadata });
-      if (submitted === false) {
-        return;
-      }
-      setText("");
-      if (clearAttachmentsOnSubmit) {
-        setAttachments([]);
-      }
-      if (textareaRef.current) {
-        textareaRef.current.style.height = "auto";
-      }
-    } finally {
-      setIsSubmitting(false);
+    const submitResult = await ResultAsync.fromPromise(
+      Promise.resolve().then(() => onSubmit?.({ content, metadata })),
+      () => "submit-failed" as const,
+    );
+    setIsSubmitting(false);
+    if (submitResult.isErr() || submitResult.value === false) {
+      return;
+    }
+
+    setText("");
+    if (clearAttachmentsOnSubmit) {
+      setAttachments([]);
+    }
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
     }
   };
 

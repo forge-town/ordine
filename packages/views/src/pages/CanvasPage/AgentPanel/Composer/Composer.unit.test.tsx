@@ -111,6 +111,23 @@ describe("Agent Bar Composer", () => {
     expect(input).toHaveValue("Keep this draft");
   });
 
+  it("keeps the draft and attachments available for retry when submit fails", async () => {
+    const user = userEvent.setup();
+    const onSubmit = vi.fn().mockRejectedValue(new Error("send failed"));
+    renderComposer({
+      defaultAttachments: [{ name: "brief.md", size: 12, type: "text/markdown" }],
+      onSubmit,
+    });
+
+    const input = screen.getByRole("textbox");
+    await user.type(input, "Retry this{Enter}");
+
+    await waitFor(() => expect(onSubmit).toHaveBeenCalledTimes(1));
+    expect(input).toHaveValue("Retry this");
+    expect(screen.getByTestId("agent-composer-attachment-chip")).toHaveTextContent("brief.md");
+    await waitFor(() => expect(screen.getByTestId("agent-composer-send")).toBeEnabled());
+  });
+
   it("keeps session-scoped attachment context visible after a successful send", async () => {
     const user = userEvent.setup();
     renderComposer({
