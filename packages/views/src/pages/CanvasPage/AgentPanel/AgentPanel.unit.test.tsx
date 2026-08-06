@@ -325,7 +325,7 @@ describe("AgentPanel", () => {
     fireEvent.keyDown(input, { key: "Enter" });
     fireEvent.keyDown(input, { key: "Enter" });
 
-    expect(mockGetList).toHaveBeenCalledTimes(2);
+    await waitFor(() => expect(mockGetList).toHaveBeenCalledTimes(2));
     resolveRuntimeOptions({
       data: [
         {
