@@ -1,6 +1,12 @@
 import { useEffect, useRef } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
-import type { PipelineActionDiagnostic, PipelineActionProposal } from "@repo/schemas";
+import type {
+  AgentContextPayload,
+  PipelineActionDiagnostic,
+  PipelineActionProposal,
+  ProposeAttachment,
+  WorkspaceCanvasRef,
+} from "@repo/schemas";
 import { CanvasPageStoreContext, createCanvasPageStore, type CanvasPageStore } from "../_store";
 import { AgentPanel } from "./AgentPanel";
 import {
@@ -23,6 +29,7 @@ import {
 } from "./messages";
 import type { AgentBarMessage } from "./_store";
 import type { MessageTurnSubmitInput } from "./messages/MessageTurn";
+import { Composer } from "./Composer";
 import { setCanvasDataProvider } from "../../../lib/canvasDataProvider";
 import { canvasStoryDataProvider } from "../storybookData";
 import { AgentBarStoreProvider } from "./_store";
@@ -184,6 +191,7 @@ const CardsGallery = () => (
       isLast
       isSending={false}
       message={galleryMessage}
+      refs={[]}
       runtimeId="story-runtime"
       visibleMessages={[galleryMessage]}
       onEditDraft={() => undefined}
@@ -254,6 +262,77 @@ export const AllCards: Story = {
     docs: {
       description: {
         story: "Stable 360px gallery containing every AgentPanel message card.",
+      },
+    },
+  },
+};
+
+const composerContext: AgentContextPayload = {
+  anchors: [{ count: 2, label: "Review", refId: "review-node" }],
+  project: { pipelineId: "story-pipeline", pipelineName: "Story Pipeline" },
+  selection: [{ label: "Review", refId: "review-node", type: "node" }],
+  snapshotIncluded: true,
+  threadWindow: { enabled: true, limit: 20 },
+};
+
+const composerRefs: WorkspaceCanvasRef[] = [
+  {
+    baseId: "review-node",
+    id: "review-node",
+    kind: "operation",
+    label: "Review",
+    path: [],
+    type: "node",
+  },
+  {
+    baseId: "output-edge",
+    id: "output-edge",
+    kind: "edge",
+    label: "Review -> Output",
+    path: [],
+    type: "edge",
+  },
+];
+
+const composerAttachments: ProposeAttachment[] = [
+  { name: "requirements.md", size: 1842, type: "text/markdown" },
+  { name: "pipeline.json", size: 5830, type: "application/json" },
+];
+
+const ComposerGallery = () => (
+  <div className="flex w-[420px] max-w-full flex-col gap-4 border bg-surface p-3">
+    <Composer
+      agentContext={composerContext}
+      canRemoveAttachments={false}
+      clearAttachmentsOnSubmit={false}
+      defaultAttachments={composerAttachments}
+      onAttach={async (files) =>
+        files.map((file) => ({ name: file.name, size: file.size, type: file.type }))
+      }
+      onRemoveRef={() => undefined}
+      onSubmit={() => undefined}
+      refs={composerRefs}
+      runtimeId="story-runtime"
+    />
+    <Composer
+      agentContext={{ ...composerContext, selection: [] }}
+      contextDefaultOpen
+      disabled
+      onAttach={() => undefined}
+      onRemoveRef={() => undefined}
+      refs={[]}
+      runtimeId="story-runtime"
+    />
+  </div>
+);
+
+export const ComposerBaseline: Story = {
+  render: () => <ComposerGallery />,
+  parameters: {
+    docs: {
+      description: {
+        story:
+          "COD-133 focused gallery for the collapsed and expanded context strip, current references, attachment chips, multiline composer, and disabled state.",
       },
     },
   },

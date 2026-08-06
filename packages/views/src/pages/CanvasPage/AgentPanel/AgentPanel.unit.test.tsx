@@ -104,10 +104,6 @@ vi.mock("@repo/ui/scroll-area", () => ({
   ),
 }));
 
-vi.mock("@repo/ui/input", () => ({
-  Input: (props: React.ComponentProps<"input">) => <input {...props} />,
-}));
-
 const wrapperWithoutPipeline = ({ children }: { children?: ReactNode }) => (
   <CanvasPageStoreProvider>{children}</CanvasPageStoreProvider>
 );
@@ -241,10 +237,34 @@ describe("AgentPanel", () => {
       "rounded-lg",
       "bg-surface-2",
     );
-    expect(screen.getByPlaceholderText("canvas.agentPanel.inputPlaceholder")).toHaveClass(
-      "bg-surface-2",
+    expect(screen.getByPlaceholderText("workspace.agentBar.composer.placeholder")).toHaveClass(
+      "bg-transparent",
     );
     expect(screen.getByTestId("agent-assistant")).toHaveClass("text-[12px]");
+  });
+
+  it("binds composer reference removal to the selected Canvas node", async () => {
+    const { store, Wrapper } = wrapperWithMutableStore();
+    store.setState({
+      nodes: [
+        {
+          id: "node-1",
+          type: "folder",
+          position: { x: 0, y: 0 },
+          data: {
+            nodeType: "folder",
+            label: "Input folder",
+            folderPath: "/tmp/project",
+          },
+        },
+      ] as never,
+      selectedNodeId: "node-1",
+    });
+
+    render(<AgentPanel />, { wrapper: Wrapper });
+    await userEvent.click(screen.getByTestId("ref-chip-remove-node-1"));
+
+    expect(store.getState().selectedNodeId).toBeNull();
   });
 
   it("creates an edit session, sends a message, and displays a streamed follow-up question", async () => {
@@ -254,7 +274,7 @@ describe("AgentPanel", () => {
     });
 
     render(<AgentPanel />, { wrapper: wrapperWithState() });
-    const input = screen.getByPlaceholderText("canvas.agentPanel.inputPlaceholder");
+    const input = screen.getByPlaceholderText("workspace.agentBar.composer.placeholder");
     await waitFor(() => {
       expect(mockGetList).toHaveBeenCalled();
     });
@@ -288,7 +308,7 @@ describe("AgentPanel", () => {
 
   it("deduplicates submits while runtime validation is in flight", async () => {
     render(<AgentPanel />, { wrapper: wrapperWithState() });
-    const input = screen.getByPlaceholderText("canvas.agentPanel.inputPlaceholder");
+    const input = screen.getByPlaceholderText("workspace.agentBar.composer.placeholder");
     await waitFor(() => {
       expect(mockGetList).toHaveBeenCalled();
     });
@@ -328,7 +348,7 @@ describe("AgentPanel", () => {
     });
 
     const file = new File(["hello"], "brief.txt", { type: "text/plain" });
-    const input = screen.getByLabelText("canvas.agentPanel.upload") as HTMLInputElement;
+    const input = screen.getByTestId("agent-composer-file-input") as HTMLInputElement;
     await userEvent.upload(input, file);
 
     await waitFor(() => {
@@ -345,11 +365,21 @@ describe("AgentPanel", () => {
   it("opens the file picker after session preparation without disabling the file input", async () => {
     render(<AgentPanel />, { wrapper: wrapperWithState() });
 
-    const input = screen.getByLabelText("canvas.agentPanel.upload") as HTMLInputElement;
-    await waitFor(() => expect(input).toBeEnabled());
+    const input = screen.getByTestId("agent-composer-file-input") as HTMLInputElement;
+    await waitFor(() =>
+      expect(
+        screen.getByRole("button", { name: "workspace.agentBar.composer.attach" }),
+      ).toBeEnabled(),
+    );
     const clickInput = vi.spyOn(input, "click");
 
-    await userEvent.click(screen.getByRole("button", { name: "canvas.agentPanel.upload" }));
+    await userEvent.click(
+      screen.getByRole("button", { name: "workspace.agentBar.composer.attach" }),
+    );
+    await waitFor(() =>
+      expect(screen.getByTestId("agent-composer-attach-files")).toBeInTheDocument(),
+    );
+    await userEvent.click(screen.getByTestId("agent-composer-attach-files"));
 
     await waitFor(() => expect(clickInput).toHaveBeenCalledTimes(1));
     expect(input).toBeEnabled();
@@ -367,12 +397,12 @@ describe("AgentPanel", () => {
     );
     render(<AgentPanel />, { wrapper: wrapperWithState() });
 
-    const uploadInput = screen.getByLabelText("canvas.agentPanel.upload");
+    const uploadInput = screen.getByTestId("agent-composer-file-input");
     await waitFor(() => expect(uploadInput).toBeEnabled());
     await userEvent.upload(uploadInput, new File(["hello"], "brief.txt", { type: "text/plain" }));
     await waitFor(() => expect(mockUploadAttachment).toHaveBeenCalledTimes(1));
 
-    const messageInput = screen.getByPlaceholderText("canvas.agentPanel.inputPlaceholder");
+    const messageInput = screen.getByPlaceholderText("workspace.agentBar.composer.placeholder");
     expect(messageInput).toBeDisabled();
     fireEvent.keyDown(messageInput, { key: "Enter" });
     expect(mockPlanSessionStream).not.toHaveBeenCalled();
@@ -407,14 +437,17 @@ describe("AgentPanel", () => {
 
     render(<AgentPanel />, { wrapper: wrapperWithState() });
 
-    expect(screen.getByPlaceholderText("canvas.agentPanel.inputPlaceholder")).toBeDisabled();
-    expect(screen.getByLabelText("canvas.agentPanel.upload")).toBeDisabled();
-    expect(screen.getByRole("button", { name: "canvas.agentPanel.upload" })).toBeDisabled();
+    expect(screen.getByPlaceholderText("workspace.agentBar.composer.placeholder")).toBeDisabled();
+    expect(
+      screen.getByRole("button", { name: "workspace.agentBar.composer.attach" }),
+    ).toBeDisabled();
 
     resolveHistory({ data: [], total: 0 });
     await waitFor(() => {
-      expect(screen.getByPlaceholderText("canvas.agentPanel.inputPlaceholder")).toBeEnabled();
-      expect(screen.getByRole("button", { name: "canvas.agentPanel.upload" })).toBeEnabled();
+      expect(screen.getByPlaceholderText("workspace.agentBar.composer.placeholder")).toBeEnabled();
+      expect(
+        screen.getByRole("button", { name: "workspace.agentBar.composer.attach" }),
+      ).toBeEnabled();
     });
   });
 
@@ -423,7 +456,7 @@ describe("AgentPanel", () => {
     render(<AgentPanel />, { wrapper: Wrapper });
 
     const file = new File(["hello"], "brief.txt", { type: "text/plain" });
-    const uploadInput = screen.getByLabelText("canvas.agentPanel.upload");
+    const uploadInput = screen.getByTestId("agent-composer-file-input");
     await waitFor(() => expect(uploadInput).toBeEnabled());
     await userEvent.upload(uploadInput, file);
     await waitFor(() => {
@@ -487,7 +520,7 @@ describe("AgentPanel", () => {
     });
 
     render(<AgentPanel />, { wrapper: wrapperWithState() });
-    const input = screen.getByPlaceholderText("canvas.agentPanel.inputPlaceholder");
+    const input = screen.getByPlaceholderText("workspace.agentBar.composer.placeholder");
     await waitFor(() => {
       expect(mockGetList).toHaveBeenCalled();
     });
@@ -535,7 +568,7 @@ describe("AgentPanel", () => {
     });
 
     render(<AgentPanel />, { wrapper: wrapperWithState() });
-    const input = screen.getByPlaceholderText("canvas.agentPanel.inputPlaceholder");
+    const input = screen.getByPlaceholderText("workspace.agentBar.composer.placeholder");
     await waitFor(() => {
       expect(mockGetList).toHaveBeenCalled();
     });
@@ -579,7 +612,7 @@ describe("AgentPanel", () => {
       expect(mockGetList).toHaveBeenCalled();
     });
     await userEvent.type(
-      screen.getByPlaceholderText("canvas.agentPanel.inputPlaceholder"),
+      screen.getByPlaceholderText("workspace.agentBar.composer.placeholder"),
       "Suggest an edit",
     );
     await userEvent.keyboard("{Enter}");
@@ -627,7 +660,7 @@ describe("AgentPanel", () => {
       expect(mockGetList).toHaveBeenCalled();
     });
     await userEvent.type(
-      screen.getByPlaceholderText("canvas.agentPanel.inputPlaceholder"),
+      screen.getByPlaceholderText("workspace.agentBar.composer.placeholder"),
       "Suggest an edit",
     );
     await userEvent.keyboard("{Enter}");
@@ -695,7 +728,7 @@ describe("AgentPanel", () => {
     });
 
     render(<AgentPanel />, { wrapper: wrapperWithState() });
-    const input = screen.getByPlaceholderText("canvas.agentPanel.inputPlaceholder");
+    const input = screen.getByPlaceholderText("workspace.agentBar.composer.placeholder");
     await waitFor(() => {
       expect(mockGetList).toHaveBeenCalled();
     });
@@ -746,11 +779,11 @@ describe("AgentPanel", () => {
       expect(mockGetList).toHaveBeenCalled();
     });
 
-    const input = screen.getByPlaceholderText("canvas.agentPanel.inputPlaceholder");
+    const input = screen.getByPlaceholderText("workspace.agentBar.composer.placeholder");
     await userEvent.type(input, "test");
     await userEvent.keyboard("{Enter}");
 
     expect(mockCreateSession).not.toHaveBeenCalled();
-    expect(screen.queryByText("test")).not.toBeInTheDocument();
+    expect(input).toHaveValue("test");
   });
 });
