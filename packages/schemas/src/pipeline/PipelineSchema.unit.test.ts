@@ -29,4 +29,21 @@ describe("PipelineSchema", () => {
   it("keeps legacy pipeline payloads compatible", () => {
     expect(PipelineSchema.parse(basePipeline)).toMatchObject({ id: "pipeline-1" });
   });
+
+  it("preserves compound parent references on pipeline nodes", () => {
+    const parsed = PipelineSchema.parse({
+      ...basePipeline,
+      nodes: [
+        {
+          data: { filePath: "source.ts", label: "Source", nodeType: "file" },
+          id: "child-node",
+          parentId: "compound-node",
+          position: { x: 20, y: 40 },
+          type: "file",
+        },
+      ],
+    });
+
+    expect(parsed.nodes[0]?.parentId).toBe("compound-node");
+  });
 });

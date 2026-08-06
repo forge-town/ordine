@@ -4,11 +4,13 @@ import { useTranslation } from "react-i18next";
 import type { PipelineData } from "@repo/schemas";
 import { fromPipelineSnapshot } from "./_store/canvasTypes";
 import { CanvasStoreProvider } from "./_store/canvasStore";
+import { EdgeInspector } from "./panels/EdgeInspector";
+import { NodeConfig } from "./panels/NodeConfig";
 import { CanvasFlow } from "./flow";
 import { CanvasEmptyState } from "./CanvasEmptyState";
 
 export type CanvasRootProps = {
-  pipeline: Pick<PipelineData, "edges" | "nodes">;
+  pipeline: Pick<PipelineData, "edges" | "id" | "nodes">;
 };
 
 export const CanvasRoot = ({ pipeline }: CanvasRootProps) => {
@@ -27,6 +29,8 @@ export const CanvasRoot = ({ pipeline }: CanvasRootProps) => {
           lang={i18n.language}
         >
           <CanvasFlow />
+          <EdgeInspector pipelineId={pipeline.id} />
+          <NodeConfig pipelineId={pipeline.id} />
           <CanvasEmptyState />
         </div>
       </CanvasStoreProvider>

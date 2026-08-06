@@ -7,6 +7,7 @@ export const PipelineNodeSchema = z.object({
   id: z.string(),
   type: BuiltinNodeTypeSchema,
   metaType: MetaNodeTypeSchema.optional(),
+  parentId: z.string().optional(),
   position: z.object({ x: z.number(), y: z.number() }),
   data: PipelineNodeDataSchema,
 });

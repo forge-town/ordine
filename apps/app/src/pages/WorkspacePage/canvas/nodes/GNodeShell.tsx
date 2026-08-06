@@ -122,9 +122,7 @@ export const GNodeShell = ({
     }
 
     const state = canvasStore.getState();
-    const previous = { edges: state.edges, nodes: state.nodes };
     state.duplicateNode(id);
-    canvasStore.getState().recordHistory(previous);
   };
   const handleDeleteClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
@@ -133,9 +131,7 @@ export const GNodeShell = ({
     }
 
     const state = canvasStore.getState();
-    const previous = { edges: state.edges, nodes: state.nodes };
     state.deleteNode(id);
-    canvasStore.getState().recordHistory(previous);
   };
 
   return (
