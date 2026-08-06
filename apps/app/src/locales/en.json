@@ -42,6 +42,7 @@
     "dashboard": "Dashboard",
     "canvas": "Canvas",
     "pipelines": "Pipelines",
+    "components": "Components",
     "jobs": "Jobs",
     "distillations": "Distillations",
     "projects": "Projects",
@@ -2005,14 +2006,107 @@
     "title": "Notifications"
   },
   "components": {
+    "title": "Components",
+    "subtitle": "Your reusable building blocks. Ordine reuses these before creating anything new.",
+    "newComponent": "New Component",
+    "newOperation": "New Operation",
+    "distillSkill": "Distill Pipeline Skill",
+    "searchLabel": "Search components",
+    "searchPlaceholder": "Search components...",
+    "categories": {
+      "all": "All",
+      "input": "Input Objects",
+      "operation": "Operations",
+      "output": "Output",
+      "pipeline-skill": "Pipeline Skill"
+    },
+    "sources": {
+      "asset": "asset",
+      "builtin": "built-in",
+      "operation": "operation"
+    },
+    "actions": {
+      "editNamed": "Edit {{name}}",
+      "deleteNamed": "Delete {{name}}"
+    },
+    "stats": {
+      "builtin": "Available on every canvas",
+      "accepts_one": "Accepts {{count}} input type",
+      "accepts_other": "Accepts {{count}} input types",
+      "inputs": "inputs",
+      "nodes_one": "{{count}} node",
+      "nodes_other": "{{count}} nodes",
+      "runs_one": "Ran {{count}} time",
+      "runs_other": "Ran {{count}} times"
+    },
+    "builtins": {
+      "folder": {
+        "name": "Folder",
+        "description": "Bind a local folder as a reusable input source."
+      },
+      "file": {
+        "name": "File",
+        "description": "Read one local file into a pipeline."
+      },
+      "githubProject": {
+        "name": "GitHub Project",
+        "description": "Use a connected repository as pipeline input."
+      },
+      "prompt": {
+        "name": "Prompt",
+        "description": "Provide reusable text instructions or structured input."
+      },
+      "localPath": {
+        "name": "Local Path",
+        "description": "Write pipeline artifacts to a local destination."
+      },
+      "projectPath": {
+        "name": "Project Path",
+        "description": "Write artifacts back into the active project."
+      }
+    },
+    "fallbacks": {
+      "operationDescription": "Reusable operation for agent or script work.",
+      "assetDescription": "Reusable pipeline distilled from a successful run."
+    },
+    "meta": {
+      "agentOperation": "agent operation",
+      "scriptOperation": "script operation"
+    },
+    "empty": {
+      "title": "No matching components",
+      "description": "Try another category or search term."
+    },
+    "editor": {
+      "title": "Component Editor",
+      "description": "Edit the reusable pipeline skill and inspect its saved snapshot.",
+      "usageNotice_one": "This skill has run {{count}} time. Existing pipelines keep their saved copy until it is applied again.",
+      "usageNotice_other": "This skill has run {{count}} times. Existing pipelines keep their saved copy until it is applied again.",
+      "name": "Name",
+      "descriptionLabel": "Description",
+      "saveError": "The component could not be saved. Try again.",
+      "snapshot": "Source snapshot",
+      "snapshotHint": "Saved when this skill was distilled",
+      "nodes": "Nodes",
+      "inputs": "Inputs",
+      "noTags": "No tags"
+    },
+    "delete": {
+      "title": "Delete \"{{name}}\"?",
+      "description": "This component will be removed from the library. This action cannot be undone.",
+      "assetDescription_one": "This component is referenced by {{count}} pipeline. Existing pipelines keep their saved copy.",
+      "assetDescription_other": "This component is referenced by {{count}} pipelines. Existing pipelines keep their saved copy."
+    },
     "findForMe": {
-      "assetFallback": "Reusable pipeline asset",
-      "close": "Close",
-      "empty": "Nothing distilled yet — run a pipeline to grow the library.",
-      "intro": "Most reusable assets, ranked by how often they ran:",
-      "ranking": "Ranking by reuse and relevance",
-      "searching": "Searching your library…",
-      "subtitle": "The Agent scans your component library",
+      "empty": "No existing operation matches this request yet.",
+      "error": "The Agent could not search the library. Check your runtime settings and try again.",
+      "intro": "Recommended operations from your library:",
+      "promptLabel": "Describe the work you need",
+      "promptPlaceholder": "For example: review a repository, run its tests, and summarize the risks",
+      "requestName": "Component recommendation",
+      "search": "Find matching components",
+      "searching": "Analyzing your request...",
+      "subtitle": "Describe the work. The Agent will match it against your real operation library.",
       "title": "Find for me",
       "usedTimes_one": "ran {{count}}×",
       "usedTimes_other": "ran {{count}}×"

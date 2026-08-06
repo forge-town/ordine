@@ -16,6 +16,7 @@
     "./OperationDetailPage": "./src/pages/OperationDetailPage/index.ts",
     "./OperationEditPage": "./src/pages/OperationEditPage/index.ts",
     "./JobsPage": "./src/pages/JobsPage/index.ts",
+    "./ComponentsPage": "./src/pages/ComponentsPage/index.ts",
     "./JobDetailPage": "./src/pages/JobDetailPage/index.ts",
     "./JobDetailPage/AgentRunsPanel": "./src/pages/JobDetailPage/AgentRunsPanel/index.ts",
     "./ObjectsPage": "./src/pages/ObjectsPage/index.ts",
