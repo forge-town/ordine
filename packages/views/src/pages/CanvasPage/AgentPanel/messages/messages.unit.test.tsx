@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
+import type { WorkspaceCanvasRef } from "@repo/schemas";
 import {
   Assistant,
   Bubble,
@@ -44,6 +45,7 @@ describe("AgentBar message components", () => {
         isLast
         isSending={false}
         message={message}
+        refs={[]}
         runtimeId="runtime-1"
         visibleMessages={[message]}
         onEditDraft={onEditDraft}
@@ -77,6 +79,7 @@ describe("AgentBar message components", () => {
         isLast
         isSending={false}
         message={assistantMessage}
+        refs={[]}
         runtimeId="runtime-1"
         visibleMessages={[firstMessage, assistantMessage]}
         onEditDraft={vi.fn()}
@@ -102,6 +105,7 @@ describe("AgentBar message components", () => {
         isLast
         isSending={false}
         message={errorMessage}
+        refs={[]}
         runtimeId="runtime-1"
         visibleMessages={[firstMessage, errorMessage]}
         onEditDraft={vi.fn()}
@@ -117,6 +121,44 @@ describe("AgentBar message components", () => {
     });
   });
 
+  it("renders historical references as read-only chips with current labels or ids", () => {
+    const message: AgentBarMessage = {
+      content: "Update the selected nodes.",
+      id: "user-with-refs",
+      metadata: { referencedNodeIds: ["current-node", "deleted-node"] },
+      role: "user",
+    };
+    const currentRefs: WorkspaceCanvasRef[] = [
+      {
+        baseId: "current-node",
+        id: "current-node",
+        kind: "operation",
+        label: "Current review",
+        path: [],
+        type: "node",
+      },
+    ];
+
+    render(
+      <MessageTurn
+        isLast
+        isSending={false}
+        message={message}
+        refs={currentRefs}
+        runtimeId="runtime-1"
+        visibleMessages={[message]}
+        onEditDraft={vi.fn()}
+        onOpenSettings={vi.fn()}
+        onSubmit={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByTestId("ref-chip-current-node")).toHaveTextContent("Current review");
+    expect(screen.getByTestId("ref-chip-deleted-node")).toHaveTextContent("deleted-node");
+    expect(screen.queryByTestId("ref-chip-remove-current-node")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("ref-chip-remove-deleted-node")).not.toBeInTheDocument();
+  });
+
   it("keeps runtime-dependent actions inactive until a runtime is selected", () => {
     const userMessage: AgentBarMessage = {
       content: "Add a validation node.",
@@ -128,6 +170,7 @@ describe("AgentBar message components", () => {
         isLast
         isSending={false}
         message={userMessage}
+        refs={[]}
         runtimeId={null}
         visibleMessages={[userMessage]}
         onEditDraft={vi.fn()}
@@ -150,6 +193,7 @@ describe("AgentBar message components", () => {
         isLast
         isSending={false}
         message={clarifyMessage}
+        refs={[]}
         runtimeId={null}
         visibleMessages={[clarifyMessage]}
         onEditDraft={vi.fn()}
@@ -171,6 +215,7 @@ describe("AgentBar message components", () => {
         isLast
         isSending={false}
         message={errorMessage}
+        refs={[]}
         runtimeId={null}
         visibleMessages={[errorMessage]}
         onEditDraft={vi.fn()}
