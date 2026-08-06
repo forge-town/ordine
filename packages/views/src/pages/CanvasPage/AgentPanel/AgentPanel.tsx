@@ -1,10 +1,9 @@
 import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
-import { ChevronsRight, Send, Loader2, AlertCircle, AlertTriangle, Upload } from "lucide-react";
+import { ChevronsRight, AlertCircle, AlertTriangle } from "lucide-react";
 import { Button } from "@repo/ui/button";
 import { ScrollArea } from "@repo/ui/scroll-area";
-import { Input } from "@repo/ui/input";
 import {
   Select,
   SelectContent,
@@ -15,7 +14,7 @@ import {
 } from "@repo/ui/select";
 import { cn } from "@repo/ui/lib/utils";
 import { ResultAsync } from "neverthrow";
-import type { AgentRuntimeConfig } from "@repo/schemas";
+import type { AgentRuntimeConfig, ProposeAttachment, WorkspaceCanvasRef } from "@repo/schemas";
 import { useCanvasPageStore } from "../_store";
 import { ResourceName } from "../../../constants";
 import { getCanvasDataProvider } from "../../../lib/canvasDataProvider";
@@ -25,18 +24,13 @@ import { toastStore } from "../../../store/toastStore";
 import { useAgentBarStore } from "./_store";
 import { Assistant, MessageTurn, ProposalCard } from "./messages";
 import type { MessageTurnSubmitInput } from "./messages/MessageTurn";
+import { Composer, type ComposerSubmitInput } from "./Composer";
 import { buildProposalItems } from "./proposalView";
 import { useAgentConversation } from "./useAgentConversation";
 
 interface RuntimeState {
   runtimeOptions: AgentRuntimeConfig[];
   suggestedRuntimeId: string | null;
-}
-
-interface AttachmentItem {
-  id: string;
-  filename: string;
-  parseStatus: string;
 }
 
 const formatRuntimeLabel = (runtime: AgentRuntimeConfig): string =>
@@ -56,17 +50,17 @@ export const AgentPanel = () => {
   const pipelineId = useStore(store, (state) => state.pipelineId);
   const nodes = useStore(store, (state) => state.nodes);
   const edges = useStore(store, (state) => state.edges);
-  const [inputValue, setInputValue] = useState("");
+  const [composerDraft, setComposerDraft] = useState<string | null>(null);
   const [isPreparingSend, setIsPreparingSend] = useState(false);
   const [isPreparingUpload, setIsPreparingUpload] = useState(false);
   const [isLoadingRuntimes, setIsLoadingRuntimes] = useState(true);
   const [needsRuntimeSetup, setNeedsRuntimeSetup] = useState(false);
   const [runtimeOptions, setRuntimeOptions] = useState<AgentRuntimeConfig[]>([]);
   const [selectedRuntimeId, setSelectedRuntimeId] = useState<string | null>(null);
-  const [attachments, setAttachments] = useState<AttachmentItem[]>([]);
   const addMessage = useAgentBarStore((state) => state.addMessage);
   const {
     applyProposal,
+    agentContext,
     discardProposal,
     ensureSession,
     isLoading: isHistoryLoading,
@@ -78,12 +72,60 @@ export const AgentPanel = () => {
     submitMessage,
   } = useAgentConversation({ pipelineId });
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const attachmentGraphSignatureRef = useRef<string | null>(null);
   const sendInFlightRef = useRef(false);
   const isSending = isPreparingSend || isConversationSending;
   const isUploadBlocked = isHistoryLoading || isPreparingUpload || isSending;
-  const isUploadInputBlocked = isHistoryLoading || isSending;
+  const selectedNodeId = useStore(store, (state) => state.selectedNodeId);
+  const selectedEdgeId = useStore(store, (state) => state.selectedEdgeId);
+  const selectNode = useStore(store, (state) => state.selectNode);
+  const selectEdge = useStore(store, (state) => state.selectEdge);
+  const focusNode = useStore(store, (state) => state.focusNode);
+  const focusEdge = useStore(store, (state) => state.focusEdge);
+  const graphSignature = useMemo(
+    () => JSON.stringify({ edges, nodes, pipelineId }),
+    [edges, nodes, pipelineId],
+  );
+  const canvasRefs = useMemo<WorkspaceCanvasRef[]>(
+    () => [
+      ...nodes.map((node) => ({
+        baseId: node.id,
+        id: node.id,
+        kind: node.type,
+        label: node.data.label ?? node.id,
+        path: [],
+        type: "node" as const,
+      })),
+      ...edges.map((edge) => ({
+        baseId: edge.id,
+        id: edge.id,
+        kind: "edge",
+        label: edge.data?.label || `${edge.source} -> ${edge.target}`,
+        path: [],
+        type: "edge" as const,
+      })),
+    ],
+    [edges, nodes],
+  );
+  const selectedRefs = useMemo<WorkspaceCanvasRef[]>(
+    () =>
+      agentContext.selection.map((selection) => {
+        const currentRef = canvasRefs.find((ref) => ref.id === selection.refId);
+        if (currentRef) {
+          return currentRef;
+        }
+
+        return {
+          baseId: selection.refId,
+          id: selection.refId,
+          kind: selection.type,
+          label: selection.label ?? selection.refId,
+          path: [],
+          type: selection.type,
+        };
+      }),
+    [agentContext.selection, canvasRefs],
+  );
 
   const scrollToBottom = useCallback(() => {
     requestAnimationFrame(() => {
@@ -143,13 +185,10 @@ export const AgentPanel = () => {
   }, [fetchRuntimeState]);
 
   useEffect(() => {
-    const graphSignature = JSON.stringify({ edges, nodes, pipelineId });
     if (
-      attachments.length > 0 &&
       attachmentGraphSignatureRef.current &&
       attachmentGraphSignatureRef.current !== graphSignature
     ) {
-      setAttachments([]);
       attachmentGraphSignatureRef.current = null;
       addMessage({
         content: t("canvas.agentPanel.contextReset"),
@@ -158,94 +197,14 @@ export const AgentPanel = () => {
       });
       resetSession();
     }
-  }, [addMessage, attachments.length, edges, nodes, pipelineId, resetSession, t]);
+  }, [addMessage, graphSignature, resetSession, t]);
 
   useEffect(() => {
     scrollToBottom();
   }, [messages.length, scrollToBottom, streamingAssistantText, streamingProgress]);
 
-  const doSend = useCallback(async () => {
-    if (isHistoryLoading || isPreparingUpload || isSending || sendInFlightRef.current) {
-      return;
-    }
-    sendInFlightRef.current = true;
-    setIsPreparingSend(true);
-    try {
-      const text = inputValue.trim();
-      if (!text) {
-        return;
-      }
-      if (!pipelineId) {
-        toastStore.getState().addToast({
-          type: "error",
-          title: t("canvas.runFailed"),
-          description: t("canvas.noPipelineId"),
-        });
-
-        return;
-      }
-
-      const runtimeSetupResult = await fetchRuntimeState();
-
-      if (runtimeSetupResult.isErr()) {
-        addMessage({
-          content: t("canvas.agentPanel.error"),
-          id: `assistant-${Date.now()}`,
-          role: "assistant",
-        });
-        toastStore.getState().addToast({
-          type: "error",
-          title: t("canvas.agentPanel.errorTitle"),
-          description: runtimeSetupResult.error.message,
-        });
-        scrollToBottom();
-
-        return;
-      }
-
-      const { runtimeOptions: nextRuntimeOptions, suggestedRuntimeId } = runtimeSetupResult.value;
-      setRuntimeOptions(nextRuntimeOptions);
-      const effectiveRuntimeId =
-        selectedRuntimeId && nextRuntimeOptions.some((runtime) => runtime.id === selectedRuntimeId)
-          ? selectedRuntimeId
-          : suggestedRuntimeId;
-      setSelectedRuntimeId(effectiveRuntimeId);
-
-      if (!effectiveRuntimeId) {
-        setNeedsRuntimeSetup(true);
-        addMessage({
-          content: t("canvas.agentPanel.runtimeNotConfigured"),
-          id: `assistant-${Date.now()}`,
-          role: "assistant",
-        });
-        scrollToBottom();
-
-        return;
-      }
-
-      setNeedsRuntimeSetup(false);
-      setInputValue("");
-      await submitMessage({ content: text, runtimeId: effectiveRuntimeId });
-    } finally {
-      sendInFlightRef.current = false;
-      setIsPreparingSend(false);
-    }
-  }, [
-    addMessage,
-    fetchRuntimeState,
-    inputValue,
-    isHistoryLoading,
-    isPreparingUpload,
-    isSending,
-    pipelineId,
-    selectedRuntimeId,
-    scrollToBottom,
-    submitMessage,
-    t,
-  ]);
-
   const handleMessageSubmit = useCallback(
-    ({ content, runtimeId }: MessageTurnSubmitInput) => {
+    ({ content, metadata, runtimeId }: MessageTurnSubmitInput) => {
       const trimmedContent = content.trim();
       if (
         !runtimeId ||
@@ -261,7 +220,7 @@ export const AgentPanel = () => {
 
       sendInFlightRef.current = true;
       setIsPreparingSend(true);
-      void submitMessage({ content: trimmedContent, runtimeId }).finally(() => {
+      void submitMessage({ content: trimmedContent, metadata, runtimeId }).finally(() => {
         sendInFlightRef.current = false;
         setIsPreparingSend(false);
       });
@@ -273,112 +232,184 @@ export const AgentPanel = () => {
     setNeedsRuntimeSetup(true);
   }, []);
 
-  const handleKeyDown = useCallback(
-    (event: React.KeyboardEvent<HTMLInputElement>) => {
-      if (event.key === "Enter" && !event.shiftKey) {
-        event.preventDefault();
-        void doSend();
-      }
-    },
-    [doSend],
-  );
-
-  const handleInputValueChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    setInputValue(event.target.value);
-  }, []);
-
   const handleRuntimeValueChange = useCallback((runtimeId: string | null) => {
     setSelectedRuntimeId(runtimeId);
     setNeedsRuntimeSetup(false);
   }, []);
 
-  const handleSendClick = useCallback(() => {
-    void doSend();
-  }, [doSend]);
-
-  const handleUploadButtonClick = useCallback(async () => {
-    if (isUploadBlocked) {
-      return;
-    }
-
-    setIsPreparingUpload(true);
-    try {
-      const sessionResult = await ResultAsync.fromPromise(ensureSession(), (error) =>
-        error instanceof Error ? error : new Error(String(error)),
-      );
-      if (sessionResult.isErr()) {
-        toastStore.getState().addToast({
-          type: "error",
-          title: t("canvas.agentPanel.errorTitle"),
-          description: sessionResult.error.message,
-        });
-
-        return;
+  const handleComposerSubmit = useCallback(
+    async ({ content, metadata }: ComposerSubmitInput) => {
+      if (
+        isHistoryLoading ||
+        isPreparingUpload ||
+        isSending ||
+        agentPanel.isLoading ||
+        sendInFlightRef.current
+      ) {
+        return false;
       }
-      fileInputRef.current?.click();
-    } finally {
-      setIsPreparingUpload(false);
-    }
-  }, [ensureSession, isUploadBlocked, t]);
 
-  const handleUploadChange = useCallback(
-    async (event: React.ChangeEvent<HTMLInputElement>) => {
-      const file = event.target.files?.[0];
-      event.target.value = "";
-      if (!file || isUploadBlocked) {
-        return;
+      sendInFlightRef.current = true;
+      setIsPreparingSend(true);
+      try {
+        if (!pipelineId) {
+          toastStore.getState().addToast({
+            type: "error",
+            title: t("canvas.runFailed"),
+            description: t("canvas.noPipelineId"),
+          });
+
+          return false;
+        }
+
+        const runtimeSetupResult = await fetchRuntimeState();
+        if (runtimeSetupResult.isErr()) {
+          addMessage({
+            content: t("canvas.agentPanel.error"),
+            id: `assistant-${Date.now()}`,
+            role: "assistant",
+          });
+          toastStore.getState().addToast({
+            type: "error",
+            title: t("canvas.agentPanel.errorTitle"),
+            description: runtimeSetupResult.error.message,
+          });
+          scrollToBottom();
+
+          return false;
+        }
+
+        const { runtimeOptions: nextRuntimeOptions, suggestedRuntimeId } = runtimeSetupResult.value;
+        setRuntimeOptions(nextRuntimeOptions);
+        const effectiveRuntimeId =
+          selectedRuntimeId &&
+          nextRuntimeOptions.some((runtime) => runtime.id === selectedRuntimeId)
+            ? selectedRuntimeId
+            : suggestedRuntimeId;
+        setSelectedRuntimeId(effectiveRuntimeId);
+        if (!effectiveRuntimeId) {
+          setNeedsRuntimeSetup(true);
+          addMessage({
+            content: t("canvas.agentPanel.runtimeNotConfigured"),
+            id: `assistant-${Date.now()}`,
+            role: "assistant",
+          });
+          scrollToBottom();
+
+          return false;
+        }
+
+        setNeedsRuntimeSetup(false);
+        return await submitMessage({ content, metadata, runtimeId: effectiveRuntimeId });
+      } finally {
+        sendInFlightRef.current = false;
+        setIsPreparingSend(false);
+      }
+    },
+    [
+      addMessage,
+      agentPanel.isLoading,
+      fetchRuntimeState,
+      isHistoryLoading,
+      isPreparingUpload,
+      isSending,
+      pipelineId,
+      scrollToBottom,
+      selectedRuntimeId,
+      submitMessage,
+      t,
+    ],
+  );
+
+  const handleComposerAttach = useCallback(
+    async (files: File[]): Promise<ProposeAttachment[]> => {
+      if (isUploadBlocked) {
+        return [];
       }
 
       setIsPreparingUpload(true);
       try {
-        const uploadResult = await ResultAsync.fromPromise(
-          (async () => {
-            const sessionId = await ensureSession();
-
-            return pipelineAgentSessionsClient.uploadAttachment(
-              sessionId,
-              file,
-              selectedRuntimeId ? { runtimeId: selectedRuntimeId } : undefined,
-            );
-          })(),
-          (error) => (error instanceof Error ? error : new Error(String(error))),
+        const sessionResult = await ResultAsync.fromPromise(ensureSession(), (error) =>
+          error instanceof Error ? error : new Error(String(error)),
         );
-        if (uploadResult.isErr()) {
+        if (sessionResult.isErr()) {
           toastStore.getState().addToast({
             type: "error",
             title: t("canvas.agentPanel.errorTitle"),
-            description: uploadResult.error.message,
+            description: sessionResult.error.message,
           });
 
-          return;
+          return [];
         }
 
-        const attachment = uploadResult.value.attachment;
-        if (attachment) {
-          attachmentGraphSignatureRef.current = JSON.stringify({ edges, nodes, pipelineId });
-          setAttachments((prev) => [
-            ...prev,
-            {
-              id: attachment.id,
-              filename: attachment.filename,
-              parseStatus: attachment.parseStatus ?? "parsed",
-            },
-          ]);
+        const uploaded: ProposeAttachment[] = [];
+        for (const file of files) {
+          const uploadResult = await ResultAsync.fromPromise(
+            pipelineAgentSessionsClient.uploadAttachment(
+              sessionResult.value,
+              file,
+              selectedRuntimeId ? { runtimeId: selectedRuntimeId } : undefined,
+            ),
+            (error) => (error instanceof Error ? error : new Error(String(error))),
+          );
+          if (uploadResult.isErr()) {
+            toastStore.getState().addToast({
+              type: "error",
+              title: t("canvas.agentPanel.errorTitle"),
+              description: uploadResult.error.message,
+            });
+            continue;
+          }
+
+          const attachment = uploadResult.value.attachment;
+          if (attachment) {
+            uploaded.push({
+              name: file.webkitRelativePath || attachment.filename,
+              size: file.size,
+              type: file.type || undefined,
+            });
+          }
         }
+        if (uploaded.length > 0) {
+          attachmentGraphSignatureRef.current = graphSignature;
+        }
+
+        return uploaded;
       } finally {
         setIsPreparingUpload(false);
       }
     },
     [
-      edges,
       ensureSession,
+      graphSignature,
       isUploadBlocked,
-      nodes,
       pipelineAgentSessionsClient,
-      pipelineId,
       selectedRuntimeId,
       t,
     ],
+  );
+
+  const handleRemoveRef = useCallback(
+    (id: string) => {
+      if (selectedNodeId === id) {
+        selectNode(null);
+      }
+      if (selectedEdgeId === id) {
+        selectEdge(null);
+      }
+    },
+    [selectEdge, selectNode, selectedEdgeId, selectedNodeId],
+  );
+
+  const handleFocusRef = useCallback(
+    (ref: WorkspaceCanvasRef) => {
+      if (ref.type === "edge") {
+        focusEdge(ref.baseId);
+      } else {
+        focusNode(ref.baseId);
+      }
+    },
+    [focusEdge, focusNode],
   );
 
   const hasBlockingDiagnostics =
@@ -410,7 +441,7 @@ export const AgentPanel = () => {
     }
   }, [handleMessageSubmit, selectedRuntimeId, t]);
   const handleRevise = useCallback(() => {
-    setInputValue(t("canvas.agentPanel.proposalDetails.revisePrompt"));
+    setComposerDraft(t("canvas.agentPanel.proposalDetails.revisePrompt"));
   }, [t]);
   const selectedRuntime = runtimeOptions.find((runtime) => runtime.id === selectedRuntimeId);
   const isConversationActive = isSending || agentPanel.isLoading;
@@ -484,34 +515,6 @@ export const AgentPanel = () => {
               </SelectGroup>
             </SelectContent>
           </Select>
-          <input
-            ref={fileInputRef}
-            aria-label={t("canvas.agentPanel.upload")}
-            className="hidden"
-            disabled={isUploadInputBlocked}
-            type="file"
-            onChange={handleUploadChange}
-          />
-          <div className="flex flex-wrap items-center gap-1.5 pt-1.5">
-            <Button
-              className="h-7 px-2 text-[10.5px]"
-              disabled={isUploadBlocked}
-              size="sm"
-              variant="outline"
-              onClick={handleUploadButtonClick}
-            >
-              <Upload className="h-3.5 w-3.5" />
-              {t("canvas.agentPanel.upload")}
-            </Button>
-            {attachments.map((attachment) => (
-              <span
-                key={attachment.id}
-                className="rounded-md border border-border-strong bg-surface px-1.5 py-0.5 text-[10.5px]"
-              >
-                {attachment.filename}
-              </span>
-            ))}
-          </div>
         </div>
       </div>
 
@@ -525,8 +528,9 @@ export const AgentPanel = () => {
               isSending={isSending || isPreparingUpload || isHistoryLoading || agentPanel.isLoading}
               message={msg}
               runtimeId={selectedRuntimeId}
+              refs={canvasRefs}
               visibleMessages={messages}
-              onEditDraft={setInputValue}
+              onEditDraft={setComposerDraft}
               onOpenSettings={handleOpenRuntimeSettings}
               onSubmit={handleMessageSubmit}
             />
@@ -606,45 +610,25 @@ export const AgentPanel = () => {
         </div>
       )}
 
-      {/* Input */}
-      <div className="flex items-center gap-2 border-t border-border/70 bg-surface p-3">
-        <Input
-          className="h-9 flex-1 bg-surface-2 text-[12px]"
+      <div className="shrink-0 border-t border-border/70 bg-surface">
+        <Composer
+          agentContext={agentContext}
+          canRemoveAttachments={false}
+          clearAttachmentsOnSubmit={false}
           disabled={
-            isSending ||
-            isPreparingUpload ||
-            isHistoryLoading ||
-            agentPanel.isLoading ||
-            isLoadingRuntimes
+            isHistoryLoading || isLoadingRuntimes || isPreparingUpload || agentPanel.isLoading
           }
-          placeholder={t("canvas.agentPanel.inputPlaceholder")}
-          value={inputValue}
-          onChange={handleInputValueChange}
-          onKeyDown={handleKeyDown}
+          draft={composerDraft}
+          isSending={isSending}
+          onAttach={handleComposerAttach}
+          onDraftConsumed={() => setComposerDraft(null)}
+          onFocusRef={handleFocusRef}
+          onRemoveRef={handleRemoveRef}
+          onSubmit={handleComposerSubmit}
+          refs={selectedRefs}
+          resetKey={graphSignature}
+          runtimeId={selectedRuntimeId}
         />
-        <Button
-          aria-label={t("canvas.agentPanel.send")}
-          className="h-9 w-9"
-          disabled={
-            isSending ||
-            isPreparingUpload ||
-            isHistoryLoading ||
-            agentPanel.isLoading ||
-            isLoadingRuntimes ||
-            !selectedRuntimeId ||
-            !inputValue.trim()
-          }
-          size="icon"
-          title={t("canvas.agentPanel.send")}
-          variant="ghost"
-          onClick={handleSendClick}
-        >
-          {isSending || isHistoryLoading || agentPanel.isLoading ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <Send className="h-4 w-4" />
-          )}
-        </Button>
       </div>
     </div>
   );
