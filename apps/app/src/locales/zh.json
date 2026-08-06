@@ -701,6 +701,61 @@
       "inputPlaceholder": "输入你的需求...",
       "runtimeNotConfigured": "暂未配置运行时 AI。",
       "goToRuntimeSettings": "前往配置",
+      "messageActions": {
+        "copy": "复制消息",
+        "copied": "已复制",
+        "edit": "编辑消息",
+        "retry": "重试消息"
+      },
+      "proposalDetails": {
+        "review": "查看拟议操作",
+        "askFix": "修复诊断问题",
+        "fixDiagnostics": "请先修复方案中的阻塞诊断问题。",
+        "revisePrompt": "请修改这个方案。",
+        "newOperationBadge": "新操作",
+        "loopBadge": "循环 x{{count}}",
+        "actionTitles": {
+          "addNode": "添加节点: {{nodeType}}",
+          "removeNode": "删除节点",
+          "addEdge": "添加连线",
+          "removeEdge": "删除连线",
+          "reconnectEdge": "重连连线",
+          "replaceNodeData": "替换节点数据"
+        }
+      },
+      "checkpoint": {
+        "waiting": "等待在 {{node}} 处审核",
+        "nextNode": "下一个节点",
+        "controls": "运行检查点控制",
+        "pause": "暂停",
+        "resume": "继续",
+        "review": "审核"
+      },
+      "error": {
+        "title": "请求失败",
+        "tryPrefix": "尝试："
+      },
+      "errorActions": {
+        "openSettings": "打开运行时配置",
+        "retry": "重试请求"
+      },
+      "userAction": {
+        "title": "需要操作 ({{count}})",
+        "openConfig": "打开配置",
+        "askAgent": "询问助手"
+      },
+      "reversing": {
+        "steps": {
+          "structure": "读取结构",
+          "structureDetail": "了解当前图结构",
+          "steps": "梳理步骤",
+          "stepsDetail": "识别请求中的操作",
+          "matched": "匹配节点",
+          "matchedDetail": "将操作匹配到当前图",
+          "draft": "生成方案",
+          "draftDetail": "准备安全变更"
+        }
+      },
       "action": {
         "addNode": "添加节点: {{type}}",
         "removeNode": "删除节点: {{nodeId}}",

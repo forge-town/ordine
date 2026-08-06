@@ -3,6 +3,26 @@ import type { Meta, StoryObj } from "@storybook/react";
 import type { PipelineActionDiagnostic, PipelineActionProposal } from "@repo/schemas";
 import { CanvasPageStoreContext, createCanvasPageStore, type CanvasPageStore } from "../_store";
 import { AgentPanel } from "./AgentPanel";
+import {
+  Assistant,
+  Bubble,
+  CheckpointCard,
+  ClarifyOptions,
+  CompletionCard,
+  DistillCard,
+  ErrorActions,
+  ErrorCard,
+  MessageActions,
+  MessageTurn,
+  ProgressList,
+  ProposalCard,
+  RunStatusCard,
+  SelfHealCard,
+  SuggestionList,
+  UserActionCard,
+} from "./messages";
+import type { AgentBarMessage } from "./_store";
+import type { MessageTurnSubmitInput } from "./messages/MessageTurn";
 import { setCanvasDataProvider } from "../../../lib/canvasDataProvider";
 import { canvasStoryDataProvider } from "../storybookData";
 import { AgentBarStoreProvider } from "./_store";
@@ -144,6 +164,96 @@ export const OverflowContent: Story = {
       description: {
         story:
           "Long diagnostics and many proposal actions force the middle content area to scroll while the input dock stays pinned to the bottom.",
+      },
+    },
+  },
+};
+
+const galleryMessage: AgentBarMessage = {
+  content: "Add a review step after the existing transform.",
+  id: "gallery-user",
+  role: "user",
+};
+
+const CardsGallery = () => (
+  <div className="flex w-[360px] max-w-full flex-col gap-3 overflow-hidden border bg-surface p-3 text-sm">
+    <Assistant>Here is a compact review of the proposed pipeline change.</Assistant>
+    <Bubble>Keep the current output path unchanged.</Bubble>
+    <MessageActions alwaysVisible content="Copy this assistant message" />
+    <MessageTurn
+      isLast
+      isSending={false}
+      message={galleryMessage}
+      runtimeId="story-runtime"
+      visibleMessages={[galleryMessage]}
+      onEditDraft={() => undefined}
+      onOpenSettings={() => undefined}
+      onSubmit={(_: MessageTurnSubmitInput) => undefined}
+    />
+    <ClarifyOptions
+      options={["Use the existing review operation", "Create a new review operation"]}
+      onSelect={() => undefined}
+    />
+    <ProgressList
+      items={[
+        { detail: "Review", done: true, id: "progress-1", title: "Inspect pipeline" },
+        { detail: "Draft", id: "progress-2", title: "Prepare change" },
+      ]}
+      showStatus
+    />
+    <ProposalCard
+      items={[
+        { detail: "Review step", title: "Add node" },
+        { detail: "review -> output", title: "Add edge" },
+      ]}
+      onApply={() => undefined}
+      onReject={() => undefined}
+      onRevise={() => undefined}
+      subtitle="2 operations"
+      title="Add a review branch"
+    />
+    <RunStatusCard isLive subtitle="Step 2 of 4 - Review" title="Running - job_story" />
+    <CheckpointCard
+      isWaiting
+      nodeLabel="Review"
+      onPause={() => undefined}
+      onResume={() => undefined}
+      onReview={() => undefined}
+    />
+    <SelfHealCard
+      open
+      steps={[{ label: "Retry succeeded", tone: "success" }]}
+      subtitle="1 retry"
+      title="Self-heal"
+    />
+    <UserActionCard
+      requests={[{ kind: "credential", message: "Add the service credential.", nodeId: "review" }]}
+      nodeLabelById={{ review: "Review" }}
+      onAskAgent={() => undefined}
+      onOpenConfig={() => undefined}
+    />
+    <ErrorCard
+      title="Run failed"
+      tryLabel="Open the failed node"
+      what="The review step failed."
+      why="The runtime returned an invalid response."
+      onAction={() => undefined}
+    />
+    <ErrorActions code="AGENT_FAILED" onOpenSettings={() => undefined} onRetry={() => undefined} />
+    <CompletionCard subtitle="41.3s" title="Completed">
+      The pipeline is ready.
+    </CompletionCard>
+    <DistillCard onOpen={() => undefined} subtitle="Open in Components" title="Saved as a skill" />
+    <SuggestionList items={[{ id: "suggestion-1", label: "Add a validation step" }]} />
+  </div>
+);
+
+export const AllCards: Story = {
+  render: () => <CardsGallery />,
+  parameters: {
+    docs: {
+      description: {
+        story: "Stable 360px gallery containing every AgentPanel message card.",
       },
     },
   },
