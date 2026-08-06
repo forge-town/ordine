@@ -2,7 +2,7 @@ import { useCallback, useMemo, useRef } from "react";
 import { ResultAsync } from "neverthrow";
 import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
-import type { PipelineActionProposal } from "@repo/schemas";
+import type { ConversationMessageMetadata, PipelineActionProposal } from "@repo/schemas";
 import { useCanvasPageStore } from "../_store";
 import {
   createPipelineAgentSessionsClient,
@@ -15,6 +15,7 @@ import { useAgentConversationPersistence } from "./useAgentConversationPersisten
 
 export type AgentConversationSubmitInput = {
   content: string;
+  metadata?: ConversationMessageMetadata;
   runtimeId: string;
 };
 
@@ -180,7 +181,7 @@ export const useAgentConversation = ({ pipelineId }: { pipelineId: string | null
   );
 
   const submitMessage = useCallback(
-    async ({ content, runtimeId }: AgentConversationSubmitInput) => {
+    async ({ content, metadata, runtimeId }: AgentConversationSubmitInput) => {
       const trimmedContent = content.trim();
       if (
         !pipelineId ||
@@ -208,6 +209,7 @@ export const useAgentConversation = ({ pipelineId }: { pipelineId: string | null
           });
           const persistedMessage = await sendMessage({
             content: trimmedContent,
+            metadata,
             phase: "thinking",
             role: "user",
           });
