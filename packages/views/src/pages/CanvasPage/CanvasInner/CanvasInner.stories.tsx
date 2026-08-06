@@ -1,13 +1,41 @@
+import { useEffect } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import { Refine } from "@refinedev/core";
 import { ReactFlowProvider } from "@xyflow/react";
-import { CanvasPageStoreProvider } from "../_store";
+import { PlatformProvider, type PlatformCapabilities } from "../../../platform";
+import { CanvasPageStoreProvider, useCanvasPageStore } from "../_store";
 import { canvasStoryDataProvider } from "../storybookData";
 import { CanvasInner } from "./CanvasInner";
 
-const meta: Meta<typeof CanvasInner> = {
+interface CanvasInnerStoryProps {
+  agentPanelOpen?: boolean;
+}
+
+const storyPlatform: PlatformCapabilities = {
+  apiBaseUrl: "",
+  downloadBlob: () => undefined,
+  request: (input, init) => fetch(input, init),
+};
+
+const CanvasInnerStory = ({ agentPanelOpen = false }: CanvasInnerStoryProps) => {
+  const store = useCanvasPageStore();
+
+  useEffect(() => {
+    store.setState((state) => ({
+      agentPanel: { ...state.agentPanel, isOpen: agentPanelOpen },
+    }));
+  }, [agentPanelOpen, store]);
+
+  return (
+    <PlatformProvider value={storyPlatform}>
+      <CanvasInner />
+    </PlatformProvider>
+  );
+};
+
+const meta: Meta<typeof CanvasInnerStory> = {
   title: "CanvasPage/CanvasInner",
-  component: CanvasInner,
+  component: CanvasInnerStory,
   tags: ["autodocs"],
   decorators: [
     (Story) => (
@@ -30,13 +58,25 @@ const meta: Meta<typeof CanvasInner> = {
   },
 };
 export default meta;
-type Story = StoryObj<typeof CanvasInner>;
+type Story = StoryObj<typeof CanvasInnerStory>;
 export const Default: Story = {
-  args: {},
+  args: { agentPanelOpen: false },
   parameters: {
     docs: {
       description: {
         story: "Default empty CanvasInner layout with the empty-state card and status bar visible.",
+      },
+    },
+  },
+};
+
+export const IntegratedAgentPanel: Story = {
+  args: { agentPanelOpen: true },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          "Alan-style dual-pane workspace with the Canvas and resizable AgentPanel rendered as siblings.",
       },
     },
   },

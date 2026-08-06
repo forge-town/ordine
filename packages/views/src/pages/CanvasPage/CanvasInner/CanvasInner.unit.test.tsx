@@ -60,6 +60,10 @@ vi.mock("@tanstack/react-router", () => ({
   ),
 }));
 
+vi.mock("../AgentPanel", () => ({
+  AgentPanel: () => <aside data-testid="canvas-agent-panel" />,
+}));
+
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: false } },
 });
@@ -150,6 +154,49 @@ describe("CanvasInner", () => {
     expect(workPanel).toHaveStyle({ width: "560px" });
 
     fireEvent.mouseUp(globalWindow);
+  });
+
+  it("opens the AgentPanel as a resizable right-hand sibling", async () => {
+    const user = userEvent.setup();
+    render(<CanvasInner />, { wrapper });
+
+    expect(screen.getByTestId("canvas-agent-panel-reopen")).toBeInTheDocument();
+
+    await user.click(screen.getByTestId("canvas-agent-panel-reopen"));
+
+    expect(screen.getByTestId("canvas-agent-panel-shell")).toHaveStyle({ width: "360px" });
+    expect(screen.getByTestId("resize-handle-right")).toBeInTheDocument();
+    expect(screen.getByTestId("canvas-agent-panel")).toBeInTheDocument();
+  });
+
+  it("resizes and collapses the AgentPanel from the right-side handle", async () => {
+    const user = userEvent.setup();
+    render(<CanvasInner />, { wrapper });
+    await user.click(screen.getByTestId("canvas-agent-panel-reopen"));
+
+    const globalWindow = globalThis.window;
+    const resizeHandle = screen.getByTestId("resize-handle-right");
+
+    fireEvent.pointerDown(resizeHandle, { clientX: 900 });
+    fireEvent.pointerMove(globalWindow, { clientX: 820 });
+    expect(screen.getByTestId("canvas-agent-panel-shell")).toHaveStyle({ width: "440px" });
+
+    fireEvent.pointerMove(globalWindow, { clientX: 1100 });
+    expect(screen.queryByTestId("canvas-agent-panel-shell")).not.toBeInTheDocument();
+    expect(screen.getByTestId("canvas-agent-panel-reopen")).toBeInTheDocument();
+  });
+
+  it("toggles the AgentPanel from the canvas toolbar", async () => {
+    const user = userEvent.setup();
+    render(<CanvasInner />, { wrapper });
+
+    await user.click(screen.getByRole("button", { name: /^(AI Assistant|AI 助手)$/i }));
+
+    expect(screen.getByTestId("canvas-agent-panel-shell")).toBeInTheDocument();
+
+    await user.dblClick(screen.getByTestId("resize-handle-right"));
+
+    expect(screen.getByTestId("canvas-agent-panel-reopen")).toBeInTheDocument();
   });
 
   it("opens the workspace sidebar overlay from the mini sidebar", async () => {

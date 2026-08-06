@@ -692,6 +692,8 @@
       "error": "请求失败，请稍后重试。",
       "errorTitle": "AI 助手错误",
       "close": "关闭 AI 助手",
+      "resize": "调整 AI 助手宽度",
+      "reopen": "打开 AI 助手",
       "send": "发送请求",
       "upload": "上传上下文",
       "revise": "修改方案",
