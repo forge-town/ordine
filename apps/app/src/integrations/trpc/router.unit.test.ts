@@ -13,7 +13,9 @@ const mocks = vi.hoisted(() => ({
   conversationsGetAll: vi.fn(),
   pipelineAssetsGetAll: vi.fn(),
   pipelineAssetsGetUsageCount: vi.fn(),
-  pipelineCancelRun: vi.fn(),
+  jobCancelRun: vi.fn(),
+  jobPauseRun: vi.fn(),
+  jobResumeRun: vi.fn(),
   projectsGetAll: vi.fn(),
   routinesGetByPipelineId: vi.fn(),
   routinesGetAll: vi.fn(),
@@ -42,7 +44,11 @@ vi.mock("./services", () => ({
     getAll: mocks.pipelineAssetsGetAll,
     getUsageCount: mocks.pipelineAssetsGetUsageCount,
   },
-  pipelineRunnerService: { cancelRun: mocks.pipelineCancelRun },
+  pipelineRunnerService: {
+    cancelRun: mocks.jobCancelRun,
+    pauseRun: mocks.jobPauseRun,
+    resumeRun: mocks.jobResumeRun,
+  },
   pipelinesService: {},
   projectsService: { getAll: mocks.projectsGetAll },
   refinementsService: {},
@@ -64,6 +70,7 @@ import { router } from "./init";
 import { connectorsRouter } from "./routers/connectors";
 import { conversationsRouter } from "./routers/conversations";
 import { pipelineAssetsRouter } from "./routers/pipelineAssets";
+import { jobsRouter } from "./routers/jobs";
 import { pipelinesRouter } from "./routers/pipelines";
 import { projectsRouter } from "./routers/projects";
 import { routinesRouter } from "./routers/routines";
@@ -73,6 +80,7 @@ const domainRouter = router({
   connectors: connectorsRouter,
   conversations: conversationsRouter,
   pipelineAssets: pipelineAssetsRouter,
+  jobs: jobsRouter,
   pipelines: pipelinesRouter,
   projects: projectsRouter,
   routines: routinesRouter,
@@ -87,7 +95,9 @@ beforeEach(() => {
   mocks.conversationsGetAll.mockResolvedValue(ok([]));
   mocks.pipelineAssetsGetAll.mockResolvedValue(ok([]));
   mocks.pipelineAssetsGetUsageCount.mockResolvedValue(ok({ assetId: "asset-1", count: 1 }));
-  mocks.pipelineCancelRun.mockResolvedValue(ok({ cancelled: true, jobId: "job-1" }));
+  mocks.jobCancelRun.mockResolvedValue(ok({ cancelled: true, jobId: "job-1" }));
+  mocks.jobPauseRun.mockResolvedValue(ok({ jobId: "job-1", paused: true }));
+  mocks.jobResumeRun.mockResolvedValue(ok({ jobId: "job-1", resumed: true }));
   mocks.projectsGetAll.mockResolvedValue(ok([]));
   mocks.routinesGetAll.mockResolvedValue([]);
   mocks.routinesGetByPipelineId.mockResolvedValue([]);
@@ -141,6 +151,27 @@ describe("domain tRPC routers", () => {
       code: "UNAUTHORIZED",
     });
     await expect(authedCaller.pipelines.cancel({ jobId: "job-1" })).resolves.toEqual({
+      cancelled: true,
+      jobId: "job-1",
+    });
+  });
+
+  it("exposes authenticated job controls for checkpoint handling", async () => {
+    const caller = domainRouter.createCaller({ session: null });
+    const authedCaller = domainRouter.createCaller({ session: { user: { id: "user-1" } } });
+
+    await expect(caller.jobs.resume({ jobId: "job-1" })).rejects.toMatchObject({
+      code: "UNAUTHORIZED",
+    });
+    await expect(authedCaller.jobs.pause({ jobId: "job-1" })).resolves.toEqual({
+      jobId: "job-1",
+      paused: true,
+    });
+    await expect(authedCaller.jobs.resume({ jobId: "job-1" })).resolves.toEqual({
+      jobId: "job-1",
+      resumed: true,
+    });
+    await expect(authedCaller.jobs.cancel({ jobId: "job-1" })).resolves.toEqual({
       cancelled: true,
       jobId: "job-1",
     });

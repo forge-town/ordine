@@ -15,6 +15,7 @@ type ReactFlowProps = {
   nodesConnectable?: boolean;
   onConnect?: (connection: Connection) => void;
   onEdgesChange?: (changes: unknown[]) => void;
+  onNodeClick?: (event: Pick<React.MouseEvent, "metaKey" | "shiftKey">, node: CanvasNode) => void;
   onNodeDoubleClick?: (event: unknown, node: CanvasNode) => void;
   onNodesChange?: (changes: unknown[]) => void;
   onPaneClick?: () => void;
@@ -180,6 +181,20 @@ describe("CanvasFlow", () => {
       hotkeyHandlers.get("mod+z")?.();
     });
     expect(store.getState().nodes.map((node) => node.id)).toEqual(["node-a"]);
+  });
+
+  it("adds nodes to the selection with a modifier click", () => {
+    const nodeA = makeNode("node-a");
+    const nodeB = makeNode("node-b");
+    const store = createCanvasStore({ nodes: [nodeA, nodeB] });
+    render(<CanvasFlow />, { wrapper: makeWrapper(store) });
+
+    act(() => {
+      latestReactFlowPropsRef.current?.onNodeClick?.({ metaKey: false, shiftKey: false }, nodeA);
+      latestReactFlowPropsRef.current?.onNodeClick?.({ metaKey: false, shiftKey: true }, nodeB);
+    });
+
+    expect(store.getState().selectedIds).toEqual(["node-a", "node-b"]);
   });
 
   it("records one undo entry for a complete node drag", () => {

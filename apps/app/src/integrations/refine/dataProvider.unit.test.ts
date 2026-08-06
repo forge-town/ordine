@@ -105,6 +105,21 @@ describe("dataProvider custom registry", () => {
     });
   });
 
+  it("routes checkpoint controls through the jobs router", async () => {
+    const response = await dataProvider.custom!({
+      url: CustomEndpoint.jobsResume,
+      method: "post",
+      payload: { jobId: "job-1" },
+    });
+
+    expect(response.data).toEqual({ id: "mutated" });
+    expect(calls.at(-1)).toEqual({
+      path: "jobs.resume",
+      kind: "mutate",
+      args: { jobId: "job-1" },
+    });
+  });
+
   it("throws for unknown custom urls", async () => {
     await expect(dataProvider.custom!({ url: "unknown", method: "post" })).rejects.toThrow(
       'custom: unknown url "unknown"',

@@ -1740,6 +1740,8 @@
         "checkpointNext": "运行已挂起，等待你的决定。",
         "checkpointSubtitle": "在 {{node}} 之后暂停 · 运行挂起中",
         "checkpointTitle": "检查点 · 审核后继续",
+        "cancelFailed": "取消运行失败",
+        "cancelled": "运行已取消",
         "consoleTitle": "运行控制台",
         "dismiss": "关闭",
         "editStep": "编辑步骤",
@@ -1749,7 +1751,9 @@
           "cancelled": "运行已取消——{{title}}",
           "done": "运行完成——{{title}}",
           "expired": "运行已过期——{{title}}",
-          "failed": "运行失败——{{title}}"
+          "failed": "运行失败——{{title}}",
+          "skipped": "运行已跳过——{{title}}",
+          "waiting": "运行等待确认——{{title}}"
         },
         "resumeFailed": "恢复运行失败",
         "resumed": "检查点已通过 — 继续运行",
@@ -1757,9 +1761,12 @@
       },
       "ask": {
         "cancel": "取消",
-        "hint": "会以节点锚定消息的形式进入 Agent 对话。",
+        "failed": "节点请求发送失败",
+        "hint": "发送节点锚定请求，并预览 Agent 提出的画布改动。",
         "placeholder": "告诉 Agent 这里要改什么…",
+        "proposalReady": "Agent 提案已生成，请审核",
         "send": "发送给 Agent",
+        "sent": "节点请求已发送",
         "title": "就 {{node}} 提问"
       }
     },

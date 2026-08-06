@@ -247,6 +247,9 @@ describe("Canvas V2 node shell variants", () => {
     fireEvent.click(screen.getByTestId("canvas-v2-node-configure"));
     expect(store.getState().configNodeId).toBe("node-a");
     expect(store.getState().inspectEdgeId).toBeNull();
+
+    fireEvent.click(screen.getByTestId("canvas-v2-node-ask"));
+    expect(store.getState().askNodeId).toBe("node-a");
   });
 
   it("records duplicate in history and restores it with undo", () => {

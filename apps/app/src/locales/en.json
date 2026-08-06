@@ -1746,6 +1746,8 @@
         "checkpointNext": "The run is holding until you decide.",
         "checkpointSubtitle": "Paused after {{node}} · the run is holding",
         "checkpointTitle": "Checkpoint · review before continuing",
+        "cancelFailed": "Couldn't cancel the run",
+        "cancelled": "Run cancelled",
         "consoleTitle": "Run console",
         "dismiss": "Dismiss",
         "editStep": "Edit step",
@@ -1755,7 +1757,9 @@
           "cancelled": "Run cancelled — {{title}}",
           "done": "Run completed — {{title}}",
           "expired": "Run expired — {{title}}",
-          "failed": "Run failed — {{title}}"
+          "failed": "Run failed — {{title}}",
+          "skipped": "Run skipped — {{title}}",
+          "waiting": "Run waiting for confirmation — {{title}}"
         },
         "resumeFailed": "Couldn't resume the run",
         "resumed": "Checkpoint approved — continuing",
@@ -1763,9 +1767,12 @@
       },
       "ask": {
         "cancel": "Cancel",
-        "hint": "Adds a node-anchored message to the Agent conversation.",
+        "failed": "Couldn't send the node request",
+        "hint": "Sends a node-anchored request and previews any proposed canvas changes.",
         "placeholder": "Tell the Agent what to change here…",
+        "proposalReady": "Agent proposal ready for review",
         "send": "Send to Agent",
+        "sent": "Node request sent",
         "title": "Ask about {{node}}"
       }
     },

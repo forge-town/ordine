@@ -244,7 +244,8 @@ export const CanvasFlow = () => {
     openEdgeInspector(edge.id);
   };
 
-  const handleNodeClick: NodeMouseHandler<CanvasNode> = (_event, node) => selectNode(node.id);
+  const handleNodeClick: NodeMouseHandler<CanvasNode> = (event, node) =>
+    selectNode(node.id, event.shiftKey || event.metaKey ? "toggle" : "replace");
 
   const handlePaneClick = () => setSelectedIds([]);
 

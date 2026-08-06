@@ -1,4 +1,4 @@
-import { Copy, Settings2, Trash2, type LucideIcon } from "lucide-react";
+import { Copy, Settings2, Sparkles, Trash2, type LucideIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useShallow } from "zustand/shallow";
 import { cn } from "@repo/ui/lib/utils";
@@ -106,6 +106,7 @@ export const GNodeShell = ({
     rightPortCount,
   } = useCanvasStore(useShallow(selectNodePortCounts(id)));
   const openNodeConfig = useCanvasStore((state) => state.openNodeConfig);
+  const setAskNodeId = useCanvasStore((state) => state.setAskNodeId);
   const isDrilling = useCanvasStore((state) => state.drillStack.length > 0);
   const normalizedStatus = normalizeNodeRunStatus(runStatus ?? dataStatus ?? "idle");
   const preview = previewDiff !== null;
@@ -114,6 +115,10 @@ export const GNodeShell = ({
   const handleConfigClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
     openNodeConfig(id);
+  };
+  const handleAskClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    setAskNodeId(id);
   };
   const handleDuplicateClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
@@ -155,6 +160,16 @@ export const GNodeShell = ({
             onClick={handleConfigClick}
           >
             <Settings2 className="h-3 w-3" />
+          </button>
+          <button
+            aria-label={t("workspace.canvas.nodes.actions.ask")}
+            className="rounded-full p-1 text-foreground/70 hover:bg-accent/70"
+            data-testid="canvas-v2-node-ask"
+            title={t("workspace.canvas.nodes.actions.ask")}
+            type="button"
+            onClick={handleAskClick}
+          >
+            <Sparkles className="h-3 w-3" />
           </button>
           {canDuplicate && !isDrilling && (
             <button

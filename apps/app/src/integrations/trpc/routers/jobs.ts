@@ -1,7 +1,10 @@
 import { z } from "zod/v4";
-import { publicProcedure, router } from "../init";
-import { jobsService } from "../services";
+import { TRPCError } from "@trpc/server";
+import { authedProcedure, publicProcedure, router } from "../init";
+import { jobsService, pipelineRunnerService } from "../services";
 import { JobStatusSchema, JobTypeSchema } from "@repo/schemas";
+
+const JobControlInputSchema = z.object({ jobId: z.string() });
 
 export const jobsRouter = router({
   getMany: publicProcedure.query(() => jobsService.getAll()),
@@ -66,4 +69,31 @@ export const jobsRouter = router({
 
       return jobsService.updateStatus(id, status, extra);
     }),
+
+  pause: authedProcedure.input(JobControlInputSchema).mutation(async ({ input }) => {
+    const result = await pipelineRunnerService.pauseRun(input.jobId);
+    if (result.isErr()) {
+      throw new TRPCError({ code: "BAD_REQUEST", message: result.error.message });
+    }
+
+    return result.value;
+  }),
+
+  resume: authedProcedure.input(JobControlInputSchema).mutation(async ({ input }) => {
+    const result = await pipelineRunnerService.resumeRun(input.jobId);
+    if (result.isErr()) {
+      throw new TRPCError({ code: "BAD_REQUEST", message: result.error.message });
+    }
+
+    return result.value;
+  }),
+
+  cancel: authedProcedure.input(JobControlInputSchema).mutation(async ({ input }) => {
+    const result = await pipelineRunnerService.cancelRun(input.jobId);
+    if (result.isErr()) {
+      throw new TRPCError({ code: "BAD_REQUEST", message: result.error.message });
+    }
+
+    return result.value;
+  }),
 });
