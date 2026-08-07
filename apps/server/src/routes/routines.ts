@@ -1,7 +1,11 @@
 import { randomUUID } from "node:crypto";
 import { Hono } from "hono";
 import { z } from "zod/v4";
-import { CreateRoutineSchema, UpdateRoutineSchema } from "@repo/schemas";
+import {
+  CreateRoutineSchema,
+  RoutineOccurrencesInputSchema,
+  UpdateRoutineSchema,
+} from "@repo/schemas";
 import { routinesService } from "../services.js";
 import { resultJson, validateJson, validationErrorJson } from "./result.js";
 
@@ -35,6 +39,18 @@ routinesRoutes.get("/", async (c) => {
       : routines.filter((routine) => routine.enabled === (parsed.data.enabled === "true"));
 
   return c.json(filtered);
+});
+
+routinesRoutes.get("/occurrences", async (c) => {
+  const parsed = RoutineOccurrencesInputSchema.safeParse({
+    from: c.req.query("from"),
+    to: c.req.query("to"),
+  });
+  if (!parsed.success) return validationErrorJson(c);
+
+  return c.json(
+    await routinesService.getOccurrences(new Date(parsed.data.from), new Date(parsed.data.to)),
+  );
 });
 
 routinesRoutes.post("/", async (c) => {

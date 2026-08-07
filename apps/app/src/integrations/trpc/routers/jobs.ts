@@ -1,7 +1,8 @@
 import { z } from "zod/v4";
 import { publicProcedure, router } from "../init";
-import { jobsService } from "../services";
+import { jobsService, pipelineRunnerService } from "../services";
 import { JobStatusSchema, JobTypeSchema } from "@repo/schemas";
+import { unwrapResult } from "./result";
 
 export const jobsRouter = router({
   getMany: publicProcedure.query(() => jobsService.getAll()),
@@ -66,4 +67,20 @@ export const jobsRouter = router({
 
       return jobsService.updateStatus(id, status, extra);
     }),
+
+  pause: publicProcedure
+    .input(z.object({ jobId: z.string() }))
+    .mutation(async ({ input }) => unwrapResult(await pipelineRunnerService.pauseRun(input.jobId))),
+
+  resume: publicProcedure
+    .input(z.object({ jobId: z.string() }))
+    .mutation(async ({ input }) =>
+      unwrapResult(await pipelineRunnerService.resumeRun(input.jobId)),
+    ),
+
+  cancel: publicProcedure
+    .input(z.object({ jobId: z.string() }))
+    .mutation(async ({ input }) =>
+      unwrapResult(await pipelineRunnerService.cancelRun(input.jobId)),
+    ),
 });

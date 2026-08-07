@@ -1,7 +1,7 @@
 import { err, ok, type Result } from "neverthrow";
 import { createRoutinesDao, type DbConnection } from "@repo/models";
 import { mapWithMeta, withMeta } from "@repo/schemas";
-import { getNextCronRunAt, toStringInputs } from "@repo/utils";
+import { getCronOccurrenceBuckets, getNextCronRunAt, toStringInputs } from "@repo/utils";
 import type { RoutineStartRun } from "../routineSchedulerService/routineScheduler";
 import { NotFoundError } from "../serviceErrors";
 
@@ -25,6 +25,9 @@ const resolveSchedule = (
   return ok(nextRunAt);
 };
 
+const MAX_CALENDAR_OCCURRENCES = 512;
+const MAX_ROUTINE_OCCURRENCE_BUCKETS = 200;
+
 export const createRoutinesService = (
   db: DbConnection,
   deps: {
@@ -39,6 +42,29 @@ export const createRoutinesService = (
     getByPipelineId: async (pipelineId: string) =>
       mapWithMeta(await dao.findManyByPipelineId(pipelineId)),
     getEnabled: async () => mapWithMeta(await dao.findManyEnabled()),
+    getOccurrences: async (from: Date, to: Date) => {
+      const routines = await dao.findManyEnabled();
+      const allOccurrences = routines
+        .flatMap((routine) =>
+          getCronOccurrenceBuckets(
+            routine.cronExpression,
+            from,
+            to,
+            MAX_ROUTINE_OCCURRENCE_BUCKETS,
+          ).map((bucket) => ({
+            aggregated: bucket.aggregated,
+            at: bucket.at.toISOString(),
+            routineId: routine.id,
+          })),
+        )
+        .sort((left, right) => left.at.localeCompare(right.at));
+
+      return {
+        occurrences: allOccurrences.slice(0, MAX_CALENDAR_OCCURRENCES),
+        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone || "local",
+        truncated: allOccurrences.length > MAX_CALENDAR_OCCURRENCES,
+      };
+    },
     create: async (data: Parameters<typeof dao.create>[0]) => {
       const schedule = resolveSchedule(data.enabled ?? true, data.cronExpression ?? null);
       if (schedule.isErr()) return err(schedule.error);

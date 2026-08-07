@@ -133,6 +133,7 @@
     "quickActionBestPracticesSub": "View coding standards"
   },
   "jobs": {
+    "eyebrow": "Monitor",
     "title": "Jobs",
     "running": "Running",
     "queued": "Queued",
@@ -186,6 +187,7 @@
       "showAll": "Show all ({{count}} chars)"
     },
     "calendar": {
+      "condensed": "High-frequency schedules are condensed to one block per hour.",
       "live": "live",
       "nextWeek": "Next week",
       "noEventRoutines": "no event-triggered routines",
@@ -204,14 +206,24 @@
       "openCanvas": "Open pipeline on canvas",
       "runtime_one": "Runtime · {{count}} step",
       "runtime_other": "Runtime · {{count}} steps",
+      "title": "Job details",
       "trace": "Trace"
     },
     "emptyBody": "Launch a run or adjust the current filters.",
     "emptyTitle": "No jobs yet",
     "hasRoutine": "has routine",
+    "closePipelinePicker": "Close pipeline picker",
+    "filters": {
+      "all": "All",
+      "completed": "Completed",
+      "failed": "Failed",
+      "running": "Running",
+      "waiting": "Waiting"
+    },
     "newRoutine": "New Routine",
     "newRun": "New Run",
     "noMatchTitle": "No matching jobs",
+    "noPipelines": "No pipelines yet",
     "pickPipeline": "Schedule which pipeline?",
     "scheduleEditor": {
       "cancel": "Cancel",
@@ -277,13 +289,18 @@
         "review": "Review"
       },
       "byRoutine": "routine",
+      "nextPage": "Next page",
+      "page": "Page {{current}} of {{total}}",
+      "previousPage": "Previous page",
+      "sortBy": "Sort by {{column}}",
       "headers": {
         "actions": "Actions",
         "cost": "Cost",
         "duration": "Duration",
         "job": "Job",
         "started": "Started",
-        "status": "Status"
+        "status": "Status",
+        "tokens": "Tokens"
       }
     },
     "views": {
