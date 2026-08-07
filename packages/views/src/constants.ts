@@ -1,6 +1,7 @@
 export const ResourceName = {
   agents: "agents",
   agentRuntimes: "agentRuntimes",
+  connectors: "connectors",
   conversationMessages: "conversationMessages",
   filesystem: "filesystem",
   operations: "operations",

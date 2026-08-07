@@ -8,12 +8,14 @@ import {
   Box,
   Boxes,
   ChevronDown,
+  Cpu,
   ExternalLink,
   FlaskConical,
+  Gauge,
   Layers,
+  Plug,
   Puzzle,
   Search,
-  Server,
   Settings,
   SquarePen,
   Workflow,
@@ -57,12 +59,14 @@ const assemblyItems: NavItem[] = [
 const monitorItems: NavItem[] = [
   { labelKey: "nav.jobs", icon: Activity, to: "/pipelines/jobs" },
   { labelKey: "nav.distillations", icon: FlaskConical, to: "/distillations" },
+  { labelKey: "nav.items.usage", icon: Gauge, to: "/usage" },
 ];
 
 const capabilityItems: NavItem[] = [
   { labelKey: "nav.agents", icon: Bot, to: "/agents" },
+  { labelKey: "nav.items.localAgents", icon: Cpu, to: "/local-agents" },
   { labelKey: "nav.skills", icon: BookOpen, to: "/skills" },
-  { labelKey: "nav.runtimes", icon: Server, to: "/runtimes" },
+  { labelKey: "nav.items.connectors", icon: Plug, to: "/connectors" },
   { labelKey: "nav.plugins", icon: Puzzle, to: "/plugins" },
   { labelKey: "nav.settings", icon: Settings, to: "/settings" },
 ];
