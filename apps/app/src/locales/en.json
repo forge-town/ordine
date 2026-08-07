@@ -693,6 +693,8 @@
       "error": "Request failed. Please try again later.",
       "errorTitle": "AI Assistant Error",
       "close": "Close AI assistant",
+      "resize": "Resize AI assistant",
+      "reopen": "Open AI assistant",
       "send": "Send request",
       "upload": "Upload context",
       "revise": "Revise plan",

@@ -452,10 +452,7 @@ export const AgentPanel = () => {
       : t("canvas.agentPanel.runtimePlaceholder");
 
   return (
-    <div
-      className="absolute bottom-0 right-0 top-0 z-30 flex w-[min(22.5rem,100%)] flex-col border-l bg-surface"
-      data-testid="canvas-agent-panel"
-    >
+    <aside className="flex h-full w-full flex-col bg-surface" data-testid="canvas-agent-panel">
       <header
         className="flex shrink-0 items-center justify-between px-3.5 pb-2 pt-3"
         data-testid="canvas-agent-panel-header"
@@ -630,6 +627,6 @@ export const AgentPanel = () => {
           runtimeId={selectedRuntimeId}
         />
       </div>
-    </div>
+    </aside>
   );
 };

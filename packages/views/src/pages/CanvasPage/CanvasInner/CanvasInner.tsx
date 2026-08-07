@@ -1,8 +1,15 @@
 import { useCallback, useEffect, useRef, type MouseEvent as ReactMouseEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
+import { PanelRightOpen } from "lucide-react";
 import { Button } from "@repo/ui/button";
-import { selectSelectedNode, useCanvasPageStore } from "../_store";
+import { ResizeHandle } from "../../../components/ResizeHandle";
+import {
+  MAX_AGENT_PANEL_WIDTH,
+  MIN_AGENT_PANEL_WIDTH,
+  selectSelectedNode,
+  useCanvasPageStore,
+} from "../_store";
 import { CanvasFlow } from "../CanvasFlow";
 import { CanvasContextMenu } from "../CanvasContextMenu";
 import { ConnectionMenu } from "../ConnectionMenu";
@@ -21,11 +28,15 @@ import { CanvasNodePropertiesPanel } from "../CanvasNodePropertiesPanel";
 import { CanvasWorkspaceSidebarOverlay } from "../CanvasWorkspaceSidebarOverlay";
 import { getScreenViewportCenter, getViewportRectCenter } from "../utils/nodePosition";
 
+const AGENT_PANEL_COLLAPSE_AT = 248;
+
 export const CanvasInner = () => {
   const { t } = useTranslation();
   const store = useCanvasPageStore();
   const flowViewportRef = useRef<HTMLDivElement>(null);
+  const agentPanelShellRef = useRef<HTMLDivElement>(null);
   const sidebarResizeStateRef = useRef<{ startClientX: number; startWidth: number } | null>(null);
+  const agentPanelResizeStartWidthRef = useRef(0);
 
   const contextMenu = useStore(store, (state) => state.contextMenu);
   const connectionMenu = useStore(store, (state) => state.connectionMenu);
@@ -33,6 +44,9 @@ export const CanvasInner = () => {
   const isConsoleOpen = useStore(store, (state) => state.isConsoleOpen);
   const isQuickAddOpen = useStore(store, (state) => state.isQuickAddOpen);
   const agentPanelIsOpen = useStore(store, (state) => state.agentPanel.isOpen);
+  const agentPanelWidth = useStore(store, (state) => state.agentPanelWidth);
+  const setAgentPanelWidth = useStore(store, (state) => state.setAgentPanelWidth);
+  const toggleAgentPanel = useStore(store, (state) => state.toggleAgentPanel);
   const nodes = useStore(store, (state) => state.nodes);
   const sidebarPanel = useStore(store, (state) => state.sidebarPanel);
   const isSidebarOpen = useStore(store, (state) => state.isSidebarOpen);
@@ -95,9 +109,21 @@ export const CanvasInner = () => {
     [workspacePanelWidth],
   );
 
+  const handleAgentPanelDelta = useCallback(
+    (delta: number) => {
+      const nextWidth = agentPanelResizeStartWidthRef.current + delta;
+      if (nextWidth < AGENT_PANEL_COLLAPSE_AT) {
+        toggleAgentPanel();
+        return;
+      }
+      setAgentPanelWidth(nextWidth);
+    },
+    [setAgentPanelWidth, toggleAgentPanel],
+  );
+
   return (
     <div
-      className="flex h-full min-h-0 w-full overflow-hidden bg-background"
+      className="relative flex h-full min-h-0 w-full overflow-hidden bg-background"
       data-testid="canvas-langflow-shell"
     >
       <CanvasMiniSidebar />
@@ -107,7 +133,7 @@ export const CanvasInner = () => {
 
         <div className="flex min-h-0 flex-1 overflow-hidden">
           {isSidebarOpen && (
-            <div className="relative shrink-0">
+            <div className="relative hidden shrink-0 lg:block">
               <aside
                 className="h-full shrink-0 border-r bg-background"
                 data-testid="canvas-work-panel"
@@ -156,11 +182,49 @@ export const CanvasInner = () => {
             <LlmContentCard />
 
             {isConsoleOpen && <RunConsole />}
-
-            {agentPanelIsOpen && <AgentPanel />}
           </main>
         </div>
       </div>
+
+      {agentPanelIsOpen ? (
+        <div
+          className="pointer-events-none absolute inset-y-0 right-0 z-40 flex w-[calc(100%_-_3.5rem)] justify-end xl:static xl:z-auto xl:w-auto xl:shrink-0 xl:self-stretch"
+          data-testid="canvas-agent-panel-region"
+        >
+          <ResizeHandle
+            ariaLabel={t("canvas.agentPanel.resize")}
+            max={MAX_AGENT_PANEL_WIDTH}
+            min={MIN_AGENT_PANEL_WIDTH}
+            side="right"
+            value={agentPanelWidth}
+            onCollapse={toggleAgentPanel}
+            onDelta={handleAgentPanelDelta}
+            onDragStart={() => {
+              const renderedWidth = agentPanelShellRef.current?.getBoundingClientRect().width ?? 0;
+              agentPanelResizeStartWidthRef.current = renderedWidth || agentPanelWidth;
+            }}
+          />
+          <div
+            ref={agentPanelShellRef}
+            className="pointer-events-auto min-h-0 min-w-0 shrink overflow-hidden bg-surface"
+            data-testid="canvas-agent-panel-shell"
+            style={{ width: `${agentPanelWidth}px`, maxWidth: "calc(100% - 1px)" }}
+          >
+            <AgentPanel />
+          </div>
+        </div>
+      ) : (
+        <button
+          aria-label={t("canvas.agentPanel.reopen")}
+          className="flex w-12 shrink-0 items-center justify-center border-l border-border bg-surface text-muted-foreground hover:bg-accent hover:text-foreground"
+          data-testid="canvas-agent-panel-reopen"
+          title={t("canvas.agentPanel.reopen")}
+          type="button"
+          onClick={toggleAgentPanel}
+        >
+          <PanelRightOpen className="h-4 w-4" />
+        </button>
+      )}
 
       <CanvasSettingsDrawer />
       <CanvasWorkspaceSidebarOverlay />

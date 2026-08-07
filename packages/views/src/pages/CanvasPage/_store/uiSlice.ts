@@ -8,7 +8,7 @@ import type {
 import type { CanvasPageStoreSlice } from "./canvasPageStore";
 import { DEFAULT_CANVAS_VIEWPORT } from "../utils/canvasViewport";
 
-export type SidebarPanel = "components" | "properties" | "ai-assistant" | null;
+export type SidebarPanel = "components" | "properties" | null;
 
 export type CanvasComponentCategory = "input" | "operations" | "skills" | "output";
 
@@ -51,8 +51,15 @@ export const DEFAULT_WORKSPACE_PANEL_WIDTH = 352;
 export const MIN_WORKSPACE_PANEL_WIDTH = 288;
 export const MAX_WORKSPACE_PANEL_WIDTH = 560;
 
+export const DEFAULT_AGENT_PANEL_WIDTH = 360;
+export const MIN_AGENT_PANEL_WIDTH = 300;
+export const MAX_AGENT_PANEL_WIDTH = 520;
+
 export const clampWorkspacePanelWidth = (width: number) =>
   Math.min(MAX_WORKSPACE_PANEL_WIDTH, Math.max(MIN_WORKSPACE_PANEL_WIDTH, width));
+
+export const clampAgentPanelWidth = (width: number) =>
+  Math.min(MAX_AGENT_PANEL_WIDTH, Math.max(MIN_AGENT_PANEL_WIDTH, width));
 
 export interface AgentPanelState {
   isOpen: boolean;
@@ -98,6 +105,7 @@ export interface UISlice {
 
   // Agent panel state
   agentPanel: AgentPanelState;
+  agentPanelWidth: number;
 
   // Operation node UI state
   operationAgentDropdownNodeId: string | null;
@@ -153,6 +161,7 @@ export interface UISlice {
   markNodeFailed: (nodeId: string) => void;
 
   // Agent panel actions
+  setAgentPanelWidth: (width: number) => void;
   toggleAgentPanel: () => void;
   setPendingProposal: (
     proposal: PipelineActionProposal | null,
@@ -213,6 +222,7 @@ export const createUISlice = (
     diagnostics: null,
     isLoading: false,
   },
+  agentPanelWidth: DEFAULT_AGENT_PANEL_WIDTH,
   operationAgentDropdownNodeId: null,
   handlePipelineIdChange: (id) => {
     set({ pipelineId: id });
@@ -470,9 +480,12 @@ export const createUISlice = (
     }));
   },
 
+  setAgentPanelWidth: (width) => {
+    set({ agentPanelWidth: clampAgentPanelWidth(width) });
+  },
+
   toggleAgentPanel: () => {
     set((state) => ({
-      sidebarPanel: state.agentPanel.isOpen ? null : "ai-assistant",
       agentPanel: {
         ...state.agentPanel,
         isOpen: !state.agentPanel.isOpen,
