@@ -51,6 +51,7 @@ const toJobTrace = (raw: RawTrace, index: number, jobId: string): JobTrace => ({
 
 export const useRunPolling = () => {
   const activeJobId = useCanvasStore((state) => state.activeJobId);
+  const latestJob = useCanvasStore((state) => state.latestJob);
   const applyJobSnapshot = useCanvasStore((state) => state.applyJobSnapshot);
   const applyNodeArtifact = useCanvasStore((state) => state.applyNodeArtifact);
   const applyNodeLlmContent = useCanvasStore((state) => state.applyNodeLlmContent);
@@ -78,7 +79,8 @@ export const useRunPolling = () => {
     resource: ResourceName.jobs,
   });
   const job = (jobQuery?.data?.data as Job | undefined) ?? null;
-  jobRef.current = job;
+  const traceJobId = activeJobId ?? latestJob?.id ?? null;
+  jobRef.current = job ?? latestJob;
 
   useEffect(() => {
     if (job) {
@@ -130,12 +132,12 @@ export const useRunPolling = () => {
   }, [addNotification, job, notificationPreferences.waiting, t]);
 
   const { result: tracesResult } = useCustom<{ traces: RawTrace[] }>({
-    config: { payload: { jobId: activeJobId ?? "" } },
+    config: { payload: { jobId: traceJobId ?? "" } },
     method: "get",
     queryOptions: {
-      enabled: activeJobId !== null,
+      enabled: traceJobId !== null,
       queryFn: async () => {
-        const jobId = activeJobId ?? "";
+        const jobId = traceJobId ?? "";
         const response = await dataProvider.custom!<{ traces: RawTrace[] }>({
           method: "get",
           payload: { jobId },
@@ -172,10 +174,13 @@ export const useRunPolling = () => {
   const traces = tracesResult?.data?.traces ?? [];
 
   useEffect(() => {
-    setRunTraces(traces.map((trace, index) => toJobTrace(trace, index, activeJobId ?? "")));
+    if (!traceJobId) {
+      return;
+    }
+    setRunTraces(traces.map((trace, index) => toJobTrace(trace, index, traceJobId)));
     // Refine replaces the result array on every poll; length and job id are the stable signals.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeJobId, setRunTraces, traces.length]);
+  }, [setRunTraces, traceJobId, traces.length]);
 };
 
 export const RunPoller = () => {

@@ -114,7 +114,12 @@ export const PipelinesPageContent = () => {
   if (pipelinesQuery?.isLoading) {
     return (
       <div className="flex h-full flex-col overflow-hidden">
-        <PageHeader title={t("pipelines.title")} />
+        <PageHeader
+          eyebrow={t("nav.groups.assembly")}
+          icon={<GitBranch className="h-4 w-4 text-primary" />}
+          sub={t("pipelines.subtitle")}
+          title={t("pipelines.title")}
+        />
         <PageLoadingState variant="grid" />
       </div>
     );
@@ -129,12 +134,14 @@ export const PipelinesPageContent = () => {
             {t("pipelines.createNew")}
           </Button>
         }
+        eyebrow={t("nav.groups.assembly")}
         icon={<GitBranch className="h-4 w-4 text-primary" />}
+        sub={t("pipelines.subtitle")}
         title={t("pipelines.title")}
       />
 
       {/* Toolbar */}
-      <div className="flex flex-col gap-2 border-b border-border bg-background px-6 py-3">
+      <div className="flex flex-col gap-2 border-b border-border bg-background px-4 py-3 sm:px-7">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div
             aria-label={t("pipelines.filters.label")}
@@ -187,7 +194,7 @@ export const PipelinesPageContent = () => {
       </div>
 
       {/* Grid */}
-      <div className="flex-1 overflow-y-auto p-6">
+      <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-8 pt-4 sm:px-7">
         {filtered.length === 0 ? (
           <div className="flex h-40 flex-col items-center justify-center gap-3 text-center text-muted-foreground">
             <Layers className="h-8 w-8 text-muted-foreground/30" />
@@ -196,7 +203,7 @@ export const PipelinesPageContent = () => {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
             {filtered.map((p) => (
               <PipelineCard
                 key={p.id}

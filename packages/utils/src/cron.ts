@@ -174,6 +174,42 @@ export const getNextCronRunAt = (expression: string | null, from: Date): Date | 
 };
 
 /**
+ * Expands a cron range into at most one representative occurrence per local
+ * hour. High-frequency expressions therefore stay bounded for calendar UIs,
+ * while `aggregated` tells callers that the hour contains additional runs.
+ */
+export const getCronOccurrenceBuckets = (
+  expression: string | null,
+  from: Date,
+  to: Date,
+  limit = 200,
+) => {
+  const buckets: Array<{ aggregated: boolean; at: Date }> = [];
+  if (to <= from || limit <= 0) return buckets;
+
+  const cursor = new Date(from.getTime() - 60_000);
+  while (buckets.length < limit) {
+    const at = getNextCronRunAt(expression, cursor);
+    if (!at || at >= to) break;
+    if (at < from) {
+      cursor.setTime(at.getTime());
+      continue;
+    }
+
+    const endOfHour = new Date(at);
+    endOfHour.setHours(endOfHour.getHours() + 1, 0, 0, 0);
+    const next = getNextCronRunAt(expression, at);
+    buckets.push({
+      aggregated: next !== null && next < endOfHour && next < to,
+      at,
+    });
+    cursor.setTime(Math.min(endOfHour.getTime(), to.getTime()) - 60_000);
+  }
+
+  return buckets;
+};
+
+/**
  * An expression is valid if and only if the parser can compute a next
  * occurrence from now. This intentionally rejects well-formed but
  * unsatisfiable expressions (impossible dates such as `0 0 30 2 *`); leap-day

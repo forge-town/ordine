@@ -57,6 +57,14 @@ describe("CheckpointDialog", () => {
     expect(screen.queryByTestId("canvas-v2-checkpoint-dialog")).not.toBeInTheDocument();
   });
 
+  it("does not offer edits that cannot affect the suspended run", () => {
+    const store = createCanvasStore({ nodes: [operationNode] });
+    store.getState().applyJobSnapshot(waitingJob);
+    render(<CheckpointDialog />, { wrapper: makeWrapper(store) });
+
+    expect(screen.queryByTestId("checkpoint-edit")).not.toBeInTheDocument();
+  });
+
   it("resumes the job on approve", async () => {
     const user = userEvent.setup();
     customMock.mockResolvedValue({ data: { resumed: true } });

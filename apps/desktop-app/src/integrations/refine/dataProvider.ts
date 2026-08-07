@@ -156,6 +156,14 @@ const resolveCustomRequest = (url: string, method: string, payload: unknown): Cu
         method: "POST",
       };
     }
+    case "routines/occurrences": {
+      const values = payloadRecord(payload);
+      const url = new URL(`${DESKTOP_API_BASE}/routines/occurrences`);
+      url.searchParams.set("from", requiredPayloadString(values, "from"));
+      url.searchParams.set("to", requiredPayloadString(values, "to"));
+
+      return { url: url.toString(), method: "GET" };
+    }
     case "usage/summary": {
       return usageRequest("summary", payload);
     }
@@ -190,6 +198,16 @@ const resolveCustomRequest = (url: string, method: string, payload: unknown): Cu
         url: `${DESKTOP_API_BASE}/jobs/${jobId}/agent-runs/${rawExportId}/spans`,
         method: "GET",
         transform: (spans) => ({ spans }),
+      };
+    }
+    case "jobs/pause":
+    case "jobs/resume":
+    case "jobs/cancel": {
+      const action = url.split("/")[1];
+
+      return {
+        url: `${DESKTOP_API_BASE}/jobs/${requiredPayloadString(payload, "jobId")}/${action}`,
+        method: "POST",
       };
     }
     case "distillations/run": {

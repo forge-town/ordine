@@ -74,7 +74,7 @@ export const NotificationCenter = () => {
   };
 
   return (
-    <div className="fixed right-3 top-3 z-40" data-testid="notification-center">
+    <div className="fixed bottom-4 right-4 z-40" data-testid="notification-center">
       <Popover open={open} onOpenChange={handleOpenChange}>
         <PopoverTrigger
           aria-label={t("notifications.title")}
@@ -95,7 +95,7 @@ export const NotificationCenter = () => {
         <PopoverContent
           align="end"
           className="w-[min(22rem,calc(100vw-1.5rem))] overflow-hidden p-0 shadow-float"
-          side="bottom"
+          side="top"
           sideOffset={8}
         >
           <div className="flex min-h-11 items-center gap-2 border-b px-3.5">

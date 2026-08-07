@@ -4,6 +4,7 @@ import { type ColumnDef, flexRender, getCoreRowModel, useReactTable } from "@tan
 import { MoreHorizontal } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { AgentRuntimeConfig } from "@repo/schemas";
+import { surfaceCardVariants } from "@repo/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@repo/ui/table";
 import { RuntimeIcon } from "../RuntimeIcon";
 
@@ -74,7 +75,7 @@ export const RuntimesDataTable = ({ data }: { data: AgentRuntimeConfig[] }) => {
   );
 
   return (
-    <div className="rounded-lg border">
+    <div className={surfaceCardVariants()}>
       <Table>
         <TableHeader>
           {table.getHeaderGroups().map((headerGroup) => (

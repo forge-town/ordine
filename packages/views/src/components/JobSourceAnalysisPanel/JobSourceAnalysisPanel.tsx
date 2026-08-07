@@ -104,7 +104,7 @@ export const JobSourceAnalysisPanel = ({ jobId }: JobSourceAnalysisPanelProps) =
 
   if (!job) {
     return (
-      <Card className="p-5">
+      <Card className="p-5" variant="surface">
         <p className="text-sm text-muted-foreground">Job source not found.</p>
       </Card>
     );
@@ -112,7 +112,7 @@ export const JobSourceAnalysisPanel = ({ jobId }: JobSourceAnalysisPanelProps) =
 
   return (
     <div className="space-y-4">
-      <Card className="p-5">
+      <Card className="p-5" variant="surface">
         <div className="flex items-center justify-between gap-3">
           <div>
             <h2 className="text-sm font-semibold text-foreground">Job Source Analysis</h2>

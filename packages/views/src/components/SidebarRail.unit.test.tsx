@@ -74,7 +74,7 @@ describe("SidebarRail", () => {
     expect(wrapper.style.getPropertyValue("--sidebar-width")).toBe("272px");
   });
 
-  it("clamps, collapses, reopens, and suppresses the click after dragging", () => {
+  it("clamps at the maximum, resizes in both directions, and suppresses drag clicks", () => {
     const { rail, sidebar, wrapper } = renderRail();
 
     dragRail(rail, 256, 500, 1);
@@ -86,16 +86,17 @@ describe("SidebarRail", () => {
     expect(sidebar).toHaveAttribute("data-state", "expanded");
 
     dragRail(rail, 384, 100, 2);
-    expect(sidebar).toHaveAttribute("data-state", "collapsed");
-    expect(wrapper.style.getPropertyValue("--sidebar-width")).toBe("384px");
-
-    dragRail(rail, 48, 150, 3);
     expect(sidebar).toHaveAttribute("data-state", "expanded");
-    expect(wrapper.style.getPropertyValue("--sidebar-width")).toBe("208px");
-    expect(localStorage.getItem(STORAGE_KEY)).toBe("208");
+    expect(wrapper.style.getPropertyValue("--sidebar-width")).toBe("100px");
+    expect(localStorage.getItem(STORAGE_KEY)).toBe("100");
+
+    dragRail(rail, 100, 150, 3);
+    expect(sidebar).toHaveAttribute("data-state", "expanded");
+    expect(wrapper.style.getPropertyValue("--sidebar-width")).toBe("150px");
+    expect(localStorage.getItem(STORAGE_KEY)).toBe("150");
   });
 
-  it("collapses instead of rebounding when released below the minimum width", () => {
+  it("resizes continuously and switches once to icon mode at an unusable width", () => {
     const { rail, sidebar, wrapper } = renderRail();
 
     dragRail(rail, 256, 208, 4);
@@ -103,14 +104,42 @@ describe("SidebarRail", () => {
     expect(wrapper.style.getPropertyValue("--sidebar-width")).toBe("208px");
 
     dragRail(rail, 208, 192, 5);
-    expect(sidebar).toHaveAttribute("data-state", "collapsed");
-    expect(wrapper.style.getPropertyValue("--sidebar-width")).toBe("208px");
-    expect(localStorage.getItem(STORAGE_KEY)).toBe("208");
-
-    fireEvent.keyDown(rail, { key: "ArrowRight" });
     expect(sidebar).toHaveAttribute("data-state", "expanded");
-    fireEvent.keyDown(rail, { key: "ArrowLeft" });
+    expect(wrapper.style.getPropertyValue("--sidebar-width")).toBe("192px");
+    expect(localStorage.getItem(STORAGE_KEY)).toBe("192");
+
+    fireEvent.pointerDown(rail, { button: 0, clientX: 192, pointerId: 6 });
+    fireEvent.pointerMove(rail, { clientX: 120, pointerId: 6 });
+
+    expect(sidebar).toHaveAttribute("data-state", "expanded");
+    expect(wrapper.style.getPropertyValue("--sidebar-width")).toBe("120px");
+
+    fireEvent.pointerUp(rail, { clientX: 120, pointerId: 6 });
+    expect(sidebar).toHaveAttribute("data-state", "expanded");
+    expect(wrapper.style.getPropertyValue("--sidebar-width")).toBe("120px");
+    expect(localStorage.getItem(STORAGE_KEY)).toBe("120");
+
+    fireEvent.pointerDown(rail, { button: 0, clientX: 120, pointerId: 7 });
+    fireEvent.pointerMove(rail, { clientX: 64, pointerId: 7 });
     expect(sidebar).toHaveAttribute("data-state", "collapsed");
+
+    fireEvent.pointerMove(rail, { clientX: 100, pointerId: 7 });
+    expect(sidebar).toHaveAttribute("data-state", "collapsed");
+
+    fireEvent.pointerUp(rail, { clientX: 100, pointerId: 7 });
+    expect(sidebar).toHaveAttribute("data-state", "collapsed");
+    expect(wrapper.style.getPropertyValue("--sidebar-width")).toBe("120px");
+    expect(localStorage.getItem(STORAGE_KEY)).toBe("120");
+
+    fireEvent.pointerDown(rail, { button: 0, clientX: 48, pointerId: 8 });
+    fireEvent.pointerMove(rail, { clientX: 150, pointerId: 8 });
+    expect(sidebar).toHaveAttribute("data-state", "expanded");
+    expect(wrapper.style.getPropertyValue("--sidebar-width")).toBe("150px");
+
+    fireEvent.pointerUp(rail, { clientX: 150, pointerId: 8 });
+    expect(sidebar).toHaveAttribute("data-state", "expanded");
+    expect(wrapper.style.getPropertyValue("--sidebar-width")).toBe("150px");
+    expect(localStorage.getItem(STORAGE_KEY)).toBe("150");
   });
 
   it("ignores invalid stored widths and clamps out-of-range values", () => {

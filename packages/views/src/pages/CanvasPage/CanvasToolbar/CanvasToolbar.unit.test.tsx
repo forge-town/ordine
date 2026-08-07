@@ -87,7 +87,7 @@ describe("CanvasToolbar - viewport controls", () => {
     const toolbarShell = screen.getByTestId("canvas-toolbar").firstElementChild;
     expect(toolbarShell).toHaveClass("rounded-md");
     expect(toolbarShell).not.toHaveClass("rounded-full");
-    expect(screen.getAllByRole("separator")).toHaveLength(4);
+    expect(screen.getAllByRole("separator")).toHaveLength(5);
     for (const separator of screen.getAllByRole("separator")) {
       expect(separator).toHaveClass("h-7");
     }
@@ -186,6 +186,22 @@ describe("CanvasToolbar - Run Test button", () => {
 });
 
 describe("CanvasToolbar - interactive state", () => {
+  it("defaults to the hand tool and switches to select", async () => {
+    const user = userEvent.setup();
+    render(<CanvasToolbar />, { wrapper });
+
+    const selectTool = screen.getByRole("button", { name: i18n.t("canvas.selectTool") });
+    const handTool = screen.getByRole("button", { name: i18n.t("canvas.handTool") });
+
+    expect(handTool).toHaveAttribute("aria-pressed", "true");
+    expect(selectTool).toHaveAttribute("aria-pressed", "false");
+
+    await user.click(selectTool);
+
+    expect(selectTool).toHaveAttribute("aria-pressed", "true");
+    expect(handTool).toHaveAttribute("aria-pressed", "false");
+  });
+
   it("toggles the custom canvas interactivity control", async () => {
     const user = userEvent.setup();
     render(<CanvasToolbar />, { wrapper });

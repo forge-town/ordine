@@ -19,7 +19,7 @@ export const DistillationResultPanel = ({
   const failedResult = distillation?.result?.type === "failed" ? distillation.result : null;
 
   return (
-    <Card className="p-5">
+    <Card className="p-5" variant="surface">
       <h2 className="text-sm font-semibold text-foreground">
         {t("distillations.resultPanelTitle")}
       </h2>

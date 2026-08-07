@@ -11,16 +11,14 @@ export const CheckpointDialog = () => {
   const { t } = useTranslation();
   const getDataProvider = useDataProvider();
   const checkpointWait = useCanvasStore((state) => state.checkpointWait);
-  const configNodeId = useCanvasStore((state) => state.configNodeId);
   const latestJob = useCanvasStore((state) => state.latestJob);
   const nodes = useCanvasStore((state) => state.nodes);
   const nodeRunStatuses = useCanvasStore((state) => state.nodeRunStatuses);
   const applyJobSnapshot = useCanvasStore((state) => state.applyJobSnapshot);
-  const openNodeConfig = useCanvasStore((state) => state.openNodeConfig);
   const setNodeRunStatuses = useCanvasStore((state) => state.setNodeRunStatuses);
   const [pendingAction, setPendingAction] = useState<"approve" | "reject" | null>(null);
 
-  if (!checkpointWait || configNodeId === checkpointWait.nodeId) {
+  if (!checkpointWait) {
     return null;
   }
 
@@ -71,7 +69,6 @@ export const CheckpointDialog = () => {
   };
   const handleApprove = () => handleControl("approve");
   const handleReject = () => handleControl("reject");
-  const handleEdit = () => openNodeConfig(checkpointWait.nodeId);
 
   return (
     <div
@@ -79,7 +76,7 @@ export const CheckpointDialog = () => {
       data-testid="canvas-v2-checkpoint-dialog"
     >
       <div className="absolute inset-0 bg-foreground/10 backdrop-blur-[1px]" />
-      <div className="relative w-[420px] overflow-hidden rounded-2xl bg-surface shadow-float ring-1 ring-border-strong">
+      <div className="relative w-full max-w-[420px] overflow-hidden rounded-2xl bg-surface shadow-float ring-1 ring-border-strong">
         <div className="flex items-center gap-2.5 border-b border-border/70 px-4 py-3">
           <span className="flex size-8 items-center justify-center rounded-lg bg-warning/20">
             <Flag className="size-3.5 text-foreground/80" />
@@ -118,14 +115,6 @@ export const CheckpointDialog = () => {
           >
             <Square className="size-3.5" />
             {t("common.cancel")}
-          </Button>
-          <Button
-            data-testid="checkpoint-edit"
-            disabled={pendingAction !== null}
-            variant="outline"
-            onClick={handleEdit}
-          >
-            {t("workspace.canvas.run.editStep")}
           </Button>
         </div>
       </div>

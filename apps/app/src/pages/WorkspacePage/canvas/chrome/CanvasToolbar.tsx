@@ -22,10 +22,12 @@ export const CanvasToolbar = () => {
       data-testid="canvas-v2-toolbar"
     >
       <button
+        aria-label={t("workspace.canvas.chrome.toolbar.select")}
+        aria-pressed={canvasTool === "select"}
         className={cn(
           "rounded-full p-1.5 transition-colors",
           canvasTool === "select"
-            ? "bg-accent text-foreground"
+            ? "bg-foreground text-background shadow-sm"
             : "text-muted-foreground hover:bg-accent/60",
         )}
         data-testid="canvas-v2-tool-select"
@@ -36,10 +38,12 @@ export const CanvasToolbar = () => {
         <MousePointer2 className="size-3.5" />
       </button>
       <button
+        aria-label={t("workspace.canvas.chrome.toolbar.pan")}
+        aria-pressed={canvasTool === "hand"}
         className={cn(
           "rounded-full p-1.5 transition-colors",
           canvasTool === "hand"
-            ? "bg-accent text-foreground"
+            ? "bg-foreground text-background shadow-sm"
             : "text-muted-foreground hover:bg-accent/60",
         )}
         data-testid="canvas-v2-tool-hand"

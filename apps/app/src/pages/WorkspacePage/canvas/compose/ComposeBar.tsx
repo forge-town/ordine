@@ -20,7 +20,7 @@ export const ComposeBar = ({ pipelineId }: ComposeBarProps) => {
   const setSelectedIds = useCanvasStore((state) => state.setSelectedIds);
   const { mutate: updatePipeline } = useUpdate();
   const selectedNodeIds = selectedIds.filter((id) =>
-    nodes.some((node) => node.id === id && node.type !== "compound"),
+    nodes.some((node) => node.id === id && !node.parentId && node.type !== "compound"),
   );
 
   if (selectedNodeIds.length < 2 || configNodeId) {

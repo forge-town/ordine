@@ -1,5 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { Terminal, Wand2 } from "lucide-react";
+import { surfaceCardVariants } from "@repo/ui/card";
+import { cn } from "@repo/ui/lib/utils";
 import { SectionHeader } from "../SectionHeader";
 import type { OperationExecutorConfig } from "@repo/schemas";
 
@@ -31,7 +33,7 @@ export const ExecutorCard = ({ executor: raw }: ExecutorCardProps) => {
   const displayLabel = modeLabel ? `${label} · ${modeLabel}` : label;
 
   return (
-    <div className="rounded-xl border border-border bg-card p-4">
+    <div className={cn(surfaceCardVariants(), "p-4")}>
       <SectionHeader icon={Icon} label={`执行方式 · ${displayLabel}`} />
       <div className="mt-3 space-y-2">
         {executor.type === "agent" && executor.agentMode === "skill" && executor.skillId && (

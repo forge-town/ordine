@@ -1,6 +1,8 @@
 import { Bot, Clock } from "lucide-react";
 import { useCustom } from "@refinedev/core";
 import type { AgentRawExport } from "@repo/schemas";
+import { surfaceCardVariants } from "@repo/ui/card";
+import { cn } from "@repo/ui/lib/utils";
 import { AgentRunCard } from "./AgentRunCard";
 
 interface AgentRunsPanelProps {
@@ -18,7 +20,7 @@ export const AgentRunsPanel = ({ jobId }: AgentRunsPanelProps) => {
 
   if (query.isLoading) {
     return (
-      <div className="rounded-xl border border-border bg-card overflow-hidden">
+      <div className={cn(surfaceCardVariants(), "overflow-hidden")}>
         <div className="flex items-center gap-2 border-b border-border bg-muted/50 px-4 py-2.5">
           <Bot className="h-3.5 w-3.5 text-muted-foreground" />
           <span className="text-xs font-semibold text-muted-foreground">Agent Runs</span>
@@ -32,7 +34,7 @@ export const AgentRunsPanel = ({ jobId }: AgentRunsPanelProps) => {
   }
 
   return (
-    <div className="rounded-xl border border-border bg-card overflow-hidden">
+    <div className={cn(surfaceCardVariants(), "overflow-hidden")}>
       <div className="flex items-center gap-2 border-b border-border bg-muted/50 px-4 py-2.5">
         <Bot className="h-3.5 w-3.5 text-muted-foreground" />
         <span className="text-xs font-semibold text-muted-foreground">Agent Runs</span>

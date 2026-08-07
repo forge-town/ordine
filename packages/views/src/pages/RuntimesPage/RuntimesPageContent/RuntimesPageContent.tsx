@@ -1,16 +1,16 @@
 import { useCreate, useDataProvider, useDelete, useList } from "@refinedev/core";
 import { useStore } from "zustand";
-import { Loader2, Radar, Server } from "lucide-react";
+import { Cpu, Loader2, Radar, RefreshCw } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { AgentRuntimeConfig } from "@repo/schemas";
 import { Button } from "@repo/ui/button";
 import { Skeleton } from "@repo/ui/skeleton";
 import { PageHeader } from "../../../components/PageHeader";
-import { RuntimesDataTable } from "../RuntimesDataTable";
+import { LocalAgentCard } from "../LocalAgentCard";
 import { ScanDiffModal } from "../ScanDiffModal";
 import { type DetectedRuntime, useRuntimesPageStore } from "../_store";
 
-const s = "runtimes";
+const SUPPORTED_RUNTIME_COUNT = 5;
 
 export const RuntimesPageContent = () => {
   const { t } = useTranslation();
@@ -26,6 +26,7 @@ export const RuntimesPageContent = () => {
     resource: "agentRuntimes",
   });
   const runtimes = runtimesResult.data;
+  const localRuntimes = runtimes.filter((runtime) => runtime.connection.mode === "local");
 
   const handleScan = () => {
     const dataProvider = getDataProvider();
@@ -61,37 +62,52 @@ export const RuntimesPageContent = () => {
         actions={
           <Button disabled={isScanning} size="sm" variant="outline" onClick={handleScan}>
             {isScanning ? (
-              <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+              <Loader2 className="size-3.5 animate-spin" />
             ) : (
-              <Radar className="mr-1.5 h-3.5 w-3.5" />
+              <RefreshCw className="size-3.5" />
             )}
-            {t(`${s}.scan`)}
+            {isScanning ? t("localAgents.scanning") : t("localAgents.rescan")}
           </Button>
         }
-        badge={
-          <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
-            {runtimes.length}
-          </span>
-        }
-        icon={<Server className="h-4 w-4 text-primary" />}
-        title={t(`${s}.title`)}
+        badge={<span className="text-xs text-muted-foreground">{runtimes.length}</span>}
+        eyebrow={t("nav.groups.capabilities")}
+        icon={<Cpu className="size-[18px] text-muted-foreground" />}
+        sub={t("localAgents.subtitle")}
+        title={t("localAgents.title")}
       />
 
-      <div className="flex-1 overflow-auto p-6">
+      <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-8 pt-4 sm:px-7">
         {runtimesQuery.isLoading ? (
-          <div className="space-y-3">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <Skeleton key={i} className="h-14 w-full rounded-lg" />
+          <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Skeleton key={i} className="h-[190px] w-full rounded-lg" />
             ))}
           </div>
         ) : runtimes.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20">
-            <Server className="h-10 w-10 text-muted-foreground/30" />
-            <p className="mt-3 text-sm text-muted-foreground">{t(`${s}.empty`)}</p>
+          <div className="grid place-items-center rounded-lg bg-surface-2/50 py-16 text-center text-muted-foreground">
+            <Cpu className="size-8 text-muted-foreground/30" />
+            <p className="mt-2 text-[13px] font-medium text-foreground">{t("localAgents.empty")}</p>
+            <p className="mt-0.5 text-[11.5px] text-muted-foreground">
+              {t("localAgents.emptyHint")}
+            </p>
           </div>
         ) : (
-          <RuntimesDataTable data={runtimes} />
+          <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
+            {runtimes.map((runtime) => (
+              <LocalAgentCard key={runtime.id} runtime={runtime} />
+            ))}
+          </div>
         )}
+
+        <div className="mt-3 flex items-center gap-2 rounded-lg bg-surface-2 px-3.5 py-2.5 text-[11.5px] text-muted-foreground">
+          <Radar className="size-3.5 shrink-0" />
+          <span>
+            {t("localAgents.detected", {
+              count: localRuntimes.length,
+              total: SUPPORTED_RUNTIME_COUNT,
+            })}
+          </span>
+        </div>
       </div>
 
       <ScanDiffModal onConfirm={handleConfirmSync} />

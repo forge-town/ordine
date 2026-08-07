@@ -105,19 +105,48 @@ describe("dataProvider custom registry", () => {
     });
   });
 
-  it("routes checkpoint controls through the jobs router", async () => {
-    const response = await dataProvider.custom!({
+  it("loads server-expanded routine occurrences through the named endpoint", async () => {
+    await dataProvider.custom!({
+      url: CustomEndpoint.routinesOccurrences,
+      method: "get",
+      payload: {
+        from: "2026-08-03T00:00:00.000Z",
+        to: "2026-08-10T00:00:00.000Z",
+      },
+    });
+
+    expect(calls.at(-1)).toEqual({
+      path: "routines.getOccurrences",
+      kind: "query",
+      args: {
+        from: "2026-08-03T00:00:00.000Z",
+        to: "2026-08-10T00:00:00.000Z",
+      },
+    });
+  });
+
+  it("routes job controls through their tRPC mutations", async () => {
+    await dataProvider.custom!({
+      url: CustomEndpoint.jobsPause,
+      method: "post",
+      payload: { jobId: "job-1" },
+    });
+    await dataProvider.custom!({
       url: CustomEndpoint.jobsResume,
       method: "post",
       payload: { jobId: "job-1" },
     });
-
-    expect(response.data).toEqual({ id: "mutated" });
-    expect(calls.at(-1)).toEqual({
-      path: "jobs.resume",
-      kind: "mutate",
-      args: { jobId: "job-1" },
+    await dataProvider.custom!({
+      url: CustomEndpoint.jobsCancel,
+      method: "post",
+      payload: { jobId: "job-1" },
     });
+
+    expect(calls.slice(-3)).toEqual([
+      { path: "jobs.pause", kind: "mutate", args: { jobId: "job-1" } },
+      { path: "jobs.resume", kind: "mutate", args: { jobId: "job-1" } },
+      { path: "jobs.cancel", kind: "mutate", args: { jobId: "job-1" } },
+    ]);
   });
 
   it("throws for unknown custom urls", async () => {

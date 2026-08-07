@@ -335,8 +335,8 @@ export const CanvasFlow = () => {
       onDrop={handleDrop}
     >
       <ReactFlow<CanvasNode, CanvasEdge>
-        panOnScroll
         zoomOnPinch
+        zoomOnScroll
         className="bg-transparent"
         defaultEdgeOptions={defaultEdgeOptions}
         defaultViewport={defaultViewport}
@@ -351,9 +351,9 @@ export const CanvasFlow = () => {
         nodesDraggable={!isPreviewing}
         nodeTypes={nodeTypes}
         panOnDrag={canvasTool === "hand" ? true : [1, 2]}
+        panOnScroll={false}
         proOptions={proOptions}
         selectionOnDrag={canvasTool === "select"}
-        zoomOnScroll={false}
         onConnect={handleFlowConnect}
         onEdgeClick={handleEdgeClick}
         onEdgesChange={handleFlowEdgesChange}

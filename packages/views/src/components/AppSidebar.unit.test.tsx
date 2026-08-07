@@ -49,6 +49,10 @@ describe("AppSidebar", () => {
     expect(screen.getByRole("link", { name: "任务" })).toHaveAttribute("href", "/pipelines/jobs");
     expect(screen.getByRole("link", { name: "设置" })).toHaveAttribute("href", "/settings");
     expect(screen.getByRole("separator", { name: "Resize or toggle sidebar" })).toBeInTheDocument();
+    for (const label of ["装配", "监控", "能力"]) {
+      expect(screen.getByLabelText(label)).toHaveClass("px-2!", "py-0!");
+      expect(screen.getByLabelText(label)).not.toHaveClass("p-0");
+    }
   });
 
   it("persists the capabilities collapsed state", () => {

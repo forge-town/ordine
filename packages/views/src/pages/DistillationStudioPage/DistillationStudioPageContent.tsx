@@ -58,7 +58,7 @@ export const DistillationStudioPageContent = () => {
         title={t("distillations.studioTitle")}
       />
 
-      <div className="flex-1 overflow-y-auto p-6">
+      <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-8 pt-4 sm:px-7">
         <div className="grid max-w-7xl grid-cols-1 gap-6 xl:grid-cols-[1.2fr_0.8fr]">
           <DistillationForm existingDistillation={existingDistillation} />
 

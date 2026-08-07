@@ -293,9 +293,12 @@ describe("NodeCard", () => {
 
     const input = screen.getByLabelText(/Node label|节点标签/);
     expect(input).toHaveAttribute("readonly");
+    expect(input).toHaveClass("cursor-inherit");
+    expect(input).not.toHaveClass("cursor-default");
 
     fireEvent.click(input);
     expect(input).not.toHaveAttribute("readonly");
+    expect(input).toHaveClass("select-text");
 
     fireEvent.blur(input);
     expect(input).toHaveAttribute("readonly");

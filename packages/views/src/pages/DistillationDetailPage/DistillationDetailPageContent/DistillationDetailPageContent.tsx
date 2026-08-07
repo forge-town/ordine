@@ -91,9 +91,9 @@ export const DistillationDetailPageContent = () => {
         title={distillation.title}
       />
 
-      <div className="flex-1 overflow-y-auto p-6">
+      <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-8 pt-4 sm:px-7">
         <div className="grid max-w-7xl grid-cols-1 gap-6 xl:grid-cols-[0.95fr_1.05fr]">
-          <Card className="space-y-4 p-5">
+          <Card className="space-y-4 p-5" variant="surface">
             <div className="flex flex-wrap items-center gap-2">
               <Badge variant="secondary">{distillation.status}</Badge>
               <Badge variant="outline">{distillation.mode}</Badge>

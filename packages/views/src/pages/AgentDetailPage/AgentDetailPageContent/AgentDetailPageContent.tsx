@@ -19,6 +19,8 @@ import { Button } from "@repo/ui/button";
 import { Badge } from "@repo/ui/badge";
 import { Separator } from "@repo/ui/separator";
 import { Skeleton } from "@repo/ui/skeleton";
+import { surfaceCardVariants } from "@repo/ui/card";
+import { cn } from "@repo/ui/lib/utils";
 import type { Agent } from "@repo/schemas";
 import { ResourceName } from "../../../constants";
 import { PageHeader } from "../../../components/PageHeader";
@@ -77,13 +79,13 @@ export const AgentDetailPageContent = () => {
         />
         <div className="flex-1 p-6">
           <div className="grid gap-6 md:grid-cols-[320px_minmax(0,1fr)]">
-            <div className="space-y-4 rounded-lg border p-5">
+            <div className={cn(surfaceCardVariants(), "space-y-4 p-5")}>
               <Skeleton className="mx-auto h-12 w-12 rounded-lg" />
               <Skeleton className="h-5 w-32" />
               <Skeleton className="h-4 w-full" />
               <Skeleton className="h-4 w-24" />
             </div>
-            <div className="rounded-lg border">
+            <div className={surfaceCardVariants()}>
               <Skeleton className="h-10 w-full" />
               <Skeleton className="m-4 h-40 w-full" />
             </div>
@@ -117,10 +119,10 @@ export const AgentDetailPageContent = () => {
         title={agent.name}
       />
 
-      <div className="flex-1 overflow-y-auto p-6">
-        <div className="grid gap-6 md:grid-cols-[320px_minmax(0,1fr)]">
+      <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-8 pt-4 sm:px-7">
+        <div className="grid gap-5 md:grid-cols-[320px_minmax(0,1fr)]">
           {/* Left: Inspector sidebar */}
-          <div className="flex flex-col gap-4 rounded-lg border p-5">
+          <div className={cn(surfaceCardVariants(), "flex flex-col gap-4 p-5")}>
             <div className="flex flex-col items-center gap-3 pb-2">
               <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-primary/10">
                 <Bot className="h-7 w-7 text-primary" />
@@ -179,7 +181,7 @@ export const AgentDetailPageContent = () => {
           </div>
 
           {/* Right: Content pane */}
-          <div className="flex flex-col overflow-hidden rounded-lg border bg-background">
+          <div className={cn(surfaceCardVariants(), "flex flex-col overflow-hidden")}>
             <div className="flex-1 space-y-6 overflow-y-auto p-5">
               {/* System Prompt */}
               {agent.systemPrompt && (

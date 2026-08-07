@@ -59,6 +59,7 @@ describe("langflow canvas store state", () => {
     expect(store.getState().nodeCardMode).toBe("compact");
     expect(store.getState().sidebarPanel).toBe("components");
     expect(store.getState().isWorkspaceSidebarOpen).toBe(false);
+    expect(store.getState().canvasTool).toBe("hand");
   });
 
   it("switches between components and properties as canvas selection changes", () => {
@@ -87,6 +88,16 @@ describe("langflow canvas store state", () => {
     store.getState().toggleNodeCardMode();
 
     expect(store.getState().nodeCardMode).toBe("compact");
+  });
+
+  it("switches between hand and select canvas tools", () => {
+    const store = createCanvasPageStore();
+
+    store.getState().setCanvasTool("select");
+    expect(store.getState().canvasTool).toBe("select");
+
+    store.getState().setCanvasTool("hand");
+    expect(store.getState().canvasTool).toBe("hand");
   });
 });
 

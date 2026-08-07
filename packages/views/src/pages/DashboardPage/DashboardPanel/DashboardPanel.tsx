@@ -1,3 +1,4 @@
+import { surfaceCardVariants } from "@repo/ui/card";
 import { cn } from "@repo/ui/lib/utils";
 
 export type DashboardPanelProps = {
@@ -16,12 +17,7 @@ export const DashboardPanel = ({
   title,
 }: DashboardPanelProps) => {
   return (
-    <section
-      className={cn(
-        "rounded-[24px] border border-border/80 bg-card/80 p-5 shadow-sm backdrop-blur-sm",
-        className,
-      )}
-    >
+    <section className={cn(surfaceCardVariants(), "p-5", className)}>
       <div className="flex items-start justify-between gap-4">
         <div className="space-y-1">
           <h2 className="text-sm font-semibold text-foreground">{title}</h2>

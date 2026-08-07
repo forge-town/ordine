@@ -6,13 +6,16 @@ import {
   BookOpen,
   Bot,
   Box,
+  Boxes,
   ChevronDown,
+  Cpu,
   ExternalLink,
   FlaskConical,
+  Gauge,
   Layers,
+  Plug,
   Puzzle,
   Search,
-  Server,
   Settings,
   SquarePen,
   Workflow,
@@ -48,6 +51,7 @@ import { DefaultUserFooter, ProjectSwitcher } from "./ProjectSwitcher";
 
 const assemblyItems: NavItem[] = [
   { labelKey: "nav.pipelines", icon: Layers, to: "/pipelines", exact: true },
+  { labelKey: "nav.components", icon: Boxes, to: "/components" },
   { labelKey: "nav.operations", icon: Zap, to: "/pipelines/operations" },
   { labelKey: "nav.objects", icon: Box, to: "/pipelines/objects" },
 ];
@@ -55,12 +59,14 @@ const assemblyItems: NavItem[] = [
 const monitorItems: NavItem[] = [
   { labelKey: "nav.jobs", icon: Activity, to: "/pipelines/jobs" },
   { labelKey: "nav.distillations", icon: FlaskConical, to: "/distillations" },
+  { labelKey: "nav.items.usage", icon: Gauge, to: "/usage" },
 ];
 
 const capabilityItems: NavItem[] = [
   { labelKey: "nav.agents", icon: Bot, to: "/agents" },
+  { labelKey: "nav.items.localAgents", icon: Cpu, to: "/local-agents" },
   { labelKey: "nav.skills", icon: BookOpen, to: "/skills" },
-  { labelKey: "nav.runtimes", icon: Server, to: "/runtimes" },
+  { labelKey: "nav.items.connectors", icon: Plug, to: "/connectors" },
   { labelKey: "nav.plugins", icon: Puzzle, to: "/plugins" },
   { labelKey: "nav.settings", icon: Settings, to: "/settings" },
 ];
@@ -180,7 +186,7 @@ export const AppSidebar = ({
         <SidebarSeparator className="my-1 bg-sidebar-border/60" />
         <SidebarGroup
           aria-label={t("nav.groups.capabilities", { defaultValue: "Capabilities" })}
-          className="p-0 px-2"
+          className="px-2! py-0!"
         >
           <SidebarGroupLabel
             className="h-7 px-2 text-[11px] font-medium uppercase text-muted-foreground group-data-[collapsible=icon]:sr-only"

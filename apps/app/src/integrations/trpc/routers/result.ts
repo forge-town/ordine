@@ -2,8 +2,9 @@ import { TRPCError } from "@trpc/server";
 import type { Result } from "neverthrow";
 
 const codeForError = (error: unknown) => {
-  if (error instanceof Error && error.name === "NotFoundError") return "NOT_FOUND";
+  if (error instanceof Error && error.name.endsWith("NotFoundError")) return "NOT_FOUND";
   if (error instanceof Error && error.name === "ConflictError") return "CONFLICT";
+  if (error instanceof Error && error.name === "InvalidJobStatusError") return "CONFLICT";
 
   return "INTERNAL_SERVER_ERROR";
 };

@@ -13,6 +13,8 @@ import {
 import { useTranslation } from "react-i18next";
 import type { Operation, ObjectType } from "@repo/schemas";
 import { useDelete, useDataProvider } from "@refinedev/core";
+import { surfaceCardVariants } from "@repo/ui/card";
+import { cn } from "@repo/ui/lib/utils";
 import { ResourceName } from "../../../constants";
 import { usePlatform } from "../../../platform";
 import {
@@ -72,7 +74,7 @@ export const OperationCard = ({ operation }: OperationCardProps) => {
 
   return (
     <Link
-      className="group relative flex flex-col rounded-xl border border-border bg-card p-5 transition-colors hover:bg-accent/50"
+      className={cn(surfaceCardVariants({ interactive: true }), "group relative flex flex-col p-4")}
       params={{ operationId: operation.id }}
       to="/pipelines/operations/$operationId"
     >

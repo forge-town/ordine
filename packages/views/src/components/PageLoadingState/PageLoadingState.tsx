@@ -1,4 +1,5 @@
 import { Loader2 } from "lucide-react";
+import { surfaceCardVariants } from "@repo/ui/card";
 import { Skeleton } from "@repo/ui/skeleton";
 import { cn } from "@repo/ui/lib/utils";
 
@@ -12,7 +13,7 @@ export type PageLoadingStateProps = {
 
 const renderListSkeleton = () => {
   return LIST_PLACEHOLDERS.map((item) => (
-    <div key={item} className="rounded-xl border border-border bg-card p-4">
+    <div key={item} className={cn(surfaceCardVariants(), "p-4")}>
       <div className="flex items-start gap-3">
         <Skeleton className="h-10 w-10 rounded-xl" />
         <div className="flex-1 space-y-2">
@@ -27,9 +28,9 @@ const renderListSkeleton = () => {
 
 const renderGridSkeleton = () => {
   return (
-    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+    <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
       {GRID_PLACEHOLDERS.map((item) => (
-        <div key={item} className="rounded-xl border border-border bg-card p-4">
+        <div key={item} className={cn(surfaceCardVariants(), "p-4")}>
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <Skeleton className="h-9 w-9 rounded-lg" />
@@ -48,7 +49,7 @@ const renderGridSkeleton = () => {
 const renderDetailSkeleton = () => {
   return (
     <div className="space-y-4">
-      <div className="rounded-xl border border-border bg-card p-4">
+      <div className={cn(surfaceCardVariants(), "p-4")}>
         <div className="space-y-3">
           <Skeleton className="h-5 w-48" />
           <Skeleton className="h-3 w-28" />
@@ -56,7 +57,7 @@ const renderDetailSkeleton = () => {
           <Skeleton className="h-3 w-5/6" />
         </div>
       </div>
-      <div className="rounded-xl border border-border bg-card p-4">
+      <div className={cn(surfaceCardVariants(), "p-4")}>
         <div className="space-y-3">
           <Skeleton className="h-4 w-32" />
           <Skeleton className="h-3 w-full" />
@@ -71,7 +72,10 @@ const renderDetailSkeleton = () => {
 export const PageLoadingState = ({ className, variant = "list" }: PageLoadingStateProps) => {
   return (
     <div
-      className={cn("flex flex-1 flex-col gap-4 p-6", className)}
+      className={cn(
+        "flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-4 pb-8 pt-4 sm:px-7",
+        className,
+      )}
       data-testid="page-loading-state"
     >
       <div className="flex items-center gap-2 text-muted-foreground">

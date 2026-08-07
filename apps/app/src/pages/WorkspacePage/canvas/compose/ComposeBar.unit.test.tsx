@@ -40,6 +40,19 @@ describe("ComposeBar", () => {
     expect(screen.queryByTestId("canvas-v2-compose-bar")).not.toBeInTheDocument();
   });
 
+  it("stays hidden for child nodes inside a compound", () => {
+    const store = createCanvasStore({
+      nodes: [
+        { ...makeNode("a"), parentId: "compound-1" },
+        { ...makeNode("b"), parentId: "compound-1" },
+      ],
+    });
+    store.getState().setSelectedIds(["a", "b"]);
+    render(<ComposeBar pipelineId="pipeline-1" />, { wrapper: makeWrapper(store) });
+
+    expect(screen.queryByTestId("canvas-v2-compose-bar")).not.toBeInTheDocument();
+  });
+
   it("composes the selection and persists the snapshot", async () => {
     const user = userEvent.setup();
     const store = createCanvasStore({ nodes: [makeNode("a"), makeNode("b")] });

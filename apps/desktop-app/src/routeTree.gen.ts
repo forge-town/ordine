@@ -9,11 +9,15 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as UsageRouteImport } from './routes/usage'
 import { Route as SkillsRouteImport } from './routes/skills'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as PluginsRouteImport } from './routes/plugins'
 import { Route as PipelinesRouteImport } from './routes/pipelines'
+import { Route as LocalAgentsRouteImport } from './routes/local-agents'
 import { Route as DistillationsRouteImport } from './routes/distillations'
+import { Route as ConnectorsRouteImport } from './routes/connectors'
+import { Route as ComponentsRouteImport } from './routes/components'
 import { Route as CanvasRouteImport } from './routes/canvas'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as RuntimesIndexRouteImport } from './routes/runtimes.index'
@@ -35,6 +39,11 @@ import { Route as PipelinesJobsJobIdRouteImport } from './routes/pipelines/jobs.
 import { Route as PipelinesOperationsOperationIdIndexRouteImport } from './routes/pipelines/operations.$operationId.index'
 import { Route as PipelinesOperationsOperationIdEditRouteImport } from './routes/pipelines/operations.$operationId.edit'
 
+const UsageRoute = UsageRouteImport.update({
+  id: '/usage',
+  path: '/usage',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SkillsRoute = SkillsRouteImport.update({
   id: '/skills',
   path: '/skills',
@@ -55,9 +64,24 @@ const PipelinesRoute = PipelinesRouteImport.update({
   path: '/pipelines',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LocalAgentsRoute = LocalAgentsRouteImport.update({
+  id: '/local-agents',
+  path: '/local-agents',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DistillationsRoute = DistillationsRouteImport.update({
   id: '/distillations',
   path: '/distillations',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ConnectorsRoute = ConnectorsRouteImport.update({
+  id: '/connectors',
+  path: '/connectors',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ComponentsRoute = ComponentsRouteImport.update({
+  id: '/components',
+  path: '/components',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CanvasRoute = CanvasRouteImport.update({
@@ -169,11 +193,15 @@ const PipelinesOperationsOperationIdEditRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/canvas': typeof CanvasRoute
+  '/components': typeof ComponentsRoute
+  '/connectors': typeof ConnectorsRoute
   '/distillations': typeof DistillationsRouteWithChildren
+  '/local-agents': typeof LocalAgentsRoute
   '/pipelines': typeof PipelinesRouteWithChildren
   '/plugins': typeof PluginsRoute
   '/settings': typeof SettingsRoute
   '/skills': typeof SkillsRoute
+  '/usage': typeof UsageRoute
   '/distillations/$distillationId': typeof DistillationsDistillationIdRoute
   '/distillations/new': typeof DistillationsNewRoute
   '/pipelines/$pipelineId': typeof PipelinesPipelineIdRoute
@@ -196,9 +224,13 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/canvas': typeof CanvasRoute
+  '/components': typeof ComponentsRoute
+  '/connectors': typeof ConnectorsRoute
+  '/local-agents': typeof LocalAgentsRoute
   '/plugins': typeof PluginsRoute
   '/settings': typeof SettingsRoute
   '/skills': typeof SkillsRoute
+  '/usage': typeof UsageRoute
   '/distillations/$distillationId': typeof DistillationsDistillationIdRoute
   '/distillations/new': typeof DistillationsNewRoute
   '/pipelines/$pipelineId': typeof PipelinesPipelineIdRoute
@@ -222,11 +254,15 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/canvas': typeof CanvasRoute
+  '/components': typeof ComponentsRoute
+  '/connectors': typeof ConnectorsRoute
   '/distillations': typeof DistillationsRouteWithChildren
+  '/local-agents': typeof LocalAgentsRoute
   '/pipelines': typeof PipelinesRouteWithChildren
   '/plugins': typeof PluginsRoute
   '/settings': typeof SettingsRoute
   '/skills': typeof SkillsRoute
+  '/usage': typeof UsageRoute
   '/distillations/$distillationId': typeof DistillationsDistillationIdRoute
   '/distillations/new': typeof DistillationsNewRoute
   '/pipelines/$pipelineId': typeof PipelinesPipelineIdRoute
@@ -251,11 +287,15 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/canvas'
+    | '/components'
+    | '/connectors'
     | '/distillations'
+    | '/local-agents'
     | '/pipelines'
     | '/plugins'
     | '/settings'
     | '/skills'
+    | '/usage'
     | '/distillations/$distillationId'
     | '/distillations/new'
     | '/pipelines/$pipelineId'
@@ -278,9 +318,13 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/canvas'
+    | '/components'
+    | '/connectors'
+    | '/local-agents'
     | '/plugins'
     | '/settings'
     | '/skills'
+    | '/usage'
     | '/distillations/$distillationId'
     | '/distillations/new'
     | '/pipelines/$pipelineId'
@@ -303,11 +347,15 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/canvas'
+    | '/components'
+    | '/connectors'
     | '/distillations'
+    | '/local-agents'
     | '/pipelines'
     | '/plugins'
     | '/settings'
     | '/skills'
+    | '/usage'
     | '/distillations/$distillationId'
     | '/distillations/new'
     | '/pipelines/$pipelineId'
@@ -331,11 +379,15 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CanvasRoute: typeof CanvasRoute
+  ComponentsRoute: typeof ComponentsRoute
+  ConnectorsRoute: typeof ConnectorsRoute
   DistillationsRoute: typeof DistillationsRouteWithChildren
+  LocalAgentsRoute: typeof LocalAgentsRoute
   PipelinesRoute: typeof PipelinesRouteWithChildren
   PluginsRoute: typeof PluginsRoute
   SettingsRoute: typeof SettingsRoute
   SkillsRoute: typeof SkillsRoute
+  UsageRoute: typeof UsageRoute
   AgentsIndexRoute: typeof AgentsIndexRoute
   RuntimesIndexRoute: typeof RuntimesIndexRoute
   RuntimesRuntimeIdEditRoute: typeof RuntimesRuntimeIdEditRoute
@@ -345,6 +397,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/usage': {
+      id: '/usage'
+      path: '/usage'
+      fullPath: '/usage'
+      preLoaderRoute: typeof UsageRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/skills': {
       id: '/skills'
       path: '/skills'
@@ -373,11 +432,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PipelinesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/local-agents': {
+      id: '/local-agents'
+      path: '/local-agents'
+      fullPath: '/local-agents'
+      preLoaderRoute: typeof LocalAgentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/distillations': {
       id: '/distillations'
       path: '/distillations'
       fullPath: '/distillations'
       preLoaderRoute: typeof DistillationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/connectors': {
+      id: '/connectors'
+      path: '/connectors'
+      fullPath: '/connectors'
+      preLoaderRoute: typeof ConnectorsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/components': {
+      id: '/components'
+      path: '/components'
+      fullPath: '/components'
+      preLoaderRoute: typeof ComponentsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/canvas': {
@@ -593,11 +673,15 @@ const PipelinesRouteWithChildren = PipelinesRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CanvasRoute: CanvasRoute,
+  ComponentsRoute: ComponentsRoute,
+  ConnectorsRoute: ConnectorsRoute,
   DistillationsRoute: DistillationsRouteWithChildren,
+  LocalAgentsRoute: LocalAgentsRoute,
   PipelinesRoute: PipelinesRouteWithChildren,
   PluginsRoute: PluginsRoute,
   SettingsRoute: SettingsRoute,
   SkillsRoute: SkillsRoute,
+  UsageRoute: UsageRoute,
   AgentsIndexRoute: AgentsIndexRoute,
   RuntimesIndexRoute: RuntimesIndexRoute,
   RuntimesRuntimeIdEditRoute: RuntimesRuntimeIdEditRoute,

@@ -155,7 +155,7 @@ export const OperationRunPanel = ({ operationId }: OperationRunPanelProps) => {
         </SheetHeader>
 
         {/* Input form */}
-        <Card className="mx-4 p-4">
+        <Card className="mx-4 p-4" variant="surface">
           <div className="space-y-3">
             <div className="space-y-1.5">
               <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">

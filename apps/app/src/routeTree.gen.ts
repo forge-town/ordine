@@ -15,13 +15,17 @@ import { Route as CanvasRouteImport } from './routes/canvas'
 import { Route as LayoutRouteImport } from './routes/_layout'
 import { Route as LayoutIndexRouteImport } from './routes/_layout/index'
 import { Route as ApiLocalSessionRouteImport } from './routes/api/local-session'
+import { Route as LayoutUsageRouteImport } from './routes/_layout/usage'
 import { Route as LayoutSkillsRouteImport } from './routes/_layout/skills'
 import { Route as LayoutSettingsRouteImport } from './routes/_layout/settings'
 import { Route as LayoutRuntimesRouteImport } from './routes/_layout/runtimes'
 import { Route as LayoutPluginsRouteImport } from './routes/_layout/plugins'
 import { Route as LayoutPipelinesRouteImport } from './routes/_layout/pipelines'
+import { Route as LayoutLocalAgentsRouteImport } from './routes/_layout/local-agents'
 import { Route as LayoutDistillationsRouteImport } from './routes/_layout/distillations'
 import { Route as LayoutDistillationStudioRouteImport } from './routes/_layout/distillation-studio'
+import { Route as LayoutConnectorsRouteImport } from './routes/_layout/connectors'
+import { Route as LayoutComponentsRouteImport } from './routes/_layout/components'
 import { Route as LayoutAssistantRouteImport } from './routes/_layout/assistant'
 import { Route as LayoutRuntimesIndexRouteImport } from './routes/_layout/runtimes.index'
 import { Route as LayoutPipelinesIndexRouteImport } from './routes/_layout/pipelines.index'
@@ -74,6 +78,11 @@ const ApiLocalSessionRoute = ApiLocalSessionRouteImport.update({
   path: '/api/local-session',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LayoutUsageRoute = LayoutUsageRouteImport.update({
+  id: '/usage',
+  path: '/usage',
+  getParentRoute: () => LayoutRoute,
+} as any)
 const LayoutSkillsRoute = LayoutSkillsRouteImport.update({
   id: '/skills',
   path: '/skills',
@@ -99,6 +108,11 @@ const LayoutPipelinesRoute = LayoutPipelinesRouteImport.update({
   path: '/pipelines',
   getParentRoute: () => LayoutRoute,
 } as any)
+const LayoutLocalAgentsRoute = LayoutLocalAgentsRouteImport.update({
+  id: '/local-agents',
+  path: '/local-agents',
+  getParentRoute: () => LayoutRoute,
+} as any)
 const LayoutDistillationsRoute = LayoutDistillationsRouteImport.update({
   id: '/distillations',
   path: '/distillations',
@@ -110,6 +124,16 @@ const LayoutDistillationStudioRoute =
     path: '/distillation-studio',
     getParentRoute: () => LayoutRoute,
   } as any)
+const LayoutConnectorsRoute = LayoutConnectorsRouteImport.update({
+  id: '/connectors',
+  path: '/connectors',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutComponentsRoute = LayoutComponentsRouteImport.update({
+  id: '/components',
+  path: '/components',
+  getParentRoute: () => LayoutRoute,
+} as any)
 const LayoutAssistantRoute = LayoutAssistantRouteImport.update({
   id: '/assistant',
   path: '/assistant',
@@ -241,13 +265,17 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/sign-up': typeof SignUpRoute
   '/assistant': typeof LayoutAssistantRoute
+  '/components': typeof LayoutComponentsRoute
+  '/connectors': typeof LayoutConnectorsRoute
   '/distillation-studio': typeof LayoutDistillationStudioRoute
   '/distillations': typeof LayoutDistillationsRouteWithChildren
+  '/local-agents': typeof LayoutLocalAgentsRoute
   '/pipelines': typeof LayoutPipelinesRouteWithChildren
   '/plugins': typeof LayoutPluginsRoute
   '/runtimes': typeof LayoutRuntimesRouteWithChildren
   '/settings': typeof LayoutSettingsRoute
   '/skills': typeof LayoutSkillsRoute
+  '/usage': typeof LayoutUsageRoute
   '/api/local-session': typeof ApiLocalSessionRoute
   '/distillations/$distillationId': typeof LayoutDistillationsDistillationIdRoute
   '/distillations/new': typeof LayoutDistillationsNewRoute
@@ -276,10 +304,14 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/sign-up': typeof SignUpRoute
   '/assistant': typeof LayoutAssistantRoute
+  '/components': typeof LayoutComponentsRoute
+  '/connectors': typeof LayoutConnectorsRoute
   '/distillation-studio': typeof LayoutDistillationStudioRoute
+  '/local-agents': typeof LayoutLocalAgentsRoute
   '/plugins': typeof LayoutPluginsRoute
   '/settings': typeof LayoutSettingsRoute
   '/skills': typeof LayoutSkillsRoute
+  '/usage': typeof LayoutUsageRoute
   '/api/local-session': typeof ApiLocalSessionRoute
   '/': typeof LayoutIndexRoute
   '/distillations/$distillationId': typeof LayoutDistillationsDistillationIdRoute
@@ -310,13 +342,17 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/sign-up': typeof SignUpRoute
   '/_layout/assistant': typeof LayoutAssistantRoute
+  '/_layout/components': typeof LayoutComponentsRoute
+  '/_layout/connectors': typeof LayoutConnectorsRoute
   '/_layout/distillation-studio': typeof LayoutDistillationStudioRoute
   '/_layout/distillations': typeof LayoutDistillationsRouteWithChildren
+  '/_layout/local-agents': typeof LayoutLocalAgentsRoute
   '/_layout/pipelines': typeof LayoutPipelinesRouteWithChildren
   '/_layout/plugins': typeof LayoutPluginsRoute
   '/_layout/runtimes': typeof LayoutRuntimesRouteWithChildren
   '/_layout/settings': typeof LayoutSettingsRoute
   '/_layout/skills': typeof LayoutSkillsRoute
+  '/_layout/usage': typeof LayoutUsageRoute
   '/api/local-session': typeof ApiLocalSessionRoute
   '/_layout/': typeof LayoutIndexRoute
   '/_layout/distillations/$distillationId': typeof LayoutDistillationsDistillationIdRoute
@@ -349,13 +385,17 @@ export interface FileRouteTypes {
     | '/login'
     | '/sign-up'
     | '/assistant'
+    | '/components'
+    | '/connectors'
     | '/distillation-studio'
     | '/distillations'
+    | '/local-agents'
     | '/pipelines'
     | '/plugins'
     | '/runtimes'
     | '/settings'
     | '/skills'
+    | '/usage'
     | '/api/local-session'
     | '/distillations/$distillationId'
     | '/distillations/new'
@@ -384,10 +424,14 @@ export interface FileRouteTypes {
     | '/login'
     | '/sign-up'
     | '/assistant'
+    | '/components'
+    | '/connectors'
     | '/distillation-studio'
+    | '/local-agents'
     | '/plugins'
     | '/settings'
     | '/skills'
+    | '/usage'
     | '/api/local-session'
     | '/'
     | '/distillations/$distillationId'
@@ -417,13 +461,17 @@ export interface FileRouteTypes {
     | '/login'
     | '/sign-up'
     | '/_layout/assistant'
+    | '/_layout/components'
+    | '/_layout/connectors'
     | '/_layout/distillation-studio'
     | '/_layout/distillations'
+    | '/_layout/local-agents'
     | '/_layout/pipelines'
     | '/_layout/plugins'
     | '/_layout/runtimes'
     | '/_layout/settings'
     | '/_layout/skills'
+    | '/_layout/usage'
     | '/api/local-session'
     | '/_layout/'
     | '/_layout/distillations/$distillationId'
@@ -503,6 +551,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiLocalSessionRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_layout/usage': {
+      id: '/_layout/usage'
+      path: '/usage'
+      fullPath: '/usage'
+      preLoaderRoute: typeof LayoutUsageRouteImport
+      parentRoute: typeof LayoutRoute
+    }
     '/_layout/skills': {
       id: '/_layout/skills'
       path: '/skills'
@@ -538,6 +593,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutPipelinesRouteImport
       parentRoute: typeof LayoutRoute
     }
+    '/_layout/local-agents': {
+      id: '/_layout/local-agents'
+      path: '/local-agents'
+      fullPath: '/local-agents'
+      preLoaderRoute: typeof LayoutLocalAgentsRouteImport
+      parentRoute: typeof LayoutRoute
+    }
     '/_layout/distillations': {
       id: '/_layout/distillations'
       path: '/distillations'
@@ -550,6 +612,20 @@ declare module '@tanstack/react-router' {
       path: '/distillation-studio'
       fullPath: '/distillation-studio'
       preLoaderRoute: typeof LayoutDistillationStudioRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/connectors': {
+      id: '/_layout/connectors'
+      path: '/connectors'
+      fullPath: '/connectors'
+      preLoaderRoute: typeof LayoutConnectorsRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/components': {
+      id: '/_layout/components'
+      path: '/components'
+      fullPath: '/components'
+      preLoaderRoute: typeof LayoutComponentsRouteImport
       parentRoute: typeof LayoutRoute
     }
     '/_layout/assistant': {
@@ -787,13 +863,17 @@ const LayoutRuntimesRouteWithChildren = LayoutRuntimesRoute._addFileChildren(
 
 interface LayoutRouteChildren {
   LayoutAssistantRoute: typeof LayoutAssistantRoute
+  LayoutComponentsRoute: typeof LayoutComponentsRoute
+  LayoutConnectorsRoute: typeof LayoutConnectorsRoute
   LayoutDistillationStudioRoute: typeof LayoutDistillationStudioRoute
   LayoutDistillationsRoute: typeof LayoutDistillationsRouteWithChildren
+  LayoutLocalAgentsRoute: typeof LayoutLocalAgentsRoute
   LayoutPipelinesRoute: typeof LayoutPipelinesRouteWithChildren
   LayoutPluginsRoute: typeof LayoutPluginsRoute
   LayoutRuntimesRoute: typeof LayoutRuntimesRouteWithChildren
   LayoutSettingsRoute: typeof LayoutSettingsRoute
   LayoutSkillsRoute: typeof LayoutSkillsRoute
+  LayoutUsageRoute: typeof LayoutUsageRoute
   LayoutIndexRoute: typeof LayoutIndexRoute
   LayoutAgentsIndexRoute: typeof LayoutAgentsIndexRoute
   LayoutAgentsAgentIdIndexRoute: typeof LayoutAgentsAgentIdIndexRoute
@@ -801,13 +881,17 @@ interface LayoutRouteChildren {
 
 const LayoutRouteChildren: LayoutRouteChildren = {
   LayoutAssistantRoute: LayoutAssistantRoute,
+  LayoutComponentsRoute: LayoutComponentsRoute,
+  LayoutConnectorsRoute: LayoutConnectorsRoute,
   LayoutDistillationStudioRoute: LayoutDistillationStudioRoute,
   LayoutDistillationsRoute: LayoutDistillationsRouteWithChildren,
+  LayoutLocalAgentsRoute: LayoutLocalAgentsRoute,
   LayoutPipelinesRoute: LayoutPipelinesRouteWithChildren,
   LayoutPluginsRoute: LayoutPluginsRoute,
   LayoutRuntimesRoute: LayoutRuntimesRouteWithChildren,
   LayoutSettingsRoute: LayoutSettingsRoute,
   LayoutSkillsRoute: LayoutSkillsRoute,
+  LayoutUsageRoute: LayoutUsageRoute,
   LayoutIndexRoute: LayoutIndexRoute,
   LayoutAgentsIndexRoute: LayoutAgentsIndexRoute,
   LayoutAgentsAgentIdIndexRoute: LayoutAgentsAgentIdIndexRoute,

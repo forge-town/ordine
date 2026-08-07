@@ -42,6 +42,7 @@
     "dashboard": "Dashboard",
     "canvas": "Canvas",
     "pipelines": "Pipelines",
+    "components": "Components",
     "jobs": "Jobs",
     "distillations": "Distillations",
     "projects": "Projects",
@@ -84,6 +85,70 @@
       "pipelines": "Pipelines",
       "skills": "Skills",
       "usage": "Usage"
+    }
+  },
+  "connectors": {
+    "title": "Connectors",
+    "subtitle": "External tools, APIs, repositories, and data sources available to agents.",
+    "add": "Add connector",
+    "manage": "Manage",
+    "test": "Test",
+    "testSuccess": "Connection test completed successfully.",
+    "method": "Method",
+    "transport": "Transport",
+    "command": "Command",
+    "args": "Arguments",
+    "scopes": "Scopes",
+    "noScopes": "No scopes requested",
+    "viaMcp": "Handshake via MCP server",
+    "noHandshake": "Managed by the workspace",
+    "empty": "No connectors found",
+    "emptyHint": "Add one to expose tools and external systems to local agents.",
+    "filters": {
+      "all": "All",
+      "connected": "Connected",
+      "needs_setup": "Needs setup",
+      "mcp": "via MCP"
+    },
+    "status": { "connected": "Connected", "needs_setup": "Needs setup", "error": "Error" }
+  },
+  "localAgents": {
+    "title": "Local Agents",
+    "subtitle": "Workers detected on this machine that Agent Bar can assemble into an executor.",
+    "rescan": "Re-scan",
+    "scanning": "Scanning...",
+    "configure": "Configure",
+    "assembled": "assembled per operation",
+    "empty": "No local agents detected",
+    "emptyHint": "Re-scan this machine to sync available agent runtimes.",
+    "detected": "Auto-detected {{count}} of {{total}} agent runtimes on localhost."
+  },
+  "usage": {
+    "title": "Usage",
+    "subtitle": "Token volume across this project, broken down by run, pipeline, and local agent.",
+    "totalTokens": "Total tokens",
+    "runs": "Runs",
+    "avgTokens": "Average / run",
+    "activeAgents": "Active agents",
+    "completedRuns": "Normalized by recorded runs",
+    "runtimeExports": "From runtime exports",
+    "tokenTrend": "Token trend",
+    "tokens": "tokens",
+    "peak": "peak {{value}}",
+    "byPipeline": "By pipeline",
+    "byAgent": "By Local Agent",
+    "unassigned": "Unassigned",
+    "empty": "No usage data in this range.",
+    "agentHint": "Agent rows are grouped from recorded runtime exports. Local capacity is measured in tokens only.",
+    "runsValue": "{{count}} runs",
+    "runsShort": "{{count}} runs",
+    "pipelinesValue": "{{count}} pipelines",
+    "ranges": {
+      "today": "Today",
+      "week": "This week",
+      "month": "This month",
+      "quarter": "This quarter",
+      "all": "All time"
     }
   },
   "plugins": {
@@ -133,6 +198,7 @@
     "quickActionBestPracticesSub": "View coding standards"
   },
   "jobs": {
+    "eyebrow": "Monitor",
     "title": "Jobs",
     "running": "Running",
     "queued": "Queued",
@@ -186,6 +252,7 @@
       "showAll": "Show all ({{count}} chars)"
     },
     "calendar": {
+      "condensed": "High-frequency schedules are condensed to one block per hour.",
       "live": "live",
       "nextWeek": "Next week",
       "noEventRoutines": "no event-triggered routines",
@@ -204,14 +271,24 @@
       "openCanvas": "Open pipeline on canvas",
       "runtime_one": "Runtime · {{count}} step",
       "runtime_other": "Runtime · {{count}} steps",
+      "title": "Job details",
       "trace": "Trace"
     },
     "emptyBody": "Launch a run or adjust the current filters.",
     "emptyTitle": "No jobs yet",
     "hasRoutine": "has routine",
+    "closePipelinePicker": "Close pipeline picker",
+    "filters": {
+      "all": "All",
+      "completed": "Completed",
+      "failed": "Failed",
+      "running": "Running",
+      "waiting": "Waiting"
+    },
     "newRoutine": "New Routine",
     "newRun": "New Run",
     "noMatchTitle": "No matching jobs",
+    "noPipelines": "No pipelines yet",
     "pickPipeline": "Schedule which pipeline?",
     "scheduleEditor": {
       "cancel": "Cancel",
@@ -277,13 +354,18 @@
         "review": "Review"
       },
       "byRoutine": "routine",
+      "nextPage": "Next page",
+      "page": "Page {{current}} of {{total}}",
+      "previousPage": "Previous page",
+      "sortBy": "Sort by {{column}}",
       "headers": {
         "actions": "Actions",
         "cost": "Cost",
         "duration": "Duration",
         "job": "Job",
         "started": "Started",
-        "status": "Status"
+        "status": "Status",
+        "tokens": "Tokens"
       }
     },
     "views": {
@@ -358,6 +440,7 @@
   },
   "operations": {
     "title": "Operations",
+    "subtitle": "Executable capabilities that pipelines and agents can reuse.",
     "createNew": "New Operation",
     "noOperations": "No operations yet",
     "searchPlaceholder": "Search operations...",
@@ -446,6 +529,7 @@
   },
   "pipelines": {
     "title": "Pipelines",
+    "subtitle": "Reusable production lines that turn reliable runs into repeatable Pipeline Skills.",
     "createNew": "New Pipeline",
     "noPipelines": "No pipelines yet",
     "noNodes": "No nodes",
@@ -669,6 +753,8 @@
     "zoomIn": "Zoom in",
     "zoomOut": "Zoom out",
     "fitView": "Fit view",
+    "selectTool": "Select",
+    "handTool": "Pan canvas",
     "interactivity": "Canvas interactions",
     "enableInteractivity": "Enable canvas interactions",
     "disableInteractivity": "Disable canvas interactions",
@@ -693,6 +779,8 @@
       "error": "Request failed. Please try again later.",
       "errorTitle": "AI Assistant Error",
       "close": "Close AI assistant",
+      "resize": "Resize AI assistant",
+      "reopen": "Open AI assistant",
       "send": "Send request",
       "upload": "Upload context",
       "revise": "Revise plan",
@@ -1070,6 +1158,22 @@
     "refineTrpc": "Refine tRPC Standards",
     "refineTrpcDesc": "Access data in React components through Refine hooks via DataProvider, no direct tRPC calls.",
     "title": "Skills",
+    "subtitle": "Reusable instructions with visible inputs, outputs, provenance, and powered operations.",
+    "createSkill": "Create skill",
+    "search": "Search skills...",
+    "importPath": "Path to a Codex or Claude Code skills folder",
+    "previewImport": "Preview import",
+    "scanning": "Scanning...",
+    "importing": "Importing...",
+    "importSelected": "Import {{count}}",
+    "owned": "Owned",
+    "selected": "Selected",
+    "skipped": "Skipped",
+    "label": "Label",
+    "descriptionPlaceholder": "What this skill does",
+    "powers": "powers {{operation}}",
+    "createFrom": "Create operation from {{name}}",
+    "deleteSkill": "Delete {{name}}",
     "noSkills": "No skills found",
     "createOperation": "Create Operation",
     "createOperation.dialogTitle": "Create Operation from Skill",
@@ -1103,6 +1207,7 @@
   },
   "settings": {
     "title": "Settings",
+    "subtitle": "Configure workspace defaults, autonomy, notifications, and local development.",
     "language": "Language",
     "selectLanguage": "Select language",
     "timezone": "Timezone",
@@ -1211,15 +1316,15 @@
       "description": "Storage, data version, and maintenance facts for this machine.",
       "rows": {
         "dataDirectory": {
-          "hint": "All local pipelines, runs, and conversations live here.",
+          "hint": "Environment variable that configures the local database directory.",
           "label": "Data directory"
         },
         "localMode": {
-          "hint": "Start flag that bypasses login for local development.",
+          "hint": "Development-only flag that can bypass login in local mode.",
           "label": "Local mode"
         },
         "schemaVersion": {
-          "hint": "Latest applied local database migration.",
+          "hint": "Database migrations are applied automatically when local storage starts.",
           "label": "Schema version"
         }
       },
@@ -1742,7 +1847,7 @@
       },
       "run": {
         "approveContinue": "Approve & continue",
-        "checkpointBody": "This step is marked as a checkpoint. Approve to let the run continue, or edit the step before resuming.",
+        "checkpointBody": "This step is marked as a checkpoint. Approve to let the run continue, or cancel the run.",
         "checkpointNext": "The run is holding until you decide.",
         "checkpointSubtitle": "Paused after {{node}} · the run is holding",
         "checkpointTitle": "Checkpoint · review before continuing",
@@ -1750,7 +1855,6 @@
         "cancelled": "Run cancelled",
         "consoleTitle": "Run console",
         "dismiss": "Dismiss",
-        "editStep": "Edit step",
         "lines_one": "{{count}} line",
         "lines_other": "{{count}} lines",
         "notifications": {
@@ -1958,6 +2062,7 @@
   },
   "agents": {
     "title": "Agents",
+    "subtitle": "Configure the agents that plan and coordinate work across this workspace.",
     "noAgents": "No agents found",
     "searchPlaceholder": "Search agents...",
     "capabilities": "Capabilities",
@@ -1994,14 +2099,107 @@
     "title": "Notifications"
   },
   "components": {
+    "title": "Components",
+    "subtitle": "Your reusable building blocks. Ordine reuses these before creating anything new.",
+    "newComponent": "New Component",
+    "newOperation": "New Operation",
+    "distillSkill": "Distill Pipeline Skill",
+    "searchLabel": "Search components",
+    "searchPlaceholder": "Search components...",
+    "categories": {
+      "all": "All",
+      "input": "Input Objects",
+      "operation": "Operations",
+      "output": "Output",
+      "pipeline-skill": "Pipeline Skill"
+    },
+    "sources": {
+      "asset": "asset",
+      "builtin": "built-in",
+      "operation": "operation"
+    },
+    "actions": {
+      "editNamed": "Edit {{name}}",
+      "deleteNamed": "Delete {{name}}"
+    },
+    "stats": {
+      "builtin": "Available on every canvas",
+      "accepts_one": "Accepts {{count}} input type",
+      "accepts_other": "Accepts {{count}} input types",
+      "inputs": "inputs",
+      "nodes_one": "{{count}} node",
+      "nodes_other": "{{count}} nodes",
+      "runs_one": "Ran {{count}} time",
+      "runs_other": "Ran {{count}} times"
+    },
+    "builtins": {
+      "folder": {
+        "name": "Folder",
+        "description": "Bind a local folder as a reusable input source."
+      },
+      "file": {
+        "name": "File",
+        "description": "Read one local file into a pipeline."
+      },
+      "githubProject": {
+        "name": "GitHub Project",
+        "description": "Use a connected repository as pipeline input."
+      },
+      "prompt": {
+        "name": "Prompt",
+        "description": "Provide reusable text instructions or structured input."
+      },
+      "localPath": {
+        "name": "Local Path",
+        "description": "Write pipeline artifacts to a local destination."
+      },
+      "projectPath": {
+        "name": "Project Path",
+        "description": "Write artifacts back into the active project."
+      }
+    },
+    "fallbacks": {
+      "operationDescription": "Reusable operation for agent or script work.",
+      "assetDescription": "Reusable pipeline distilled from a successful run."
+    },
+    "meta": {
+      "agentOperation": "agent operation",
+      "scriptOperation": "script operation"
+    },
+    "empty": {
+      "title": "No matching components",
+      "description": "Try another category or search term."
+    },
+    "editor": {
+      "title": "Component Editor",
+      "description": "Edit the reusable pipeline skill and inspect its saved snapshot.",
+      "usageNotice_one": "This skill has run {{count}} time. Existing pipelines keep their saved copy until it is applied again.",
+      "usageNotice_other": "This skill has run {{count}} times. Existing pipelines keep their saved copy until it is applied again.",
+      "name": "Name",
+      "descriptionLabel": "Description",
+      "saveError": "The component could not be saved. Try again.",
+      "snapshot": "Source snapshot",
+      "snapshotHint": "Saved when this skill was distilled",
+      "nodes": "Nodes",
+      "inputs": "Inputs",
+      "noTags": "No tags"
+    },
+    "delete": {
+      "title": "Delete \"{{name}}\"?",
+      "description": "This component will be removed from the library. This action cannot be undone.",
+      "assetDescription_one": "This component is referenced by {{count}} pipeline. Existing pipelines keep their saved copy.",
+      "assetDescription_other": "This component is referenced by {{count}} pipelines. Existing pipelines keep their saved copy."
+    },
     "findForMe": {
-      "assetFallback": "Reusable pipeline asset",
-      "close": "Close",
-      "empty": "Nothing distilled yet — run a pipeline to grow the library.",
-      "intro": "Most reusable assets, ranked by how often they ran:",
-      "ranking": "Ranking by reuse and relevance",
-      "searching": "Searching your library…",
-      "subtitle": "The Agent scans your component library",
+      "empty": "No existing operation matches this request yet.",
+      "error": "The Agent could not search the library. Check your runtime settings and try again.",
+      "intro": "Recommended operations from your library:",
+      "promptLabel": "Describe the work you need",
+      "promptPlaceholder": "For example: review a repository, run its tests, and summarize the risks",
+      "requestName": "Component recommendation",
+      "search": "Find matching components",
+      "searching": "Analyzing your request...",
+      "subtitle": "Describe the work. The Agent will match it against your real operation library.",
       "title": "Find for me",
       "usedTimes_one": "ran {{count}}×",
       "usedTimes_other": "ran {{count}}×"

@@ -130,6 +130,17 @@ describe("desktop dataProvider", () => {
       request: ["http://desktop.test/api/routines/routine-1/run-now", "POST"],
     },
     {
+      endpoint: "routines/occurrences",
+      payload: {
+        from: "2026-08-03T00:00:00.000Z",
+        to: "2026-08-10T00:00:00.000Z",
+      },
+      request: [
+        "http://desktop.test/api/routines/occurrences?from=2026-08-03T00%3A00%3A00.000Z&to=2026-08-10T00%3A00%3A00.000Z",
+        "GET",
+      ],
+    },
+    {
       endpoint: "usage/summary",
       payload: { from: "2026-08-01", to: "2026-08-04" },
       request: ["http://desktop.test/api/usage/summary?from=2026-08-01&to=2026-08-04", "GET"],
@@ -160,6 +171,21 @@ describe("desktop dataProvider", () => {
       endpoint: "jobs/agentRunSpans",
       payload: { jobId: "job-1", rawExportId: 42 },
       request: ["http://desktop.test/api/jobs/job-1/agent-runs/42/spans", "GET"],
+    },
+    {
+      endpoint: "jobs/pause",
+      payload: { jobId: "job-1" },
+      request: ["http://desktop.test/api/jobs/job-1/pause", "POST"],
+    },
+    {
+      endpoint: "jobs/resume",
+      payload: { jobId: "job-1" },
+      request: ["http://desktop.test/api/jobs/job-1/resume", "POST"],
+    },
+    {
+      endpoint: "jobs/cancel",
+      payload: { jobId: "job-1" },
+      request: ["http://desktop.test/api/jobs/job-1/cancel", "POST"],
     },
     {
       endpoint: "distillations/run",

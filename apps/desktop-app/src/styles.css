@@ -154,7 +154,7 @@
   }
 
   .status-wash-muted {
-    color: var(--muted-foreground);
+    color: color-mix(in oklab, var(--foreground) 68%, transparent);
     background-color: var(--muted);
   }
 }

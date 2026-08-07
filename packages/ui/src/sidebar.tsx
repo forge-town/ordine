@@ -18,10 +18,9 @@ import { PanelLeftIcon } from "lucide-react";
 const SIDEBAR_COOKIE_NAME = "sidebar_state";
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
 const SIDEBAR_DEFAULT_WIDTH = 256;
-const SIDEBAR_MIN_WIDTH = 208;
+const SIDEBAR_MIN_WIDTH = 48;
 const SIDEBAR_MAX_WIDTH = 384;
-const SIDEBAR_COLLAPSE_THRESHOLD = 112;
-const SIDEBAR_REOPEN_HYSTERESIS = 16;
+const SIDEBAR_AUTO_COLLAPSE_WIDTH = 64;
 const SIDEBAR_WIDTH_MOBILE = "18rem";
 const SIDEBAR_WIDTH_ICON = "3rem";
 const SIDEBAR_WIDTH_ICON_PX = 48;
@@ -42,7 +41,6 @@ type SidebarContextProps = {
   width: number;
   minWidth: number;
   maxWidth: number;
-  collapseThreshold: number;
   isResizing: boolean;
   setIsResizing: (isResizing: boolean) => void;
   setLiveWidth: (width: number) => number;
@@ -67,7 +65,6 @@ function SidebarProvider({
   defaultWidth = SIDEBAR_DEFAULT_WIDTH,
   minWidth = SIDEBAR_MIN_WIDTH,
   maxWidth = SIDEBAR_MAX_WIDTH,
-  collapseThreshold = SIDEBAR_COLLAPSE_THRESHOLD,
   widthStorageKey,
   className,
   style,
@@ -80,7 +77,6 @@ function SidebarProvider({
   defaultWidth?: number;
   minWidth?: number;
   maxWidth?: number;
-  collapseThreshold?: number;
   widthStorageKey?: string;
 }) {
   const isMobile = useIsMobile();
@@ -88,7 +84,6 @@ function SidebarProvider({
   const resolvedMinWidth = Math.min(minWidth, maxWidth);
   const resolvedMaxWidth = Math.max(minWidth, maxWidth);
   const resolvedDefaultWidth = clampSidebarWidth(defaultWidth, resolvedMinWidth, resolvedMaxWidth);
-  const resolvedCollapseThreshold = Math.min(collapseThreshold, resolvedMinWidth);
   const wrapperRef = React.useRef<HTMLDivElement>(null);
   const [width, setWidth] = React.useState(resolvedDefaultWidth);
   const [isResizing, setIsResizing] = React.useState(false);
@@ -190,7 +185,6 @@ function SidebarProvider({
       width,
       minWidth: resolvedMinWidth,
       maxWidth: resolvedMaxWidth,
-      collapseThreshold: resolvedCollapseThreshold,
       isResizing,
       setIsResizing,
       setLiveWidth,
@@ -207,7 +201,6 @@ function SidebarProvider({
       width,
       resolvedMinWidth,
       resolvedMaxWidth,
-      resolvedCollapseThreshold,
       isResizing,
       setLiveWidth,
       commitWidth,
@@ -389,7 +382,6 @@ function SidebarRail({
     width,
     minWidth,
     maxWidth,
-    collapseThreshold,
     isResizing,
     setIsResizing,
     setLiveWidth,
@@ -401,7 +393,7 @@ function SidebarRail({
     startWidth: number;
     liveWidth: number;
     initialOpen: boolean;
-    open: boolean;
+    autoCollapsed: boolean;
     moved: boolean;
   } | null>(null);
   const suppressClickRef = React.useRef(false);
@@ -439,7 +431,7 @@ function SidebarRail({
       startWidth,
       liveWidth: startWidth,
       initialOpen: open,
-      open,
+      autoCollapsed: false,
       moved: false,
     };
     suppressClickRef.current = false;
@@ -459,14 +451,14 @@ function SidebarRail({
 
     dragState.moved = true;
     dragState.liveWidth = setLiveWidth(dragState.startWidth + widthDelta);
-    if (dragState.open && dragState.liveWidth <= collapseThreshold) {
-      dragState.open = false;
-      setOpen(false);
-    } else if (
-      !dragState.open &&
-      dragState.liveWidth >= collapseThreshold + SIDEBAR_REOPEN_HYSTERESIS
+    if (
+      dragState.initialOpen &&
+      !dragState.autoCollapsed &&
+      dragState.liveWidth <= SIDEBAR_AUTO_COLLAPSE_WIDTH
     ) {
-      dragState.open = true;
+      dragState.autoCollapsed = true;
+      setOpen(false);
+    } else if (!dragState.initialOpen && dragState.liveWidth > SIDEBAR_AUTO_COLLAPSE_WIDTH) {
       setOpen(true);
     }
   };
@@ -491,11 +483,7 @@ function SidebarRail({
       suppressClickRef.current = false;
     }, 0);
 
-    if (
-      !dragState.open ||
-      dragState.liveWidth <= collapseThreshold ||
-      (dragState.initialOpen && dragState.liveWidth < minWidth)
-    ) {
+    if (dragState.autoCollapsed) {
       setOpen(false);
       setLiveWidth(width);
 

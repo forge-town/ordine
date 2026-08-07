@@ -8,11 +8,13 @@ import type {
 import type { CanvasPageStoreSlice } from "./canvasPageStore";
 import { DEFAULT_CANVAS_VIEWPORT } from "../utils/canvasViewport";
 
-export type SidebarPanel = "components" | "properties" | "ai-assistant" | null;
+export type SidebarPanel = "components" | "properties" | null;
 
 export type CanvasComponentCategory = "input" | "operations" | "skills" | "output";
 
 export type NodeCardMode = "compact" | "expanded";
+
+export type CanvasTool = "hand" | "select";
 
 export interface ContextMenuState {
   screenX: number;
@@ -51,8 +53,15 @@ export const DEFAULT_WORKSPACE_PANEL_WIDTH = 352;
 export const MIN_WORKSPACE_PANEL_WIDTH = 288;
 export const MAX_WORKSPACE_PANEL_WIDTH = 560;
 
+export const DEFAULT_AGENT_PANEL_WIDTH = 360;
+export const MIN_AGENT_PANEL_WIDTH = 300;
+export const MAX_AGENT_PANEL_WIDTH = 520;
+
 export const clampWorkspacePanelWidth = (width: number) =>
   Math.min(MAX_WORKSPACE_PANEL_WIDTH, Math.max(MIN_WORKSPACE_PANEL_WIDTH, width));
+
+export const clampAgentPanelWidth = (width: number) =>
+  Math.min(MAX_AGENT_PANEL_WIDTH, Math.max(MIN_AGENT_PANEL_WIDTH, width));
 
 export interface AgentPanelState {
   isOpen: boolean;
@@ -87,6 +96,7 @@ export interface UISlice {
   quickAddQuery: string;
   isConsoleCollapsed: boolean;
   isCanvasInteractive: boolean;
+  canvasTool: CanvasTool;
 
   // Pipeline test run state
   isTestRunning: boolean;
@@ -98,6 +108,7 @@ export interface UISlice {
 
   // Agent panel state
   agentPanel: AgentPanelState;
+  agentPanelWidth: number;
 
   // Operation node UI state
   operationAgentDropdownNodeId: string | null;
@@ -131,6 +142,7 @@ export interface UISlice {
   handleQuickAddInputChange: (event: ChangeEvent<HTMLInputElement>) => void;
   handleToggleConsoleCollapse: () => void;
   handleToggleCanvasInteractive: () => void;
+  setCanvasTool: (tool: CanvasTool) => void;
   handleQuickAddKeyDown: (event: React.KeyboardEvent) => void;
   handleConnectStart: (state: ConnectStartState | null) => void;
   handlePipelineNameChange: (event: ChangeEvent<HTMLInputElement>) => void;
@@ -153,6 +165,7 @@ export interface UISlice {
   markNodeFailed: (nodeId: string) => void;
 
   // Agent panel actions
+  setAgentPanelWidth: (width: number) => void;
   toggleAgentPanel: () => void;
   setPendingProposal: (
     proposal: PipelineActionProposal | null,
@@ -200,6 +213,7 @@ export const createUISlice = (
   quickAddQuery: "",
   isConsoleCollapsed: false,
   isCanvasInteractive: true,
+  canvasTool: "hand",
   // Pipeline test run state defaults
   isTestRunning: false,
   isRunning: false,
@@ -213,6 +227,7 @@ export const createUISlice = (
     diagnostics: null,
     isLoading: false,
   },
+  agentPanelWidth: DEFAULT_AGENT_PANEL_WIDTH,
   operationAgentDropdownNodeId: null,
   handlePipelineIdChange: (id) => {
     set({ pipelineId: id });
@@ -357,6 +372,10 @@ export const createUISlice = (
     set((state) => ({ isCanvasInteractive: !state.isCanvasInteractive }));
   },
 
+  setCanvasTool: (canvasTool) => {
+    set({ canvasTool });
+  },
+
   handleQuickAddKeyDown: (event) => {
     if (event.key === "Escape") {
       set({ isQuickAddOpen: false, quickAddQuery: "" });
@@ -470,9 +489,12 @@ export const createUISlice = (
     }));
   },
 
+  setAgentPanelWidth: (width) => {
+    set({ agentPanelWidth: clampAgentPanelWidth(width) });
+  },
+
   toggleAgentPanel: () => {
     set((state) => ({
-      sidebarPanel: state.agentPanel.isOpen ? null : "ai-assistant",
       agentPanel: {
         ...state.agentPanel,
         isOpen: !state.agentPanel.isOpen,

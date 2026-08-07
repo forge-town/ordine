@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { execFileSync } from "node:child_process";
-import { getNextCronRunAt, isValidCronExpression } from "./cron";
+import { getCronOccurrenceBuckets, getNextCronRunAt, isValidCronExpression } from "./cron";
 
 // 实现按本地时间匹配 cron 字段,以下断言隐含"本地时区 = UTC"的前提;
 // 在 UTC+N 宿主机上会整体偏移,这里显式钉住(TZ 在首次 Date 调用前设置即生效)。
@@ -159,6 +159,43 @@ describe("getNextCronRunAt", () => {
       next: "2026-03-09T06:30:00.000Z",
       after: true,
     });
+  });
+});
+
+describe("getCronOccurrenceBuckets", () => {
+  it("skips an occurrence before a non-minute-aligned range start", () => {
+    const buckets = getCronOccurrenceBuckets(
+      "* * * * *",
+      new Date("2026-06-10T00:00:30.000Z"),
+      new Date("2026-06-10T00:02:00.000Z"),
+    );
+
+    expect(buckets.map((bucket) => bucket.at.toISOString())).toEqual(["2026-06-10T00:01:00.000Z"]);
+  });
+
+  it("keeps minute-level schedules to one representative per hour", () => {
+    const buckets = getCronOccurrenceBuckets(
+      "* * * * *",
+      new Date("2026-06-10T00:00:00.000Z"),
+      new Date("2026-06-11T00:00:00.000Z"),
+    );
+
+    expect(buckets).toHaveLength(24);
+    expect(buckets.every((bucket) => bucket.aggregated)).toBe(true);
+  });
+
+  it("keeps sparse schedules exact and respects the range", () => {
+    const buckets = getCronOccurrenceBuckets(
+      "0 9 * * *",
+      new Date("2026-06-10T00:00:00.000Z"),
+      new Date("2026-06-12T00:00:00.000Z"),
+    );
+
+    expect(buckets.map((bucket) => bucket.at.toISOString())).toEqual([
+      "2026-06-10T09:00:00.000Z",
+      "2026-06-11T09:00:00.000Z",
+    ]);
+    expect(buckets.every((bucket) => !bucket.aggregated)).toBe(true);
   });
 });
 

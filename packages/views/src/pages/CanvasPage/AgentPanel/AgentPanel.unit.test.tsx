@@ -227,7 +227,7 @@ describe("AgentPanel", () => {
     expect(screen.getByText("canvas.agentPanel.welcome")).toBeInTheDocument();
     expect(screen.getByText("canvas.agentPanel.runtimeLabel")).toBeInTheDocument();
     expect(screen.getByTestId("canvas-agent-panel")).toHaveClass("bg-surface");
-    expect(screen.getByTestId("canvas-agent-panel")).toHaveClass("w-[min(22.5rem,100%)]");
+    expect(screen.getByTestId("canvas-agent-panel")).toHaveClass("h-full", "w-full");
     expect(screen.getByTestId("canvas-agent-panel-header")).toBeInTheDocument();
     expect(screen.getByTestId("canvas-agent-panel-status-dot")).toHaveClass("bg-success");
     expect(screen.getByTestId("canvas-agent-panel-collapse")).toBeInTheDocument();
@@ -325,7 +325,7 @@ describe("AgentPanel", () => {
     fireEvent.keyDown(input, { key: "Enter" });
     fireEvent.keyDown(input, { key: "Enter" });
 
-    expect(mockGetList).toHaveBeenCalledTimes(2);
+    await waitFor(() => expect(mockGetList).toHaveBeenCalledTimes(2));
     resolveRuntimeOptions({
       data: [
         {
