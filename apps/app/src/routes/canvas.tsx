@@ -5,6 +5,7 @@ import { z } from "zod/v4";
 import type { PipelineData } from "@repo/schemas";
 import { CanvasPage } from "@repo/views/CanvasPage";
 import { PageLoadingState } from "@repo/views/PageLoadingState";
+import { NotificationStoreProvider } from "@repo/views/store/notificationStore";
 import { ToastContainer } from "@/components/ToastContainer";
 import { CanvasRoot } from "@/pages/WorkspacePage/canvas";
 import { ResourceName } from "@/integrations/refine/dataProvider";
@@ -61,12 +62,14 @@ const CanvasRouteComponent = () => {
   }
 
   return (
-    <ToastStoreProvider>
-      <div className="fixed inset-0 h-screen w-screen overflow-hidden">
-        <CanvasRoot pipeline={pipeline} />
-        <ToastContainer />
-      </div>
-    </ToastStoreProvider>
+    <NotificationStoreProvider>
+      <ToastStoreProvider>
+        <div className="fixed inset-0 h-screen w-screen overflow-hidden">
+          <CanvasRoot pipeline={pipeline} />
+          <ToastContainer />
+        </div>
+      </ToastStoreProvider>
+    </NotificationStoreProvider>
   );
 };
 

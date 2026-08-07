@@ -244,7 +244,8 @@ export const CanvasFlow = () => {
     openEdgeInspector(edge.id);
   };
 
-  const handleNodeClick: NodeMouseHandler<CanvasNode> = (_event, node) => selectNode(node.id);
+  const handleNodeClick: NodeMouseHandler<CanvasNode> = (event, node) =>
+    selectNode(node.id, event.shiftKey || event.metaKey ? "toggle" : "replace");
 
   const handlePaneClick = () => setSelectedIds([]);
 
@@ -334,7 +335,6 @@ export const CanvasFlow = () => {
       onDrop={handleDrop}
     >
       <ReactFlow<CanvasNode, CanvasEdge>
-        panOnScroll={false}
         zoomOnPinch
         zoomOnScroll
         className="bg-transparent"
@@ -351,6 +351,7 @@ export const CanvasFlow = () => {
         nodesDraggable={!isPreviewing}
         nodeTypes={nodeTypes}
         panOnDrag={canvasTool === "hand" ? true : [1, 2]}
+        panOnScroll={false}
         proOptions={proOptions}
         selectionOnDrag={canvasTool === "select"}
         onConnect={handleFlowConnect}

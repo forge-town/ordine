@@ -9,6 +9,9 @@ import { NodeConfig } from "./panels/NodeConfig";
 import { CanvasFlow } from "./flow";
 import { CanvasToolbar, ComponentPanel, TopPill } from "./chrome";
 import { CanvasEmptyState } from "./CanvasEmptyState";
+import { AskComposer } from "./ask";
+import { ComposeBar, DrillHint } from "./compose";
+import { CheckpointDialog, RunConsole, RunPoller } from "./run";
 
 export type CanvasRootProps = {
   pipeline: Pick<PipelineData, "edges" | "id" | "name" | "nodes" | "version">;
@@ -35,8 +38,14 @@ export const CanvasRoot = ({ pipeline }: CanvasRootProps) => {
           />
           <CanvasToolbar />
           <ComponentPanel />
+          <ComposeBar pipelineId={pipeline.id} />
+          <DrillHint />
           <EdgeInspector pipelineId={pipeline.id} />
           <NodeConfig pipelineId={pipeline.id} />
+          <RunPoller />
+          <RunConsole />
+          <CheckpointDialog />
+          <AskComposer pipelineId={pipeline.id} pipelineName={pipeline.name} />
           <CanvasEmptyState />
         </div>
       </CanvasStoreProvider>

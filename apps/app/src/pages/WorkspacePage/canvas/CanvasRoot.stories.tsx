@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import type { PipelineData } from "@repo/schemas";
+import { NotificationStoreProvider } from "@repo/views/store/notificationStore";
 import { CanvasRoot } from "./CanvasRoot";
 
 const emptyPipeline = {
@@ -20,9 +21,11 @@ const meta: Meta<typeof CanvasRoot> = {
   component: CanvasRoot,
   decorators: [
     (Story) => (
-      <div className="h-[620px] w-full bg-background">
-        <Story />
-      </div>
+      <NotificationStoreProvider>
+        <div className="h-[620px] w-full bg-background">
+          <Story />
+        </div>
+      </NotificationStoreProvider>
     ),
   ],
 };

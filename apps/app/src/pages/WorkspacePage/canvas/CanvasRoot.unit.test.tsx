@@ -2,9 +2,14 @@ import { render, screen } from "@testing-library/react";
 import type { PipelineData } from "@repo/schemas";
 import { describe, expect, it, vi } from "vitest";
 import { CanvasRoot } from "./CanvasRoot";
+import {
+  createNotificationStore,
+  NotificationStoreContext,
+} from "@repo/views/store/notificationStore";
 
 vi.mock("@refinedev/core", () => ({
   useDataProvider: () => () => ({}),
+  useCustom: () => ({ result: { data: { traces: [] } } }),
   useList: () => ({ result: { data: [], total: 0 } }),
   useOne: () => ({ query: {} }),
   useUpdate: () => ({ mutate: vi.fn(), mutateAsync: vi.fn() }),
@@ -50,7 +55,11 @@ const makePipeline = (overrides: Partial<PipelineData> = {}): PipelineData => ({
 
 describe("CanvasRoot", () => {
   it("renders the empty state for an empty pipeline", () => {
-    render(<CanvasRoot pipeline={makePipeline()} />);
+    render(
+      <NotificationStoreContext.Provider value={createNotificationStore()}>
+        <CanvasRoot pipeline={makePipeline()} />
+      </NotificationStoreContext.Provider>,
+    );
 
     expect(screen.getByTestId("canvas-v2-root")).toBeInTheDocument();
     expect(screen.getByTestId("canvas-v2-empty-state")).toBeInTheDocument();
@@ -58,22 +67,24 @@ describe("CanvasRoot", () => {
 
   it("hydrates pipeline nodes into the V2 flow", () => {
     render(
-      <CanvasRoot
-        pipeline={makePipeline({
-          nodes: [
-            {
-              data: {
-                label: "Prompt",
-                nodeType: "prompt",
-                prompt: "",
+      <NotificationStoreContext.Provider value={createNotificationStore()}>
+        <CanvasRoot
+          pipeline={makePipeline({
+            nodes: [
+              {
+                data: {
+                  label: "Prompt",
+                  nodeType: "prompt",
+                  prompt: "",
+                },
+                id: "node-prompt",
+                position: { x: 0, y: 0 },
+                type: "prompt",
               },
-              id: "node-prompt",
-              position: { x: 0, y: 0 },
-              type: "prompt",
-            },
-          ],
-        })}
-      />,
+            ],
+          })}
+        />
+      </NotificationStoreContext.Provider>,
     );
 
     expect(screen.getByTestId("mock-canvas-root-flow")).toHaveTextContent("node-prompt");
