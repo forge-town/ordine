@@ -13,6 +13,8 @@ import {
   Bot,
   Lock,
   Unlock,
+  Hand,
+  MousePointer2,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
@@ -28,6 +30,8 @@ export const CanvasToolbar = () => {
   const handleFitView = useStore(store, (state) => state.handleFitView);
   const handleZoomIn = useStore(store, (state) => state.handleZoomIn);
   const handleZoomOut = useStore(store, (state) => state.handleZoomOut);
+  const canvasTool = useStore(store, (state) => state.canvasTool);
+  const setCanvasTool = useStore(store, (state) => state.setCanvasTool);
   const isCanvasInteractive = useStore(store, (state) => state.isCanvasInteractive);
   const handleToggleCanvasInteractive = useStore(
     store,
@@ -52,6 +56,50 @@ export const CanvasToolbar = () => {
   return (
     <div className="pointer-events-auto shrink-0 w-max max-w-full" data-testid="canvas-toolbar">
       <div className="flex h-10 w-max items-center gap-0.5 rounded-md border bg-background px-1.5 py-1 shadow-md max-[420px]:gap-0 max-[420px]:px-1">
+        {/* Canvas tools */}
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <Button
+                aria-label={t("canvas.selectTool")}
+                aria-pressed={canvasTool === "select"}
+                className={`h-7 w-7 ${
+                  canvasTool === "select" ? "bg-accent text-foreground" : "text-muted-foreground"
+                }`}
+                size="icon"
+                title={t("canvas.selectTool")}
+                variant="ghost"
+                onClick={() => setCanvasTool("select")}
+              />
+            }
+          >
+            <MousePointer2 className="h-4 w-4" />
+          </TooltipTrigger>
+          <TooltipContent>{t("canvas.selectTool")}</TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <Button
+                aria-label={t("canvas.handTool")}
+                aria-pressed={canvasTool === "hand"}
+                className={`h-7 w-7 ${
+                  canvasTool === "hand" ? "bg-accent text-foreground" : "text-muted-foreground"
+                }`}
+                size="icon"
+                title={t("canvas.handTool")}
+                variant="ghost"
+                onClick={() => setCanvasTool("hand")}
+              />
+            }
+          >
+            <Hand className="h-4 w-4" />
+          </TooltipTrigger>
+          <TooltipContent>{t("canvas.handTool")}</TooltipContent>
+        </Tooltip>
+
+        <Separator className="mx-1 h-7" orientation="vertical" />
+
         {/* Zoom controls */}
         <Tooltip>
           <TooltipTrigger

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
 import { z } from "zod/v4";
@@ -35,7 +35,7 @@ export const DeveloperSection = () => {
     resource: "settings",
     id: "default",
   });
-  const { mutateAsync: updateSettings } = useUpdate();
+  const { mutate: updateSettings } = useUpdate();
   const [saved, setSaved] = useState(false);
 
   const form = useForm<DeveloperFormValues>({
@@ -45,15 +45,31 @@ export const DeveloperSection = () => {
       defaultOutputPath: settingsResult?.defaultOutputPath ?? "",
     },
   });
+  const savedRuntime = settingsResult?.defaultAgentRuntime;
+  const savedOutputPath = settingsResult?.defaultOutputPath;
 
-  const handleSubmit = async (values: DeveloperFormValues) => {
-    await updateSettings({
-      resource: "settings",
-      id: "default",
-      values,
+  useEffect(() => {
+    if (!savedRuntime || savedOutputPath === undefined) return;
+    form.reset({
+      defaultAgentRuntime: savedRuntime,
+      defaultOutputPath: savedOutputPath,
     });
-    setSaved(true);
-    setTimeout(() => setSaved(false), SAVED_INDICATOR_MS);
+  }, [form, savedOutputPath, savedRuntime]);
+
+  const handleSubmit = (values: DeveloperFormValues) => {
+    updateSettings(
+      {
+        resource: "settings",
+        id: "default",
+        values,
+      },
+      {
+        onSuccess: () => {
+          setSaved(true);
+          setTimeout(() => setSaved(false), SAVED_INDICATOR_MS);
+        },
+      },
+    );
   };
 
   if (settingsQuery.isLoading) return null;

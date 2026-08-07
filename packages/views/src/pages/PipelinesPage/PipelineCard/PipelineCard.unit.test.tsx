@@ -61,6 +61,26 @@ describe("PipelineCard", () => {
     expect(screen.getByText("草稿")).toBeInTheDocument();
   });
 
+  it("uses the shared interactive surface", () => {
+    render(
+      <PipelineCard
+        metrics={{
+          totalRuns: 0,
+          successRate: null,
+          avgDurationMs: null,
+          isSavedSkill: false,
+          isScheduled: false,
+        }}
+        pipeline={pipeline}
+      />,
+    );
+
+    const card = screen.getByText("Release pipeline").closest('[data-slot="card"]');
+    expect(card).toHaveAttribute("data-variant", "surface");
+    expect(card).toHaveClass("rounded-lg", "shadow-soft", "ring-border", "p-4");
+    expect(card).toHaveClass("hover:shadow-float", "hover:ring-border-strong");
+  });
+
   it("opens Canvas and keeps delete as a separate action", () => {
     render(
       <PipelineCard

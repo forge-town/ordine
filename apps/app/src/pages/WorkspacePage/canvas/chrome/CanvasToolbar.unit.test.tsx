@@ -29,10 +29,18 @@ describe("CanvasToolbar", () => {
     const store = createCanvasStore();
     render(<CanvasToolbar />, { wrapper: makeWrapper(store) });
 
-    await user.click(screen.getByTestId("canvas-v2-tool-hand"));
+    const handTool = screen.getByTestId("canvas-v2-tool-hand");
+    const selectTool = screen.getByTestId("canvas-v2-tool-select");
+
     expect(store.getState().canvasTool).toBe("hand");
-    await user.click(screen.getByTestId("canvas-v2-tool-select"));
+    expect(handTool).toHaveAttribute("aria-pressed", "true");
+    expect(handTool).toHaveClass("bg-foreground", "text-background");
+    expect(selectTool).toHaveAttribute("aria-pressed", "false");
+
+    await user.click(selectTool);
     expect(store.getState().canvasTool).toBe("select");
+    expect(selectTool).toHaveAttribute("aria-pressed", "true");
+    expect(handTool).toHaveAttribute("aria-pressed", "false");
 
     expect(screen.getByTestId("canvas-v2-zoom-reset")).toHaveTextContent("78%");
     await user.click(screen.getByTestId("canvas-v2-zoom-in"));

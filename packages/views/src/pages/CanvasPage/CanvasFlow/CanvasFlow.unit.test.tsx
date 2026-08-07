@@ -34,6 +34,8 @@ vi.mock("@xyflow/react", async (importOriginal) => {
       nodesConnectable,
       nodesDraggable,
       panOnDrag,
+      panOnScroll,
+      selectionOnDrag,
       zoomOnDoubleClick,
       zoomOnPinch,
       zoomOnScroll,
@@ -57,7 +59,9 @@ vi.mock("@xyflow/react", async (importOriginal) => {
       elementsSelectable?: boolean;
       nodesConnectable?: boolean;
       nodesDraggable?: boolean;
-      panOnDrag?: boolean;
+      panOnDrag?: boolean | number[];
+      panOnScroll?: boolean;
+      selectionOnDrag?: boolean;
       zoomOnDoubleClick?: boolean;
       zoomOnPinch?: boolean;
       zoomOnScroll?: boolean;
@@ -95,7 +99,9 @@ vi.mock("@xyflow/react", async (importOriginal) => {
           data-has-on-pane-context-menu={String(typeof onPaneContextMenu === "function")}
           data-nodes-connectable={String(nodesConnectable ?? true)}
           data-nodes-draggable={String(nodesDraggable ?? true)}
-          data-pan-on-drag={String(panOnDrag ?? true)}
+          data-pan-on-drag={JSON.stringify(panOnDrag ?? true)}
+          data-pan-on-scroll={String(panOnScroll ?? true)}
+          data-selection-on-drag={String(selectionOnDrag ?? false)}
           data-snap-to-grid={String(snapToGrid ?? false)}
           data-testid="react-flow"
           data-zoom={defaultViewport?.zoom}
@@ -179,6 +185,33 @@ describe("CanvasFlow", () => {
     expect(screen.queryByTestId("flow-controls")).not.toBeInTheDocument();
   });
 
+  it("defaults to the hand tool and uses the wheel for zoom", () => {
+    render(<CanvasFlow />, { wrapper });
+
+    expect(screen.getByTestId("react-flow")).toHaveAttribute("data-pan-on-drag", "true");
+    expect(screen.getByTestId("react-flow")).toHaveAttribute("data-pan-on-scroll", "false");
+    expect(screen.getByTestId("react-flow")).toHaveAttribute("data-selection-on-drag", "false");
+    expect(screen.getByTestId("react-flow")).toHaveAttribute("data-zoom-on-scroll", "true");
+  });
+
+  it("uses drag selection while the select tool is active", () => {
+    const store = createCanvasPageStore([], []);
+    store.setState({ canvasTool: "select" });
+
+    render(
+      <CanvasPageStoreContext.Provider value={store}>
+        <ReactFlowProvider>
+          <CanvasFlow />
+        </ReactFlowProvider>
+      </CanvasPageStoreContext.Provider>,
+    );
+
+    expect(screen.getByTestId("react-flow")).toHaveAttribute("data-pan-on-drag", "[1,2]");
+    expect(screen.getByTestId("react-flow")).toHaveAttribute("data-pan-on-scroll", "false");
+    expect(screen.getByTestId("react-flow")).toHaveAttribute("data-selection-on-drag", "true");
+    expect(screen.getByTestId("react-flow")).toHaveAttribute("data-zoom-on-scroll", "true");
+  });
+
   it("uses custom toolbar state instead of React Flow built-in interactivity controls", () => {
     const store = createCanvasPageStore([], []);
     store.setState({ isCanvasInteractive: false });
@@ -195,6 +228,8 @@ describe("CanvasFlow", () => {
     expect(screen.getByTestId("react-flow")).toHaveAttribute("data-nodes-connectable", "false");
     expect(screen.getByTestId("react-flow")).toHaveAttribute("data-elements-selectable", "false");
     expect(screen.getByTestId("react-flow")).toHaveAttribute("data-pan-on-drag", "false");
+    expect(screen.getByTestId("react-flow")).toHaveAttribute("data-pan-on-scroll", "false");
+    expect(screen.getByTestId("react-flow")).toHaveAttribute("data-selection-on-drag", "false");
     expect(screen.getByTestId("react-flow")).toHaveAttribute("data-zoom-on-scroll", "false");
     expect(screen.getByTestId("react-flow")).toHaveAttribute("data-has-on-node-click", "false");
     expect(screen.getByTestId("react-flow")).toHaveAttribute("data-has-on-edge-click", "false");

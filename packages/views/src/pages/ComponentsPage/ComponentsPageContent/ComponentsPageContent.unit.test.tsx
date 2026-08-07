@@ -121,6 +121,14 @@ describe("ComponentsPageContent", () => {
     expect(screen.getByText("Ran 3 times")).toBeInTheDocument();
   });
 
+  it("uses the shared interactive surface for component cards", () => {
+    render(<ComponentsPageContent />);
+
+    const card = screen.getByText("Folder").closest("article");
+    expect(card).toHaveClass("rounded-lg", "shadow-soft", "ring-border", "p-3.5");
+    expect(card).toHaveClass("hover:shadow-float", "hover:ring-border-strong");
+  });
+
   it("filters the library with the search control", async () => {
     const user = userEvent.setup();
     render(<ComponentsPageContent />);

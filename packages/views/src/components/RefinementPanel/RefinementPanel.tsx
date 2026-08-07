@@ -44,7 +44,7 @@ export const RefinementPanel = ({ refinementId }: { refinementId: string }) => {
   if (!refinement) return null;
 
   return (
-    <Card className="p-5">
+    <Card className="p-5" variant="surface">
       <div className="flex items-center justify-between">
         <h2 className="text-sm font-semibold text-foreground">
           {t("distillations.refinementTitle")}

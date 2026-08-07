@@ -153,7 +153,12 @@ export const ComponentsPageContent = () => {
   if (assetsQuery?.isLoading || operationsQuery?.isLoading) {
     return (
       <div className="flex h-full flex-col overflow-hidden">
-        <PageHeader title={t("components.title")} />
+        <PageHeader
+          eyebrow={t("nav.groups.assembly")}
+          icon={<Icon className="text-muted-foreground" icon={Boxes} size={18} />}
+          sub={t("components.subtitle")}
+          title={t("components.title")}
+        />
         <PageLoadingState variant="grid" />
       </div>
     );

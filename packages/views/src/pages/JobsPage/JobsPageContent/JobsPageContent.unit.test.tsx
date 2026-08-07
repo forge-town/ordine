@@ -156,6 +156,13 @@ describe("JobsPageContent", () => {
   it("renders current jobs and flags work waiting for review", () => {
     renderContent();
 
+    expect(screen.getByTestId("jobs-toolbar")).toHaveClass(
+      "border-b",
+      "bg-background",
+      "px-4",
+      "py-3",
+    );
+    expect(screen.queryByTestId("jobs-summary")).not.toBeInTheDocument();
     expect(screen.getByTestId("jobs-table")).toBeInTheDocument();
     expect(screen.getByTestId("jobs-table-row-job-1")).toBeInTheDocument();
     expect(screen.getByTestId("jobs-action-review-job-2")).toBeInTheDocument();

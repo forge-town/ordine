@@ -1,11 +1,16 @@
 import { describe, expect, it, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { SettingsPageContent } from "./SettingsPageContent";
 
 vi.mock("../sections", () => ({
+  AdvancedSection: () => <div>AdvancedSection</div>,
+  AutonomySection: () => <div>AutonomySection</div>,
+  DefaultsSection: () => <div>DefaultsSection</div>,
   DeveloperSection: () => <div>DeveloperSection</div>,
-  GeneralSection: () => <div>GeneralSection</div>,
+  KeyboardSection: () => <div>KeyboardSection</div>,
   LanguageSection: () => <div>LanguageSection</div>,
+  NotificationsSection: () => <div>NotificationsSection</div>,
+  ProjectSection: () => <div>ProjectSection</div>,
 }));
 
 describe("SettingsPageContent", () => {
@@ -17,11 +22,25 @@ describe("SettingsPageContent", () => {
   it("renders navigation sidebar items", () => {
     render(<SettingsPageContent />);
     expect(screen.getByText("语言与地区")).toBeTruthy();
-    expect(screen.getByText("通用")).toBeTruthy();
+    expect(screen.getByText("通知")).toBeTruthy();
+    expect(screen.getByText("默认项")).toBeTruthy();
+    expect(screen.getByText("项目")).toBeTruthy();
   });
 
-  it("renders GeneralSection by default", () => {
+  it("renders LanguageSection by default", () => {
     render(<SettingsPageContent />);
-    expect(screen.getByText("GeneralSection")).toBeTruthy();
+    expect(screen.getByText("LanguageSection")).toBeTruthy();
+  });
+
+  it("switches sections from the navigation", () => {
+    render(<SettingsPageContent />);
+    fireEvent.click(screen.getByTestId("settings-nav-defaults"));
+    expect(screen.getByText("DefaultsSection")).toBeTruthy();
+  });
+
+  it("opens keyboard help", () => {
+    render(<SettingsPageContent />);
+    fireEvent.click(screen.getByTestId("settings-keyboard-help"));
+    expect(screen.getByText("KeyboardSection")).toBeTruthy();
   });
 });

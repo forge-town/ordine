@@ -74,6 +74,70 @@
       "assembly": "装配",
       "capabilities": "能力",
       "monitor": "监控"
+    },
+    "items": {
+      "connectors": "连接器",
+      "localAgents": "本地 Agent",
+      "usage": "用量"
+    }
+  },
+  "connectors": {
+    "title": "连接器",
+    "subtitle": "供 Agent 使用的外部工具、API、代码仓库和数据源。",
+    "add": "添加连接器",
+    "manage": "管理",
+    "test": "测试",
+    "testSuccess": "连接测试成功。",
+    "method": "接入方式",
+    "transport": "传输方式",
+    "command": "命令",
+    "args": "参数",
+    "scopes": "权限范围",
+    "noScopes": "未请求权限范围",
+    "viaMcp": "通过 MCP 服务握手",
+    "noHandshake": "由工作区直接管理",
+    "empty": "没有找到连接器",
+    "emptyHint": "添加连接器，让本地 Agent 可以访问外部工具和系统。",
+    "filters": { "all": "全部", "connected": "已连接", "needs_setup": "待配置", "mcp": "通过 MCP" },
+    "status": { "connected": "已连接", "needs_setup": "待配置", "error": "错误" }
+  },
+  "localAgents": {
+    "title": "本地 Agent",
+    "subtitle": "此设备上已检测到的工作单元，可由 Agent Bar 按操作组装为执行器。",
+    "rescan": "重新扫描",
+    "scanning": "扫描中...",
+    "configure": "配置",
+    "assembled": "按操作组装",
+    "empty": "未检测到本地 Agent",
+    "emptyHint": "重新扫描此设备，以同步可用的 Agent 运行时。",
+    "detected": "已在 localhost 自动检测 {{count}} / {{total}} 个 Agent 运行时。"
+  },
+  "usage": {
+    "title": "用量",
+    "subtitle": "查看项目 Token 用量，并按运行、Pipeline 和本地 Agent 拆分。",
+    "totalTokens": "Token 总量",
+    "runs": "运行次数",
+    "avgTokens": "平均每次",
+    "activeAgents": "活跃 Agent",
+    "completedRuns": "按已记录运行归一化",
+    "runtimeExports": "来自运行时导出",
+    "tokenTrend": "Token 趋势",
+    "tokens": "Token",
+    "peak": "峰值 {{value}}",
+    "byPipeline": "按 Pipeline",
+    "byAgent": "按本地 Agent",
+    "unassigned": "未分配",
+    "empty": "所选时间范围内暂无用量数据。",
+    "agentHint": "Agent 行按运行时导出记录汇总。本地能力仅统计 Token，不虚构费用。",
+    "runsValue": "{{count}} 次运行",
+    "runsShort": "{{count}} 次",
+    "pipelinesValue": "{{count}} 个 Pipeline",
+    "ranges": {
+      "today": "今天",
+      "week": "本周",
+      "month": "本月",
+      "quarter": "本季度",
+      "all": "全部时间"
     }
   },
   "plugins": {
@@ -279,6 +343,7 @@
   },
   "operations": {
     "title": "操作集",
+    "subtitle": "供 Pipeline 与 Agent 复用的可执行能力。",
     "createNew": "新建 Operation",
     "noOperations": "还没有任何 Operation",
     "searchPlaceholder": "搜索 Operations...",
@@ -354,6 +419,7 @@
   },
   "pipelines": {
     "title": "流水线",
+    "subtitle": "可复用的生产流水线，把稳定运行沉淀为可重复执行的 Pipeline Skill。",
     "createNew": "新建 Pipeline",
     "noPipelines": "还没有任何 Pipeline",
     "noNodes": "暂无节点",
@@ -501,6 +567,8 @@
     "zoomIn": "放大",
     "zoomOut": "缩小",
     "fitView": "适配视图",
+    "selectTool": "选择",
+    "handTool": "平移画布",
     "interactivity": "画布交互",
     "enableInteractivity": "开启画布交互",
     "disableInteractivity": "锁定画布交互",
@@ -787,6 +855,22 @@
   },
   "skills": {
     "title": "技能",
+    "subtitle": "展示可复用指令的输入输出、来源，以及可生成的 Operation。",
+    "createSkill": "创建技能",
+    "search": "搜索技能...",
+    "importPath": "Codex 或 Claude Code 技能目录路径",
+    "previewImport": "预览导入",
+    "scanning": "扫描中...",
+    "importing": "导入中...",
+    "importSelected": "导入 {{count}} 项",
+    "owned": "已拥有",
+    "selected": "已选择",
+    "skipped": "已跳过",
+    "label": "显示名称",
+    "descriptionPlaceholder": "说明这个技能的作用",
+    "powers": "可生成 {{operation}}",
+    "createFrom": "从 {{name}} 创建 Operation",
+    "deleteSkill": "删除 {{name}}",
     "noSkills": "暂无 Skills",
     "categories": {
       "all": "全部",
@@ -799,6 +883,7 @@
   },
   "settings": {
     "title": "设置",
+    "subtitle": "配置工作区默认项、自主性、通知与本地开发环境。",
     "language": "语言",
     "selectLanguage": "选择语言",
     "timezone": "时区",
@@ -818,7 +903,13 @@
         "waiting": "运行需要处理"
       }
     },
-    "appearance": "外观",
+    "appearance": {
+      "dark": "深色",
+      "hint": "立即生效，并在本设备记住该选择。",
+      "label": "外观",
+      "light": "浅色",
+      "system": "跟随系统"
+    },
     "sections": {
       "general": "通用",
       "profile": "个人信息",
@@ -827,7 +918,12 @@
       "language": "语言与地区",
       "security": "安全",
       "agentRuntimes": "Agent Runtimes",
-      "developer": "开发者"
+      "developer": "开发者",
+      "advanced": "高级",
+      "autonomy": "自主性",
+      "defaults": "默认项",
+      "keyboard": "快捷键",
+      "project": "项目"
     },
     "saveChanges": "保存更改",
     "saved": "已保存 ✓",
@@ -891,6 +987,121 @@
       "keyPathPlaceholder": "~/.ssh/id_rsa",
       "remove": "删除",
       "empty": "尚未配置 Agent 运行时。添加一个以启用远程执行。"
+    },
+    "advanced": {
+      "description": "本机的存储、数据版本与维护信息。",
+      "rows": {
+        "dataDirectory": {
+          "hint": "用于配置本地数据库目录的环境变量。",
+          "label": "数据目录"
+        },
+        "localMode": {
+          "hint": "仅开发环境可用，可在本地模式下跳过登录。",
+          "label": "本地模式"
+        },
+        "schemaVersion": {
+          "hint": "本地存储启动时会自动应用数据库迁移。",
+          "label": "数据版本"
+        }
+      },
+      "title": "高级"
+    },
+    "autonomy": {
+      "decrease": "减少重试",
+      "description": "自愈在停下来向你解释之前能走多远。",
+      "deviceScope": "保存在本设备，并随每次运行一起下发。",
+      "increase": "增加重试",
+      "selfHeal": "自愈重试轮数",
+      "selfHealHint": "失败步骤自动重试的轮数。0 = 首次失败即停止。",
+      "title": "自主性"
+    },
+    "defaults": {
+      "apiKey": "API Key",
+      "apiKeyHint": "仅存储在本机，界面中默认隐藏。",
+      "description": "Agent Bar 组装执行器时优先使用的默认项。",
+      "model": "默认模型",
+      "outputPath": "默认输出路径",
+      "runtime": "默认 Local Agent",
+      "runtimeFix": "切换为 {{name}}",
+      "runtimeFixed": "默认 runtime 已切换为 {{name}}",
+      "runtimeInvalid": "已保存的 runtime「{{value}}」未在本机检测到——修正前 Agent 请求会全部失败。",
+      "save": "保存默认项",
+      "saveFailed": "保存失败",
+      "saved": "默认项已保存",
+      "title": "默认项",
+      "toggleKey": "显示/隐藏 Key"
+    },
+    "groups": {
+      "data": "数据",
+      "execution": "执行",
+      "workspace": "工作区"
+    },
+    "keyboard": {
+      "description": "画布快捷键速查，当前为只读。",
+      "groups": {
+        "editing": "编辑",
+        "navigation": "导航"
+      },
+      "shortcuts": {
+        "boxSelect": {
+          "keys": "画布拖拽",
+          "label": "框选"
+        },
+        "delete": {
+          "keys": "⌫ / Del",
+          "label": "删除选中"
+        },
+        "drillOut": {
+          "keys": "Esc",
+          "label": "钻出 / 清除选择"
+        },
+        "pan": {
+          "keys": "中键拖拽",
+          "label": "平移"
+        },
+        "redo": {
+          "keys": "⌘ ⇧ Z",
+          "label": "重做"
+        },
+        "undo": {
+          "keys": "⌘ Z",
+          "label": "撤销"
+        },
+        "zoom": {
+          "keys": "⌘ 滚轮",
+          "label": "缩放"
+        }
+      },
+      "title": "快捷键"
+    },
+    "notifications": {
+      "description": "哪些事件推送到通知中心，哪些保持安静。",
+      "done": "运行完成",
+      "doneHint": "你发起的任务顺利跑完。",
+      "failed": "运行失败",
+      "failedHint": "永远值得知道——包括 Routine 触发的运行。",
+      "title": "通知",
+      "waiting": "等待你处理",
+      "waitingHint": "运行暂停等待签核或回答问题。"
+    },
+    "project": {
+      "clearCancel": "取消",
+      "clearConfirm": "确认清除",
+      "clearConfirmBody": "将删除所有流水线下保存的 Agent 对话线程。Pipelines、算子与运行记录均保留。",
+      "clearConfirmTitle": "清除对话历史？",
+      "clearDone": "对话历史已清除",
+      "clearFailed": "清除失败",
+      "clearHistory": "清除对话历史",
+      "clearHistoryHint": "删除已保存的 Agent 对话线程，Pipelines 保留。",
+      "description": "编辑侧栏当前选中项目的名称与描述。",
+      "descriptionLabel": "描述",
+      "descriptionPlaceholder": "这个工作区是做什么的…",
+      "empty": "还没有选中项目 — 先在侧栏创建一个。",
+      "name": "项目名称",
+      "save": "保存项目",
+      "saveFailed": "保存失败",
+      "saved": "项目已保存",
+      "title": "项目"
     }
   },
   "runtimes": {
@@ -1099,6 +1310,7 @@
   },
   "agents": {
     "title": "智能体",
+    "subtitle": "配置在当前工作区中规划并协调任务的智能体。",
     "noAgents": "暂无智能体",
     "searchPlaceholder": "搜索智能体...",
     "capabilities": "能力",

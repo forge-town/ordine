@@ -3,6 +3,7 @@ import { Code, Eye } from "lucide-react";
 import { useStore } from "zustand";
 import { useShallow } from "zustand/shallow";
 import { Button } from "@repo/ui/button";
+import { surfaceCardVariants } from "@repo/ui/card";
 import { cn } from "@repo/ui/lib/utils";
 import { useOperationDetailPageStore } from "../_store";
 
@@ -34,7 +35,7 @@ export const TemplateContentView = ({ templateId }: TemplateContentViewProps) =>
   const canPreview = PREVIEWABLE_TYPES.has(template.contentType);
 
   return (
-    <div className="min-w-0 rounded-xl border border-border bg-card p-4">
+    <div className={cn(surfaceCardVariants(), "min-w-0 p-4")}>
       <div className="mb-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="font-mono text-sm font-semibold text-foreground">{template.name}</span>

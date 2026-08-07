@@ -39,7 +39,7 @@ export const SignUpPageContent = () => {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background">
-      <Card className="w-full max-w-md">
+      <Card className="w-full max-w-md" variant="surface">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl">Create Account</CardTitle>
           <CardDescription>Sign up for Ordine</CardDescription>

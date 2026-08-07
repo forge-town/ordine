@@ -69,6 +69,7 @@ export const CanvasFlow = ({ viewportRef }: CanvasFlowProps) => {
   const edges = useStore(store, (s) => s.edges);
   const connectStart = useStore(store, (s) => s.connectStart);
   const isCanvasInteractive = useStore(store, (s) => s.isCanvasInteractive);
+  const canvasTool = useStore(store, (s) => s.canvasTool);
   const portRoutedEdges = useMemo(
     () => decorateEdgesWithPortHandles(nodes, edges, connectStart),
     [connectStart, edges, nodes],
@@ -255,8 +256,10 @@ export const CanvasFlow = ({ viewportRef }: CanvasFlowProps) => {
         nodesConnectable={isCanvasInteractive}
         nodesDraggable={isCanvasInteractive}
         nodeTypes={nodeTypes}
-        panOnDrag={isCanvasInteractive}
+        panOnDrag={!isCanvasInteractive ? false : canvasTool === "hand" ? true : [1, 2]}
+        panOnScroll={false}
         proOptions={proOpts}
+        selectionOnDrag={isCanvasInteractive && canvasTool === "select"}
         snapGrid={snapGrid}
         snapToGrid={canvasSettings.snapToGrid}
         zoomOnDoubleClick={isCanvasInteractive}

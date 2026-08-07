@@ -30,7 +30,7 @@ export const createPanelSlice =
   (set) => ({
     annotatingId: null,
     askNodeId: null,
-    canvasTool: "select",
+    canvasTool: "hand",
     compPanelOpen: false,
     composingNodeIds: null,
     configNodeId: null,

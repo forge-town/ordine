@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { useCustom } from "@refinedev/core";
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { surfaceCardVariants } from "@repo/ui/card";
 import type { Job, Routine, RoutineOccurrencesResponse } from "@repo/schemas";
 import { cn } from "@repo/ui/lib/utils";
 
@@ -173,10 +174,7 @@ export const JobsCalendar = ({
   const rangeLabel = `${weekStart.toLocaleDateString(undefined, { day: "numeric", month: "short" })} – ${days[6].toLocaleDateString(undefined, { day: "numeric", month: "short" })}`;
 
   return (
-    <div
-      className="overflow-x-auto rounded-lg bg-surface ring-1 ring-border shadow-soft"
-      data-testid="jobs-calendar"
-    >
+    <div className={cn(surfaceCardVariants(), "overflow-x-auto")} data-testid="jobs-calendar">
       <div className="min-w-[760px]">
         <div className="flex items-center gap-2 border-b border-border/70 px-3.5 py-2.5">
           <span className="text-[13px] font-semibold">{rangeLabel}</span>

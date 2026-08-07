@@ -3,6 +3,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { type ColumnDef, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
 import { useTranslation } from "react-i18next";
 import type { Agent } from "@repo/schemas";
+import { surfaceCardVariants } from "@repo/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@repo/ui/table";
 import { AgentNameCell } from "./AgentNameCell";
 import { CapabilitiesCell } from "./CapabilitiesCell";
@@ -82,7 +83,7 @@ export const AgentsDataTable = ({ data }: { data: Agent[] }) => {
   );
 
   return (
-    <div className="rounded-lg border">
+    <div className={surfaceCardVariants()}>
       <Table>
         <TableHeader>
           {table.getHeaderGroups().map((headerGroup) => (

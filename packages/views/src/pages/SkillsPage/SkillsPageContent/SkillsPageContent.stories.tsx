@@ -17,6 +17,4 @@ const meta: Meta<typeof SkillsPageContent> = {
 export default meta;
 type Story = StoryObj<typeof SkillsPageContent>;
 
-export const Default: Story = {
-  args: { skills: [] },
-};
+export const Default: Story = {};

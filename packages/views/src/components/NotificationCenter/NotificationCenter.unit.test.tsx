@@ -47,6 +47,9 @@ describe("NotificationCenter", () => {
     const user = userEvent.setup();
     const store = renderNotificationCenter();
 
+    expect(screen.getByTestId("notification-center")).toHaveClass("bottom-4", "right-4");
+    expect(screen.getByTestId("notification-center")).not.toHaveClass("top-3");
+
     await user.click(screen.getByTestId("notification-bell"));
     expect(screen.getByText("Pipeline run failed")).toBeInTheDocument();
     expect(screen.getByTestId("notification-unread")).toHaveTextContent("1");

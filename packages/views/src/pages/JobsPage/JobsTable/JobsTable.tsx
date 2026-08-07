@@ -13,6 +13,8 @@ import {
   X,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { surfaceCardVariants } from "@repo/ui/card";
+import { cn } from "@repo/ui/lib/utils";
 import type { Job, JobStatus } from "@repo/schemas";
 import { StatusPill } from "../../../components/primitives";
 import { toastStore } from "../../../store/toastStore";
@@ -64,10 +66,7 @@ const formatStarted = (job: Job): string =>
 const durationMs = (job: Job) => {
   if (!job.startedAt) return 0;
 
-  return Math.max(
-    0,
-    (toTimestamp(job.finishedAt) || Date.now()) - toTimestamp(job.startedAt),
-  );
+  return Math.max(0, (toTimestamp(job.finishedAt) || Date.now()) - toTimestamp(job.startedAt));
 };
 
 const formatDuration = (job: Job): string => {
@@ -88,12 +87,7 @@ const formatTokens = (tokens: number | null | undefined) => {
   );
 };
 
-const compareJobs = (
-  a: Job,
-  b: Job,
-  key: SortKey,
-  pipelineNameById: Map<string, string>,
-) => {
+const compareJobs = (a: Job, b: Job, key: SortKey, pipelineNameById: Map<string, string>) => {
   if (key === "started") return toTimestamp(a.startedAt) - toTimestamp(b.startedAt);
   if (key === "duration") return durationMs(a) - durationMs(b);
   if (key === "tokens") return (a.totalTokens ?? 0) - (b.totalTokens ?? 0);
@@ -175,10 +169,7 @@ export const JobsTable = ({ jobs, onChanged, onOpen, pipelineNameById }: JobsTab
   };
 
   return (
-    <div
-      className="overflow-hidden rounded-lg bg-surface shadow-soft ring-1 ring-border"
-      data-testid="jobs-table"
-    >
+    <div className={cn(surfaceCardVariants(), "overflow-hidden")} data-testid="jobs-table">
       <div className="overflow-x-auto">
         <div className="min-w-[760px]">
           <div
