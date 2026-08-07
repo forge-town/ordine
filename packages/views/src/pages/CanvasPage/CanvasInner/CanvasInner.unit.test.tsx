@@ -169,6 +169,15 @@ describe("CanvasInner", () => {
     expect(screen.getByTestId("canvas-agent-panel")).toBeInTheDocument();
   });
 
+  it("overlays the AgentPanel below the wide workspace breakpoint", async () => {
+    const user = userEvent.setup();
+    render(<CanvasInner />, { wrapper });
+    await user.click(screen.getByTestId("canvas-agent-panel-reopen"));
+
+    expect(screen.getByTestId("canvas-agent-panel-region")).toHaveClass("absolute", "xl:static");
+    expect(screen.getByTestId("canvas-work-panel").parentElement).toHaveClass("hidden", "lg:block");
+  });
+
   it("resizes and collapses the AgentPanel from the right-side handle", async () => {
     const user = userEvent.setup();
     render(<CanvasInner />, { wrapper });
@@ -184,6 +193,66 @@ describe("CanvasInner", () => {
     fireEvent.pointerMove(globalWindow, { clientX: 1100 });
     expect(screen.queryByTestId("canvas-agent-panel-shell")).not.toBeInTheDocument();
     expect(screen.getByTestId("canvas-agent-panel-reopen")).toBeInTheDocument();
+  });
+
+  it("starts AgentPanel resizing from its rendered width", async () => {
+    const user = userEvent.setup();
+    render(<CanvasInner />, { wrapper });
+    await user.click(screen.getByTestId("canvas-agent-panel-reopen"));
+
+    const shell = screen.getByTestId("canvas-agent-panel-shell");
+    vi.spyOn(shell, "getBoundingClientRect").mockReturnValue({
+      x: 57,
+      y: 0,
+      width: 318,
+      height: 640,
+      top: 0,
+      right: 375,
+      bottom: 640,
+      left: 57,
+      toJSON: () => ({}),
+    });
+
+    const resizeHandle = screen.getByTestId("resize-handle-right");
+    fireEvent.pointerDown(resizeHandle, { clientX: 57 });
+    fireEvent.pointerMove(globalThis.window, { clientX: 37 });
+
+    expect(shell).toHaveStyle({ width: "338px" });
+  });
+
+  it("supports keyboard resizing and exposes separator values", async () => {
+    const user = userEvent.setup();
+    render(<CanvasInner />, { wrapper });
+    await user.click(screen.getByTestId("canvas-agent-panel-reopen"));
+
+    const resizeHandle = screen.getByTestId("resize-handle-right");
+    expect(resizeHandle).toHaveAttribute("tabindex", "0");
+    expect(resizeHandle).toHaveAttribute("aria-valuemin", "300");
+    expect(resizeHandle).toHaveAttribute("aria-valuemax", "520");
+    expect(resizeHandle).toHaveAttribute("aria-valuenow", "360");
+
+    fireEvent.keyDown(resizeHandle, { key: "ArrowLeft" });
+    expect(screen.getByTestId("canvas-agent-panel-shell")).toHaveStyle({ width: "368px" });
+
+    fireEvent.keyDown(resizeHandle, { key: "ArrowRight" });
+    expect(screen.getByTestId("canvas-agent-panel-shell")).toHaveStyle({ width: "360px" });
+  });
+
+  it("cleans up AgentPanel dragging after pointer cancellation", async () => {
+    const user = userEvent.setup();
+    render(<CanvasInner />, { wrapper });
+    await user.click(screen.getByTestId("canvas-agent-panel-reopen"));
+
+    const resizeHandle = screen.getByTestId("resize-handle-right");
+    fireEvent.pointerDown(resizeHandle, { clientX: 900 });
+    expect(document.body.style.cursor).toBe("col-resize");
+
+    fireEvent.pointerCancel(globalThis.window);
+    expect(document.body.style.cursor).toBe("");
+    expect(document.body.style.userSelect).toBe("");
+
+    fireEvent.pointerMove(globalThis.window, { clientX: 820 });
+    expect(screen.getByTestId("canvas-agent-panel-shell")).toHaveStyle({ width: "360px" });
   });
 
   it("toggles the AgentPanel from the canvas toolbar", async () => {
