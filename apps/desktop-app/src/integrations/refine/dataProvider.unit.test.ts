@@ -130,6 +130,17 @@ describe("desktop dataProvider", () => {
       request: ["http://desktop.test/api/routines/routine-1/run-now", "POST"],
     },
     {
+      endpoint: "routines/occurrences",
+      payload: {
+        from: "2026-08-03T00:00:00.000Z",
+        to: "2026-08-10T00:00:00.000Z",
+      },
+      request: [
+        "http://desktop.test/api/routines/occurrences?from=2026-08-03T00%3A00%3A00.000Z&to=2026-08-10T00%3A00%3A00.000Z",
+        "GET",
+      ],
+    },
+    {
       endpoint: "usage/summary",
       payload: { from: "2026-08-01", to: "2026-08-04" },
       request: ["http://desktop.test/api/usage/summary?from=2026-08-01&to=2026-08-04", "GET"],

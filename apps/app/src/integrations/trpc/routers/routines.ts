@@ -1,7 +1,11 @@
 import { randomUUID } from "node:crypto";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod/v4";
-import { CreateRoutineSchema, UpdateRoutineSchema } from "@repo/schemas";
+import {
+  CreateRoutineSchema,
+  RoutineOccurrencesInputSchema,
+  UpdateRoutineSchema,
+} from "@repo/schemas";
 import { publicProcedure, router } from "../init";
 import { routinesService } from "../services";
 import { unwrapResult } from "./result";
@@ -11,6 +15,10 @@ const CreateRoutineRouteSchema = CreateRoutineSchema.extend({
 });
 
 export const routinesRouter = router({
+  getOccurrences: publicProcedure
+    .input(RoutineOccurrencesInputSchema)
+    .query(({ input }) => routinesService.getOccurrences(new Date(input.from), new Date(input.to))),
+
   getMany: publicProcedure
     .input(
       z

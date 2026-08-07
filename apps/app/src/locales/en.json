@@ -188,6 +188,7 @@
       "showAll": "Show all ({{count}} chars)"
     },
     "calendar": {
+      "condensed": "High-frequency schedules are condensed to one block per hour.",
       "live": "live",
       "nextWeek": "Next week",
       "noEventRoutines": "no event-triggered routines",

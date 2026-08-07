@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { CreateRoutineSchema, RoutineSchema, UpdateRoutineSchema } from "./RoutineSchema";
+import {
+  CreateRoutineSchema,
+  RoutineOccurrencesInputSchema,
+  RoutineSchema,
+  UpdateRoutineSchema,
+} from "./RoutineSchema";
 import { JobStatusSchema } from "../job";
 
 const baseRoutine = {
@@ -97,6 +102,32 @@ describe("UpdateRoutineSchema", () => {
     // enable toggle and clearing the expression are valid patches here.
     expect(UpdateRoutineSchema.safeParse({ enabled: true }).success).toBe(true);
     expect(UpdateRoutineSchema.safeParse({ cronExpression: null }).success).toBe(true);
+  });
+});
+
+describe("RoutineOccurrencesInputSchema", () => {
+  it("accepts a seven-day occurrence window", () => {
+    expect(
+      RoutineOccurrencesInputSchema.safeParse({
+        from: "2026-08-03T00:00:00.000Z",
+        to: "2026-08-10T00:00:00.000Z",
+      }).success,
+    ).toBe(true);
+  });
+
+  it("rejects reversed and overlong occurrence windows", () => {
+    expect(
+      RoutineOccurrencesInputSchema.safeParse({
+        from: "2026-08-10T00:00:00.000Z",
+        to: "2026-08-03T00:00:00.000Z",
+      }).success,
+    ).toBe(false);
+    expect(
+      RoutineOccurrencesInputSchema.safeParse({
+        from: "2026-08-01T00:00:00.000Z",
+        to: "2026-08-10T00:00:00.001Z",
+      }).success,
+    ).toBe(false);
   });
 });
 

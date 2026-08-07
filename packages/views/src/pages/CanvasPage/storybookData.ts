@@ -26,6 +26,7 @@ import type {
   PipelineData,
   Routine,
 } from "@repo/schemas";
+import { getCronOccurrenceBuckets } from "@repo/utils/cron";
 import { ResourceName } from "../../constants";
 
 export const canvasStoryAgentRuntimes: AgentRuntimeConfig[] = [
@@ -483,6 +484,27 @@ const getCanvasStoryCustom = <
 
   if (params.url === "jobs/agentRuns" || params.url === "jobs/agentRunSpans") {
     return Promise.resolve({ data: { items: [] } as unknown as TData });
+  }
+
+  if (params.url === "routines/occurrences") {
+    const payload = (params.payload ?? {}) as { from?: string; to?: string };
+    const from = new Date(payload.from ?? Date.now());
+    const to = new Date(payload.to ?? from.getTime() + 7 * 24 * 60 * 60_000);
+    const occurrences = canvasStoryRoutines.flatMap((routine) =>
+      getCronOccurrenceBuckets(routine.cronExpression, from, to).map((bucket) => ({
+        aggregated: bucket.aggregated,
+        at: bucket.at.toISOString(),
+        routineId: routine.id,
+      })),
+    );
+
+    return Promise.resolve({
+      data: {
+        occurrences,
+        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        truncated: false,
+      } as unknown as TData,
+    });
   }
 
   if (params.url === "pipelines/run") {

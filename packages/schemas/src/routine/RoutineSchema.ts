@@ -51,6 +51,36 @@ export const RoutineSchema = z
   .superRefine(validateRoutineSchedule);
 export type Routine = z.infer<typeof RoutineSchema>;
 
+export const RoutineOccurrencesInputSchema = z
+  .object({
+    from: z.iso.datetime(),
+    to: z.iso.datetime(),
+  })
+  .refine(
+    ({ from, to }) => {
+      const fromMs = Date.parse(from);
+      const toMs = Date.parse(to);
+
+      return toMs > fromMs && toMs - fromMs <= 8 * 24 * 60 * 60_000;
+    },
+    { message: "Occurrence range must be positive and no longer than eight days" },
+  );
+export type RoutineOccurrencesInput = z.infer<typeof RoutineOccurrencesInputSchema>;
+
+export const RoutineOccurrenceSchema = z.object({
+  aggregated: z.boolean(),
+  at: z.iso.datetime(),
+  routineId: z.string(),
+});
+export type RoutineOccurrence = z.infer<typeof RoutineOccurrenceSchema>;
+
+export const RoutineOccurrencesResponseSchema = z.object({
+  occurrences: z.array(RoutineOccurrenceSchema),
+  timeZone: z.string(),
+  truncated: z.boolean(),
+});
+export type RoutineOccurrencesResponse = z.infer<typeof RoutineOccurrencesResponseSchema>;
+
 export const CreateRoutineSchema = routineBaseSchema
   .extend({
     pipelineId: z.string(),

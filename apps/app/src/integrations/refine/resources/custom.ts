@@ -12,6 +12,7 @@ export const CustomEndpoint = {
   pipelineAssetsIncrementRunStats: "pipelineAssets/incrementRunStats",
   pipelineAssetsDistillFromPipeline: "pipelineAssets/distillFromPipeline",
   routinesRunNow: "routines/runNow",
+  routinesOccurrences: "routines/occurrences",
   usageSummary: "usage/summary",
   usageDailyTokenSeries: "usage/dailyTokenSeries",
   usageByPipeline: "usage/byPipeline",
@@ -74,6 +75,10 @@ export const customEndpoints: Record<string, CustomHandler> = {
     ),
   [CustomEndpoint.routinesRunNow]: (payload) =>
     trpcClient.routines.runNow.mutate(payload as Input<typeof trpcClient.routines.runNow.mutate>),
+  [CustomEndpoint.routinesOccurrences]: (payload) =>
+    trpcClient.routines.getOccurrences.query(
+      payload as Input<typeof trpcClient.routines.getOccurrences.query>,
+    ),
   [CustomEndpoint.usageSummary]: (payload) =>
     trpcClient.usage.getSummary.query(payload as Input<typeof trpcClient.usage.getSummary.query>),
   [CustomEndpoint.usageDailyTokenSeries]: (payload) =>

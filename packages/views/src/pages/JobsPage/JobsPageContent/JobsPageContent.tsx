@@ -18,6 +18,14 @@ import { JobsCalendar } from "../JobsCalendar";
 import { JobsTable } from "../JobsTable";
 
 type JobsView = "calendar" | "list";
+type SchedulingState =
+  | "pick"
+  | {
+      pipelineId: string;
+      pipelineName: string;
+      routine: Routine | null;
+    }
+  | null;
 
 const FILTER_LABEL_KEYS: Record<JobStatusFilter, string> = {
   All: "jobs.filters.all",
@@ -63,7 +71,7 @@ export const JobsPageContent = () => {
   const handleStatusFilterButtonClick = useStore(store, (s) => s.handleStatusFilterButtonClick);
   const [view, setView] = useState<JobsView>("list");
   const [detailJob, setDetailJob] = useState<Job | null>(null);
-  const [scheduling, setScheduling] = useState<"pick" | PipelineData | null>(null);
+  const [scheduling, setScheduling] = useState<SchedulingState>(null);
 
   const pipelineNameById = new Map(pipelines.map((pipeline) => [pipeline.id, pipeline.name]));
   const counts = {
@@ -220,13 +228,11 @@ export const JobsPageContent = () => {
             routines={routines}
             onEditRoutine={(routine) => {
               const pipeline = pipelines.find((item) => item.id === routine.pipelineId);
-              setScheduling(
-                pipeline ?? {
-                  ...({} as PipelineData),
-                  id: routine.pipelineId,
-                  name: routine.name,
-                },
-              );
+              setScheduling({
+                pipelineId: routine.pipelineId,
+                pipelineName: pipeline?.name ?? routine.name,
+                routine,
+              });
             }}
             onNewRoutine={() => setScheduling("pick")}
             onOpenJob={handleOpenJob}
@@ -276,7 +282,13 @@ export const JobsPageContent = () => {
                   className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-xs hover:bg-accent/60"
                   data-testid={`jobs-pick-${pipeline.id}`}
                   type="button"
-                  onClick={() => setScheduling(pipeline)}
+                  onClick={() =>
+                    setScheduling({
+                      pipelineId: pipeline.id,
+                      pipelineName: pipeline.name,
+                      routine: null,
+                    })
+                  }
                 >
                   <span className="min-w-0 flex-1 truncate font-medium">{pipeline.name}</span>
                   {(routines.some((routine) => routine.pipelineId === pipeline.id) && (
@@ -293,9 +305,10 @@ export const JobsPageContent = () => {
       ) : null}
       {scheduling && scheduling !== "pick" ? (
         <ScheduleEditor
-          pipelineId={scheduling.id}
-          pipelineName={scheduling.name}
-          routines={routines.filter((routine) => routine.pipelineId === scheduling.id)}
+          pipelineId={scheduling.pipelineId}
+          pipelineName={scheduling.pipelineName}
+          routine={scheduling.routine}
+          routines={routines.filter((routine) => routine.pipelineId === scheduling.pipelineId)}
           onClose={() => {
             setScheduling(null);
             void routinesQuery?.refetch?.();
