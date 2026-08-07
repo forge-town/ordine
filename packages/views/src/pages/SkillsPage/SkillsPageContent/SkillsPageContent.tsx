@@ -230,7 +230,12 @@ export const SkillsPageContent = () => {
   if (skillsQuery.isLoading) {
     return (
       <div className="flex h-full flex-col overflow-hidden">
-        <PageHeader title={t("skills.title")} />
+        <PageHeader
+          eyebrow={t("nav.groups.capabilities")}
+          icon={<Wand2 className="size-[18px] text-muted-foreground" />}
+          sub={t("skills.subtitle")}
+          title={t("skills.title")}
+        />
         <PageLoadingState variant="grid" />
       </div>
     );
@@ -358,7 +363,7 @@ export const SkillsPageContent = () => {
         ) : null}
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">
+      <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-8 pt-4 sm:px-7">
         {filtered.length === 0 ? (
           <div className="flex h-40 flex-col items-center justify-center text-center text-muted-foreground">
             <Wand2 className="size-8 text-muted-foreground/30" />

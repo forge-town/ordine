@@ -73,7 +73,7 @@
     "i18next": "^26.0.3",
     "immer": "^11.1.4",
     "jszip": "^3.10.1",
-    "lucide-react": "^0.510.0",
+    "lucide-react": "^1.7.0",
     "neverthrow": "^8.2.0",
     "react": "^19.1.0",
     "react-hook-form": "^7.56.4",

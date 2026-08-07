@@ -1,5 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
+import { surfaceCardVariants } from "@repo/ui/card";
+import { cn } from "@repo/ui/lib/utils";
 
 export type StatCardProps = {
   icon: React.ElementType;
@@ -12,7 +14,7 @@ export type StatCardProps = {
 export const StatCard = ({ icon: Icon, label, value, sub, to }: StatCardProps) => {
   return (
     <Link to={to as "/"}>
-      <div className="group rounded-xl border border-border bg-card px-5 py-4 hover:border-primary/50 hover:shadow-sm transition-all cursor-pointer">
+      <div className={cn(surfaceCardVariants({ interactive: true }), "group cursor-pointer p-4")}>
         <div className="flex items-center justify-between">
           <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted text-muted-foreground">
             <Icon className="h-4 w-4" />

@@ -363,6 +363,8 @@ export { Button } from "../ui/Button"
 
 ## 十、React 样式与组件规范
 
+页面布局、卡片层级、间距与阴影遵循 **[Ordine 前端视觉规范](./docs/frontend-ui.md)**。新增页面不得自行发明另一套卡片圆角、阴影或页面 gutter。
+
 ### 条件 className 用 `cn()`
 
 ```tsx

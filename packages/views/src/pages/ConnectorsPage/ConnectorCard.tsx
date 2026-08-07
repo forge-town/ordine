@@ -2,6 +2,8 @@ import { Loader2, Plug, Settings2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { Connector, ConnectorMethod, ConnectorStatus } from "@repo/schemas";
 import { Button } from "@repo/ui/button";
+import { surfaceCardVariants } from "@repo/ui/card";
+import { cn } from "@repo/ui/lib/utils";
 import { Dot, Tag } from "../../components/primitives";
 
 export type ConnectorCardProps = {
@@ -42,7 +44,12 @@ export const ConnectorCard = ({
   const handleManageClick = () => onManage(connector);
 
   return (
-    <article className="group flex min-h-[184px] flex-col rounded-lg bg-surface p-3.5 shadow-soft ring-1 ring-border transition-shadow hover:shadow-float hover:ring-border-strong">
+    <article
+      className={cn(
+        surfaceCardVariants({ interactive: true }),
+        "group flex min-h-[184px] flex-col p-3.5",
+      )}
+    >
       <div className="flex items-start gap-2.5">
         <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-surface-2">
           <Plug className="size-3.5 text-foreground/75" />

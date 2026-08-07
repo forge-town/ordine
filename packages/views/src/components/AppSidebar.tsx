@@ -186,7 +186,7 @@ export const AppSidebar = ({
         <SidebarSeparator className="my-1 bg-sidebar-border/60" />
         <SidebarGroup
           aria-label={t("nav.groups.capabilities", { defaultValue: "Capabilities" })}
-          className="p-0 px-2"
+          className="px-2! py-0!"
         >
           <SidebarGroupLabel
             className="h-7 px-2 text-[11px] font-medium uppercase text-muted-foreground group-data-[collapsible=icon]:sr-only"

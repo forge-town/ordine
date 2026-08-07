@@ -1,6 +1,7 @@
 import { Pencil, Trash2, type LucideIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
+import { surfaceCardVariants } from "@repo/ui/card";
 import { cn } from "@repo/ui/lib/utils";
 import { Icon, Tag } from "../../../components/primitives";
 
@@ -32,7 +33,12 @@ export const ComponentCard = ({ item, onDelete, onEdit }: ComponentCardProps) =>
   const isPipelineSkill = item.category === "pipeline-skill";
 
   return (
-    <article className="group flex min-h-[154px] flex-col rounded-lg border border-border bg-card p-3.5 shadow-sm transition-[border-color,box-shadow] hover:border-border-strong hover:shadow-md">
+    <article
+      className={cn(
+        surfaceCardVariants({ interactive: true }),
+        "group flex min-h-[154px] flex-col p-3.5",
+      )}
+    >
       <div className="flex items-start gap-2.5">
         <span
           className={cn(
@@ -80,7 +86,7 @@ export const ComponentCard = ({ item, onDelete, onEdit }: ComponentCardProps) =>
       <p className="mt-2 line-clamp-2 text-[11.5px] leading-relaxed text-muted-foreground">
         {item.description}
       </p>
-      <div className="mt-2.5 truncate rounded-lg bg-muted px-2 py-1.5 font-mono text-[10px] text-muted-foreground">
+      <div className="mt-2.5 truncate rounded-lg bg-surface-2 px-2 py-1.5 font-mono text-[10px] text-muted-foreground">
         {item.io}
       </div>
       <div className="mt-auto flex items-center gap-1.5 pt-2 text-[10.5px] text-muted-foreground">

@@ -3,6 +3,8 @@ import { useTranslation } from "react-i18next";
 import type { ElementType } from "react";
 import { Link } from "@tanstack/react-router";
 import { pluginRegistry, type ObjectTypeDefinition } from "@repo/plugin";
+import { surfaceCardVariants } from "@repo/ui/card";
+import { cn } from "@repo/ui/lib/utils";
 import { PageHeader } from "../../../components/PageHeader";
 
 const iconMap: Record<string, ElementType> = {
@@ -25,17 +27,20 @@ export const ObjectsPageContent = () => {
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      <PageHeader icon={<Box className="h-4 w-4 text-primary" />} title={t("objects.title")} />
+      <PageHeader
+        eyebrow={t("nav.groups.assembly")}
+        icon={<Box className="h-4 w-4 text-primary" />}
+        sub={t("objects.subtitle")}
+        title={t("objects.title")}
+      />
 
-      <div className="flex-1 overflow-y-auto p-6">
-        <p className="mb-6 text-sm text-muted-foreground">{t("objects.subtitle")}</p>
-
-        <div className="grid gap-4">
+      <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-8 pt-4 sm:px-7">
+        <div className="grid gap-3">
           {builtinObjectTypes.map((objType) => {
             const Icon = iconMap[objType.icon ?? ""] ?? Puzzle;
 
             return (
-              <div key={objType.id} className="rounded-lg border border-border bg-card p-4">
+              <div key={objType.id} className={cn(surfaceCardVariants(), "p-3.5")}>
                 <div className="flex items-center gap-3">
                   <div className="flex h-9 w-9 items-center justify-center rounded-md bg-primary/10">
                     <Icon className="h-4 w-4 text-primary" />
@@ -55,7 +60,10 @@ export const ObjectsPageContent = () => {
             return (
               <Link
                 key={objType.id}
-                className="block rounded-lg border border-border bg-card p-4 transition-colors hover:bg-accent"
+                className={cn(
+                  surfaceCardVariants({ interactive: true }),
+                  "block p-3.5 hover:bg-accent/40",
+                )}
                 params={{ objectTypeId: objType.id }}
                 to="/pipelines/objects/$objectTypeId"
               >

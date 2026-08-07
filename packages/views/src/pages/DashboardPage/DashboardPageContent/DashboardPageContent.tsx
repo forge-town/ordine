@@ -8,6 +8,8 @@ import {
   Workflow,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { surfaceCardVariants } from "@repo/ui/card";
+import { cn } from "@repo/ui/lib/utils";
 import { PageHeader } from "../../../components/PageHeader";
 import { DashboardActivityChart } from "../DashboardActivityChart";
 import { DashboardDistillationSummary } from "../DashboardDistillationSummary";
@@ -48,13 +50,15 @@ export const DashboardPageContent = () => {
     <div className="flex h-full flex-col overflow-hidden">
       <PageHeader
         badge={<DashboardRunningJobsBadge />}
+        eyebrow={t("nav.groups.monitor")}
         icon={<LayoutDashboard className="h-4 w-4 text-primary" />}
+        sub={t("dashboard.subtitle")}
         title={t("dashboard.title")}
       />
 
-      <div className="flex-1 overflow-y-auto bg-[radial-gradient(circle_at_top,rgba(120,120,120,0.08),transparent_45%)] p-6">
-        <div className="mx-auto flex w-full max-w-7xl flex-col gap-6">
-          <div className="grid gap-6 xl:grid-cols-[minmax(0,1.4fr)_minmax(320px,0.9fr)]">
+      <div className="flex-1 overflow-y-auto px-4 pb-8 pt-4 sm:px-7">
+        <div className="mx-auto flex w-full max-w-7xl flex-col gap-5">
+          <div className="grid gap-5 xl:grid-cols-[minmax(0,1.4fr)_minmax(320px,0.9fr)]">
             <DashboardPanel
               description={t("dashboard.activityDescription")}
               title={t("dashboard.activityTitle")}
@@ -70,7 +74,7 @@ export const DashboardPageContent = () => {
             </DashboardPanel>
           </div>
 
-          <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+          <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
             <DashboardPanel
               description={t("dashboard.pipelineHealthDescription")}
               title={t("dashboard.pipelineHealthTitle")}
@@ -102,7 +106,7 @@ export const DashboardPageContent = () => {
             <DashboardDistillationSummary />
           </DashboardPanel>
 
-          <div className="grid gap-6 xl:grid-cols-[minmax(0,1.1fr)_minmax(280px,0.9fr)]">
+          <div className="grid gap-5 xl:grid-cols-[minmax(0,1.1fr)_minmax(280px,0.9fr)]">
             <DashboardPanel
               actions={
                 <Link
@@ -129,9 +133,11 @@ export const DashboardPageContent = () => {
 
                   return (
                     <Link key={action.key} to={action.to as "/"}>
-                      <div className="group rounded-2xl border border-border/70 bg-background/60 p-4 transition-all hover:border-primary/40 hover:shadow-sm">
+                      <div
+                        className={cn(surfaceCardVariants({ interactive: true }), "group p-3.5")}
+                      >
                         <div className="flex items-center justify-between">
-                          <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-muted text-muted-foreground">
+                          <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-surface-2 text-muted-foreground">
                             <Icon className="h-5 w-5" />
                           </span>
                           <ArrowRight className="h-4 w-4 text-muted-foreground/40 transition-colors group-hover:text-muted-foreground" />

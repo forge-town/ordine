@@ -343,6 +343,7 @@
   },
   "operations": {
     "title": "操作集",
+    "subtitle": "供 Pipeline 与 Agent 复用的可执行能力。",
     "createNew": "新建 Operation",
     "noOperations": "还没有任何 Operation",
     "searchPlaceholder": "搜索 Operations...",
@@ -418,6 +419,7 @@
   },
   "pipelines": {
     "title": "流水线",
+    "subtitle": "可复用的生产流水线，把稳定运行沉淀为可重复执行的 Pipeline Skill。",
     "createNew": "新建 Pipeline",
     "noPipelines": "还没有任何 Pipeline",
     "noNodes": "暂无节点",
@@ -565,6 +567,8 @@
     "zoomIn": "放大",
     "zoomOut": "缩小",
     "fitView": "适配视图",
+    "selectTool": "选择",
+    "handTool": "平移画布",
     "interactivity": "画布交互",
     "enableInteractivity": "开启画布交互",
     "disableInteractivity": "锁定画布交互",
@@ -879,6 +883,7 @@
   },
   "settings": {
     "title": "设置",
+    "subtitle": "配置工作区默认项、自主性、通知与本地开发环境。",
     "language": "语言",
     "selectLanguage": "选择语言",
     "timezone": "时区",
@@ -1305,6 +1310,7 @@
   },
   "agents": {
     "title": "智能体",
+    "subtitle": "配置在当前工作区中规划并协调任务的智能体。",
     "noAgents": "暂无智能体",
     "searchPlaceholder": "搜索智能体...",
     "capabilities": "能力",

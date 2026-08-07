@@ -36,7 +36,12 @@ export const AgentsPageContent = () => {
   if (agentsQuery?.isLoading) {
     return (
       <div className="flex h-full flex-col overflow-hidden">
-        <PageHeader title={t("agents.title")} />
+        <PageHeader
+          eyebrow={t("nav.groups.capabilities")}
+          icon={<Bot className="h-4 w-4 text-primary" />}
+          sub={t("agents.subtitle")}
+          title={t("agents.title")}
+        />
         <PageLoadingState variant="grid" />
       </div>
     );
@@ -56,13 +61,15 @@ export const AgentsPageContent = () => {
             {filtered.length}
           </span>
         }
+        eyebrow={t("nav.groups.capabilities")}
         icon={<Bot className="h-4 w-4 text-primary" />}
+        sub={t("agents.subtitle")}
         title={t("agents.title")}
       />
 
       {showForm && <AgentFormDialog />}
 
-      <div className="flex items-center gap-3 border-b border-border bg-background px-6 py-3">
+      <div className="flex items-center gap-3 border-b border-border bg-background px-4 py-3 sm:px-7">
         <div className="relative max-w-xs flex-1">
           <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -74,7 +81,7 @@ export const AgentsPageContent = () => {
         </div>
       </div>
 
-      <div className="flex-1 overflow-auto p-6">
+      <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-8 pt-4 sm:px-7">
         {filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
             <Bot className="mb-3 h-10 w-10 opacity-40" />

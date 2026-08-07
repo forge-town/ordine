@@ -4,6 +4,7 @@ import { FlaskConical, Plus, Trash2, ExternalLink, FlaskRound } from "lucide-rea
 import { useTranslation } from "react-i18next";
 import { buttonVariants, Button } from "@repo/ui/button";
 import { Badge } from "@repo/ui/badge";
+import { surfaceCardVariants } from "@repo/ui/card";
 import type { Distillation, DistillationStatus } from "@repo/schemas";
 import { PageLoadingState } from "../../../components/PageLoadingState";
 import { PageHeader } from "../../../components/PageHeader";
@@ -35,7 +36,12 @@ export const DistillationsPageContent = () => {
   if (query?.isLoading) {
     return (
       <div className="flex h-full flex-col overflow-hidden">
-        <PageHeader title={t("distillations.title")} />
+        <PageHeader
+          eyebrow={t("nav.groups.monitor")}
+          icon={<FlaskConical className="h-4 w-4 text-primary" />}
+          sub={t("distillations.subtitle")}
+          title={t("distillations.title")}
+        />
         <PageLoadingState variant="list" />
       </div>
     );
@@ -50,11 +56,13 @@ export const DistillationsPageContent = () => {
             {t("distillations.openStudio")}
           </Link>
         }
+        eyebrow={t("nav.groups.monitor")}
         icon={<FlaskConical className="h-4 w-4 text-primary" />}
+        sub={t("distillations.subtitle")}
         title={t("distillations.title")}
       />
 
-      <div className="flex-1 overflow-auto p-6">
+      <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-8 pt-4 sm:px-7">
         {distillations.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 text-center">
             <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
@@ -73,11 +81,11 @@ export const DistillationsPageContent = () => {
             </Link>
           </div>
         ) : (
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
             {distillations.map((distillation) => (
               <div
                 key={distillation.id}
-                className="group relative rounded-xl border border-border bg-card p-4 transition-all hover:border-primary/50 hover:shadow-sm"
+                className={cn(surfaceCardVariants({ interactive: true }), "group relative p-3.5")}
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-center gap-2">

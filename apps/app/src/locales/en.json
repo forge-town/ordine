@@ -440,6 +440,7 @@
   },
   "operations": {
     "title": "Operations",
+    "subtitle": "Executable capabilities that pipelines and agents can reuse.",
     "createNew": "New Operation",
     "noOperations": "No operations yet",
     "searchPlaceholder": "Search operations...",
@@ -528,6 +529,7 @@
   },
   "pipelines": {
     "title": "Pipelines",
+    "subtitle": "Reusable production lines that turn reliable runs into repeatable Pipeline Skills.",
     "createNew": "New Pipeline",
     "noPipelines": "No pipelines yet",
     "noNodes": "No nodes",
@@ -751,6 +753,8 @@
     "zoomIn": "Zoom in",
     "zoomOut": "Zoom out",
     "fitView": "Fit view",
+    "selectTool": "Select",
+    "handTool": "Pan canvas",
     "interactivity": "Canvas interactions",
     "enableInteractivity": "Enable canvas interactions",
     "disableInteractivity": "Disable canvas interactions",
@@ -1203,6 +1207,7 @@
   },
   "settings": {
     "title": "Settings",
+    "subtitle": "Configure workspace defaults, autonomy, notifications, and local development.",
     "language": "Language",
     "selectLanguage": "Select language",
     "timezone": "Timezone",
@@ -2051,6 +2056,7 @@
   },
   "agents": {
     "title": "Agents",
+    "subtitle": "Configure the agents that plan and coordinate work across this workspace.",
     "noAgents": "No agents found",
     "searchPlaceholder": "Search agents...",
     "capabilities": "Capabilities",

@@ -214,7 +214,12 @@ export const ConnectorsPageContent = () => {
   if (connectorsQuery.isLoading) {
     return (
       <div className="flex h-full flex-col overflow-hidden">
-        <PageHeader title={t("connectors.title")} />
+        <PageHeader
+          eyebrow={t("nav.groups.capabilities")}
+          icon={<Plug className="size-[18px] text-muted-foreground" />}
+          sub={t("connectors.subtitle")}
+          title={t("connectors.title")}
+        />
         <PageLoadingState variant="grid" />
       </div>
     );

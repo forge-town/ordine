@@ -1,6 +1,7 @@
 import { Cpu, Trash2, Wand2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
+import { surfaceCardVariants } from "@repo/ui/card";
 import { cn } from "@repo/ui/lib/utils";
 import { Tag } from "../../components/primitives";
 
@@ -37,7 +38,12 @@ export const SkillCard = ({ item, onCreateOperation, onDelete }: SkillCardProps)
   const handleDeleteClick = () => onDelete(item.id);
 
   return (
-    <article className="group flex min-h-[186px] flex-col rounded-lg bg-surface p-3.5 shadow-soft ring-1 ring-border transition-shadow hover:shadow-float hover:ring-border-strong">
+    <article
+      className={cn(
+        surfaceCardVariants({ interactive: true }),
+        "group flex min-h-[186px] flex-col p-3.5",
+      )}
+    >
       <div className="flex items-start gap-2.5">
         <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-surface-2">
           <Wand2 className="size-3.5 text-foreground/75" />

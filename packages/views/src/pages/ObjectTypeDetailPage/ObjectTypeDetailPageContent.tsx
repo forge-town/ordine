@@ -3,6 +3,8 @@ import { useTranslation } from "react-i18next";
 import { Link, useParams } from "@tanstack/react-router";
 import { useList } from "@refinedev/core";
 import { pluginRegistry } from "@repo/plugin";
+import { surfaceCardVariants } from "@repo/ui/card";
+import { cn } from "@repo/ui/lib/utils";
 import { ResourceName } from "../../constants";
 import { PageHeader } from "../../components/PageHeader";
 import { PageLoadingState } from "../../components/PageLoadingState";
@@ -46,7 +48,7 @@ export const ObjectTypeDetailPageContent = () => {
         title={objectType.label}
       />
 
-      <div className="flex-1 overflow-y-auto p-6">
+      <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-8 pt-4 sm:px-7">
         {query?.isLoading ? (
           <PageLoadingState />
         ) : items.length === 0 ? (
@@ -54,7 +56,7 @@ export const ObjectTypeDetailPageContent = () => {
         ) : (
           <div className="grid gap-3">
             {items.map((item) => (
-              <div key={String(item.id)} className="rounded-lg border border-border bg-card p-4">
+              <div key={String(item.id)} className={cn(surfaceCardVariants(), "p-4")}>
                 <h3 className="text-sm font-medium">{String(item.name ?? item.id)}</h3>
                 {item.description ? (
                   <p className="mt-1 text-xs text-muted-foreground">{String(item.description)}</p>

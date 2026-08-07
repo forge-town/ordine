@@ -14,6 +14,8 @@ export type CanvasComponentCategory = "input" | "operations" | "skills" | "outpu
 
 export type NodeCardMode = "compact" | "expanded";
 
+export type CanvasTool = "hand" | "select";
+
 export interface ContextMenuState {
   screenX: number;
   screenY: number;
@@ -94,6 +96,7 @@ export interface UISlice {
   quickAddQuery: string;
   isConsoleCollapsed: boolean;
   isCanvasInteractive: boolean;
+  canvasTool: CanvasTool;
 
   // Pipeline test run state
   isTestRunning: boolean;
@@ -139,6 +142,7 @@ export interface UISlice {
   handleQuickAddInputChange: (event: ChangeEvent<HTMLInputElement>) => void;
   handleToggleConsoleCollapse: () => void;
   handleToggleCanvasInteractive: () => void;
+  setCanvasTool: (tool: CanvasTool) => void;
   handleQuickAddKeyDown: (event: React.KeyboardEvent) => void;
   handleConnectStart: (state: ConnectStartState | null) => void;
   handlePipelineNameChange: (event: ChangeEvent<HTMLInputElement>) => void;
@@ -209,6 +213,7 @@ export const createUISlice = (
   quickAddQuery: "",
   isConsoleCollapsed: false,
   isCanvasInteractive: true,
+  canvasTool: "hand",
   // Pipeline test run state defaults
   isTestRunning: false,
   isRunning: false,
@@ -365,6 +370,10 @@ export const createUISlice = (
 
   handleToggleCanvasInteractive: () => {
     set((state) => ({ isCanvasInteractive: !state.isCanvasInteractive }));
+  },
+
+  setCanvasTool: (canvasTool) => {
+    set({ canvasTool });
   },
 
   handleQuickAddKeyDown: (event) => {

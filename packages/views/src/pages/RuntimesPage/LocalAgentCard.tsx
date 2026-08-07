@@ -2,6 +2,8 @@ import { ChevronRight, Clock, Sparkles } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { AgentRuntimeConfig } from "@repo/schemas";
 import { Button } from "@repo/ui/button";
+import { surfaceCardVariants } from "@repo/ui/card";
+import { cn } from "@repo/ui/lib/utils";
 import { Mono, StatusPill, Tag } from "../../components/primitives";
 
 const RUNTIME_META: Record<
@@ -46,7 +48,7 @@ export const LocalAgentCard = ({ runtime }: { runtime: AgentRuntimeConfig }) => 
   const isLocal = runtime.connection.mode === "local";
 
   return (
-    <article className="flex min-h-[190px] flex-col rounded-lg bg-surface p-4 shadow-soft ring-1 ring-border">
+    <article className={cn(surfaceCardVariants(), "flex min-h-[190px] flex-col p-4")}>
       <div className="flex items-center gap-3">
         <Mono className={isLocal ? "bg-foreground text-primary-foreground" : undefined}>
           {meta.mono}

@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from "@repo/ui/select";
 import { cn } from "@repo/ui/lib/utils";
+import { surfaceCardVariants } from "@repo/ui/card";
 import { useOperationsPageStore } from "../_store";
 import { OperationCard } from "../OperationCard";
 import { OperationListRow } from "../OperationListRow";
@@ -98,7 +99,12 @@ export const OperationsPageContent = () => {
   if (operationsQuery?.isLoading) {
     return (
       <div className="flex h-full flex-col overflow-hidden">
-        <PageHeader title={t("operations.title")} />
+        <PageHeader
+          eyebrow={t("nav.groups.assembly")}
+          icon={<Zap className="h-4 w-4 text-primary" />}
+          sub={t("operations.subtitle")}
+          title={t("operations.title")}
+        />
         <PageLoadingState variant="list" />
       </div>
     );
@@ -126,12 +132,14 @@ export const OperationsPageContent = () => {
             />
           </>
         }
+        eyebrow={t("nav.groups.assembly")}
         icon={<Zap className="h-4 w-4 text-primary" />}
+        sub={t("operations.subtitle")}
         title={t("operations.title")}
       />
 
       {/* Search + filter toolbar */}
-      <div className="flex shrink-0 items-center gap-3 bg-muted/30 px-6 py-2.5">
+      <div className="flex shrink-0 items-center gap-3 border-b border-border bg-background px-4 py-3 sm:px-7">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -195,7 +203,7 @@ export const OperationsPageContent = () => {
       </div>
 
       {/* Content area */}
-      <div className="flex-1 overflow-auto">
+      <div className="min-h-0 flex-1 overflow-auto">
         {filteredOperations.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-32 text-center px-6">
             <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border-2 border-dashed border-border">
@@ -229,13 +237,18 @@ export const OperationsPageContent = () => {
             )}
           </div>
         ) : viewMode === "grid" ? (
-          <div className="grid grid-cols-1 gap-4 p-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-3 px-4 pb-8 pt-4 sm:grid-cols-2 sm:px-7 lg:grid-cols-3">
             {filteredOperations.map((op) => (
               <OperationCard key={op.id} operation={op} />
             ))}
           </div>
         ) : (
-          <div className="divide-y divide-border">
+          <div
+            className={cn(
+              surfaceCardVariants(),
+              "mx-4 mb-8 mt-4 divide-y divide-border overflow-hidden sm:mx-7",
+            )}
+          >
             {filteredOperations.map((op) => (
               <OperationListRow key={op.id} operation={op} />
             ))}

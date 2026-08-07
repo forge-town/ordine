@@ -78,7 +78,9 @@ export const SettingsPageContent = () => {
             <span className="hidden sm:inline">{t("settings.sections.keyboard")}</span>
           </Button>
         }
+        eyebrow={t("nav.workspace")}
         icon={<Settings className="h-4 w-4 text-primary" />}
+        sub={t("settings.subtitle")}
         title={t("settings.title")}
       />
       <Dialog open={keyboardOpen} onOpenChange={handleKeyboardOpenChange}>

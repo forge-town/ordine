@@ -13,6 +13,10 @@ import { CanvasFlow } from "./CanvasFlow";
 
 type ReactFlowProps = {
   nodesConnectable?: boolean;
+  panOnDrag?: boolean | number[];
+  panOnScroll?: boolean;
+  selectionOnDrag?: boolean;
+  zoomOnScroll?: boolean;
   onConnect?: (connection: Connection) => void;
   onEdgesChange?: (changes: unknown[]) => void;
   onNodeDoubleClick?: (event: unknown, node: CanvasNode) => void;
@@ -134,6 +138,17 @@ describe("CanvasFlow", () => {
       }),
     ]);
     expect(store.getState().canUndo).toBe(true);
+  });
+
+  it("defaults to hand panning and uses the wheel for zoom", () => {
+    const store = createCanvasStore();
+    render(<CanvasFlow />, { wrapper: makeWrapper(store) });
+
+    expect(store.getState().canvasTool).toBe("hand");
+    expect(latestReactFlowPropsRef.current?.panOnDrag).toBe(true);
+    expect(latestReactFlowPropsRef.current?.panOnScroll).toBe(false);
+    expect(latestReactFlowPropsRef.current?.selectionOnDrag).toBe(false);
+    expect(latestReactFlowPropsRef.current?.zoomOnScroll).toBe(true);
   });
 
   it("adds a skill node with a persisted operation id", async () => {

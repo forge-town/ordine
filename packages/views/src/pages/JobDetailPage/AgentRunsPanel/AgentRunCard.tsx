@@ -10,6 +10,7 @@ import {
   FileJson,
 } from "lucide-react";
 import { cn } from "@repo/ui/lib/utils";
+import { surfaceCardVariants } from "@repo/ui/card";
 import { Badge } from "@repo/ui/badge";
 import { Button } from "@repo/ui/button";
 import { useCustom } from "@refinedev/core";
@@ -42,7 +43,7 @@ export const AgentRunCard = ({ jobId, run }: AgentRunCardProps) => {
   const StatusIcon = isError ? XCircle : CheckCircle2;
 
   return (
-    <div className="rounded-lg border border-border bg-card overflow-hidden">
+    <div className={cn(surfaceCardVariants(), "overflow-hidden")}>
       <Button
         className="w-full justify-start gap-2 rounded-none border-0 px-4 py-3 h-auto"
         variant="ghost"

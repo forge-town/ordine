@@ -22,6 +22,7 @@ import { useState, useEffect } from "react";
 import { ReactFlow, Background, ReactFlowProvider } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { cn } from "@repo/ui/lib/utils";
+import { surfaceCardVariants } from "@repo/ui/card";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
 import { useOne, useCustomMutation, useList } from "@refinedev/core";
@@ -244,7 +245,7 @@ export const PipelineDetailPageContent = ({ pipelineId }: PipelineDetailPageCont
         actions={
           <>
             <Link
-              className="flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+              className="flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-1.5 text-xs font-medium text-foreground shadow-soft transition-colors hover:bg-accent"
               search={{ id: pipeline.id }}
               to="/canvas"
             >
@@ -261,9 +262,9 @@ export const PipelineDetailPageContent = ({ pipelineId }: PipelineDetailPageCont
       />
 
       {/* ── Body ───────────────────────────────────────────────────────── */}
-      <div className="flex-1 overflow-y-auto p-6 space-y-5">
+      <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-4 pb-8 pt-4 sm:px-7">
         {/* Basic info card */}
-        <div className="rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
+        <div className={cn(surfaceCardVariants(), "p-5")}>
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
@@ -333,7 +334,7 @@ export const PipelineDetailPageContent = ({ pipelineId }: PipelineDetailPageCont
         </div>
 
         {/* Canvas preview ─────────────────────────────────────────────── */}
-        <div className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
+        <div className={cn(surfaceCardVariants(), "overflow-hidden")}>
           <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100">
             <span className="text-xs font-semibold uppercase tracking-wider text-gray-400">
               {t("pipelines.preview")}
@@ -391,7 +392,7 @@ export const PipelineDetailPageContent = ({ pipelineId }: PipelineDetailPageCont
         </div>
 
         {/* ── Run panel ─────────────────────────────────────────────────── */}
-        <div className="rounded-xl border border-gray-100 bg-white shadow-sm">
+        <div className={surfaceCardVariants()}>
           <div className="flex items-center gap-2 px-5 py-3 border-b border-gray-100">
             <Play className="h-3.5 w-3.5 text-gray-400" />
             <span className="text-xs font-semibold uppercase tracking-wider text-gray-400">
@@ -469,7 +470,7 @@ export const PipelineDetailPageContent = ({ pipelineId }: PipelineDetailPageCont
 
         {/* Node list ──────────────────────────────────────────────────── */}
         {pipeline.nodes.length > 0 && (
-          <div className="rounded-xl border border-gray-100 bg-white shadow-sm">
+          <div className={surfaceCardVariants()}>
             <div className="px-5 py-3 border-b border-gray-100">
               <span className="text-xs font-semibold uppercase tracking-wider text-gray-400">
                 {t("pipelines.nodeList")}

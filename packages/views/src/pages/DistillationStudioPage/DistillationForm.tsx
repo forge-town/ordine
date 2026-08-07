@@ -135,7 +135,7 @@ export const DistillationForm = ({ existingDistillation }: DistillationFormProps
   };
 
   return (
-    <Card className="p-5">
+    <Card className="p-5" variant="surface">
       <Form {...form}>
         <form className="space-y-4">
           <FormField

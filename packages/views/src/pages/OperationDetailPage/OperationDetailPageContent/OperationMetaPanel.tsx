@@ -12,6 +12,8 @@ import {
 import { useTranslation } from "react-i18next";
 import { useOne } from "@refinedev/core";
 import type { Operation, ObjectType } from "@repo/schemas";
+import { surfaceCardVariants } from "@repo/ui/card";
+import { cn } from "@repo/ui/lib/utils";
 import { ResourceName } from "../../../constants";
 import { SectionHeader } from "../SectionHeader";
 import { InputPortRow } from "../InputPortRow";
@@ -41,7 +43,7 @@ export const OperationMetaPanel = () => {
     <div className="w-72 shrink-0 border-l border-border overflow-y-auto">
       <div className="p-4 space-y-4">
         {/* Basic info */}
-        <div className="rounded-xl border border-border bg-card p-4">
+        <div className={cn(surfaceCardVariants(), "p-4")}>
           <SectionHeader icon={Info} label={t("operations.basicInfo")} />
           {operation.description && (
             <p className="mb-3 text-sm leading-relaxed text-foreground">{operation.description}</p>
@@ -73,7 +75,7 @@ export const OperationMetaPanel = () => {
 
         {/* Inputs */}
         {inputs.length > 0 && (
-          <div className="rounded-xl border border-border bg-card p-4">
+          <div className={cn(surfaceCardVariants(), "p-4")}>
             <SectionHeader
               icon={FileInput}
               label={`${t("operations.inputs")} (${inputs.length})`}
@@ -87,7 +89,7 @@ export const OperationMetaPanel = () => {
         )}
 
         {/* Metadata */}
-        <div className="rounded-xl border border-border bg-card p-4">
+        <div className={cn(surfaceCardVariants(), "p-4")}>
           <SectionHeader icon={Tag} label={t("common.metadata")} />
           <div className="space-y-0">
             <div className="flex items-start gap-3 border-b border-border/50 py-2.5">

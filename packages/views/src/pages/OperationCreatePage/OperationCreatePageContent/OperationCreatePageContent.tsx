@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { cn } from "@repo/ui/lib/utils";
+import { surfaceCardVariants } from "@repo/ui/card";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@repo/ui/select";
@@ -237,8 +238,8 @@ export const OperationCreatePageContent = () => {
     <div className="flex h-full flex-col overflow-hidden">
       <PageHeader backTo="/pipelines/operations" title={t("operations.createNew")} />
 
-      <div className="flex-1 overflow-y-auto p-6">
-        <div className="mx-auto max-w-2xl rounded-xl border border-border bg-card p-6">
+      <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-8 pt-4 sm:px-7">
+        <div className={cn(surfaceCardVariants(), "mx-auto max-w-2xl p-5")}>
           <Form {...form}>
             <form className="space-y-4" onSubmit={form.handleSubmit(onSubmit)}>
               <FormField

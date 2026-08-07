@@ -62,7 +62,11 @@ export const PipelineCard = ({ metrics, onSchedule, pipeline }: PipelineCardProp
   const handleSchedule = () => onSchedule?.();
 
   return (
-    <Card className="group relative min-h-64 overflow-hidden p-5 transition-all duration-200 hover:border-primary/50 hover:shadow-sm focus-within:ring-2 focus-within:ring-ring">
+    <Card
+      interactive
+      className="group relative min-h-64 overflow-hidden p-4 focus-within:ring-2 focus-within:ring-ring"
+      variant="surface"
+    >
       <button
         aria-label={t("pipelines.openPipeline", { name: pipeline.name })}
         className="absolute inset-0 z-0 cursor-pointer"

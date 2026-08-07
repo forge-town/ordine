@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis } from "recharts";
 import { Calendar, Gauge, Info } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { Card } from "@repo/ui/card";
 import { useCustom, useList } from "@refinedev/core";
 import type { PipelineData } from "@repo/schemas";
 import { Button } from "@repo/ui/button";
@@ -138,7 +139,12 @@ export const UsagePageContent = () => {
   if (isLoading) {
     return (
       <div className="flex h-full flex-col overflow-hidden">
-        <PageHeader title={t("usage.title")} />
+        <PageHeader
+          eyebrow={t("nav.groups.monitor")}
+          icon={<Gauge className="size-[18px] text-muted-foreground" />}
+          sub={t("usage.subtitle")}
+          title={t("usage.title")}
+        />
         <PageLoadingState variant="grid" />
       </div>
     );
@@ -195,7 +201,7 @@ export const UsagePageContent = () => {
           />
         </div>
 
-        <section className="rounded-lg bg-surface p-5 shadow-soft ring-1 ring-border">
+        <Card className="p-5" variant="surface">
           <div className="mb-4 flex items-center justify-between gap-3">
             <div className="text-[13px] font-semibold">{t("usage.tokenTrend")}</div>
             <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
@@ -237,10 +243,10 @@ export const UsagePageContent = () => {
               </ResponsiveContainer>
             </div>
           )}
-        </section>
+        </Card>
 
         <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
-          <section className="rounded-lg bg-surface p-5 shadow-soft ring-1 ring-border">
+          <Card className="p-5" variant="surface">
             <div className="mb-2 text-[13px] font-semibold">{t("usage.byPipeline")}</div>
             {byPipeline.length === 0 ? (
               <div className="rounded-lg bg-surface-2/60 p-4 text-[12.5px] text-muted-foreground">
@@ -264,9 +270,9 @@ export const UsagePageContent = () => {
                   />
                 ))
             )}
-          </section>
+          </Card>
 
-          <section className="rounded-lg bg-surface p-5 shadow-soft ring-1 ring-border">
+          <Card className="p-5" variant="surface">
             <div className="mb-2 text-[13px] font-semibold">{t("usage.byAgent")}</div>
             {byAgent.length === 0 ? (
               <div className="rounded-lg bg-surface-2/60 p-4 text-[12.5px] text-muted-foreground">
@@ -290,7 +296,7 @@ export const UsagePageContent = () => {
               <Info className="mr-1 inline size-3 text-foreground/70" />
               {t("usage.agentHint")}
             </div>
-          </section>
+          </Card>
         </div>
       </div>
     </div>

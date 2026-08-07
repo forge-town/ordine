@@ -7,6 +7,7 @@ import { useShallow } from "zustand/shallow";
 import { useDataProvider, useOne } from "@refinedev/core";
 import type { Operation, OperationOutputItemTemplate } from "@repo/schemas";
 import { Button } from "@repo/ui/button";
+import { surfaceCardVariants } from "@repo/ui/card";
 import { cn } from "@repo/ui/lib/utils";
 import { ResourceName } from "../../../constants";
 import { useOperationDetailPageStore } from "../_store";
@@ -105,7 +106,7 @@ export const ItemDetailPanel = () => {
       {/* Tab content */}
       {activeTab === "definition" ? (
         <div className="space-y-4">
-          <div className="rounded-xl border border-border bg-card p-4">
+          <div className={cn(surfaceCardVariants(), "p-4")}>
             <div className="flex items-center gap-2 mb-3">
               <span className="font-mono text-sm font-semibold text-foreground">
                 {selectedItem.name}

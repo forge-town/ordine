@@ -1,6 +1,8 @@
 import { Puzzle } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Badge } from "@repo/ui/badge";
+import { surfaceCardVariants } from "@repo/ui/card";
+import { cn } from "@repo/ui/lib/utils";
 import { pluginRegistry } from "@repo/plugin";
 import { PageHeader } from "../../../components/PageHeader";
 
@@ -10,17 +12,20 @@ export const PluginsPageContent = () => {
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      <PageHeader icon={<Puzzle className="h-4 w-4 text-primary" />} title={t("plugins.title")} />
+      <PageHeader
+        eyebrow={t("nav.groups.capabilities")}
+        icon={<Puzzle className="h-4 w-4 text-primary" />}
+        sub={t("plugins.subtitle")}
+        title={t("plugins.title")}
+      />
 
-      <div className="flex-1 overflow-y-auto p-6">
-        <p className="mb-6 text-sm text-muted-foreground">{t("plugins.subtitle")}</p>
-
+      <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-8 pt-4 sm:px-7">
         {plugins.length === 0 ? (
           <p className="text-sm text-muted-foreground">{t("plugins.noPlugins")}</p>
         ) : (
-          <div className="grid gap-4">
+          <div className="grid gap-3">
             {plugins.map((plugin) => (
-              <div key={plugin.id} className="rounded-lg border border-border bg-card p-4">
+              <div key={plugin.id} className={cn(surfaceCardVariants(), "p-3.5")}>
                 <div className="flex items-center gap-3">
                   <div className="flex h-9 w-9 items-center justify-center rounded-md bg-primary/10">
                     <Puzzle className="h-4 w-4 text-primary" />

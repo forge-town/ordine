@@ -74,17 +74,11 @@ export const JobsPageContent = () => {
   const [scheduling, setScheduling] = useState<SchedulingState>(null);
 
   const pipelineNameById = new Map(pipelines.map((pipeline) => [pipeline.id, pipeline.name]));
-  const counts = {
-    failed: jobs.filter((job) => job.status === "failed" || job.status === "expired").length,
-    queued: jobs.filter((job) => job.status === "queued").length,
-    running: jobs.filter((job) => job.status === "running" || job.status === "paused").length,
-    waiting: jobs.filter(hasWaitingNode).length,
-  };
   const filterCounts: Record<JobStatusFilter, number> = {
     All: jobs.length,
     Completed: jobs.filter((job) => job.status === "done").length,
-    Failed: counts.failed,
-    Running: counts.running,
+    Failed: jobs.filter((job) => job.status === "failed" || job.status === "expired").length,
+    Running: jobs.filter((job) => job.status === "running" || job.status === "paused").length,
     Waiting: jobs.filter((job) => job.status === "queued" || hasWaitingNode(job)).length,
   };
 
@@ -111,7 +105,12 @@ export const JobsPageContent = () => {
   if (jobsQuery?.isLoading || routinesQuery?.isLoading) {
     return (
       <div className="flex h-full flex-col overflow-hidden">
-        <PageHeader title={t("jobs.title")} />
+        <PageHeader
+          eyebrow={t("jobs.eyebrow")}
+          icon={<Icon className="text-muted-foreground" icon={ListChecks} size={18} />}
+          sub={t("jobs.subtitle")}
+          title={t("jobs.title")}
+        />
         <PageLoadingState variant="list" />
       </div>
     );
@@ -147,7 +146,10 @@ export const JobsPageContent = () => {
         title={t("jobs.title")}
       />
 
-      <div className="flex flex-wrap items-center gap-3 px-4 pb-3.5 sm:px-7">
+      <div
+        className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-b border-border bg-background px-4 py-3 sm:px-7"
+        data-testid="jobs-toolbar"
+      >
         <div className="flex gap-1 rounded-lg bg-surface-2 p-1" data-testid="jobs-view-toggle">
           {(
             [
@@ -173,37 +175,32 @@ export const JobsPageContent = () => {
           ))}
         </div>
         {view === "list" ? (
-          <>
-            <span className="text-[11px] text-muted-foreground" data-testid="jobs-summary">
-              {t("jobs.summary", counts)}
-            </span>
-            <div className="flex w-full min-w-0 flex-col gap-2 lg:ml-auto lg:w-auto lg:flex-row lg:items-center">
-              <div className="flex max-w-full items-center gap-0.5 overflow-x-auto pb-1 lg:pb-0">
-                {JOB_STATUS_FILTERS.map((filter) => (
-                  <Chip
-                    key={filter}
-                    active={statusFilter === filter}
-                    className="shrink-0"
-                    count={filterCounts[filter]}
-                    onClick={() => handleStatusFilterButtonClick(filter)}
-                  >
-                    {t(FILTER_LABEL_KEYS[filter])}
-                  </Chip>
-                ))}
-              </div>
-              <SearchInput
-                className="w-full lg:w-52"
-                placeholder={t("jobs.searchPlaceholder")}
-                value={search}
-                onChange={handleSearchInputChange}
-                onClear={handleSearchClearButtonClick}
-              />
+          <div className="flex w-full min-w-0 flex-col gap-2 lg:w-auto lg:flex-row lg:items-center">
+            <div className="flex max-w-full items-center gap-0.5 overflow-x-auto pb-1 lg:pb-0">
+              {JOB_STATUS_FILTERS.map((filter) => (
+                <Chip
+                  key={filter}
+                  active={statusFilter === filter}
+                  className="shrink-0"
+                  count={filterCounts[filter]}
+                  onClick={() => handleStatusFilterButtonClick(filter)}
+                >
+                  {t(FILTER_LABEL_KEYS[filter])}
+                </Chip>
+              ))}
             </div>
-          </>
+            <SearchInput
+              className="w-full lg:w-52"
+              placeholder={t("jobs.searchPlaceholder")}
+              value={search}
+              onChange={handleSearchInputChange}
+              onClear={handleSearchClearButtonClick}
+            />
+          </div>
         ) : null}
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-8 sm:px-7">
+      <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-8 pt-4 sm:px-7">
         {view === "list" ? (
           filtered.length === 0 ? (
             <div className="grid place-items-center py-16 text-center text-muted-foreground">

@@ -88,7 +88,7 @@ export const NodeCardFrame = memo(
                     aria-label={translate("canvas.nodeLabel")}
                     className={cn(
                       "nodrag nopan absolute inset-0 h-full w-full min-w-0 max-w-full truncate border-0 bg-transparent p-0 text-xs font-semibold leading-tight focus:outline-none",
-                      isLabelEditing ? "select-text" : "cursor-default select-none",
+                      isLabelEditing ? "select-text" : "cursor-inherit select-none",
                     )}
                     name="nodeLabel"
                     readOnly={!isLabelEditing}
