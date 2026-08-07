@@ -6,6 +6,7 @@ import {
   BookOpen,
   Bot,
   Box,
+  Boxes,
   ChevronDown,
   ExternalLink,
   FlaskConical,
@@ -48,6 +49,7 @@ import { DefaultUserFooter, ProjectSwitcher } from "./ProjectSwitcher";
 
 const assemblyItems: NavItem[] = [
   { labelKey: "nav.pipelines", icon: Layers, to: "/pipelines", exact: true },
+  { labelKey: "nav.components", icon: Boxes, to: "/components" },
   { labelKey: "nav.operations", icon: Zap, to: "/pipelines/operations" },
   { labelKey: "nav.objects", icon: Box, to: "/pipelines/objects" },
 ];

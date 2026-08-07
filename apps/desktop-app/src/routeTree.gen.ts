@@ -14,6 +14,7 @@ import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as PluginsRouteImport } from './routes/plugins'
 import { Route as PipelinesRouteImport } from './routes/pipelines'
 import { Route as DistillationsRouteImport } from './routes/distillations'
+import { Route as ComponentsRouteImport } from './routes/components'
 import { Route as CanvasRouteImport } from './routes/canvas'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as RuntimesIndexRouteImport } from './routes/runtimes.index'
@@ -58,6 +59,11 @@ const PipelinesRoute = PipelinesRouteImport.update({
 const DistillationsRoute = DistillationsRouteImport.update({
   id: '/distillations',
   path: '/distillations',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ComponentsRoute = ComponentsRouteImport.update({
+  id: '/components',
+  path: '/components',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CanvasRoute = CanvasRouteImport.update({
@@ -169,6 +175,7 @@ const PipelinesOperationsOperationIdEditRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/canvas': typeof CanvasRoute
+  '/components': typeof ComponentsRoute
   '/distillations': typeof DistillationsRouteWithChildren
   '/pipelines': typeof PipelinesRouteWithChildren
   '/plugins': typeof PluginsRoute
@@ -196,6 +203,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/canvas': typeof CanvasRoute
+  '/components': typeof ComponentsRoute
   '/plugins': typeof PluginsRoute
   '/settings': typeof SettingsRoute
   '/skills': typeof SkillsRoute
@@ -222,6 +230,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/canvas': typeof CanvasRoute
+  '/components': typeof ComponentsRoute
   '/distillations': typeof DistillationsRouteWithChildren
   '/pipelines': typeof PipelinesRouteWithChildren
   '/plugins': typeof PluginsRoute
@@ -251,6 +260,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/canvas'
+    | '/components'
     | '/distillations'
     | '/pipelines'
     | '/plugins'
@@ -278,6 +288,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/canvas'
+    | '/components'
     | '/plugins'
     | '/settings'
     | '/skills'
@@ -303,6 +314,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/canvas'
+    | '/components'
     | '/distillations'
     | '/pipelines'
     | '/plugins'
@@ -331,6 +343,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CanvasRoute: typeof CanvasRoute
+  ComponentsRoute: typeof ComponentsRoute
   DistillationsRoute: typeof DistillationsRouteWithChildren
   PipelinesRoute: typeof PipelinesRouteWithChildren
   PluginsRoute: typeof PluginsRoute
@@ -378,6 +391,13 @@ declare module '@tanstack/react-router' {
       path: '/distillations'
       fullPath: '/distillations'
       preLoaderRoute: typeof DistillationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/components': {
+      id: '/components'
+      path: '/components'
+      fullPath: '/components'
+      preLoaderRoute: typeof ComponentsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/canvas': {
@@ -593,6 +613,7 @@ const PipelinesRouteWithChildren = PipelinesRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CanvasRoute: CanvasRoute,
+  ComponentsRoute: ComponentsRoute,
   DistillationsRoute: DistillationsRouteWithChildren,
   PipelinesRoute: PipelinesRouteWithChildren,
   PluginsRoute: PluginsRoute,

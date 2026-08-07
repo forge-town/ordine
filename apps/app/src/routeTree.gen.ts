@@ -22,6 +22,7 @@ import { Route as LayoutPluginsRouteImport } from './routes/_layout/plugins'
 import { Route as LayoutPipelinesRouteImport } from './routes/_layout/pipelines'
 import { Route as LayoutDistillationsRouteImport } from './routes/_layout/distillations'
 import { Route as LayoutDistillationStudioRouteImport } from './routes/_layout/distillation-studio'
+import { Route as LayoutComponentsRouteImport } from './routes/_layout/components'
 import { Route as LayoutAssistantRouteImport } from './routes/_layout/assistant'
 import { Route as LayoutRuntimesIndexRouteImport } from './routes/_layout/runtimes.index'
 import { Route as LayoutPipelinesIndexRouteImport } from './routes/_layout/pipelines.index'
@@ -110,6 +111,11 @@ const LayoutDistillationStudioRoute =
     path: '/distillation-studio',
     getParentRoute: () => LayoutRoute,
   } as any)
+const LayoutComponentsRoute = LayoutComponentsRouteImport.update({
+  id: '/components',
+  path: '/components',
+  getParentRoute: () => LayoutRoute,
+} as any)
 const LayoutAssistantRoute = LayoutAssistantRouteImport.update({
   id: '/assistant',
   path: '/assistant',
@@ -241,6 +247,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/sign-up': typeof SignUpRoute
   '/assistant': typeof LayoutAssistantRoute
+  '/components': typeof LayoutComponentsRoute
   '/distillation-studio': typeof LayoutDistillationStudioRoute
   '/distillations': typeof LayoutDistillationsRouteWithChildren
   '/pipelines': typeof LayoutPipelinesRouteWithChildren
@@ -276,6 +283,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/sign-up': typeof SignUpRoute
   '/assistant': typeof LayoutAssistantRoute
+  '/components': typeof LayoutComponentsRoute
   '/distillation-studio': typeof LayoutDistillationStudioRoute
   '/plugins': typeof LayoutPluginsRoute
   '/settings': typeof LayoutSettingsRoute
@@ -310,6 +318,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/sign-up': typeof SignUpRoute
   '/_layout/assistant': typeof LayoutAssistantRoute
+  '/_layout/components': typeof LayoutComponentsRoute
   '/_layout/distillation-studio': typeof LayoutDistillationStudioRoute
   '/_layout/distillations': typeof LayoutDistillationsRouteWithChildren
   '/_layout/pipelines': typeof LayoutPipelinesRouteWithChildren
@@ -349,6 +358,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/sign-up'
     | '/assistant'
+    | '/components'
     | '/distillation-studio'
     | '/distillations'
     | '/pipelines'
@@ -384,6 +394,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/sign-up'
     | '/assistant'
+    | '/components'
     | '/distillation-studio'
     | '/plugins'
     | '/settings'
@@ -417,6 +428,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/sign-up'
     | '/_layout/assistant'
+    | '/_layout/components'
     | '/_layout/distillation-studio'
     | '/_layout/distillations'
     | '/_layout/pipelines'
@@ -550,6 +562,13 @@ declare module '@tanstack/react-router' {
       path: '/distillation-studio'
       fullPath: '/distillation-studio'
       preLoaderRoute: typeof LayoutDistillationStudioRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/components': {
+      id: '/_layout/components'
+      path: '/components'
+      fullPath: '/components'
+      preLoaderRoute: typeof LayoutComponentsRouteImport
       parentRoute: typeof LayoutRoute
     }
     '/_layout/assistant': {
@@ -787,6 +806,7 @@ const LayoutRuntimesRouteWithChildren = LayoutRuntimesRoute._addFileChildren(
 
 interface LayoutRouteChildren {
   LayoutAssistantRoute: typeof LayoutAssistantRoute
+  LayoutComponentsRoute: typeof LayoutComponentsRoute
   LayoutDistillationStudioRoute: typeof LayoutDistillationStudioRoute
   LayoutDistillationsRoute: typeof LayoutDistillationsRouteWithChildren
   LayoutPipelinesRoute: typeof LayoutPipelinesRouteWithChildren
@@ -801,6 +821,7 @@ interface LayoutRouteChildren {
 
 const LayoutRouteChildren: LayoutRouteChildren = {
   LayoutAssistantRoute: LayoutAssistantRoute,
+  LayoutComponentsRoute: LayoutComponentsRoute,
   LayoutDistillationStudioRoute: LayoutDistillationStudioRoute,
   LayoutDistillationsRoute: LayoutDistillationsRouteWithChildren,
   LayoutPipelinesRoute: LayoutPipelinesRouteWithChildren,

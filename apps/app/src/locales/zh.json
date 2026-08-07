@@ -42,6 +42,7 @@
     "dashboard": "仪表盘",
     "canvas": "画布",
     "pipelines": "流水线",
+    "components": "组件",
     "jobs": "任务",
     "distillations": "蒸馏",
     "projects": "项目",
@@ -2000,14 +2001,107 @@
     "title": "通知"
   },
   "components": {
+    "title": "组件库",
+    "subtitle": "集中管理可复用的构件。Ordine 会优先复用它们，再考虑创建新内容。",
+    "newComponent": "新建组件",
+    "newOperation": "新建操作",
+    "distillSkill": "蒸馏 Pipeline Skill",
+    "searchLabel": "搜索组件",
+    "searchPlaceholder": "搜索组件...",
+    "categories": {
+      "all": "全部",
+      "input": "输入对象",
+      "operation": "操作",
+      "output": "输出",
+      "pipeline-skill": "Pipeline Skill"
+    },
+    "sources": {
+      "asset": "资产",
+      "builtin": "内置",
+      "operation": "操作"
+    },
+    "actions": {
+      "editNamed": "编辑 {{name}}",
+      "deleteNamed": "删除 {{name}}"
+    },
+    "stats": {
+      "builtin": "每个画布均可使用",
+      "accepts_one": "接受 {{count}} 种输入",
+      "accepts_other": "接受 {{count}} 种输入",
+      "inputs": "个输入",
+      "nodes_one": "{{count}} 个节点",
+      "nodes_other": "{{count}} 个节点",
+      "runs_one": "已运行 {{count}} 次",
+      "runs_other": "已运行 {{count}} 次"
+    },
+    "builtins": {
+      "folder": {
+        "name": "文件夹",
+        "description": "将本地文件夹绑定为可复用的输入源。"
+      },
+      "file": {
+        "name": "文件",
+        "description": "将单个本地文件读入 Pipeline。"
+      },
+      "githubProject": {
+        "name": "GitHub 项目",
+        "description": "将已连接的仓库作为 Pipeline 输入。"
+      },
+      "prompt": {
+        "name": "提示词",
+        "description": "提供可复用的文本指令或结构化输入。"
+      },
+      "localPath": {
+        "name": "本地路径",
+        "description": "将 Pipeline 产物写入本地目标位置。"
+      },
+      "projectPath": {
+        "name": "项目路径",
+        "description": "将产物写回当前项目。"
+      }
+    },
+    "fallbacks": {
+      "operationDescription": "可供 Agent 或脚本复用的操作。",
+      "assetDescription": "从成功运行中蒸馏出的可复用 Pipeline。"
+    },
+    "meta": {
+      "agentOperation": "Agent 操作",
+      "scriptOperation": "脚本操作"
+    },
+    "empty": {
+      "title": "没有匹配的组件",
+      "description": "试试其他分类或搜索词。"
+    },
+    "editor": {
+      "title": "组件编辑器",
+      "description": "编辑可复用的 Pipeline Skill，并查看它保存的快照。",
+      "usageNotice_one": "该 Skill 已运行 {{count}} 次。现有 Pipeline 会保留自己的副本，直到再次应用。",
+      "usageNotice_other": "该 Skill 已运行 {{count}} 次。现有 Pipeline 会保留自己的副本，直到再次应用。",
+      "name": "名称",
+      "descriptionLabel": "描述",
+      "saveError": "组件保存失败，请重试。",
+      "snapshot": "来源快照",
+      "snapshotHint": "蒸馏该 Skill 时保存",
+      "nodes": "节点",
+      "inputs": "输入",
+      "noTags": "暂无标签"
+    },
+    "delete": {
+      "title": "删除“{{name}}”？",
+      "description": "该组件会从组件库中移除，此操作无法撤销。",
+      "assetDescription_one": "该组件被 {{count}} 条 Pipeline 引用。现有 Pipeline 会保留自己的副本。",
+      "assetDescription_other": "该组件被 {{count}} 条 Pipeline 引用。现有 Pipeline 会保留自己的副本。"
+    },
     "findForMe": {
-      "assetFallback": "可复用的 Pipeline 资产",
-      "close": "关闭",
-      "empty": "还没有沉淀的资产 — 跑通一条 Pipeline 后这里会增长。",
-      "intro": "按运行次数排序的最可复用资产：",
-      "ranking": "按复用度与相关性排序",
-      "searching": "正在扫描你的组件库…",
-      "subtitle": "Agent 扫描你的组件库",
+      "empty": "现有操作暂时无法匹配这项需求。",
+      "error": "Agent 无法搜索组件库，请检查运行时设置后重试。",
+      "intro": "从你的组件库中推荐以下操作：",
+      "promptLabel": "描述你需要完成的工作",
+      "promptPlaceholder": "例如：审核一个仓库、运行测试并总结风险",
+      "requestName": "组件推荐",
+      "search": "查找匹配组件",
+      "searching": "正在分析需求...",
+      "subtitle": "描述要完成的工作，Agent 会与真实的操作库进行匹配。",
       "title": "帮我找",
       "usedTimes_one": "运行 {{count}} 次",
       "usedTimes_other": "运行 {{count}} 次"

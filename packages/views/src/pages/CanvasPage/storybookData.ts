@@ -22,6 +22,7 @@ import type {
   Job,
   JobTrace,
   Operation,
+  PipelineAsset,
   PipelineData,
   Routine,
 } from "@repo/schemas";
@@ -60,6 +61,65 @@ export const canvasStoryOperations: Operation[] = [
     description: "Summarize a repository's module structure.",
     config: { inputs: [], outputs: [] },
     acceptedObjectTypes: ["github-project"],
+  },
+];
+
+export const canvasStoryPipelineAssets: PipelineAsset[] = [
+  {
+    id: "asset-release-review",
+    pipelineId: "story-pipeline",
+    name: "Release Readiness Review",
+    description: "Review changes, validate the result, and publish a concise release summary.",
+    snapshotNodes: [
+      {
+        id: "review-op",
+        type: "operation",
+        position: { x: 80, y: 100 },
+        data: {
+          label: "Review changes",
+          nodeType: "operation",
+          operationId: "review-code",
+          operationName: "Review Code",
+          status: "idle",
+        },
+      },
+    ],
+    snapshotEdges: [],
+    inputSlots: [],
+    totalRuns: 18,
+    successRate: 0.94,
+    avgDurationMs: 42_000,
+    tags: ["review", "release"],
+    createdAt: new Date("2026-04-08T16:00:00.000Z"),
+    updatedAt: new Date("2026-04-08T16:00:00.000Z"),
+  },
+  {
+    id: "asset-dependency-audit",
+    pipelineId: "dependency-audit",
+    name: "Dependency Audit",
+    description: "Inspect dependency health and summarize upgrade risk.",
+    snapshotNodes: [
+      {
+        id: "map-op",
+        type: "operation",
+        position: { x: 80, y: 100 },
+        data: {
+          label: "Map project",
+          nodeType: "operation",
+          operationId: "project-map",
+          operationName: "Project Map",
+          status: "idle",
+        },
+      },
+    ],
+    snapshotEdges: [],
+    inputSlots: [],
+    totalRuns: 7,
+    successRate: 1,
+    avgDurationMs: 25_000,
+    tags: ["dependencies"],
+    createdAt: new Date("2026-04-08T16:00:00.000Z"),
+    updatedAt: new Date("2026-04-08T16:00:00.000Z"),
   },
 ];
 
@@ -314,6 +374,7 @@ const getCanvasStoryRecords = (resource: string, params?: GetListParams): BaseRe
   if (resource === ResourceName.settings) return canvasStorySettings;
   if (resource === ResourceName.agentRuntimes) return canvasStoryAgentRuntimes;
   if (resource === ResourceName.operations) return canvasStoryOperations;
+  if (resource === ResourceName.pipelineAssets) return canvasStoryPipelineAssets;
   if (resource === ResourceName.githubProjects) return canvasStoryGithubProjects;
   if (resource === ResourceName.jobs) return canvasStoryJobs;
   if (resource === ResourceName.pipelines) return canvasStoryPipelines;
@@ -448,6 +509,30 @@ const getCanvasStoryCustom = <
 
   if (params.url === "pipelines/run") {
     return Promise.resolve({ data: { jobId: "job-story" } as unknown as TData });
+  }
+
+  if (params.url === "pipelineAssets/getUsageCount") {
+    return Promise.resolve({ data: { count: 2 } as unknown as TData });
+  }
+
+  if (params.url === "pipelines/analyzeIntent") {
+    return Promise.resolve({
+      data: {
+        matchedOperations: [
+          {
+            operationId: "review-code",
+            operationName: "Review Code",
+            reason: "Reviews the repository changes and surfaces correctness risks.",
+          },
+          {
+            operationId: "project-map",
+            operationName: "Project Map",
+            reason: "Builds the project context needed before a detailed review.",
+          },
+        ],
+        unmatchedSteps: [],
+      } as unknown as TData,
+    });
   }
 
   return Promise.resolve({ data: {} as TData });
