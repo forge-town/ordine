@@ -4,7 +4,12 @@ import { useStore } from "zustand";
 import { PanelRightOpen } from "lucide-react";
 import { Button } from "@repo/ui/button";
 import { ResizeHandle } from "../../../components/ResizeHandle";
-import { selectSelectedNode, useCanvasPageStore } from "../_store";
+import {
+  MAX_AGENT_PANEL_WIDTH,
+  MIN_AGENT_PANEL_WIDTH,
+  selectSelectedNode,
+  useCanvasPageStore,
+} from "../_store";
 import { CanvasFlow } from "../CanvasFlow";
 import { CanvasContextMenu } from "../CanvasContextMenu";
 import { ConnectionMenu } from "../ConnectionMenu";
@@ -29,6 +34,7 @@ export const CanvasInner = () => {
   const { t } = useTranslation();
   const store = useCanvasPageStore();
   const flowViewportRef = useRef<HTMLDivElement>(null);
+  const agentPanelShellRef = useRef<HTMLDivElement>(null);
   const sidebarResizeStateRef = useRef<{ startClientX: number; startWidth: number } | null>(null);
   const agentPanelResizeStartWidthRef = useRef(0);
 
@@ -117,7 +123,7 @@ export const CanvasInner = () => {
 
   return (
     <div
-      className="flex h-full min-h-0 w-full overflow-hidden bg-background"
+      className="relative flex h-full min-h-0 w-full overflow-hidden bg-background"
       data-testid="canvas-langflow-shell"
     >
       <CanvasMiniSidebar />
@@ -127,7 +133,7 @@ export const CanvasInner = () => {
 
         <div className="flex min-h-0 flex-1 overflow-hidden">
           {isSidebarOpen && (
-            <div className="relative shrink-0">
+            <div className="relative hidden shrink-0 lg:block">
               <aside
                 className="h-full shrink-0 border-r bg-background"
                 data-testid="canvas-work-panel"
@@ -181,24 +187,31 @@ export const CanvasInner = () => {
       </div>
 
       {agentPanelIsOpen ? (
-        <ResizeHandle
-          ariaLabel={t("canvas.agentPanel.resize")}
-          side="right"
-          onCollapse={toggleAgentPanel}
-          onDelta={handleAgentPanelDelta}
-          onDragStart={() => {
-            agentPanelResizeStartWidthRef.current = agentPanelWidth;
-          }}
-        />
-      ) : null}
-
-      {agentPanelIsOpen ? (
         <div
-          className="min-h-0 shrink-0 self-stretch overflow-hidden bg-surface"
-          data-testid="canvas-agent-panel-shell"
-          style={{ width: `${agentPanelWidth}px`, maxWidth: "calc(100% - 3.5625rem)" }}
+          className="pointer-events-none absolute inset-y-0 right-0 z-40 flex w-[calc(100%_-_3.5rem)] justify-end xl:static xl:z-auto xl:w-auto xl:shrink-0 xl:self-stretch"
+          data-testid="canvas-agent-panel-region"
         >
-          <AgentPanel />
+          <ResizeHandle
+            ariaLabel={t("canvas.agentPanel.resize")}
+            max={MAX_AGENT_PANEL_WIDTH}
+            min={MIN_AGENT_PANEL_WIDTH}
+            side="right"
+            value={agentPanelWidth}
+            onCollapse={toggleAgentPanel}
+            onDelta={handleAgentPanelDelta}
+            onDragStart={() => {
+              const renderedWidth = agentPanelShellRef.current?.getBoundingClientRect().width ?? 0;
+              agentPanelResizeStartWidthRef.current = renderedWidth || agentPanelWidth;
+            }}
+          />
+          <div
+            ref={agentPanelShellRef}
+            className="pointer-events-auto min-h-0 min-w-0 shrink overflow-hidden bg-surface"
+            data-testid="canvas-agent-panel-shell"
+            style={{ width: `${agentPanelWidth}px`, maxWidth: "calc(100% - 1px)" }}
+          >
+            <AgentPanel />
+          </div>
         </div>
       ) : (
         <button
