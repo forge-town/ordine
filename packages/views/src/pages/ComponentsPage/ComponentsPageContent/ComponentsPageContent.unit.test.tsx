@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { screen, waitFor } from "@testing-library/react";
+import { act, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { Operation, PipelineAsset } from "@repo/schemas";
 import { render } from "../../../test/test-wrapper";
@@ -52,6 +52,13 @@ const mockAsset: PipelineAsset = {
   updatedAt: new Date("2026-06-10T10:00:00.000Z"),
 };
 
+const secondMockAsset: PipelineAsset = {
+  ...mockAsset,
+  id: "asset-2",
+  name: "Deploy Review",
+  totalRuns: 4,
+};
+
 vi.mock("@tanstack/react-router", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@tanstack/react-router")>()),
   useNavigate: () => mocks.navigate,
@@ -64,7 +71,7 @@ vi.mock("@refinedev/core", async (importOriginal) => ({
   useList: ({ resource }: { resource: string }) =>
     resource === ResourceName.pipelineAssets
       ? {
-          result: { data: [mockAsset] },
+          result: { data: [mockAsset, secondMockAsset] },
           query: { isLoading: false, refetch: mocks.refetchAssets },
         }
       : {
@@ -152,6 +159,33 @@ describe("ComponentsPageContent", () => {
       });
     });
     expect(mocks.refetchAssets).toHaveBeenCalled();
+  });
+
+  it("ignores a stale usage count after selecting another asset", async () => {
+    const user = userEvent.setup();
+    let resolveFirst!: (value: { data: { count: number } }) => void;
+    let resolveSecond!: (value: { data: { count: number } }) => void;
+    const firstResponse = new Promise<{ data: { count: number } }>((resolve) => {
+      resolveFirst = resolve;
+    });
+    const secondResponse = new Promise<{ data: { count: number } }>((resolve) => {
+      resolveSecond = resolve;
+    });
+    mocks.custom.mockImplementation(({ payload }: { payload: { id: string } }) =>
+      payload.id === mockAsset.id ? firstResponse : secondResponse,
+    );
+    render(<ComponentsPageContent />);
+
+    await user.click(screen.getByRole("button", { name: "Delete Release Review" }));
+    await user.click(screen.getByRole("button", { name: "Cancel" }));
+    await user.click(screen.getByRole("button", { name: "Delete Deploy Review" }));
+
+    await act(async () => resolveSecond({ data: { count: 5 } }));
+    expect(await screen.findByText(/referenced by 5 pipelines/i)).toBeInTheDocument();
+
+    await act(async () => resolveFirst({ data: { count: 2 } }));
+    expect(screen.queryByText(/referenced by 2 pipelines/i)).not.toBeInTheDocument();
+    expect(screen.getByText(/referenced by 5 pipelines/i)).toBeInTheDocument();
   });
 
   it("uses the real intent-analysis endpoint for recommendations", async () => {

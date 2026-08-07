@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useDataProvider, useDelete, useList } from "@refinedev/core";
 import { useTranslation } from "react-i18next";
@@ -42,6 +42,7 @@ export const ComponentsPageContent = () => {
   const [editingItem, setEditingItem] = useState<ComponentCardItem | null>(null);
   const [pendingDelete, setPendingDelete] = useState<ComponentCardItem | null>(null);
   const [deleteUsageCount, setDeleteUsageCount] = useState<number | null>(null);
+  const deleteUsageRequestId = useRef(0);
   const [findOpen, setFindOpen] = useState(false);
   const { result: assetsResult, query: assetsQuery } = useList<PipelineAsset>({
     resource: ResourceName.pipelineAssets,
@@ -111,6 +112,7 @@ export const ComponentsPageContent = () => {
     if (item.source === "asset") setEditingItem(item);
   };
   const handleDelete = (item: ComponentCardItem) => {
+    const requestId = ++deleteUsageRequestId.current;
     setPendingDelete(item);
     setDeleteUsageCount(null);
     if (item.source !== "asset") return;
@@ -124,7 +126,9 @@ export const ComponentsPageContent = () => {
       }),
       () => "usage-count-failed" as const,
     ).then((result) => {
-      if (result.isOk()) setDeleteUsageCount(result.value.data.count);
+      if (result.isOk() && requestId === deleteUsageRequestId.current) {
+        setDeleteUsageCount(result.value.data.count);
+      }
     });
   };
   const handleConfirmDelete = async () => {
@@ -272,7 +276,11 @@ export const ComponentsPageContent = () => {
         usageCount={deleteUsageCount}
         onConfirm={() => void handleConfirmDelete()}
         onOpenChange={(open) => {
-          if (!open) setPendingDelete(null);
+          if (!open) {
+            deleteUsageRequestId.current += 1;
+            setPendingDelete(null);
+            setDeleteUsageCount(null);
+          }
         }}
       />
       <FindForMeModal open={findOpen} operations={operations} onOpenChange={setFindOpen} />
