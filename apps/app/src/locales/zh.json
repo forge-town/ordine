@@ -187,6 +187,7 @@
       "showAll": "展开全部（{{count}} 字符）"
     },
     "calendar": {
+      "condensed": "高频排程按每小时一个区块聚合显示。",
       "live": "实时",
       "nextWeek": "下一周",
       "noEventRoutines": "暂无事件触发的 Routine",

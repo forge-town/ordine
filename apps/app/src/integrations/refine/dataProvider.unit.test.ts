@@ -105,6 +105,26 @@ describe("dataProvider custom registry", () => {
     });
   });
 
+  it("loads server-expanded routine occurrences through the named endpoint", async () => {
+    await dataProvider.custom!({
+      url: CustomEndpoint.routinesOccurrences,
+      method: "get",
+      payload: {
+        from: "2026-08-03T00:00:00.000Z",
+        to: "2026-08-10T00:00:00.000Z",
+      },
+    });
+
+    expect(calls.at(-1)).toEqual({
+      path: "routines.getOccurrences",
+      kind: "query",
+      args: {
+        from: "2026-08-03T00:00:00.000Z",
+        to: "2026-08-10T00:00:00.000Z",
+      },
+    });
+  });
+
   it("routes job controls through their tRPC mutations", async () => {
     await dataProvider.custom!({
       url: CustomEndpoint.jobsPause,

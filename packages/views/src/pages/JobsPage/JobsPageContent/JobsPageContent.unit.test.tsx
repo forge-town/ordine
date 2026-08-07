@@ -1,5 +1,5 @@
 import type * as RefineCore from "@refinedev/core";
-import type { Job, PipelineData, Routine } from "@repo/schemas";
+import type { Job, PipelineData, Routine, RoutineOccurrence } from "@repo/schemas";
 import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -12,6 +12,7 @@ const { mockData, mockMutateAsync, mockNavigate, mockRefetchJobs } = vi.hoisted(
     jobs: [] as Job[],
     pipelines: [] as PipelineData[],
     routines: [] as Routine[],
+    occurrences: [] as RoutineOccurrence[],
   },
   mockMutateAsync: vi.fn(),
   mockNavigate: vi.fn(),
@@ -26,6 +27,16 @@ vi.mock("@tanstack/react-router", async (importOriginal) => ({
 vi.mock("@refinedev/core", async (importOriginal) => ({
   ...(await importOriginal<typeof RefineCore>()),
   useCustomMutation: () => ({ mutateAsync: mockMutateAsync }),
+  useCustom: () => ({
+    query: { isLoading: false },
+    result: {
+      data: {
+        occurrences: mockData.occurrences,
+        timeZone: "UTC",
+        truncated: false,
+      },
+    },
+  }),
   useList: ({ resource }: { resource: string }) => {
     const data =
       resource === "jobs"
@@ -47,6 +58,7 @@ vi.mock("@refinedev/core", async (importOriginal) => ({
 }));
 
 const now = new Date();
+const secondOccurrenceAt = new Date(now.getTime() + 2 * 60 * 60_000);
 
 const renderContent = () =>
   render(
@@ -112,6 +124,31 @@ beforeEach(() => {
       createdAt: now,
       updatedAt: now,
     },
+    {
+      id: "routine-2",
+      pipelineId: "pipeline-1",
+      name: "Weekday review",
+      description: null,
+      cronExpression: "30 16 * * 1-5",
+      inputConfig: null,
+      enabled: true,
+      lastRunAt: null,
+      nextRunAt: null,
+      createdAt: now,
+      updatedAt: now,
+    },
+  ];
+  mockData.occurrences = [
+    {
+      aggregated: true,
+      at: new Date(now.getTime() + 60 * 60_000).toISOString(),
+      routineId: "routine-1",
+    },
+    {
+      aggregated: false,
+      at: secondOccurrenceAt.toISOString(),
+      routineId: "routine-2",
+    },
   ];
 });
 
@@ -140,7 +177,7 @@ describe("JobsPageContent", () => {
     });
   });
 
-  it("switches to the calendar and expands cron routines", async () => {
+  it("switches to the calendar and renders server-expanded routines", async () => {
     const user = userEvent.setup();
     renderContent();
 
@@ -148,5 +185,18 @@ describe("JobsPageContent", () => {
 
     expect(screen.getByTestId("jobs-calendar")).toBeInTheDocument();
     expect(screen.getAllByText("Daily review").length).toBeGreaterThan(0);
+    expect(screen.getByTestId("jobs-calendar-condensed")).toBeInTheDocument();
+  });
+
+  it("opens the exact routine selected from the calendar", async () => {
+    const user = userEvent.setup();
+    renderContent();
+
+    await user.click(screen.getByTestId("jobs-view-calendar"));
+    await user.click(
+      screen.getByTestId(`jobs-calendar-block-ghost-routine-2-${secondOccurrenceAt.getTime()}`),
+    );
+
+    expect(screen.getByTestId("schedule-routine-select")).toHaveValue("routine-2");
   });
 });

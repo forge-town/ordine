@@ -18,6 +18,7 @@ const mocks = vi.hoisted(() => ({
   projectsGetAll: vi.fn(),
   routinesGetByPipelineId: vi.fn(),
   routinesGetAll: vi.fn(),
+  routinesGetOccurrences: vi.fn(),
   routinesRunNow: vi.fn(),
   usageGetDailyTokenSeries: vi.fn(),
   usageGetSummary: vi.fn(),
@@ -53,6 +54,7 @@ vi.mock("../src/services.js", () => ({
   routinesService: {
     getAll: mocks.routinesGetAll,
     getByPipelineId: mocks.routinesGetByPipelineId,
+    getOccurrences: mocks.routinesGetOccurrences,
     runNow: mocks.routinesRunNow,
   },
   skillsService: {},
@@ -78,6 +80,11 @@ beforeEach(() => {
   mocks.projectsGetAll.mockResolvedValue(ok([]));
   mocks.routinesGetAll.mockResolvedValue([]);
   mocks.routinesGetByPipelineId.mockResolvedValue([]);
+  mocks.routinesGetOccurrences.mockResolvedValue({
+    occurrences: [],
+    timeZone: "UTC",
+    truncated: false,
+  });
   mocks.routinesRunNow.mockResolvedValue(ok({ jobId: "job-1" }));
   mocks.usageGetDailyTokenSeries.mockResolvedValue(ok([]));
   mocks.usageGetSummary.mockResolvedValue(ok({ runCount: 0, totalTokens: 0 }));
@@ -108,6 +115,23 @@ describe("domain REST routes", () => {
     expect(response.status).toBe(202);
     expect(await response.json()).toEqual({ jobId: "job-1" });
     expect(mocks.routinesRunNow).toHaveBeenCalledWith("routine-1");
+  });
+
+  it("returns routine occurrences expanded in the server timezone", async () => {
+    const response = await app.request(
+      "/api/routines/occurrences?from=2026-08-03T00%3A00%3A00.000Z&to=2026-08-10T00%3A00%3A00.000Z",
+    );
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({
+      occurrences: [],
+      timeZone: "UTC",
+      truncated: false,
+    });
+    expect(mocks.routinesGetOccurrences).toHaveBeenCalledWith(
+      new Date("2026-08-03T00:00:00.000Z"),
+      new Date("2026-08-10T00:00:00.000Z"),
+    );
   });
 
   it.each([
