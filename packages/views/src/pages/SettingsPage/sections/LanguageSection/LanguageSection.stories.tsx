@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
+import { ThemeApplier, ThemeStoreProvider } from "../../../../store/themeStore";
 import { SettingsPageStoreProvider } from "../../_store";
 import { LanguageSection } from "./LanguageSection";
 
@@ -7,13 +8,16 @@ const meta: Meta<typeof LanguageSection> = {
   component: LanguageSection,
   decorators: [
     (Story) => (
-      <SettingsPageStoreProvider
-        initialSettings={{
-          language: { language: "zh-CN", timezone: "Asia/Shanghai" },
-        }}
-      >
-        <Story />
-      </SettingsPageStoreProvider>
+      <ThemeStoreProvider>
+        <SettingsPageStoreProvider
+          initialSettings={{
+            language: { language: "zh-CN", timezone: "Asia/Shanghai" },
+          }}
+        >
+          <ThemeApplier />
+          <Story />
+        </SettingsPageStoreProvider>
+      </ThemeStoreProvider>
     ),
   ],
 };

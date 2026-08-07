@@ -24,6 +24,7 @@ import type {
   Operation,
   PipelineAsset,
   PipelineData,
+  Project,
   Routine,
 } from "@repo/schemas";
 import { getCronOccurrenceBuckets } from "@repo/utils/cron";
@@ -38,7 +39,25 @@ export const canvasStoryAgentRuntimes: AgentRuntimeConfig[] = [
   },
 ];
 
-const canvasStorySettings = [{ id: "default", defaultAgentRuntime: "codex" }];
+const canvasStorySettings = [
+  {
+    id: "default",
+    defaultAgentRuntime: "codex",
+    defaultApiKey: "",
+    defaultModel: "gpt-5.2-codex",
+    defaultOutputPath: "/workspace/ordine/output",
+  },
+];
+
+const canvasStoryProjects: Project[] = [
+  {
+    id: "project-story",
+    name: "Ordine Workspace",
+    description: "Shared automation pipelines and reusable operations.",
+    createdAt: new Date("2026-04-08T16:00:00.000Z"),
+    updatedAt: new Date("2026-04-08T16:00:00.000Z"),
+  },
+];
 
 export const canvasStoryOperations: Operation[] = [
   {
@@ -373,6 +392,7 @@ const getFilterValue = (params: GetListParams, field: string): unknown => {
 const getCanvasStoryRecords = (resource: string, params?: GetListParams): BaseRecord[] => {
   if (resource === ResourceName.settings) return canvasStorySettings;
   if (resource === ResourceName.agentRuntimes) return canvasStoryAgentRuntimes;
+  if (resource === ResourceName.projects) return canvasStoryProjects;
   if (resource === ResourceName.operations) return canvasStoryOperations;
   if (resource === ResourceName.pipelineAssets) return canvasStoryPipelineAssets;
   if (resource === ResourceName.githubProjects) return canvasStoryGithubProjects;

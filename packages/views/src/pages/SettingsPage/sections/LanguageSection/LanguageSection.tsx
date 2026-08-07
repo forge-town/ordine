@@ -5,6 +5,7 @@ import { z } from "zod/v4";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useStore } from "zustand";
 import { useSettingsPageStore } from "../../_store";
+import { useThemeStore, type ThemePreference } from "../../../../store/themeStore";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@repo/ui/form";
 import {
   Select,
@@ -26,8 +27,13 @@ const languageSchema = z.object({
 
 type LanguageFormValues = z.infer<typeof languageSchema>;
 
+const THEME_OPTIONS: ThemePreference[] = ["light", "dark", "system"];
+
 export const LanguageSection = () => {
   const { i18n, t } = useTranslation();
+  const themeStore = useThemeStore();
+  const themePreference = useStore(themeStore, (state) => state.preference);
+  const setThemePreference = useStore(themeStore, (state) => state.setPreference);
   const store = useSettingsPageStore();
   const values = useStore(store, (s) => s.language);
   const updateSection = useStore(store, (s) => s.updateSection);
@@ -84,6 +90,35 @@ export const LanguageSection = () => {
             );
           }}
         />
+        <div className="space-y-2">
+          <FormLabel>{t("settings.appearance.label")}</FormLabel>
+          <div
+            className="flex w-fit gap-1 rounded-md bg-muted p-1"
+            data-testid="settings-appearance"
+          >
+            {THEME_OPTIONS.map((option) => {
+              const handleThemeClick = () => setThemePreference(option);
+
+              return (
+                <button
+                  key={option}
+                  aria-pressed={themePreference === option}
+                  className={
+                    themePreference === option
+                      ? "rounded-md bg-background px-3 py-1.5 text-xs font-medium text-foreground shadow-sm ring-1 ring-border"
+                      : "rounded-md px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground"
+                  }
+                  data-testid={`settings-appearance-${option}`}
+                  type="button"
+                  onClick={handleThemeClick}
+                >
+                  {t(`settings.appearance.${option}`)}
+                </button>
+              );
+            })}
+          </div>
+          <p className="text-xs text-muted-foreground">{t("settings.appearance.hint")}</p>
+        </div>
         <FormField
           control={form.control}
           name="timezone"

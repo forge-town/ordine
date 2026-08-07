@@ -818,7 +818,13 @@
         "waiting": "运行需要处理"
       }
     },
-    "appearance": "外观",
+    "appearance": {
+      "dark": "深色",
+      "hint": "立即生效，并在本设备记住该选择。",
+      "label": "外观",
+      "light": "浅色",
+      "system": "跟随系统"
+    },
     "sections": {
       "general": "通用",
       "profile": "个人信息",
@@ -827,7 +833,12 @@
       "language": "语言与地区",
       "security": "安全",
       "agentRuntimes": "Agent Runtimes",
-      "developer": "开发者"
+      "developer": "开发者",
+      "advanced": "高级",
+      "autonomy": "自主性",
+      "defaults": "默认项",
+      "keyboard": "快捷键",
+      "project": "项目"
     },
     "saveChanges": "保存更改",
     "saved": "已保存 ✓",
@@ -891,6 +902,121 @@
       "keyPathPlaceholder": "~/.ssh/id_rsa",
       "remove": "删除",
       "empty": "尚未配置 Agent 运行时。添加一个以启用远程执行。"
+    },
+    "advanced": {
+      "description": "本机的存储、数据版本与维护信息。",
+      "rows": {
+        "dataDirectory": {
+          "hint": "用于配置本地数据库目录的环境变量。",
+          "label": "数据目录"
+        },
+        "localMode": {
+          "hint": "仅开发环境可用，可在本地模式下跳过登录。",
+          "label": "本地模式"
+        },
+        "schemaVersion": {
+          "hint": "本地存储启动时会自动应用数据库迁移。",
+          "label": "数据版本"
+        }
+      },
+      "title": "高级"
+    },
+    "autonomy": {
+      "decrease": "减少重试",
+      "description": "自愈在停下来向你解释之前能走多远。",
+      "deviceScope": "保存在本设备，并随每次运行一起下发。",
+      "increase": "增加重试",
+      "selfHeal": "自愈重试轮数",
+      "selfHealHint": "失败步骤自动重试的轮数。0 = 首次失败即停止。",
+      "title": "自主性"
+    },
+    "defaults": {
+      "apiKey": "API Key",
+      "apiKeyHint": "仅存储在本机，界面中默认隐藏。",
+      "description": "Agent Bar 组装执行器时优先使用的默认项。",
+      "model": "默认模型",
+      "outputPath": "默认输出路径",
+      "runtime": "默认 Local Agent",
+      "runtimeFix": "切换为 {{name}}",
+      "runtimeFixed": "默认 runtime 已切换为 {{name}}",
+      "runtimeInvalid": "已保存的 runtime「{{value}}」未在本机检测到——修正前 Agent 请求会全部失败。",
+      "save": "保存默认项",
+      "saveFailed": "保存失败",
+      "saved": "默认项已保存",
+      "title": "默认项",
+      "toggleKey": "显示/隐藏 Key"
+    },
+    "groups": {
+      "data": "数据",
+      "execution": "执行",
+      "workspace": "工作区"
+    },
+    "keyboard": {
+      "description": "画布快捷键速查，当前为只读。",
+      "groups": {
+        "editing": "编辑",
+        "navigation": "导航"
+      },
+      "shortcuts": {
+        "boxSelect": {
+          "keys": "画布拖拽",
+          "label": "框选"
+        },
+        "delete": {
+          "keys": "⌫ / Del",
+          "label": "删除选中"
+        },
+        "drillOut": {
+          "keys": "Esc",
+          "label": "钻出 / 清除选择"
+        },
+        "pan": {
+          "keys": "中键拖拽",
+          "label": "平移"
+        },
+        "redo": {
+          "keys": "⌘ ⇧ Z",
+          "label": "重做"
+        },
+        "undo": {
+          "keys": "⌘ Z",
+          "label": "撤销"
+        },
+        "zoom": {
+          "keys": "⌘ 滚轮",
+          "label": "缩放"
+        }
+      },
+      "title": "快捷键"
+    },
+    "notifications": {
+      "description": "哪些事件推送到通知中心，哪些保持安静。",
+      "done": "运行完成",
+      "doneHint": "你发起的任务顺利跑完。",
+      "failed": "运行失败",
+      "failedHint": "永远值得知道——包括 Routine 触发的运行。",
+      "title": "通知",
+      "waiting": "等待你处理",
+      "waitingHint": "运行暂停等待签核或回答问题。"
+    },
+    "project": {
+      "clearCancel": "取消",
+      "clearConfirm": "确认清除",
+      "clearConfirmBody": "将删除所有流水线下保存的 Agent 对话线程。Pipelines、算子与运行记录均保留。",
+      "clearConfirmTitle": "清除对话历史？",
+      "clearDone": "对话历史已清除",
+      "clearFailed": "清除失败",
+      "clearHistory": "清除对话历史",
+      "clearHistoryHint": "删除已保存的 Agent 对话线程，Pipelines 保留。",
+      "description": "编辑侧栏当前选中项目的名称与描述。",
+      "descriptionLabel": "描述",
+      "descriptionPlaceholder": "这个工作区是做什么的…",
+      "empty": "还没有选中项目 — 先在侧栏创建一个。",
+      "name": "项目名称",
+      "save": "保存项目",
+      "saveFailed": "保存失败",
+      "saved": "项目已保存",
+      "title": "项目"
     }
   },
   "runtimes": {

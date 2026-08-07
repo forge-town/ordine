@@ -819,7 +819,13 @@
         "waiting": "Run needs attention"
       }
     },
-    "appearance": "Appearance",
+    "appearance": {
+      "dark": "Dark",
+      "hint": "Applies immediately and is remembered on this device.",
+      "label": "Appearance",
+      "light": "Light",
+      "system": "System"
+    },
     "sections": {
       "general": "General",
       "profile": "Profile",
@@ -828,7 +834,12 @@
       "language": "Language & Region",
       "security": "Security",
       "agentRuntimes": "Agent Runtimes",
-      "developer": "Developer"
+      "developer": "Developer",
+      "advanced": "Advanced",
+      "autonomy": "Autonomy",
+      "defaults": "Defaults",
+      "keyboard": "Keyboard",
+      "project": "Project"
     },
     "saveChanges": "Save changes",
     "saved": "Saved ✓",
@@ -892,6 +903,121 @@
       "keyPathPlaceholder": "~/.ssh/id_rsa",
       "remove": "Remove",
       "empty": "No agent runtimes configured. Add one to enable remote execution."
+    },
+    "advanced": {
+      "description": "Storage, data version, and maintenance facts for this machine.",
+      "rows": {
+        "dataDirectory": {
+          "hint": "Environment variable that configures the local database directory.",
+          "label": "Data directory"
+        },
+        "localMode": {
+          "hint": "Development-only flag that can bypass login in local mode.",
+          "label": "Local mode"
+        },
+        "schemaVersion": {
+          "hint": "Database migrations are applied automatically when local storage starts.",
+          "label": "Schema version"
+        }
+      },
+      "title": "Advanced"
+    },
+    "autonomy": {
+      "decrease": "Fewer retries",
+      "description": "How far self-heal goes before stopping and explaining.",
+      "deviceScope": "Stored on this device and sent with each run.",
+      "increase": "More retries",
+      "selfHeal": "Self-heal retries",
+      "selfHealHint": "How many rounds the engine retries a failing step before it stops. 0 = stop on first failure.",
+      "title": "Autonomy"
+    },
+    "defaults": {
+      "apiKey": "API key",
+      "apiKeyHint": "Stored locally and masked in the UI.",
+      "description": "What the Agent Bar reaches for first when assembling an executor.",
+      "model": "Default model",
+      "outputPath": "Default output path",
+      "runtime": "Default Local Agent",
+      "runtimeFix": "Switch to {{name}}",
+      "runtimeFixed": "Default runtime switched to {{name}}",
+      "runtimeInvalid": "Saved runtime “{{value}}” is not detected on this machine — Agent requests will fail until you pick a detected one.",
+      "save": "Save defaults",
+      "saveFailed": "Couldn't save defaults",
+      "saved": "Defaults saved",
+      "title": "Defaults",
+      "toggleKey": "Toggle key visibility"
+    },
+    "groups": {
+      "data": "Data",
+      "execution": "Execution",
+      "workspace": "Workspace"
+    },
+    "keyboard": {
+      "description": "Canvas shortcuts. Read-only for now.",
+      "groups": {
+        "editing": "Editing",
+        "navigation": "Navigation"
+      },
+      "shortcuts": {
+        "boxSelect": {
+          "keys": "drag on canvas",
+          "label": "Box-select"
+        },
+        "delete": {
+          "keys": "⌫ / Del",
+          "label": "Delete selection"
+        },
+        "drillOut": {
+          "keys": "Esc",
+          "label": "Drill out / clear selection"
+        },
+        "pan": {
+          "keys": "middle-drag",
+          "label": "Pan"
+        },
+        "redo": {
+          "keys": "⌘ ⇧ Z",
+          "label": "Redo"
+        },
+        "undo": {
+          "keys": "⌘ Z",
+          "label": "Undo"
+        },
+        "zoom": {
+          "keys": "⌘ scroll",
+          "label": "Zoom"
+        }
+      },
+      "title": "Keyboard"
+    },
+    "notifications": {
+      "description": "What gets pushed to the notification center, what stays silent.",
+      "done": "Run completed",
+      "doneHint": "A job you started finishes clean.",
+      "failed": "Run failed",
+      "failedHint": "Always worth knowing — includes runs started by a routine.",
+      "title": "Notifications",
+      "waiting": "Waiting on you",
+      "waitingHint": "A run paused for sign-off or a question."
+    },
+    "project": {
+      "clearCancel": "Cancel",
+      "clearConfirm": "Clear history",
+      "clearConfirmBody": "All saved Agent threads across pipelines will be removed. Pipelines, operations and runs are kept.",
+      "clearConfirmTitle": "Clear conversation history?",
+      "clearDone": "Conversation history cleared",
+      "clearFailed": "Failed to clear history",
+      "clearHistory": "Clear conversation history",
+      "clearHistoryHint": "Removes saved Agent threads. Pipelines are kept.",
+      "description": "Name and description for the workspace selected in the sidebar.",
+      "descriptionLabel": "Description",
+      "descriptionPlaceholder": "What this workspace is for…",
+      "empty": "No project selected yet — create one from the sidebar.",
+      "name": "Project name",
+      "save": "Save project",
+      "saveFailed": "Couldn't save the project",
+      "saved": "Project saved",
+      "title": "Project"
     }
   },
   "runtimes": {

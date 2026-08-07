@@ -42,7 +42,7 @@ vi.mock("@refinedev/core", () => ({
       defaultOutputPath: "/tmp/ordine-output",
     },
   }),
-  useUpdate: () => ({ mutateAsync: mockUpdateSettings }),
+  useUpdate: () => ({ mutate: mockUpdateSettings }),
 }));
 
 describe("DeveloperSection", () => {
@@ -60,14 +60,17 @@ describe("DeveloperSection", () => {
     fireEvent.click(screen.getByRole("button", { name: "保存更改" }));
 
     await waitFor(() => {
-      expect(mockUpdateSettings).toHaveBeenCalledWith({
-        resource: "settings",
-        id: "default",
-        values: {
-          defaultAgentRuntime: "codex",
-          defaultOutputPath: "/tmp/ordine-output",
+      expect(mockUpdateSettings).toHaveBeenCalledWith(
+        {
+          resource: "settings",
+          id: "default",
+          values: {
+            defaultAgentRuntime: "codex",
+            defaultOutputPath: "/tmp/ordine-output",
+          },
         },
-      });
+        { onSuccess: expect.any(Function) },
+      );
     });
   });
 });

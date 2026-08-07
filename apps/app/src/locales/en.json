@@ -1231,15 +1231,15 @@
       "description": "Storage, data version, and maintenance facts for this machine.",
       "rows": {
         "dataDirectory": {
-          "hint": "All local pipelines, runs, and conversations live here.",
+          "hint": "Environment variable that configures the local database directory.",
           "label": "Data directory"
         },
         "localMode": {
-          "hint": "Start flag that bypasses login for local development.",
+          "hint": "Development-only flag that can bypass login in local mode.",
           "label": "Local mode"
         },
         "schemaVersion": {
-          "hint": "Latest applied local database migration.",
+          "hint": "Database migrations are applied automatically when local storage starts.",
           "label": "Schema version"
         }
       },
