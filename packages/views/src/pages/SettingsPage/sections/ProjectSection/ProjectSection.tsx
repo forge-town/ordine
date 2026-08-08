@@ -18,7 +18,9 @@ export const ProjectSection = () => {
   const { result: projectsResult } = useList<Project>({ resource: ResourceName.projects });
   const { mutate: updateProject } = useUpdate();
   const project =
-    projectsResult.data.find((item) => item.id === currentProjectId) ?? projectsResult.data[0];
+    currentProjectId === null
+      ? undefined
+      : projectsResult.data.find((item) => item.id === currentProjectId);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const handleNameChange = (event: ChangeEvent<HTMLInputElement>) => setName(event.target.value);
