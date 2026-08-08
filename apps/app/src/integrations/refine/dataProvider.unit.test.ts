@@ -90,6 +90,21 @@ describe("dataProvider resource registry", () => {
 });
 
 describe("dataProvider custom registry", () => {
+  it("routes Web conversation history clearing through its tRPC mutation", async () => {
+    const response = await dataProvider.custom!({
+      url: CustomEndpoint.conversationsClearAll,
+      method: "delete",
+      payload: {},
+    });
+
+    expect(response.data).toEqual({ id: "mutated" });
+    expect(calls.at(-1)).toEqual({
+      path: "conversations.clearAll",
+      kind: "mutate",
+      args: undefined,
+    });
+  });
+
   it("routes COD-122 actions through named endpoints", async () => {
     const response = await dataProvider.custom!({
       url: CustomEndpoint.routinesRunNow,
