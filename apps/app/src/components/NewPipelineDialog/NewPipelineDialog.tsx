@@ -22,6 +22,7 @@ import { useSidebarStore } from "@/store/sidebarStore";
 import { dataProvider } from "@/integrations/refine/dataProvider";
 import { router } from "@/router";
 import type { PipelineAgentProposal } from "@repo/schemas";
+import { materializeGeneratedPipeline } from "@/lib/materializeGeneratedPipeline";
 
 interface ConversationMessage {
   id: string;
@@ -275,7 +276,18 @@ export const NewPipelineDialog = () => {
       return;
     }
 
-    setCreatedPipelineId(generationResult.value.pipelineId);
+    const materializationResult = await ResultAsync.fromPromise(
+      materializeGeneratedPipeline(generationResult.value.pipelineId),
+      (error) => (error instanceof Error ? error : new Error(String(error))),
+    );
+    if (materializationResult.isErr()) {
+      setErrorMessage(materializationResult.error.message);
+      setPhase("proposal_ready");
+
+      return;
+    }
+
+    setCreatedPipelineId(materializationResult.value);
     setPhase("success");
   };
 
