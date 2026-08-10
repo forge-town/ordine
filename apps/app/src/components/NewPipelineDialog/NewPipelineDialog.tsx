@@ -36,7 +36,15 @@ interface AttachmentItem {
   parseStatus: string;
 }
 
-export const NewPipelineDialog = () => {
+export interface NewPipelineDialogProps {
+  client?: typeof pipelineAgentSessionsClient;
+  materializePipeline?: typeof materializeGeneratedPipeline;
+}
+
+export const NewPipelineDialog = ({
+  client = pipelineAgentSessionsClient,
+  materializePipeline = materializeGeneratedPipeline,
+}: NewPipelineDialogProps = {}) => {
   const { t } = useTranslation();
   const store = useSidebarStore();
   const open = useStore(store, (state) => state.newPipelineOpen);
@@ -107,7 +115,7 @@ export const NewPipelineDialog = () => {
       return sessionIdRef.current;
     }
 
-    const session = await pipelineAgentSessionsClient.createSession({
+    const session = await client.createSession({
       entrypoint: "new-pipeline-dialog",
       mode: "generate",
     });
@@ -178,13 +186,13 @@ export const NewPipelineDialog = () => {
     const sendResult = await ResultAsync.fromPromise(
       (async () => {
         const sessionId = await ensureSession();
-        await pipelineAgentSessionsClient.appendMessage(sessionId, {
+        await client.appendMessage(sessionId, {
           role: "user",
           kind: "text",
           content: text,
         });
         const streamedTerminalEvent = { current: false };
-        await pipelineAgentSessionsClient.planSessionStream(sessionId, {
+        await client.planSessionStream(sessionId, {
           onEvent: (event) => {
             if (
               event.type === "question" ||
@@ -197,11 +205,9 @@ export const NewPipelineDialog = () => {
           },
         });
         if (!streamedTerminalEvent.current) {
-          const latestProposal = await pipelineAgentSessionsClient.getLatestReadyProposal(
-            sessionId,
-            "generate",
-            { excludeProposalId: previousProposalId },
-          );
+          const latestProposal = await client.getLatestReadyProposal(sessionId, "generate", {
+            excludeProposalId: previousProposalId,
+          });
           if (latestProposal && latestProposal.proposal.mode === "generate") {
             handleEvent({
               type: "proposal_ready",
@@ -212,8 +218,7 @@ export const NewPipelineDialog = () => {
             return;
           }
 
-          const latestQuestion =
-            await pipelineAgentSessionsClient.getLatestAssistantQuestion(sessionId);
+          const latestQuestion = await client.getLatestAssistantQuestion(sessionId);
           if (latestQuestion) {
             handleEvent({
               type: "question",
@@ -241,9 +246,9 @@ export const NewPipelineDialog = () => {
     const generationResult = await ResultAsync.fromPromise(
       (async () => {
         const sessionId = sessionIdRef.current!;
-        await pipelineAgentSessionsClient.approveProposal(sessionId, proposalId);
+        await client.approveProposal(sessionId, proposalId);
         const generated = await ResultAsync.fromPromise(
-          pipelineAgentSessionsClient.generatePipelineFromApprovedProposal(sessionId),
+          client.generatePipelineFromApprovedProposal(sessionId),
           (error) => (error instanceof Error ? error : new Error(String(error))),
         );
         if (generated.isOk()) {
@@ -255,7 +260,7 @@ export const NewPipelineDialog = () => {
 
         const abortController = new AbortController();
         const polled = await ResultAsync.fromPromise(
-          pipelineAgentSessionsClient.waitForCreatedPipeline(sessionId, {
+          client.waitForCreatedPipeline(sessionId, {
             signal: abortController.signal,
           }),
           (error) => (error instanceof Error ? error : new Error(String(error))),
@@ -277,7 +282,7 @@ export const NewPipelineDialog = () => {
     }
 
     const materializationResult = await ResultAsync.fromPromise(
-      materializeGeneratedPipeline(generationResult.value.pipelineId),
+      materializePipeline(generationResult.value.pipelineId),
       (error) => (error instanceof Error ? error : new Error(String(error))),
     );
     if (materializationResult.isErr()) {
@@ -297,7 +302,7 @@ export const NewPipelineDialog = () => {
     }
 
     const supersedeResult = await ResultAsync.fromPromise(
-      pipelineAgentSessionsClient.supersedeProposal(sessionIdRef.current, proposalId),
+      client.supersedeProposal(sessionIdRef.current, proposalId),
       (error) => (error instanceof Error ? error : new Error(String(error))),
     );
     if (supersedeResult.isErr()) {
@@ -391,7 +396,7 @@ export const NewPipelineDialog = () => {
 
     const sessionId = await ensureSession();
     const uploadResult = await ResultAsync.fromPromise(
-      pipelineAgentSessionsClient.uploadAttachment(sessionId, file),
+      client.uploadAttachment(sessionId, file),
       (error) => (error instanceof Error ? error : new Error(String(error))),
     );
     if (uploadResult.isErr()) {
