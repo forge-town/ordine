@@ -76,6 +76,7 @@ const CanvasRouteComponent = () => {
 
 export const Route = createFileRoute("/canvas")({
   beforeLoad: ({ context }) => requireAuthenticatedSession(context),
+  ssr: false,
   head: () => ({
     meta: [{ title: "Canvas | Ordine" }],
   }),
