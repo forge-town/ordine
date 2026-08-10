@@ -11,6 +11,7 @@ import { CanvasRoot } from "@/pages/WorkspacePage/canvas";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { useSession } from "@/integrations/better-auth-client";
 import { ToastStoreProvider } from "@/store/toastStore";
+import { requireAuthenticatedSession } from "./-requireAuthenticatedSession";
 
 const CanvasRouteComponent = () => {
   const navigate = useNavigate();
@@ -74,6 +75,7 @@ const CanvasRouteComponent = () => {
 };
 
 export const Route = createFileRoute("/canvas")({
+  beforeLoad: ({ context }) => requireAuthenticatedSession(context),
   head: () => ({
     meta: [{ title: "Canvas | Ordine" }],
   }),
