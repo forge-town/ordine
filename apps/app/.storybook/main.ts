@@ -1,5 +1,5 @@
 import type { StorybookConfig } from "@storybook/react-vite";
-import { dirname } from "node:path";
+import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 /**
@@ -23,6 +23,30 @@ const config: StorybookConfig = {
     getAbsolutePath("@storybook/addon-onboarding"),
   ],
   framework: getAbsolutePath("@storybook/react-vite"),
+  viteFinal: async (viteConfig) => {
+    const storybookDir = dirname(fileURLToPath(import.meta.url));
+    const existingAliases = Array.isArray(viteConfig.resolve?.alias)
+      ? viteConfig.resolve.alias
+      : [];
+
+    return {
+      ...viteConfig,
+      resolve: {
+        ...viteConfig.resolve,
+        alias: [
+          {
+            find: "@/integrations/refine/dataProvider",
+            replacement: resolve(storybookDir, "mocks/dataProvider.ts"),
+          },
+          {
+            find: "@/router",
+            replacement: resolve(storybookDir, "mocks/router.ts"),
+          },
+          ...existingAliases,
+        ],
+      },
+    };
+  },
 };
 
 export default config;

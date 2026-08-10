@@ -17,6 +17,7 @@ const mockGeneratePipeline = vi.fn();
 const mockWaitForCreatedPipeline = vi.fn();
 const mockRunMutate = vi.fn();
 const mockNavigate = vi.fn();
+const mockMaterializeGeneratedPipeline = vi.fn();
 
 vi.mock("@/lib/pipelineAgentSessionsClient", () => ({
   pipelineAgentSessionsClient: {
@@ -31,6 +32,10 @@ vi.mock("@/lib/pipelineAgentSessionsClient", () => ({
     planSessionStream: (...args: unknown[]) => mockPlanSessionStream(...args),
     uploadAttachment: (...args: unknown[]) => mockUploadAttachment(...args),
   },
+}));
+
+vi.mock("@/lib/materializeGeneratedPipeline", () => ({
+  materializeGeneratedPipeline: (...args: unknown[]) => mockMaterializeGeneratedPipeline(...args),
 }));
 
 vi.mock("@/integrations/refine/dataProvider", () => ({
@@ -153,6 +158,7 @@ describe("NewPipelineDialog", () => {
     mockApproveProposal.mockResolvedValue(undefined);
     mockSupersedeProposal.mockResolvedValue(undefined);
     mockGeneratePipeline.mockResolvedValue({ pipelineId: "pipe-1" });
+    mockMaterializeGeneratedPipeline.mockResolvedValue("pipe-1");
     mockGetLatestAssistantQuestion.mockResolvedValue(null);
     mockGetLatestReadyProposal.mockResolvedValue(null);
     mockWaitForCreatedPipeline.mockResolvedValue({ pipelineId: "pipe-1" });

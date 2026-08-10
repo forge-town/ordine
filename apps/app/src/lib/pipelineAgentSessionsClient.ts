@@ -1,6 +1,8 @@
 import { Result } from "neverthrow";
 import { z } from "zod/v4";
 import {
+  OperationSchema,
+  PipelineSchema,
   PipelineAgentAttachmentParseStatusSchema,
   PipelineAgentEntrypointSchema,
   PipelineAgentMessageKindSchema,
@@ -14,14 +16,21 @@ import {
   type PipelineAgentMessageRole,
   type PipelineAgentMode,
   type PipelineAgentProposal,
+  type Operation,
+  type PipelineData,
 } from "@repo/schemas";
 
-const pipelineAgentSessionsBaseUrl =
+const pipelineAgentApiBaseUrl =
   globalThis.window === undefined
-    ? "http://localhost:9433/api/pipeline-agent-sessions"
+    ? "http://localhost:9433/api"
     : globalThis.window.location.hostname === "localhost"
-      ? "http://localhost:9433/api/pipeline-agent-sessions"
-      : `${globalThis.window.location.origin}/api/pipeline-agent-sessions`;
+      ? "http://localhost:9433/api"
+      : `${globalThis.window.location.origin}/api`;
+const pipelineAgentSessionsBaseUrl = `${pipelineAgentApiBaseUrl}/pipeline-agent-sessions`;
+
+const PipelineAgentOperationSchema = OperationSchema.extend({
+  sourceSkillId: z.string().nullish(),
+});
 
 const PipelineAgentSessionClientRecordSchema = z.object({
   id: z.string().min(1),
@@ -323,6 +332,39 @@ export const pipelineAgentSessionsClient = {
     });
 
     return readResponseJson(response, PipelineAgentCreatedPipelineResponseSchema);
+  },
+
+  async getGeneratedPipelineMaterialization(
+    pipelineId: string,
+  ): Promise<{ operations: Operation[]; pipeline: PipelineData }> {
+    const pipelineResponse = await fetch(
+      `${pipelineAgentApiBaseUrl}/pipelines/${encodeURIComponent(pipelineId)}`,
+    );
+    const pipeline = await readResponseJson(pipelineResponse, PipelineSchema);
+    const operationIds = [
+      ...new Set(
+        pipeline.nodes.flatMap((node) => {
+          const operationId = "operationId" in node.data ? node.data.operationId : undefined;
+
+          return typeof operationId === "string" && operationId.length > 0 ? [operationId] : [];
+        }),
+      ),
+    ];
+    const operations = await Promise.all(
+      operationIds.map(async (operationId) => {
+        const response = await fetch(
+          `${pipelineAgentApiBaseUrl}/operations/${encodeURIComponent(operationId)}`,
+        );
+        const operation = await readResponseJson(response, PipelineAgentOperationSchema);
+
+        return {
+          ...operation,
+          sourceSkillId: operation.sourceSkillId ?? undefined,
+        };
+      }),
+    );
+
+    return { operations, pipeline };
   },
 
   async waitForCreatedPipeline(

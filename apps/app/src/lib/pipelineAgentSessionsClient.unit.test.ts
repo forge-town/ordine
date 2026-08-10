@@ -136,3 +136,76 @@ describe("pipelineAgentSessionsClient.waitForCreatedPipeline", () => {
     expect(globalThis.fetch).toHaveBeenCalledTimes(1);
   });
 });
+
+describe("pipelineAgentSessionsClient.getGeneratedPipelineMaterialization", () => {
+  afterEach(() => {
+    globalThis.fetch = originalFetch;
+    vi.restoreAllMocks();
+  });
+
+  it("downloads the generated pipeline and every referenced operation", async () => {
+    globalThis.fetch = vi
+      .fn()
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            id: "pipeline-1",
+            name: "Generated pipeline",
+            description: "",
+            sharedContext: "",
+            tags: ["agent-generated"],
+            timeoutMs: null,
+            nodes: [
+              {
+                id: "node-1",
+                type: "operation",
+                position: { x: 0, y: 0 },
+                data: {
+                  label: "Generated operation",
+                  nodeType: "operation",
+                  operationId: "operation-1",
+                  operationName: "Generated operation",
+                  status: "idle",
+                },
+              },
+            ],
+            edges: [],
+            createdAt: "2026-08-10T00:00:00.000Z",
+            updatedAt: "2026-08-10T00:00:00.000Z",
+          }),
+        ),
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            id: "operation-1",
+            name: "Generated operation",
+            description: "",
+            config: {
+              executor: { type: "agent", prompt: "Return OK", agentMode: "prompt" },
+              inputs: [],
+              outputs: [],
+            },
+            acceptedObjectTypes: ["prompt"],
+            sourceSkillId: null,
+          }),
+        ),
+      ) as typeof fetch;
+
+    const result =
+      await pipelineAgentSessionsClient.getGeneratedPipelineMaterialization("pipeline-1");
+
+    expect(globalThis.fetch).toHaveBeenNthCalledWith(
+      1,
+      "http://localhost:9433/api/pipelines/pipeline-1",
+    );
+    expect(globalThis.fetch).toHaveBeenNthCalledWith(
+      2,
+      "http://localhost:9433/api/operations/operation-1",
+    );
+    expect(result.pipeline.id).toBe("pipeline-1");
+    expect(result.operations).toEqual([
+      expect.objectContaining({ id: "operation-1", sourceSkillId: undefined }),
+    ]);
+  });
+});
