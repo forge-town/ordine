@@ -160,8 +160,8 @@ export const ConnectorsPageContent = () => {
     } else {
       setConnectionFailed(false);
       setConnectionMessage(t("connectors.testSuccess"));
-      await connectorsQuery.refetch();
     }
+    await connectorsQuery.refetch();
     setConnectingId(null);
   };
 
@@ -186,7 +186,11 @@ export const ConnectorsPageContent = () => {
         ...(configChanged ? { config: toConnectorConfig(form, editingConnector.config) } : {}),
       };
 
-      await updateConnector({ resource: ResourceName.connectors, id: editingConnector.id, values });
+      await updateConnector({
+        resource: ResourceName.connectors,
+        id: editingConnector.id,
+        values,
+      });
     } else {
       await createConnector({
         resource: ResourceName.connectors,

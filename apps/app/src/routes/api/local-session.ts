@@ -1,13 +1,100 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { eq } from "drizzle-orm";
+import { errAsync, okAsync, ResultAsync, type Result } from "neverthrow";
 import { db } from "@repo/db";
 import { usersTable } from "@repo/db-schema";
 import { auth } from "@/integrations/better-auth";
 import { getServerEnv } from "@/integrations/server-env";
-import { count } from "drizzle-orm";
 
 const LOCAL_USER_EMAIL = "local@ordine.local";
 const LOCAL_USER_NAME = "Local User";
 const LOCAL_USER_PASSWORD = "ordine-local-mode";
+
+const localUserInitialization = {
+  promise: null as PromiseLike<Result<void, Error>> | null,
+};
+
+const toError = (error: unknown) =>
+  error instanceof Error ? error : new Error("Local user initialization failed");
+
+const createAuthRequest = (requestUrl: string, action: "sign-in" | "sign-up") =>
+  new Request(new URL(`/api/auth/${action}/email`, requestUrl), {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      email: LOCAL_USER_EMAIL,
+      password: LOCAL_USER_PASSWORD,
+      ...(action === "sign-up" ? { name: LOCAL_USER_NAME } : {}),
+    }),
+  });
+
+const ensureLocalUser = (requestUrl: string) => {
+  if (localUserInitialization.promise) {
+    return localUserInitialization.promise;
+  }
+
+  const initialization: ResultAsync<void, Error> = ResultAsync.fromPromise(
+    db
+      .select({ id: usersTable.id })
+      .from(usersTable)
+      .where(eq(usersTable.email, LOCAL_USER_EMAIL))
+      .limit(1),
+    toError,
+  ).andThen((users) => {
+    if (users.length > 0) {
+      return okAsync<void, Error>(undefined);
+    }
+
+    return ResultAsync.fromPromise(
+      auth.handler(createAuthRequest(requestUrl, "sign-up")),
+      toError,
+    ).andThen((response) =>
+      response.ok
+        ? okAsync<void, Error>(undefined)
+        : errAsync<void, Error>(new Error("Failed to create local user")),
+    );
+  });
+  const promise: Promise<Result<void, Error>> = Promise.resolve(initialization).then((result) => {
+    localUserInitialization.promise = null;
+
+    return result;
+  });
+  localUserInitialization.promise = promise;
+
+  return promise;
+};
+
+export const handleLocalSessionRequest = async (request: Request) => {
+  const { ORDINE_LOCAL_MODE } = getServerEnv();
+
+  if (!ORDINE_LOCAL_MODE) {
+    return new Response(JSON.stringify({ error: "Local mode is not enabled" }), {
+      status: 404,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  const initialization = await ensureLocalUser(request.url);
+  if (initialization.isErr()) {
+    return new Response(JSON.stringify({ error: initialization.error.message }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  const signIn = await ResultAsync.fromPromise(
+    auth.handler(createAuthRequest(request.url, "sign-in")),
+    toError,
+  );
+  if (signIn.isErr()) {
+    return new Response(JSON.stringify({ error: signIn.error.message }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  return signIn.value;
+};
 
 export const Route = createFileRoute("/api/local-session")({
   server: {
@@ -16,55 +103,7 @@ export const Route = createFileRoute("/api/local-session")({
       // call — semantically it should be a POST, not GET. Also, DB and Better
       // Auth calls should be wrapped with neverthrow for explicit error
       // handling instead of returning generic 500s.
-      GET: async ({ request }) => {
-        const { ORDINE_LOCAL_MODE } = getServerEnv();
-
-        if (!ORDINE_LOCAL_MODE) {
-          return new Response(JSON.stringify({ error: "Local mode is not enabled" }), {
-            status: 404,
-            headers: { "Content-Type": "application/json" },
-          });
-        }
-
-        // Check if any users exist
-        const [result] = await db.select({ value: count() }).from(usersTable);
-        const userCount = result?.value ?? 0;
-
-        // If no users exist, create the local user via Better Auth
-        if (userCount === 0) {
-          const signUpReq = new Request(new URL("/api/auth/sign-up/email", request.url), {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              email: LOCAL_USER_EMAIL,
-              password: LOCAL_USER_PASSWORD,
-              name: LOCAL_USER_NAME,
-            }),
-          });
-          const signUpRes = await auth.handler(signUpReq);
-          if (!signUpRes.ok) {
-            return new Response(JSON.stringify({ error: "Failed to create local user" }), {
-              status: 500,
-              headers: { "Content-Type": "application/json" },
-            });
-          }
-          // Return the sign-up response which includes the session cookie
-          return signUpRes;
-        }
-
-        // User exists, sign in
-        const signInReq = new Request(new URL("/api/auth/sign-in/email", request.url), {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            email: LOCAL_USER_EMAIL,
-            password: LOCAL_USER_PASSWORD,
-          }),
-        });
-        const signInRes = await auth.handler(signInReq);
-
-        return signInRes;
-      },
+      GET: ({ request }) => handleLocalSessionRequest(request),
     },
   },
 });

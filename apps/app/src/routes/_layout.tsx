@@ -4,6 +4,7 @@ import { requireAuthenticatedSession } from "./-requireAuthenticatedSession";
 
 export const Route = createFileRoute("/_layout")({
   beforeLoad: ({ context }) => requireAuthenticatedSession(context),
+  ssr: false,
   component: () => (
     <AppLayout>
       <Outlet />
