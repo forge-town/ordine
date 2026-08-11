@@ -14,7 +14,7 @@ interface Pipeline {
 interface Job {
   id: string;
   title: string;
-  status: "queued" | "running" | "done" | "failed" | "cancelled";
+  status: "queued" | "running" | "paused" | "done" | "failed" | "cancelled" | "expired" | "skipped";
   logs: string[];
   result: { summary?: string; output?: string } | null;
   error: string | null;
@@ -38,6 +38,8 @@ interface DirEntry {
   name: string;
   type: string;
 }
+
+type OutputOptions = { json?: boolean };
 
 class CliError extends Error {
   constructor(
@@ -75,8 +77,14 @@ const assertOk = <T>(result: { ok: boolean; data?: T; message?: string }, action
 
 // ─── Pipelines ───────────────────────────────────────────────────────
 
-export const listPipelines = async (): Promise<void> => {
+export const listPipelines = async (options: OutputOptions = {}): Promise<void> => {
   const pipelines = assertOk(await api.get<Pipeline[]>("/api/pipelines"), "list pipelines");
+
+  if (options.json) {
+    console.log(JSON.stringify(pipelines));
+
+    return;
+  }
 
   if (pipelines.length === 0) {
     console.log("No pipelines found.");
@@ -117,9 +125,9 @@ export const deletePipeline = async (id: string): Promise<void> => {
 
 export const runPipeline = async (
   pipelineId: string,
-  options: { inputPath?: string; follow?: boolean },
+  options: { inputPath?: string; follow?: boolean; json?: boolean },
 ): Promise<void> => {
-  console.log(`Triggering pipeline ${pipelineId}...`);
+  if (!options.json) console.log(`Triggering pipeline ${pipelineId}...`);
 
   const { jobId } = assertOk(
     await api.post<RunResponse>(`/api/pipelines/${pipelineId}/run`, {
@@ -127,11 +135,16 @@ export const runPipeline = async (
     }),
     "run pipeline",
   );
-  console.log(`Job created: ${jobId}`);
+  if (!options.json) console.log(`Job created: ${jobId}`);
 
-  if (options.follow === false) return;
+  if (options.follow === false) {
+    if (options.json) console.log(JSON.stringify({ jobId }));
 
-  await pollJob(jobId);
+    return;
+  }
+
+  const result = await pollJob(jobId, options);
+  if (options.json) console.log(JSON.stringify(result));
 };
 
 // ─── Rules ───────────────────────────────────────────────────────────
@@ -256,9 +269,15 @@ export const deleteOperation = async (id: string): Promise<void> => {
 
 // ─── Jobs ────────────────────────────────────────────────────────────
 
-export const listJobs = async (options: { status?: string }): Promise<void> => {
+export const listJobs = async (options: { status?: string; json?: boolean }): Promise<void> => {
   const query = options.status ? `?status=${options.status}` : "";
   const jobs = assertOk(await api.get<Job[]>(`/api/jobs${query}`), "list jobs");
+
+  if (options.json) {
+    console.log(JSON.stringify(jobs));
+
+    return;
+  }
 
   if (jobs.length === 0) {
     console.log("No jobs found.");
@@ -276,6 +295,11 @@ export const listJobs = async (options: { status?: string }): Promise<void> => {
 export const getJob = async (id: string): Promise<void> => {
   const job = assertOk(await api.get<Job>(`/api/jobs/${id}`), "get job");
   console.log(JSON.stringify(job, null, 2));
+};
+
+export const listJobTraces = async (id: string): Promise<void> => {
+  const traces = assertOk(await api.get<unknown[]>(`/api/jobs/${id}/traces`), "list job traces");
+  console.log(JSON.stringify(traces));
 };
 
 export const deleteJob = async (id: string): Promise<void> => {
@@ -327,9 +351,7 @@ export const deleteBestPractice = async (id: string): Promise<void> => {
 };
 
 export const exportBestPractices = async (outPath: string): Promise<void> => {
-  const res = await fetch(
-    `${getEnv().ORDINE_API_URL}/api/best-practices/export`,
-  );
+  const res = await fetch(`${getEnv().ORDINE_API_URL}/api/best-practices/export`);
   if (!res.ok) throw new CliError(`Failed to export: ${res.statusText}`);
   const buffer = Buffer.from(await res.arrayBuffer());
   writeFileSync(outPath, buffer);
@@ -371,11 +393,15 @@ export const browseFilesystem = async (dirPath?: string): Promise<void> => {
   }
 };
 
-const pollJob = async (jobId: string): Promise<void> => {
+const pollJob = async (
+  jobId: string,
+  options: OutputOptions,
+): Promise<{ job: Job; traces: unknown[] }> => {
   const startTime = Date.now();
   const seenTraceCount = { value: 0 };
+  const allTraces: unknown[] = [];
 
-  const poll = async (): Promise<void> => {
+  const poll = async (): Promise<{ job: Job; traces: unknown[] }> => {
     const result = await api.get<Job>(`/api/jobs/${jobId}`);
 
     if (!result.ok) {
@@ -385,30 +411,43 @@ const pollJob = async (jobId: string): Promise<void> => {
     const job = result.data;
 
     // Print new trace lines
-    const tracesResult = await api.get<{ message: string }[]>(`/api/jobs/${jobId}/traces`);
+    const tracesResult = await api.get<unknown[]>(`/api/jobs/${jobId}/traces`);
     if (tracesResult.ok) {
       const newTraces = tracesResult.data.slice(seenTraceCount.value);
-      for (const trace of newTraces) {
-        console.log(trace.message);
+      allTraces.splice(0, allTraces.length, ...tracesResult.data);
+      if (!options.json) {
+        for (const trace of newTraces) {
+          if (typeof trace !== "object" || trace === null || !("message" in trace)) continue;
+          console.log(String(trace.message));
+        }
       }
       seenTraceCount.value = tracesResult.data.length;
     }
 
-    if (job.status === "done" || job.status === "failed" || job.status === "cancelled") {
+    if (
+      job.status === "done" ||
+      job.status === "failed" ||
+      job.status === "cancelled" ||
+      job.status === "expired" ||
+      job.status === "skipped"
+    ) {
       const elapsed = formatDuration(Date.now() - startTime);
-      console.log();
+      if (!options.json) console.log();
 
       if (job.status === "done") {
-        console.log(`Pipeline completed in ${elapsed}`);
-      } else if (job.status === "failed") {
-        console.error(`Pipeline failed after ${elapsed}`);
-        if (job.error) console.error(`  Error: ${job.error}`);
-        throw new CliError("Pipeline failed");
+        if (!options.json) console.log(`Pipeline completed in ${elapsed}`);
+      } else if (job.status === "failed" || job.status === "expired") {
+        if (options.json) console.log(JSON.stringify({ job, traces: allTraces }));
+        else {
+          console.error(`Pipeline ${job.status} after ${elapsed}`);
+          if (job.error) console.error(`  Error: ${job.error}`);
+        }
+        throw new CliError(`Pipeline ${job.status}`);
       } else {
-        console.log(`Pipeline cancelled after ${elapsed}`);
+        if (!options.json) console.log(`Pipeline ${job.status} after ${elapsed}`);
       }
 
-      return;
+      return { job, traces: allTraces };
     }
 
     await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
@@ -416,5 +455,5 @@ const pollJob = async (jobId: string): Promise<void> => {
     return poll();
   };
 
-  await poll();
+  return poll();
 };

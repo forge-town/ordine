@@ -3,6 +3,12 @@ import { getEnv } from "./integrations/env";
 
 const getBaseUrl = (): string => getEnv().ORDINE_API_URL;
 
+const getHeaders = (): Record<string, string> => {
+  const { ORDINE_DESKTOP_AUTH_TOKEN } = getEnv();
+
+  return ORDINE_DESKTOP_AUTH_TOKEN ? { "X-Desktop-Token": ORDINE_DESKTOP_AUTH_TOKEN } : {};
+};
+
 interface ApiError {
   ok: false;
   status: number;
@@ -18,7 +24,7 @@ type ApiResult<T> = ApiSuccess<T> | ApiError;
 
 const request = async <T>(method: string, path: string, body?: unknown): Promise<ApiResult<T>> => {
   const url = `${getBaseUrl()}${path}`;
-  const headers: Record<string, string> = {};
+  const headers = getHeaders();
   const init: RequestInit = { method, headers };
 
   if (body !== undefined) {
@@ -42,7 +48,7 @@ const request = async <T>(method: string, path: string, body?: unknown): Promise
 
 const requestNoBody = async (method: string, path: string): Promise<ApiResult<void>> => {
   const url = `${getBaseUrl()}${path}`;
-  const res = await fetch(url, { method });
+  const res = await fetch(url, { method, headers: getHeaders() });
 
   if (!res.ok) {
     const result = await ResultAsync.fromPromise(res.text(), () => undefined);

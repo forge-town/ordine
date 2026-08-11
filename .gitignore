@@ -40,7 +40,11 @@ yarn-error.log*
 .DS_Store
 *.pem
 
-.agents
+.agents/*
+!.agents/skills/
+.agents/skills/*
+!.agents/skills/ordine-control/
+!.agents/skills/ordine-control/**
 .adal
 .augment
 .claude

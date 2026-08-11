@@ -25,6 +25,7 @@ import {
   deleteOperation,
   listJobs,
   getJob,
+  listJobTraces,
   deleteJob,
   listBestPractices,
   getBestPractice,
@@ -42,7 +43,10 @@ const program = new Command();
 program
   .name("ordine")
   .description("Ordine CLI — manage pipelines, rules, skills, and more")
+  .option("--json", "Print machine-readable JSON for supported commands")
   .version(packageJson.version);
+
+const outputOptions = (): { json?: boolean } => program.opts<{ json?: boolean }>();
 
 // ─── Pipelines ───────────────────────────────────────────────────────
 
@@ -51,7 +55,7 @@ pipelinesCmd
   .command("list")
   .alias("ls")
   .description("List all pipelines")
-  .action(() => listPipelines());
+  .action(() => listPipelines(outputOptions()));
 pipelinesCmd
   .command("get <id>")
   .description("Get pipeline details")
@@ -75,7 +79,11 @@ program
   .option("-i, --input <path>", "Input file or folder path")
   .option("--no-follow", "Do not follow job progress (fire and forget)")
   .action((pipelineId: string, opts: { input?: string; follow?: boolean }) =>
-    runPipeline(pipelineId, { inputPath: opts.input, follow: opts.follow }),
+    runPipeline(pipelineId, {
+      inputPath: opts.input,
+      follow: opts.follow,
+      json: outputOptions().json,
+    }),
   );
 
 // ─── Rules ───────────────────────────────────────────────────────────
@@ -161,11 +169,15 @@ jobsCmd
   .alias("ls")
   .description("List all jobs")
   .option("-s, --status <status>", "Filter by status")
-  .action((opts: { status?: string }) => listJobs(opts));
+  .action((opts: { status?: string }) => listJobs({ ...opts, json: outputOptions().json }));
 jobsCmd
   .command("get <id>")
   .description("Get job details")
   .action((id: string) => getJob(id));
+jobsCmd
+  .command("traces <id>")
+  .description("List job traces as JSON")
+  .action((id: string) => listJobTraces(id));
 jobsCmd
   .command("delete <id>")
   .description("Delete a job")
