@@ -41,6 +41,14 @@ describe("CanvasEmptyState", () => {
     ]);
   });
 
+  it("allows canvas drops through the empty-state copy while keeping the seed action clickable", () => {
+    const store = createCanvasStore();
+    render(<CanvasEmptyState />, { wrapper: makeWrapper(store) });
+
+    expect(screen.getByRole("heading").parentElement).not.toHaveClass("pointer-events-auto");
+    expect(screen.getByTestId("canvas-v2-empty-seed")).toHaveClass("pointer-events-auto");
+  });
+
   it("hides once the graph has nodes", () => {
     const store = createCanvasStore({ nodes: [makeNode()] });
     render(<CanvasEmptyState />, { wrapper: makeWrapper(store) });
