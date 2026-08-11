@@ -101,6 +101,34 @@ describe("pipelineAgentSessionsClient.planSessionStream", () => {
 
     expect(onEvent).not.toHaveBeenCalled();
   });
+
+  it("passes an abort signal to the planning request", async () => {
+    const controller = new AbortController();
+    globalThis.fetch = vi.fn().mockResolvedValue(createStreamResponse([])) as typeof fetch;
+
+    await pipelineAgentSessionsClient.planSessionStream("session-1", {
+      onEvent: vi.fn(),
+      signal: controller.signal,
+    });
+
+    expect(globalThis.fetch).toHaveBeenCalledWith(
+      "http://localhost:9433/api/pipeline-agent-sessions/session-1/plan",
+      expect.objectContaining({ signal: controller.signal }),
+    );
+  });
+
+  it("requests server-side cancellation", async () => {
+    globalThis.fetch = vi
+      .fn()
+      .mockResolvedValue(new Response(null, { status: 204 })) as typeof fetch;
+
+    await pipelineAgentSessionsClient.cancelSession("session-1");
+
+    expect(globalThis.fetch).toHaveBeenCalledWith(
+      "http://localhost:9433/api/pipeline-agent-sessions/session-1/cancel",
+      expect.objectContaining({ method: "POST" }),
+    );
+  });
 });
 
 describe("pipelineAgentSessionsClient.waitForCreatedPipeline", () => {
@@ -198,10 +226,12 @@ describe("pipelineAgentSessionsClient.getGeneratedPipelineMaterialization", () =
     expect(globalThis.fetch).toHaveBeenNthCalledWith(
       1,
       "http://localhost:9433/api/pipelines/pipeline-1",
+      { signal: undefined },
     );
     expect(globalThis.fetch).toHaveBeenNthCalledWith(
       2,
       "http://localhost:9433/api/operations/operation-1",
+      { signal: undefined },
     );
     expect(result.pipeline.id).toBe("pipeline-1");
     expect(result.operations).toEqual([

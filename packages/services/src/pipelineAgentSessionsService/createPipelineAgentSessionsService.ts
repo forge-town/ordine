@@ -80,6 +80,47 @@ const toSafeStoragePath = (sessionId: string, attachmentId: string, filename: st
   return { storageDir, storageKey };
 };
 
+type PipelineAgentActivityKind = "planning" | "generating";
+
+interface PipelineAgentActivity {
+  controller: AbortController;
+  kind: PipelineAgentActivityKind;
+}
+
+const createCancellationError = (sessionId: string) => {
+  const error = new Error(`Pipeline agent session cancelled: ${sessionId}`) as Error & {
+    code: string;
+  };
+  error.code = "PIPELINE_AGENT_CANCELLED";
+
+  return error;
+};
+
+const isCancellationError = (error: Error) =>
+  (error as Error & { code?: string }).code === "PIPELINE_AGENT_CANCELLED";
+
+const runAbortable = <T>(promise: Promise<T>, signal: AbortSignal, sessionId: string) =>
+  new Promise<T>((resolvePromise, rejectPromise) => {
+    const handleAbort = () => rejectPromise(createCancellationError(sessionId));
+    if (signal.aborted) {
+      handleAbort();
+
+      return;
+    }
+
+    signal.addEventListener("abort", handleAbort, { once: true });
+    promise.then(
+      (value) => {
+        signal.removeEventListener("abort", handleAbort);
+        resolvePromise(value);
+      },
+      (error: unknown) => {
+        signal.removeEventListener("abort", handleAbort);
+        rejectPromise(error);
+      },
+    );
+  });
+
 export const createPipelineAgentSessionsService = (db: DbConnection) => {
   const agentRuntimesDao = createAgentRuntimesDao(db);
   const operationsDao = createOperationsDao(db);
@@ -91,6 +132,27 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
   const contextArtifactsDao = createPipelineAgentContextArtifactsDao(db);
   const proposalsDao = createPipelineAgentProposalsDao(db);
   const settingsDao = createSettingsDao(db);
+  const activeActivities = new Map<string, PipelineAgentActivity>();
+  const beginActivity = (sessionId: string, kind: PipelineAgentActivityKind) => {
+    activeActivities.get(sessionId)?.controller.abort();
+    const activity = { controller: new AbortController(), kind } satisfies PipelineAgentActivity;
+    activeActivities.set(sessionId, activity);
+
+    return activity;
+  };
+  const assertActivityActive = (sessionId: string, activity: PipelineAgentActivity) => {
+    if (
+      activity.controller.signal.aborted ||
+      activeActivities.get(sessionId)?.controller !== activity.controller
+    ) {
+      throw createCancellationError(sessionId);
+    }
+  };
+  const finishActivity = (sessionId: string, activity: PipelineAgentActivity) => {
+    if (activeActivities.get(sessionId)?.controller === activity.controller) {
+      activeActivities.delete(sessionId);
+    }
+  };
   const resolveEffectiveRuntime = (input: {
     requestedRuntimeId?: string;
     runtimes: Array<{ id: string; type: AgentRuntime } & Record<string, unknown>>;
@@ -823,11 +885,52 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
       };
     },
 
+    cancelSession: async (sessionId: string) => {
+      const session = await sessionsDao.findById(sessionId);
+      if (!session) {
+        throw new Error(`Pipeline agent session not found: ${sessionId}`);
+      }
+
+      const activity = activeActivities.get(sessionId);
+      activity?.controller.abort();
+
+      if (activity?.kind === "planning" || session.status === "analyzing") {
+        await sessionsDao.update(sessionId, { status: "awaiting_user" });
+
+        return { status: "awaiting_user" as const };
+      }
+
+      if (
+        activity?.kind === "generating" ||
+        session.status === "approved" ||
+        session.status === "generating"
+      ) {
+        const proposalId = session.approvedProposalId ?? session.latestProposalId;
+        if (proposalId) {
+          await proposalsDao.update(proposalId, {
+            status: "proposal_ready",
+            approvedAt: null,
+          });
+        }
+        await sessionsDao.update(sessionId, {
+          status: "proposal_ready",
+          latestProposalId: proposalId ?? session.latestProposalId,
+          approvedProposalId: null,
+          createdPipelineId: null,
+        });
+
+        return { status: "proposal_ready" as const };
+      }
+
+      return { status: session.status };
+    },
+
     planSession: async (
       sessionId: string,
       input?: {
         onProgress?: (message: string) => Promise<void> | void;
         runtimeId?: string;
+        signal?: AbortSignal;
       },
     ): Promise<
       | { type: "question"; question: string }
@@ -838,10 +941,14 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
         throw new Error(`Pipeline agent session not found: ${sessionId}`);
       }
 
-      await sessionsDao.update(sessionId, { status: "analyzing" });
+      const activity = beginActivity(sessionId, "planning");
+      const handleExternalAbort = () => activity.controller.abort();
+      input?.signal?.addEventListener("abort", handleExternalAbort, { once: true });
 
       const planningResult = await ResultAsync.fromPromise(
         (async () => {
+          await sessionsDao.update(sessionId, { status: "analyzing" });
+          assertActivityActive(sessionId, activity);
           const [messages, artifacts, settings, operations, runtimes] = await Promise.all([
             messagesDao.findManyBySessionId(sessionId),
             contextArtifactsDao.findManyBySessionId(sessionId),
@@ -849,47 +956,61 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
             operationsDao.findMany(),
             agentRuntimesDao.findMany(),
           ]);
+          assertActivityActive(sessionId, activity);
           const effectiveRuntime = resolveEffectiveRuntime({
             requestedRuntimeId: input?.runtimeId,
             runtimes,
             defaultRuntime: settings.defaultAgentRuntime ?? null,
           });
 
-          const raw = await runAgent({
-            agent: effectiveRuntime,
-            systemPrompt: "You are a fast planning assistant. Return only valid JSON.",
-            userPrompt: buildPlanningPrompt({
-              artifacts,
-              messages,
-              mode: session.mode,
-              operations,
-              pipelineId: session.pipelineId,
-              snapshot: session.snapshot,
+          const raw = await runAbortable(
+            runAgent({
+              agent: effectiveRuntime,
+              systemPrompt: "You are a fast planning assistant. Return only valid JSON.",
+              userPrompt: buildPlanningPrompt({
+                artifacts,
+                messages,
+                mode: session.mode,
+                operations,
+                pipelineId: session.pipelineId,
+                snapshot: session.snapshot,
+              }),
+              inputPath: process.cwd(),
+              agentId: "pipeline-agent-planner",
+              allowedTools: [],
+              logPrefix: "pipelineAgentPlan",
+              apiKey: settings.defaultApiKey,
+              model: settings.defaultModel,
+              onProgress: input?.onProgress,
             }),
-            inputPath: process.cwd(),
-            agentId: "pipeline-agent-planner",
-            allowedTools: [],
-            logPrefix: "pipelineAgentPlan",
-            apiKey: settings.defaultApiKey,
-            model: settings.defaultModel,
-            onProgress: input?.onProgress,
-          });
+            activity.controller.signal,
+            sessionId,
+          );
+          assertActivityActive(sessionId, activity);
 
           const parsed = (
             session.mode === "edit"
               ? RelaxedCanvasEditPlanningResultSchema
               : PipelineAgentPlanningResultSchema
           ).parse(JSON.parse(extractJsonFromText(raw)));
+          assertActivityActive(sessionId, activity);
 
           if (parsed.type === "question") {
-            await messagesDao.create({
-              id: crypto.randomUUID(),
-              sessionId,
-              role: "assistant",
-              kind: "question",
-              content: parsed.question,
+            await db.transaction(async (tx) => {
+              assertActivityActive(sessionId, activity);
+              const transactionalMessagesDao = createPipelineAgentMessagesDao(tx);
+              const transactionalSessionsDao = createPipelineAgentSessionsDao(tx);
+              await transactionalMessagesDao.create({
+                id: crypto.randomUUID(),
+                sessionId,
+                role: "assistant",
+                kind: "question",
+                content: parsed.question,
+              });
+              assertActivityActive(sessionId, activity);
+              await transactionalSessionsDao.update(sessionId, { status: "awaiting_user" });
+              assertActivityActive(sessionId, activity);
             });
-            await sessionsDao.update(sessionId, { status: "awaiting_user" });
 
             return parsed;
           }
@@ -916,12 +1037,17 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
             ]
               .filter(Boolean)
               .join("\n");
-            const actionProposalResult = await pipelinesService.proposeActions({
-              snapshot: session.snapshot,
-              message: actionRequest,
-              pipelineId: session.pipelineId ?? undefined,
-              runtimeId: input?.runtimeId,
-            });
+            const actionProposalResult = await runAbortable(
+              pipelinesService.proposeActions({
+                snapshot: session.snapshot,
+                message: actionRequest,
+                pipelineId: session.pipelineId ?? undefined,
+                runtimeId: input?.runtimeId,
+              }),
+              activity.controller.signal,
+              sessionId,
+            );
+            assertActivityActive(sessionId, activity);
             if (!actionProposalResult.proposal) {
               throw new Error("Failed to generate executable canvas edit actions");
             }
@@ -938,17 +1064,26 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
               readiness: editProposal.readiness,
               pendingOperations: actionProposalResult.pendingOperations ?? [],
             };
-            const saved = await proposalsDao.create({
-              id: crypto.randomUUID(),
-              sessionId,
-              mode: session.mode,
-              status: "proposal_ready",
-              proposal: finalEditProposal,
-              approvedAt: null,
-            });
-            await sessionsDao.update(sessionId, {
-              latestProposalId: saved.id,
-              status: "proposal_ready",
+            const saved = await db.transaction(async (tx) => {
+              assertActivityActive(sessionId, activity);
+              const transactionalProposalsDao = createPipelineAgentProposalsDao(tx);
+              const transactionalSessionsDao = createPipelineAgentSessionsDao(tx);
+              const persistedProposal = await transactionalProposalsDao.create({
+                id: crypto.randomUUID(),
+                sessionId,
+                mode: session.mode,
+                status: "proposal_ready",
+                proposal: finalEditProposal,
+                approvedAt: null,
+              });
+              assertActivityActive(sessionId, activity);
+              await transactionalSessionsDao.update(sessionId, {
+                latestProposalId: persistedProposal.id,
+                status: "proposal_ready",
+              });
+              assertActivityActive(sessionId, activity);
+
+              return persistedProposal;
             });
 
             return {
@@ -962,17 +1097,26 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
             PipelineAgentProposal,
             { mode: "generate" }
           >;
-          const saved = await proposalsDao.create({
-            id: crypto.randomUUID(),
-            sessionId,
-            mode: session.mode,
-            status: "proposal_ready",
-            proposal: generateProposal,
-            approvedAt: null,
-          });
-          await sessionsDao.update(sessionId, {
-            latestProposalId: saved.id,
-            status: "proposal_ready",
+          const saved = await db.transaction(async (tx) => {
+            assertActivityActive(sessionId, activity);
+            const transactionalProposalsDao = createPipelineAgentProposalsDao(tx);
+            const transactionalSessionsDao = createPipelineAgentSessionsDao(tx);
+            const persistedProposal = await transactionalProposalsDao.create({
+              id: crypto.randomUUID(),
+              sessionId,
+              mode: session.mode,
+              status: "proposal_ready",
+              proposal: generateProposal,
+              approvedAt: null,
+            });
+            assertActivityActive(sessionId, activity);
+            await transactionalSessionsDao.update(sessionId, {
+              latestProposalId: persistedProposal.id,
+              status: "proposal_ready",
+            });
+            assertActivityActive(sessionId, activity);
+
+            return persistedProposal;
           });
 
           return {
@@ -984,14 +1128,24 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
         (error) => (error instanceof Error ? error : new Error(String(error))),
       );
       if (planningResult.isErr()) {
-        await sessionsDao.update(sessionId, { status: "failed" });
+        await sessionsDao.update(sessionId, {
+          status: isCancellationError(planningResult.error) ? "awaiting_user" : "failed",
+        });
+        input?.signal?.removeEventListener("abort", handleExternalAbort);
+        finishActivity(sessionId, activity);
         throw planningResult.error;
       }
+
+      input?.signal?.removeEventListener("abort", handleExternalAbort);
+      finishActivity(sessionId, activity);
 
       return planningResult.value;
     },
 
-    generatePipelineFromApprovedProposal: async (sessionId: string) => {
+    generatePipelineFromApprovedProposal: async (
+      sessionId: string,
+      input?: { signal?: AbortSignal },
+    ) => {
       const session = await sessionsDao.findById(sessionId);
       if (!session) {
         throw new Error(`Pipeline agent session not found: ${sessionId}`);
@@ -1013,65 +1167,43 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
         );
       }
       const generateProposal = proposalRecord.proposal;
+      const activity = beginActivity(sessionId, "generating");
+      const handleExternalAbort = () => activity.controller.abort();
+      input?.signal?.addEventListener("abort", handleExternalAbort, { once: true });
 
-      const [messages, artifacts, settings, runtimes] = await Promise.all([
-        messagesDao.findManyBySessionId(sessionId),
-        contextArtifactsDao.findManyBySessionId(sessionId),
-        settingsDao.get(),
-        agentRuntimesDao.findMany(),
-      ]);
-      const effectiveRuntime = resolveEffectiveRuntime({
-        runtimes,
-        defaultRuntime: settings.defaultAgentRuntime ?? null,
-      });
-      const pipelineName = generateProposal.purpose;
-      const pipelineDescription = [
-        buildGenerationDescription(generateProposal),
-        "Conversation context:",
-        messages
-          .map((message) => `[${message.role}/${message.kind}] ${message.content}`)
-          .join("\n") || "(none)",
-        "",
-        "Attachment context:",
-        buildArtifactSummary(artifacts),
-      ].join("\n\n");
-
-      await sessionsDao.update(sessionId, { status: "generating" });
-
-      const generationResult = await ResultAsync.fromPromise(
+      const preparationResult = await ResultAsync.fromPromise(
         (async () => {
-          const analysis = await pipelinesService.analyzeIntent({
-            name: pipelineName,
-            description: pipelineDescription,
-            runtimeType: effectiveRuntime,
+          const [messages, artifacts, settings, runtimes] = await Promise.all([
+            messagesDao.findManyBySessionId(sessionId),
+            contextArtifactsDao.findManyBySessionId(sessionId),
+            settingsDao.get(),
+            agentRuntimesDao.findMany(),
+          ]);
+          assertActivityActive(sessionId, activity);
+          const effectiveRuntime = resolveEffectiveRuntime({
+            runtimes,
+            defaultRuntime: settings.defaultAgentRuntime ?? null,
           });
-          const generated = await pipelinesService.generateStructure({
-            name: pipelineName,
-            description: pipelineDescription,
-            matchedOperations: analysis.matchedOperations,
-            unmatchedSteps: analysis.unmatchedSteps,
-            runtimeType: effectiveRuntime,
-          });
-          if ("error" in generated) {
-            throw new Error(generated.error);
-          }
-          if (generated.pendingOperations && generated.pendingOperations.length > 0) {
-            await pipelinesService.createPendingOperations(generated.pendingOperations);
-          }
+          const pipelineName = generateProposal.purpose;
+          const pipelineDescription = [
+            buildGenerationDescription(generateProposal),
+            "Conversation context:",
+            messages
+              .map((message) => `[${message.role}/${message.kind}] ${message.content}`)
+              .join("\n") || "(none)",
+            "",
+            "Attachment context:",
+            buildArtifactSummary(artifacts),
+          ].join("\n\n");
 
-          return pipelinesService.create({
-            id: crypto.randomUUID(),
-            name: pipelineName,
-            description: pipelineDescription,
-            tags: ["agent-generated"],
-            timeoutMs: null,
-            nodes: generated.nodes,
-            edges: generated.edges,
-          });
+          await sessionsDao.update(sessionId, { status: "generating" });
+          assertActivityActive(sessionId, activity);
+
+          return { effectiveRuntime, pipelineDescription, pipelineName };
         })(),
         (error) => (error instanceof Error ? error : new Error(String(error))),
       );
-      if (generationResult.isErr()) {
+      if (preparationResult.isErr()) {
         await proposalsDao.update(proposalRecord.id, {
           status: "proposal_ready",
           approvedAt: null,
@@ -1080,16 +1212,113 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
           status: "proposal_ready",
           latestProposalId: proposalRecord.id,
           approvedProposalId: null,
+          createdPipelineId: null,
         });
+        input?.signal?.removeEventListener("abort", handleExternalAbort);
+        finishActivity(sessionId, activity);
+        throw preparationResult.error;
+      }
+      const { effectiveRuntime, pipelineDescription, pipelineName } = preparationResult.value;
+
+      const persistedPipeline = { id: null as string | null };
+      const pendingOperationIds = { value: [] as string[] };
+      const generationResult = await ResultAsync.fromPromise(
+        (async () => {
+          assertActivityActive(sessionId, activity);
+          const analysis = await runAbortable(
+            pipelinesService.analyzeIntent({
+              name: pipelineName,
+              description: pipelineDescription,
+              runtimeType: effectiveRuntime,
+            }),
+            activity.controller.signal,
+            sessionId,
+          );
+          assertActivityActive(sessionId, activity);
+          const generated = await runAbortable(
+            pipelinesService.generateStructure({
+              name: pipelineName,
+              description: pipelineDescription,
+              matchedOperations: analysis.matchedOperations,
+              unmatchedSteps: analysis.unmatchedSteps,
+              runtimeType: effectiveRuntime,
+            }),
+            activity.controller.signal,
+            sessionId,
+          );
+          assertActivityActive(sessionId, activity);
+          if ("error" in generated) {
+            throw new Error(generated.error);
+          }
+          pendingOperationIds.value =
+            generated.pendingOperations?.map((operation) => operation.id) ?? [];
+
+          const pipeline = await db.transaction(async (tx) => {
+            const transactionalPipelinesService = createPipelinesService(
+              tx as unknown as DbConnection,
+            );
+            const transactionalSessionsDao = createPipelineAgentSessionsDao(tx);
+            assertActivityActive(sessionId, activity);
+            if (generated.pendingOperations && generated.pendingOperations.length > 0) {
+              await transactionalPipelinesService.createPendingOperations(
+                generated.pendingOperations,
+              );
+              assertActivityActive(sessionId, activity);
+            }
+
+            const createdPipeline = await transactionalPipelinesService.create({
+              id: crypto.randomUUID(),
+              name: pipelineName,
+              description: pipelineDescription,
+              tags: ["agent-generated"],
+              timeoutMs: null,
+              nodes: generated.nodes,
+              edges: generated.edges,
+            });
+            assertActivityActive(sessionId, activity);
+            await transactionalSessionsDao.update(sessionId, {
+              status: "completed",
+              createdPipelineId: createdPipeline.id,
+            });
+            assertActivityActive(sessionId, activity);
+
+            return createdPipeline;
+          });
+          persistedPipeline.id = pipeline.id;
+          assertActivityActive(sessionId, activity);
+
+          return pipeline;
+        })(),
+        (error) => (error instanceof Error ? error : new Error(String(error))),
+      );
+      if (generationResult.isErr()) {
+        if (isCancellationError(generationResult.error) && persistedPipeline.id) {
+          await ResultAsync.fromPromise(
+            Promise.all([
+              pipelinesService.delete(persistedPipeline.id),
+              ...pendingOperationIds.value.map((operationId) => operationsDao.delete(operationId)),
+            ]),
+            (error) => (error instanceof Error ? error : new Error(String(error))),
+          );
+        }
+        await proposalsDao.update(proposalRecord.id, {
+          status: "proposal_ready",
+          approvedAt: null,
+        });
+        await sessionsDao.update(sessionId, {
+          status: "proposal_ready",
+          latestProposalId: proposalRecord.id,
+          approvedProposalId: null,
+          createdPipelineId: null,
+        });
+        input?.signal?.removeEventListener("abort", handleExternalAbort);
+        finishActivity(sessionId, activity);
         throw generationResult.error;
       }
 
       const pipeline = generationResult.value;
-
-      await sessionsDao.update(sessionId, {
-        status: "completed",
-        createdPipelineId: pipeline.id,
-      });
+      input?.signal?.removeEventListener("abort", handleExternalAbort);
+      finishActivity(sessionId, activity);
 
       return { pipeline };
     },

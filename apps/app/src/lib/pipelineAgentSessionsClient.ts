@@ -26,6 +26,10 @@ const pipelineAgentApiBaseUrl = resolveApiBaseUrl(
 );
 const pipelineAgentSessionsBaseUrl = `${pipelineAgentApiBaseUrl}/pipeline-agent-sessions`;
 
+interface PipelineAgentRequestOptions {
+  signal?: AbortSignal;
+}
+
 const PipelineAgentOperationSchema = OperationSchema.extend({
   sourceSkillId: z.string().nullish(),
 });
@@ -214,16 +218,20 @@ const parseSseMessage = (message: string): PipelineAgentPlanEvent | null => {
 };
 
 export const pipelineAgentSessionsClient = {
-  async createSession(input: {
-    entrypoint: PipelineAgentEntrypoint;
-    mode: PipelineAgentMode;
-    pipelineId?: string;
-    snapshot?: unknown;
-  }): Promise<PipelineAgentSessionClientRecord> {
+  async createSession(
+    input: {
+      entrypoint: PipelineAgentEntrypoint;
+      mode: PipelineAgentMode;
+      pipelineId?: string;
+      snapshot?: unknown;
+    },
+    options?: PipelineAgentRequestOptions,
+  ): Promise<PipelineAgentSessionClientRecord> {
     const response = await fetch(pipelineAgentSessionsBaseUrl, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify(input),
+      signal: options?.signal,
     });
 
     return readResponseJson(response, PipelineAgentSessionClientRecordSchema);
@@ -232,11 +240,13 @@ export const pipelineAgentSessionsClient = {
   async appendMessage(
     sessionId: string,
     input: { role: PipelineAgentMessageRole; kind: PipelineAgentMessageKind; content: string },
+    options?: PipelineAgentRequestOptions,
   ): Promise<PipelineAgentMessageClientRecord> {
     const response = await fetch(`${pipelineAgentSessionsBaseUrl}/${sessionId}/messages`, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify(input),
+      signal: options?.signal,
     });
 
     return readResponseJson(response, PipelineAgentMessageClientRecordSchema);
@@ -245,7 +255,7 @@ export const pipelineAgentSessionsClient = {
   async uploadAttachment(
     sessionId: string,
     file: File,
-    input?: { runtimeId?: string | null },
+    input?: { runtimeId?: string | null; signal?: AbortSignal },
   ): Promise<PipelineAgentAttachmentUploadResult> {
     const formData = new FormData();
     formData.append("file", file);
@@ -256,23 +266,33 @@ export const pipelineAgentSessionsClient = {
     const response = await fetch(`${pipelineAgentSessionsBaseUrl}/${sessionId}/attachments`, {
       method: "POST",
       body: formData,
+      signal: input?.signal,
     });
 
     return readResponseJson(response, PipelineAgentAttachmentUploadResultSchema);
   },
 
-  async removeAttachment(sessionId: string, attachmentId: string): Promise<void> {
+  async removeAttachment(
+    sessionId: string,
+    attachmentId: string,
+    options?: PipelineAgentRequestOptions,
+  ): Promise<void> {
     const response = await fetch(
       `${pipelineAgentSessionsBaseUrl}/${sessionId}/attachments/${attachmentId}`,
-      { method: "DELETE" },
+      { method: "DELETE", signal: options?.signal },
     );
     if (!response.ok) {
       throw await readResponseError(response);
     }
   },
 
-  async getSessionById(sessionId: string): Promise<PipelineAgentSessionClientDetail> {
-    const response = await fetch(`${pipelineAgentSessionsBaseUrl}/${sessionId}`);
+  async getSessionById(
+    sessionId: string,
+    options?: PipelineAgentRequestOptions,
+  ): Promise<PipelineAgentSessionClientDetail> {
+    const response = await fetch(`${pipelineAgentSessionsBaseUrl}/${sessionId}`, {
+      signal: options?.signal,
+    });
 
     return readResponseJson(response, PipelineAgentSessionClientDetailSchema);
   },
@@ -280,9 +300,9 @@ export const pipelineAgentSessionsClient = {
   async getLatestReadyProposal(
     sessionId: string,
     mode: PipelineAgentMode,
-    input?: { excludeProposalId?: string | null },
+    input?: { excludeProposalId?: string | null; signal?: AbortSignal },
   ): Promise<{ proposal: PipelineAgentProposal; proposalId: string } | null> {
-    const session = await this.getSessionById(sessionId);
+    const session = await this.getSessionById(sessionId, { signal: input?.signal });
     const proposals = session.proposals ?? [];
     const latestProposal =
       proposals.find((proposal) => proposal.id === session.latestProposalId) ??
@@ -304,8 +324,11 @@ export const pipelineAgentSessionsClient = {
     };
   },
 
-  async getLatestAssistantQuestion(sessionId: string): Promise<{ question: string } | null> {
-    const session = await this.getSessionById(sessionId);
+  async getLatestAssistantQuestion(
+    sessionId: string,
+    options?: PipelineAgentRequestOptions,
+  ): Promise<{ question: string } | null> {
+    const session = await this.getSessionById(sessionId, options);
     const latestQuestion =
       [...(session.messages ?? [])]
         .reverse()
@@ -314,31 +337,45 @@ export const pipelineAgentSessionsClient = {
     return latestQuestion ? { question: latestQuestion.content } : null;
   },
 
-  async approveProposal(sessionId: string, proposalId: string) {
+  async approveProposal(
+    sessionId: string,
+    proposalId: string,
+    options?: PipelineAgentRequestOptions,
+  ) {
     const response = await fetch(`${pipelineAgentSessionsBaseUrl}/${sessionId}/approve`, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ proposalId }),
+      signal: options?.signal,
     });
     if (!response.ok) {
       throw await readResponseError(response);
     }
   },
 
-  async supersedeProposal(sessionId: string, proposalId: string) {
+  async supersedeProposal(
+    sessionId: string,
+    proposalId: string,
+    options?: PipelineAgentRequestOptions,
+  ) {
     const response = await fetch(`${pipelineAgentSessionsBaseUrl}/${sessionId}/supersede`, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ proposalId }),
+      signal: options?.signal,
     });
     if (!response.ok) {
       throw await readResponseError(response);
     }
   },
 
-  async generatePipelineFromApprovedProposal(sessionId: string): Promise<{ pipelineId: string }> {
+  async generatePipelineFromApprovedProposal(
+    sessionId: string,
+    options?: PipelineAgentRequestOptions,
+  ): Promise<{ pipelineId: string }> {
     const response = await fetch(`${pipelineAgentSessionsBaseUrl}/${sessionId}/generate`, {
       method: "POST",
+      signal: options?.signal,
     });
 
     return readResponseJson(response, PipelineAgentCreatedPipelineResponseSchema);
@@ -346,9 +383,11 @@ export const pipelineAgentSessionsClient = {
 
   async getGeneratedPipelineMaterialization(
     pipelineId: string,
+    options?: PipelineAgentRequestOptions,
   ): Promise<{ operations: Operation[]; pipeline: PipelineData }> {
     const pipelineResponse = await fetch(
       `${pipelineAgentApiBaseUrl}/pipelines/${encodeURIComponent(pipelineId)}`,
+      { signal: options?.signal },
     );
     const pipeline = await readResponseJson(pipelineResponse, PipelineSchema);
     const operationIds = [
@@ -364,6 +403,7 @@ export const pipelineAgentSessionsClient = {
       operationIds.map(async (operationId) => {
         const response = await fetch(
           `${pipelineAgentApiBaseUrl}/operations/${encodeURIComponent(operationId)}`,
+          { signal: options?.signal },
         );
         const operation = await readResponseJson(response, PipelineAgentOperationSchema);
 
@@ -408,7 +448,7 @@ export const pipelineAgentSessionsClient = {
         throw new Error(`Stopped waiting for generated pipeline in session ${sessionId}`);
       }
 
-      const session = await this.getSessionById(sessionId);
+      const session = await this.getSessionById(sessionId, { signal: input?.signal });
       if (session.status === "completed" && session.createdPipelineId) {
         return { pipelineId: session.createdPipelineId };
       }
@@ -423,6 +463,7 @@ export const pipelineAgentSessionsClient = {
     sessionId: string,
     input: {
       runtimeId?: string;
+      signal?: AbortSignal;
       onEvent: (event: PipelineAgentPlanEvent) => void;
     },
   ) {
@@ -430,6 +471,7 @@ export const pipelineAgentSessionsClient = {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify(input.runtimeId ? { runtimeId: input.runtimeId } : {}),
+      signal: input.signal,
     });
     if (!response.ok) {
       throw await readResponseError(response);
@@ -470,6 +512,16 @@ export const pipelineAgentSessionsClient = {
 
       streamState.buffer += decoder.decode(chunk.value, { stream: true });
       emitBufferedMessages();
+    }
+  },
+
+  async cancelSession(sessionId: string, options?: PipelineAgentRequestOptions): Promise<void> {
+    const response = await fetch(`${pipelineAgentSessionsBaseUrl}/${sessionId}/cancel`, {
+      method: "POST",
+      signal: options?.signal,
+    });
+    if (!response.ok) {
+      throw await readResponseError(response);
     }
   },
 };

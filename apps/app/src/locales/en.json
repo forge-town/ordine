@@ -673,6 +673,8 @@
     "attachmentFailed": "Couldn't read",
     "removeAttachment": "Remove {{name}}",
     "approve": "Approve plan",
+    "cancel": "Cancel",
+    "restoring": "Restoring your conversation...",
     "revise": "Revise",
     "reject": "Reject",
     "rejected": "Proposal rejected. You can keep refining your goal.",

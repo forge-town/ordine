@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({
   approveProposal: vi.fn(),
   appendMessage: vi.fn(),
+  cancelSession: vi.fn(),
   createSession: vi.fn(),
   generatePipelineFromApprovedProposal: vi.fn(),
   getSessionById: vi.fn(),
@@ -17,6 +18,7 @@ vi.mock("../../src/services.js", () => ({
   pipelineAgentSessionsService: {
     approveProposal: mocks.approveProposal,
     appendMessage: mocks.appendMessage,
+    cancelSession: mocks.cancelSession,
     createSession: mocks.createSession,
     generatePipelineFromApprovedProposal: mocks.generatePipelineFromApprovedProposal,
     getSessionById: mocks.getSessionById,
@@ -333,6 +335,17 @@ describe("pipelineAgentSessionsRoutes", () => {
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({ pipelineId: "pipeline-1" });
     expect(mocks.generatePipelineFromApprovedProposal).toHaveBeenCalledWith("session-1");
+  });
+
+  it("cancels the active session task", async () => {
+    mocks.cancelSession.mockResolvedValue({ status: "awaiting_user" });
+
+    const response = await makeApp().request("/pipeline-agent-sessions/session-1/cancel", {
+      method: "POST",
+    });
+
+    expect(response.status).toBe(204);
+    expect(mocks.cancelSession).toHaveBeenCalledWith("session-1");
   });
 
   it("returns 404 when generation targets a missing session", async () => {
