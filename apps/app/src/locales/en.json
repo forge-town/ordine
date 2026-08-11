@@ -407,6 +407,7 @@
     "duplicate": "Duplicate",
     "viewResult": "View Result",
     "openInStudio": "Open In Studio",
+    "deleteNamed": "Delete {{title}}",
     "optimizePipeline": "Optimize Pipeline",
     "optimizing": "Optimizing…",
     "agentLabel": "Agent Runtime",

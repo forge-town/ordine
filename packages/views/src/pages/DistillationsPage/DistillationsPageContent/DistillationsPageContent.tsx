@@ -88,7 +88,7 @@ export const DistillationsPageContent = () => {
                 className={cn(surfaceCardVariants({ interactive: true }), "group relative p-3.5")}
               >
                 <div className="flex items-start justify-between gap-2">
-                  <div className="flex items-center gap-2">
+                  <div className="flex min-w-0 flex-1 items-center gap-2">
                     <div
                       className={cn(
                         "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg",
@@ -120,7 +120,7 @@ export const DistillationsPageContent = () => {
                       </p>
                     </div>
                   </div>
-                  <div className="flex shrink-0 items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                  <div className="relative z-10 flex shrink-0 items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
                     <Link
                       className="rounded p-1 hover:bg-accent"
                       params={{ distillationId: distillation.id }}
@@ -129,6 +129,9 @@ export const DistillationsPageContent = () => {
                       <ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
                     </Link>
                     <Button
+                      aria-label={t("distillations.deleteNamed", {
+                        title: distillation.title,
+                      })}
                       className="size-7 hover:bg-destructive/10"
                       size="icon"
                       type="button"
