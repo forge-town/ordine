@@ -35,7 +35,7 @@ export const AgentEditDialog = ({
   const invalidate = useInvalidate();
   const form = useForm<AgentFormValues>({
     resolver: zodResolver(agentFormSchema),
-    values: {
+    defaultValues: {
       name: agent.name,
       description: agent.description ?? "",
       defaultRuntime: agent.defaultRuntime ?? "",
