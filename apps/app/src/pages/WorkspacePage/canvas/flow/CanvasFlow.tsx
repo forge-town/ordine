@@ -245,7 +245,7 @@ export const CanvasFlow = () => {
   };
 
   const handleNodeClick: NodeMouseHandler<CanvasNode> = (event, node) =>
-    selectNode(node.id, event.shiftKey || event.metaKey ? "toggle" : "replace");
+    selectNode(node.id, event.shiftKey || event.metaKey || event.ctrlKey ? "toggle" : "replace");
 
   const handlePaneClick = () => setSelectedIds([]);
 
@@ -345,6 +345,7 @@ export const CanvasFlow = () => {
         edgeTypes={edgeTypes}
         maxZoom={1.6}
         minZoom={0.35}
+        multiSelectionKeyCode={["Meta", "Control", "Shift"]}
         nodeDragThreshold={2}
         nodes={visibleGraph.nodes}
         nodesConnectable={!isPreviewing && !isDrilling}

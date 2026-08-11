@@ -31,7 +31,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Separator } from "@repo/ui/separator";
 import { Textarea } from "@repo/ui/textarea";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@repo/ui/form";
-import { useUpdate } from "@refinedev/core";
+import { useInvalidate, useUpdate } from "@refinedev/core";
 import { ResourceName } from "../../../constants";
 import {
   type Operation,
@@ -192,6 +192,7 @@ export const OperationEditForm = ({ operation, skills }: OperationEditFormProps)
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { mutateAsync: updateOpMutate } = useUpdate();
+  const invalidate = useInvalidate();
 
   const EXECUTOR_TYPE_OPTIONS = [
     {
@@ -342,6 +343,11 @@ export const OperationEditForm = ({ operation, skills }: OperationEditFormProps)
         },
         acceptedObjectTypes: values.acceptedObjectTypes,
       },
+    });
+    await invalidate({
+      resource: ResourceName.operations,
+      id: operation.id,
+      invalidates: ["detail"],
     });
     void navigate({
       to: "/pipelines/operations/$operationId",

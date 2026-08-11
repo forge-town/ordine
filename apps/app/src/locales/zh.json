@@ -435,6 +435,7 @@
     "duplicate": "基于此复制",
     "viewResult": "查看结果",
     "openInStudio": "在蒸馏室打开",
+    "deleteNamed": "删除 {{title}}",
     "optimizePipeline": "优化Pipeline",
     "optimizing": "优化中…",
     "agentLabel": "Agent Runtime",

@@ -24,7 +24,7 @@ export const CanvasEmptyState = () => {
       className="pointer-events-none absolute inset-0 z-10 grid place-items-center px-6"
       data-testid="canvas-v2-empty-state"
     >
-      <div className="pointer-events-auto flex w-[min(28rem,100%)] flex-col items-center text-center">
+      <div className="flex w-[min(28rem,100%)] flex-col items-center text-center">
         <div className="mb-4 flex size-11 items-center justify-center rounded-lg bg-foreground text-background shadow-soft">
           <Sparkles className="size-5" />
         </div>
@@ -36,7 +36,7 @@ export const CanvasEmptyState = () => {
         </p>
         {import.meta.env.DEV ? (
           <Button
-            className="mt-5"
+            className="pointer-events-auto mt-5"
             data-testid="canvas-v2-empty-seed"
             size="sm"
             type="button"

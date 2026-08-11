@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { ResultAsync } from "neverthrow";
 import { useDelete, useOne } from "@refinedev/core";
 import { useNavigate, useParams } from "@tanstack/react-router";
@@ -25,6 +26,7 @@ import type { Agent } from "@repo/schemas";
 import { ResourceName } from "../../../constants";
 import { PageHeader } from "../../../components/PageHeader";
 import { useAgentDetailPageStore } from "../_store";
+import { AgentEditDialog } from "../AgentEditDialog";
 import { PropRow } from "./PropRow";
 
 const s = "agents";
@@ -34,6 +36,7 @@ export const AgentDetailPageContent = () => {
   const { agentId } = useParams({ strict: false }) as { agentId: string };
   const navigate = useNavigate();
   const { mutateAsync: deleteAgent } = useDelete();
+  const [showEditDialog, setShowEditDialog] = useState(false);
   const { result, query: agentQuery } = useOne<Agent>({
     resource: ResourceName.agents,
     id: agentId,
@@ -100,7 +103,7 @@ export const AgentDetailPageContent = () => {
       <PageHeader
         actions={
           <div className="flex items-center gap-2">
-            <Button size="sm" variant="outline">
+            <Button size="sm" variant="outline" onClick={() => setShowEditDialog(true)}>
               <Pencil className="mr-1.5 h-3.5 w-3.5" />
               {t(`${s}.editTitle`)}
             </Button>
@@ -269,6 +272,16 @@ export const AgentDetailPageContent = () => {
           </div>
         </div>
       </div>
+
+      <AgentEditDialog
+        agent={agent}
+        open={showEditDialog}
+        onOpenChange={setShowEditDialog}
+        onUpdated={async () => {
+          await agentQuery.refetch();
+          setShowEditDialog(false);
+        }}
+      />
     </div>
   );
 };

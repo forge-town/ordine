@@ -2,7 +2,10 @@ import type { Operation, PipelineData } from "@repo/schemas";
 import { dataProvider, ResourceName } from "@/integrations/refine/dataProvider";
 import { pipelineAgentSessionsClient } from "./pipelineAgentSessionsClient";
 
-export const materializeGeneratedPipeline = async (pipelineId: string) => {
+export const materializeGeneratedPipeline = async (
+  pipelineId: string,
+  projectId?: string | null,
+) => {
   const { operations, pipeline } =
     await pipelineAgentSessionsClient.getGeneratedPipelineMaterialization(pipelineId);
 
@@ -26,7 +29,7 @@ export const materializeGeneratedPipeline = async (pipelineId: string) => {
   const { createdAt: _createdAt, updatedAt: _updatedAt, ...pipelineInput } = pipeline;
   const result = await dataProvider.create<PipelineData>({
     resource: ResourceName.pipelines,
-    variables: pipelineInput,
+    variables: projectId === undefined ? pipelineInput : { ...pipelineInput, projectId },
   });
 
   return result.data.id;

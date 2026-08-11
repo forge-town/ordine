@@ -12,6 +12,7 @@ import {
 import { CanvasFlow } from "./CanvasFlow";
 
 type ReactFlowProps = {
+  multiSelectionKeyCode?: string | string[];
   nodesConnectable?: boolean;
   panOnDrag?: boolean | number[];
   panOnScroll?: boolean;
@@ -19,7 +20,10 @@ type ReactFlowProps = {
   zoomOnScroll?: boolean;
   onConnect?: (connection: Connection) => void;
   onEdgesChange?: (changes: unknown[]) => void;
-  onNodeClick?: (event: Pick<React.MouseEvent, "metaKey" | "shiftKey">, node: CanvasNode) => void;
+  onNodeClick?: (
+    event: Pick<React.MouseEvent, "ctrlKey" | "metaKey" | "shiftKey">,
+    node: CanvasNode,
+  ) => void;
   onNodeDoubleClick?: (event: unknown, node: CanvasNode) => void;
   onNodesChange?: (changes: unknown[]) => void;
   onPaneClick?: () => void;
@@ -205,8 +209,39 @@ describe("CanvasFlow", () => {
     render(<CanvasFlow />, { wrapper: makeWrapper(store) });
 
     act(() => {
-      latestReactFlowPropsRef.current?.onNodeClick?.({ metaKey: false, shiftKey: false }, nodeA);
-      latestReactFlowPropsRef.current?.onNodeClick?.({ metaKey: false, shiftKey: true }, nodeB);
+      latestReactFlowPropsRef.current?.onNodeClick?.(
+        { ctrlKey: false, metaKey: false, shiftKey: false },
+        nodeA,
+      );
+      latestReactFlowPropsRef.current?.onNodeClick?.(
+        { ctrlKey: false, metaKey: false, shiftKey: true },
+        nodeB,
+      );
+    });
+
+    expect(store.getState().selectedIds).toEqual(["node-a", "node-b"]);
+    expect(latestReactFlowPropsRef.current?.multiSelectionKeyCode).toEqual([
+      "Meta",
+      "Control",
+      "Shift",
+    ]);
+  });
+
+  it("supports Control multi-selection on non-Mac platforms", () => {
+    const nodeA = makeNode("node-a");
+    const nodeB = makeNode("node-b");
+    const store = createCanvasStore({ nodes: [nodeA, nodeB] });
+    render(<CanvasFlow />, { wrapper: makeWrapper(store) });
+
+    act(() => {
+      latestReactFlowPropsRef.current?.onNodeClick?.(
+        { ctrlKey: false, metaKey: false, shiftKey: false },
+        nodeA,
+      );
+      latestReactFlowPropsRef.current?.onNodeClick?.(
+        { ctrlKey: true, metaKey: false, shiftKey: false },
+        nodeB,
+      );
     });
 
     expect(store.getState().selectedIds).toEqual(["node-a", "node-b"]);
