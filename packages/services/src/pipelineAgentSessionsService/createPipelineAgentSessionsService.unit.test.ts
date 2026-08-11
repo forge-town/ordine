@@ -55,12 +55,23 @@ const mockPipelinesService = {
   analyzeIntent: vi.fn(),
   create: vi.fn(),
   createPendingOperations: vi.fn(),
+  delete: vi.fn(),
   generateStructure: vi.fn(),
   proposeActions: vi.fn(),
 };
 
 const mockRunAgent = vi.fn();
 const mockExtractJsonFromText = vi.fn((raw: string) => raw);
+const createDeferred = <T>() => {
+  const state: { resolve: (value: T | PromiseLike<T>) => void } = {
+    resolve: () => undefined,
+  };
+  const promise = new Promise<T>((resolvePromise) => {
+    state.resolve = resolvePromise;
+  });
+
+  return { promise, resolve: (value: T) => state.resolve(value) };
+};
 
 vi.mock("@repo/models", () => ({
   createAgentRuntimesDao: () => mockAgentRuntimesDao,
@@ -87,7 +98,13 @@ vi.mock("../pipelinesService/createPipelinesService", () => ({
   createPipelinesService: () => mockPipelinesService,
 }));
 
-import { createPipelineAgentSessionsService } from "./createPipelineAgentSessionsService";
+import { createPipelineAgentSessionsService as createPipelineAgentSessionsServiceFactory } from "./createPipelineAgentSessionsService";
+
+const mockDb = {
+  transaction: vi.fn(async (callback: (transaction: unknown) => Promise<unknown>) => callback({})),
+};
+const createPipelineAgentSessionsService = (_db: never) =>
+  createPipelineAgentSessionsServiceFactory(mockDb as never);
 
 describe("createPipelineAgentSessionsService", () => {
   beforeEach(() => {
@@ -195,6 +212,7 @@ describe("createPipelineAgentSessionsService", () => {
       edges: [],
     });
     mockPipelinesService.createPendingOperations.mockResolvedValue(undefined);
+    mockPipelinesService.delete.mockResolvedValue(undefined);
     mockPipelinesService.create.mockImplementation(async (data) => ({
       id: data.id ?? "pipeline-1",
       ...data,
@@ -661,6 +679,39 @@ describe("createPipelineAgentSessionsService", () => {
     );
   });
 
+  it("cancels planning without persisting a late proposal", async () => {
+    const deferredAgent = createDeferred<string>();
+    mockRunAgent.mockReturnValueOnce(deferredAgent.promise);
+    const service = createPipelineAgentSessionsService({} as never);
+
+    const planning = service.planSession("session-1");
+    await vi.waitFor(() => expect(mockRunAgent).toHaveBeenCalledOnce());
+    await service.cancelSession("session-1");
+    deferredAgent.resolve(
+      JSON.stringify({
+        type: "proposal",
+        proposal: {
+          mode: "generate",
+          purpose: "A late proposal",
+          inputs: ["folder"],
+          outputs: ["report"],
+          majorOperations: [],
+          executionFlow: [],
+          assumptions: [],
+          openQuestions: [],
+          readiness: "ready_for_generation",
+        },
+      }),
+    );
+
+    await expect(planning).rejects.toThrow("session cancelled");
+    expect(mockProposalsDao.create).not.toHaveBeenCalled();
+    expect(mockSessionsDao.update).toHaveBeenLastCalledWith(
+      "session-1",
+      expect.objectContaining({ status: "awaiting_user" }),
+    );
+  });
+
   it("bridges edit planning into executable canvas actions", async () => {
     mockSessionsDao.findById.mockResolvedValueOnce({
       id: "session-edit",
@@ -884,6 +935,41 @@ describe("createPipelineAgentSessionsService", () => {
     expect(mockSessionsDao.update).toHaveBeenCalledWith(
       "session-1",
       expect.objectContaining({ status: "proposal_ready" }),
+    );
+  });
+
+  it("cancels generation before any pipeline can be persisted", async () => {
+    mockSessionsDao.findById.mockResolvedValue({
+      id: "session-1",
+      entrypoint: "new-pipeline-dialog",
+      mode: "generate",
+      status: "approved",
+      pipelineId: null,
+      snapshot: null,
+      latestProposalId: "proposal-1",
+      approvedProposalId: "proposal-1",
+      createdPipelineId: null,
+      createdAt: new Date("2026-06-03T12:00:00.000Z"),
+      updatedAt: new Date("2026-06-03T12:00:00.000Z"),
+    });
+    const deferredStructure = createDeferred<{ nodes: []; edges: [] }>();
+    mockPipelinesService.generateStructure.mockReturnValueOnce(deferredStructure.promise);
+    const service = createPipelineAgentSessionsService({} as never);
+
+    const generation = service.generatePipelineFromApprovedProposal("session-1");
+    await vi.waitFor(() => expect(mockPipelinesService.generateStructure).toHaveBeenCalledOnce());
+    await service.cancelSession("session-1");
+    deferredStructure.resolve({ nodes: [], edges: [] });
+
+    await expect(generation).rejects.toThrow("session cancelled");
+    expect(mockPipelinesService.create).not.toHaveBeenCalled();
+    expect(mockSessionsDao.update).toHaveBeenLastCalledWith(
+      "session-1",
+      expect.objectContaining({
+        status: "proposal_ready",
+        approvedProposalId: null,
+        createdPipelineId: null,
+      }),
     );
   });
 

@@ -274,6 +274,18 @@ pipelineAgentSessionsRoutes.post("/:id/supersede", async (c) => {
   return c.body(null, 204);
 });
 
+pipelineAgentSessionsRoutes.post("/:id/cancel", async (c) => {
+  const cancelResult = await ResultAsync.fromPromise(
+    pipelineAgentSessionsService.cancelSession(c.req.param("id")),
+    (error) => (error instanceof Error ? error : new Error(String(error))),
+  );
+  if (cancelResult.isErr()) {
+    return c.json({ error: cancelResult.error.message }, serviceErrorStatus(cancelResult.error));
+  }
+
+  return c.body(null, 204);
+});
+
 pipelineAgentSessionsRoutes.post("/:id/generate", async (c) => {
   const result = await ResultAsync.fromPromise(
     pipelineAgentSessionsService.generatePipelineFromApprovedProposal(c.req.param("id")),

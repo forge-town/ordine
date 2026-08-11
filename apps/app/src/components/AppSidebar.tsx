@@ -15,6 +15,7 @@ import { Button } from "@repo/ui/button";
 import { SidebarMenu, SidebarMenuItem } from "@repo/ui/sidebar";
 import { useSession, signOut } from "@/integrations/better-auth-client";
 import { useSidebarStore } from "@/store/sidebarStore";
+import { HOME_PIPELINE_AGENT_SESSION_KEY } from "@/components/PipelineCreationWorkspace/usePipelineCreationSessionRecovery";
 
 const WebUserFooter = () => {
   const { t } = useTranslation();
@@ -82,6 +83,7 @@ export const AppSidebar = () => {
     (state) => state.handleNewPipelineWorkspaceReset,
   );
   const handleNewPipeline = () => {
+    globalThis.window?.localStorage.removeItem(HOME_PIPELINE_AGENT_SESSION_KEY);
     handleNewPipelineWorkspaceReset();
     void navigate({ to: "/" });
   };

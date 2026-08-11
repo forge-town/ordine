@@ -667,6 +667,8 @@
     "attachmentFailed": "读取失败",
     "removeAttachment": "移除 {{name}}",
     "approve": "同意方案",
+    "cancel": "取消",
+    "restoring": "正在恢复对话...",
     "revise": "继续修改",
     "reject": "拒绝",
     "rejected": "已拒绝当前方案，你可以继续补充和修改需求。",
