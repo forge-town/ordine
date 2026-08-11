@@ -11,14 +11,14 @@ description: Use when 需要列出 Ordine 中所有 Pipeline，查看可用的�
 # 设置 API 地址
 export ORDINE_API_URL=http://localhost:9433
 
-# 列出所有 Pipeline
-ordine pipelines
+# 列出所有 Pipeline（给 Agent 使用稳定 JSON 输出）
+ordine --json pipelines list
 
-# 或使用别名
-ordine ls
+# 人类可读输出
+ordine pipelines list
 ```
 
-输出格式：
+人类可读输出格式：
 
 ```
   Pipelines (3):

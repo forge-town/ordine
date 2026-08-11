@@ -12,9 +12,7 @@ export ORDINE_API_URL=http://localhost:9433
 ### 列出可运行的 Pipeline
 
 ```bash
-ordine pipelines
-# 或
-ordine ls
+ordine --json pipelines list
 ```
 
 输出示例：
@@ -39,13 +37,18 @@ ordine run pipe_check_dao -i ./packages/models/src/daos
 
 # 不等待完成（fire and forget）
 ordine run pipe_check_dao --no-follow
+
+# Agent 使用机器可读输出；全局选项放在子命令之前
+ordine --json run pipe_check_dao --no-follow
+ordine --json run pipe_check_dao
 ```
 
 CLI 会自动：
+
 1. 触发 Pipeline → 获取 Job ID
 2. 每 3 秒轮询 Job 状态
 3. 实时打印 Job 日志
-4. 完成时显示 Summary 或打印错误信息
+4. 完成时显示结果或打印错误信息；`--json` 模式返回 Job 和 Trace
 
 ### 运行输出示例
 
@@ -105,7 +108,7 @@ JOB_ID="job_xxxxxxxx"
 while true; do
   STATUS=$(curl -s http://localhost:9433/api/jobs/$JOB_ID | python3 -c "import sys,json; print(json.load(sys.stdin)['status'])")
   echo "Status: $STATUS"
-  if [ "$STATUS" = "completed" ] || [ "$STATUS" = "failed" ]; then
+  if [ "$STATUS" = "paused" ] || [ "$STATUS" = "done" ] || [ "$STATUS" = "failed" ] || [ "$STATUS" = "cancelled" ] || [ "$STATUS" = "expired" ] || [ "$STATUS" = "skipped" ]; then
     break
   fi
   sleep 2
@@ -118,16 +121,24 @@ curl -s http://localhost:9433/api/jobs/$JOB_ID | python3 -m json.tool
 ## Job 状态流转
 
 ```
-pending → running → completed
-                  → failed
+queued → running ↔ paused
+           ├→ done
+           ├→ failed
+           ├→ cancelled
+           ├→ expired
+           └→ skipped
 ```
 
-| 状态 | 含义 |
-|---|---|
-| `pending` | 已创建，等待执行 |
-| `running` | 正在执行 |
-| `completed` | 执行成功 |
-| `failed` | 执行失败 |
+| 状态        | 含义               |
+| ----------- | ------------------ |
+| `queued`    | 已创建，等待执行   |
+| `running`   | 正在执行           |
+| `paused`    | 已暂停，可稍后恢复 |
+| `done`      | 执行成功           |
+| `failed`    | 执行失败           |
+| `cancelled` | 已取消             |
+| `expired`   | 已过期             |
+| `skipped`   | 已跳过             |
 
 ## 查看 Job 列表
 
@@ -151,11 +162,13 @@ curl -X DELETE http://localhost:9433/api/jobs/<job-id>
 在运行 Pipeline 之前，确认：
 
 1. **Pipeline 存在且配置正确**
+
    ```bash
    curl -s http://localhost:9433/api/pipelines/<pipeline-id> | python3 -m json.tool
    ```
 
 2. **Pipeline 中引用的 Operation 都存在**
+
    ```bash
    # 检查 pipeline 的 nodes，找到 type=operation 的节点
    # 确认其 data.operationId 对应的 Operation 存在

@@ -1,9 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { readFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 
 vi.mock("../src/api", () => ({
   api: {
     get: vi.fn(),
+    getBytes: vi.fn(),
     post: vi.fn(),
     put: vi.fn(),
     patch: vi.fn(),
@@ -40,12 +41,14 @@ import {
   deleteOperation,
   listJobs,
   getJob,
+  listJobTraces,
   deleteJob,
   listBestPractices,
   getBestPractice,
   createBestPractice,
   updateBestPractice,
   deleteBestPractice,
+  exportBestPractices,
   importBestPractices,
   browseFilesystem,
 } from "../src/commands";
@@ -55,7 +58,7 @@ const mockApi = vi.mocked(api);
 const mockReadFileSync = vi.mocked(readFileSync);
 
 beforeEach(() => {
-  vi.clearAllMocks();
+  vi.resetAllMocks();
   vi.spyOn(console, "log").mockImplementation(() => {});
   vi.spyOn(console, "error").mockImplementation(() => {});
 });
@@ -100,6 +103,16 @@ describe("listPipelines", () => {
     mockApi.get.mockResolvedValueOnce({ ok: false, status: 500, message: "Server error" } as never);
 
     await expect(listPipelines()).rejects.toThrow("Failed to list pipelines");
+  });
+
+  it("prints stable JSON for agent callers", async () => {
+    const pipelines = [{ id: "pipe-1", name: "Lint Check", description: "", tags: [] }];
+    mockApi.get.mockResolvedValueOnce({ ok: true, data: pipelines } as never);
+
+    await listPipelines({ json: true });
+
+    expect(console.log).toHaveBeenCalledOnce();
+    expect(console.log).toHaveBeenCalledWith(JSON.stringify(pipelines));
   });
 });
 
@@ -182,6 +195,15 @@ describe("runPipeline", () => {
     expect(mockApi.get).not.toHaveBeenCalled();
   });
 
+  it("prints only the job id as JSON for a non-following run", async () => {
+    mockApi.post.mockResolvedValueOnce({ ok: true, data: { jobId: "job-456" } } as never);
+
+    await runPipeline("pipe-1", { follow: false, json: true });
+
+    expect(console.log).toHaveBeenCalledOnce();
+    expect(console.log).toHaveBeenCalledWith(JSON.stringify({ jobId: "job-456" }));
+  });
+
   it("throws on API error during run", async () => {
     mockApi.post.mockResolvedValueOnce({ ok: false, status: 404, message: "Not found" } as never);
 
@@ -201,6 +223,56 @@ describe("runPipeline", () => {
       } as never);
 
     await expect(runPipeline("pipe-1", {})).rejects.toThrow("Pipeline failed");
+  });
+
+  it("stops polling and fails when a job expires", async () => {
+    mockApi.post.mockResolvedValueOnce({ ok: true, data: { jobId: "job-expired" } } as never);
+    mockApi.get
+      .mockResolvedValueOnce({
+        ok: true,
+        data: { id: "job-expired", status: "expired", error: "Timed out" },
+      } as never)
+      .mockResolvedValueOnce({ ok: true, data: [] } as never);
+
+    await expect(runPipeline("pipe-1", { json: true })).rejects.toThrow("Pipeline expired");
+    expect(console.log).toHaveBeenCalledWith(
+      JSON.stringify({
+        job: { id: "job-expired", status: "expired", error: "Timed out" },
+        traces: [],
+      }),
+    );
+  });
+
+  it.each(["paused", "cancelled", "skipped"] as const)(
+    "stops following and fails when a job is %s",
+    async (status) => {
+      mockApi.post.mockResolvedValueOnce({ ok: true, data: { jobId: `job-${status}` } } as never);
+      mockApi.get
+        .mockResolvedValueOnce({
+          ok: true,
+          data: { id: `job-${status}`, status, error: null },
+        } as never)
+        .mockResolvedValueOnce({ ok: true, data: [] } as never);
+
+      await expect(runPipeline("pipe-1", { json: true })).rejects.toThrow(
+        `Pipeline ${status}`,
+      );
+      expect(console.log).toHaveBeenCalledWith(
+        JSON.stringify({ job: { id: `job-${status}`, status, error: null }, traces: [] }),
+      );
+    },
+  );
+});
+
+describe("exportBestPractices", () => {
+  it("downloads through the authenticated API client", async () => {
+    const bytes = new Uint8Array([1, 2, 3]);
+    mockApi.getBytes.mockResolvedValueOnce({ ok: true, data: bytes } as never);
+
+    await exportBestPractices("/tmp/export.bestpractice");
+
+    expect(mockApi.getBytes).toHaveBeenCalledWith("/api/best-practices/export");
+    expect(vi.mocked(writeFileSync)).toHaveBeenCalledWith("/tmp/export.bestpractice", bytes);
   });
 });
 
@@ -425,6 +497,16 @@ describe("listJobs", () => {
 
     expect(console.log).toHaveBeenCalledWith("No jobs found.");
   });
+
+  it("prints stable JSON for agent callers", async () => {
+    const jobs = [{ id: "j-1", status: "done", title: "Run" }];
+    mockApi.get.mockResolvedValueOnce({ ok: true, data: jobs } as never);
+
+    await listJobs({ json: true });
+
+    expect(console.log).toHaveBeenCalledOnce();
+    expect(console.log).toHaveBeenCalledWith(JSON.stringify(jobs));
+  });
 });
 
 describe("getJob", () => {
@@ -434,6 +516,18 @@ describe("getJob", () => {
     await getJob("j-1");
 
     expect(mockApi.get).toHaveBeenCalledWith("/api/jobs/j-1");
+  });
+});
+
+describe("listJobTraces", () => {
+  it("prints traces as JSON", async () => {
+    const traces = [{ message: "step 1" }];
+    mockApi.get.mockResolvedValueOnce({ ok: true, data: traces } as never);
+
+    await listJobTraces("j-1");
+
+    expect(mockApi.get).toHaveBeenCalledWith("/api/jobs/j-1/traces");
+    expect(console.log).toHaveBeenCalledWith(JSON.stringify(traces));
   });
 });
 

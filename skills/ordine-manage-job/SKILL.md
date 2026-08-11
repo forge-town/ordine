@@ -14,6 +14,13 @@ Job 是 Pipeline 的一次运行记录，包含状态、日志和结果。当你
 ### 运行并自动跟踪 Job
 
 ```bash
+# Agent 读取所有 Job
+ordine --json jobs list
+
+# Agent 读取单个 Job 与 Trace
+ordine --json jobs get <JOB_ID>
+ordine --json jobs traces <JOB_ID>
+
 # 运行 Pipeline 会自动 follow Job
 ordine run pipe_check_dao -i ./src
 
@@ -59,23 +66,27 @@ curl -X DELETE http://localhost:9433/api/jobs/job_manual_001
 
 ## 数据结构
 
-| 字段 | 类型 | 说明 |
-|---|---|---|
-| `id` | `string` | 唯一标识 |
-| `pipelineId` | `string \| null` | 关联的 Pipeline ID |
-| `projectId` | `string \| null` | 关联的项目 ID |
-| `status` | `JobStatus` | 状态：`pending`, `running`, `completed`, `failed` |
-| `result` | `JSON \| null` | 运行结果（summary, output 等） |
-| `error` | `string \| null` | 错误信息 |
-| `startedAt` | `timestamp \| null` | 开始时间 |
-| `completedAt` | `timestamp \| null` | 完成时间 |
-| `createdAt` | `timestamp` | 创建时间 |
+| 字段          | 类型                | 说明                                                                                     |
+| ------------- | ------------------- | ---------------------------------------------------------------------------------------- |
+| `id`          | `string`            | 唯一标识                                                                                 |
+| `pipelineId`  | `string \| null`    | 关联的 Pipeline ID                                                                       |
+| `projectId`   | `string \| null`    | 关联的项目 ID                                                                            |
+| `status`      | `JobStatus`         | 状态：`queued`, `running`, `paused`, `done`, `failed`, `cancelled`, `expired`, `skipped` |
+| `result`      | `JSON \| null`      | 运行结果（summary, output 等）                                                           |
+| `error`       | `string \| null`    | 错误信息                                                                                 |
+| `startedAt`   | `timestamp \| null` | 开始时间                                                                                 |
+| `completedAt` | `timestamp \| null` | 完成时间                                                                                 |
+| `createdAt`   | `timestamp`         | 创建时间                                                                                 |
 
 ## Job 状态流转
 
 ```
-pending → running → completed
-                  → failed
+queued → running ↔ paused
+           ├→ done
+           ├→ failed
+           ├→ cancelled
+           ├→ expired
+           └→ skipped
 ```
 
 ## 常见任务
@@ -94,8 +105,8 @@ for j in jobs:
 ### 清理历史 Job
 
 ```bash
-# 列出所有 completed 的 Job，逐个删除
-curl -s "http://localhost:9433/api/jobs?status=completed" | python3 -c "
+# 列出所有 done 的 Job，逐个删除
+curl -s "http://localhost:9433/api/jobs?status=done" | python3 -c "
 import sys, json
 for j in json.load(sys.stdin):
     print(j['id'])
