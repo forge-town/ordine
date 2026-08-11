@@ -67,7 +67,8 @@ describe("AppSidebar", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "能力" }));
 
-    expect(screen.queryByRole("link", { name: "设置" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "连接器" })).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "设置" })).toHaveAttribute("href", "/settings");
     expect(store.getState().capabilitiesOpen).toBe(false);
     expect(localStorage.getItem("ordine.sidebar.capabilitiesOpen")).toBe("false");
   });
@@ -82,14 +83,14 @@ describe("AppSidebar", () => {
       </SidebarStoreContext.Provider>,
     );
 
-    const brand = screen.getByText("ordine").parentElement;
+    const brand = screen.getByText("Ordine Studio").parentElement?.parentElement;
     const trigger = screen.getByRole("button", { name: "Toggle Sidebar" });
     fireEvent.click(trigger);
 
     expect(brand).toHaveAttribute("aria-hidden", "true");
     expect(trigger).toHaveClass(
-      "right-0.5",
-      "top-0.5",
+      "right-0",
+      "top-1.5",
       "active:translate-y-0!",
       "group-data-[state=collapsed]/sidebar:right-[calc(50%_-_0.875rem)]",
     );

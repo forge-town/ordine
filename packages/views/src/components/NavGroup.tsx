@@ -39,7 +39,7 @@ export const NavItems = ({
       return (
         <SidebarMenuItem key={item.to}>
           <SidebarMenuButton
-            className="h-8"
+            className="h-8 rounded-lg text-[13px] data-[active=true]:font-medium"
             isActive={isActive}
             render={<Link to={item.to as "/"} />}
             tooltip={labelText}
@@ -80,7 +80,7 @@ export const NavGroup = ({
     {separated && <SidebarSeparator className="my-1 bg-sidebar-border/60" />}
     <SidebarGroup aria-label={ariaLabel} className="px-2! py-0!">
       {label && (
-        <SidebarGroupLabel className="h-7 px-2 text-[11px] font-medium uppercase text-muted-foreground group-data-[collapsible=icon]:sr-only">
+        <SidebarGroupLabel className="h-8 px-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground group-data-[collapsible=icon]:sr-only">
           {label}
         </SidebarGroupLabel>
       )}

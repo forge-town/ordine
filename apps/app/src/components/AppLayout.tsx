@@ -24,7 +24,12 @@ export const AppLayout = ({ children }: { children: React.ReactNode }) => {
               <SharedSidebarStoreProvider>
                 <ThemeApplier />
                 <ToastNotificationBridge toastStore={toastStore} />
-                <SidebarProvider widthStorageKey="ordine.sidebar.width">
+                <SidebarProvider
+                  defaultWidth={236}
+                  maxWidth={320}
+                  minWidth={216}
+                  widthStorageKey="ordine.sidebar.width"
+                >
                   <AppSidebar />
                   <SidebarInset>{children}</SidebarInset>
                   <ToastContainer />

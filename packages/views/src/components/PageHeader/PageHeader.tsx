@@ -53,11 +53,30 @@ export const PageHeader = ({
     );
   }
 
+  if (!eyebrow && !sub) {
+    return (
+      <div
+        className={cn(
+          "flex h-16 shrink-0 items-center gap-3 border-b border-border bg-background px-4 sm:px-7",
+          className,
+        )}
+      >
+        {leading}
+        <div className={cn("flex min-w-0 items-center gap-2", actions || badge ? "flex-1" : null)}>
+          <h1 className="truncate text-[21px] font-semibold tracking-[-0.02em] text-foreground">
+            {title}
+          </h1>
+        </div>
+        {badge}
+        {actions ? <div className="ml-auto flex items-center gap-2">{actions}</div> : null}
+      </div>
+    );
+  }
+
   return (
     <div
       className={cn(
-        "flex shrink-0 flex-col items-stretch gap-4 border-b border-border bg-background px-4 pb-4 pt-4 sm:flex-row sm:items-start sm:justify-between sm:px-7 sm:pt-6",
-        !backTo && "min-h-[6.75rem]",
+        "flex shrink-0 flex-col items-stretch gap-4 border-b border-border bg-background px-4 pb-4 pt-4 sm:min-h-[6.75rem] sm:flex-row sm:items-start sm:justify-between sm:px-7 sm:pt-6",
         className,
       )}
     >
@@ -70,7 +89,7 @@ export const PageHeader = ({
             </div>
           ) : null}
           <div className="flex min-w-0 items-center gap-2">
-            <h1 className="truncate text-[21px] font-semibold leading-tight text-foreground">
+            <h1 className="truncate text-[21px] font-semibold leading-tight tracking-[-0.02em] text-foreground">
               {title}
             </h1>
           </div>
