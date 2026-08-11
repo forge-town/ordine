@@ -5,7 +5,10 @@ test.describe("Skill workflow", () => {
   // Regression: ISSUE-SKILL-001 — creating a Skill omitted its required id and returned 400.
   // Found by /qa on 2026-08-11.
   // Report: .gstack/qa-reports/qa-report-localhost-9460-2026-08-11.md
-  test("creates a custom Skill and keeps it after reload", async ({ page, pageErrors }, testInfo) => {
+  test("creates a custom Skill and keeps it after reload", async ({
+    page,
+    pageErrors,
+  }, testInfo) => {
     const runId = `${Date.now()}-${testInfo.workerIndex}-${testInfo.repeatEachIndex}`;
     const name = `skill-e2e-${runId}`;
     const label = `Skill E2E ${runId}`;

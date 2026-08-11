@@ -19,9 +19,7 @@ test.describe("Agent workflow", () => {
     await page.getByPlaceholder("Enter agent name").fill(name);
     await page.getByPlaceholder("Describe what this agent does").fill("Initial Agent");
     await page.getByRole("button", { name: "Codex OpenAI Codex CLI" }).click();
-    await page
-      .getByPlaceholder("Enter system prompt for this agent")
-      .fill("Initial system prompt");
+    await page.getByPlaceholder("Enter system prompt for this agent").fill("Initial system prompt");
     await page.getByPlaceholder("Comma-separated tags").fill("qa, initial");
     await page.getByRole("button", { name: "Create", exact: true }).click();
 

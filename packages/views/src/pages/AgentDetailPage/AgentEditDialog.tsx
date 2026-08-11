@@ -24,12 +24,7 @@ interface AgentEditDialogProps {
   onUpdated: () => Promise<void>;
 }
 
-export const AgentEditDialog = ({
-  agent,
-  open,
-  onOpenChange,
-  onUpdated,
-}: AgentEditDialogProps) => {
+export const AgentEditDialog = ({ agent, open, onOpenChange, onUpdated }: AgentEditDialogProps) => {
   const { t } = useTranslation();
   const { mutateAsync: updateAgent } = useUpdate();
   const invalidate = useInvalidate();
