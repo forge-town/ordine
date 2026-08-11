@@ -220,6 +220,30 @@
     "quickActionBestPractices": "最佳实践",
     "quickActionBestPracticesSub": "查看编码规范"
   },
+  "home": {
+    "title": "Ordine Studio",
+    "subtitle": "对话驱动的 Pipeline 工作区",
+    "eyebrow": "新建 Pipeline",
+    "heading": "今天想让 Ordine 自动化什么？",
+    "description": "描述目标、输入和期望产物。本地 Agent 会先与你确认方案，再直接生成可运行的 Pipeline。",
+    "agentReady": "本地 Agent 已就绪",
+    "connectLocalAgent": "连接本地 Agent",
+    "checkingAgent": "正在检查本地 Agent…",
+    "localAgentCount": "{{name}} +{{count}}",
+    "sendHint": "Ctrl ↵ 发送",
+    "proposalHint": "确认这份方案后，Agent 会创建 Pipeline 并接入现有 Canvas。",
+    "suggestions": {
+      "build": "创建一个 Pipeline",
+      "buildDescription": "从目标和输入开始搭建完整流程",
+      "buildPrompt": "帮我创建一个 Pipeline：",
+      "organize": "整理重复工作",
+      "organizeDescription": "把一组手动步骤变成可复用流程",
+      "organizePrompt": "把下面这组重复工作整理成 Pipeline：",
+      "distill": "沉淀现有流程",
+      "distillDescription": "从已有过程提炼可复用能力",
+      "distillPrompt": "分析下面的流程，并生成一个可复用的 Pipeline："
+    }
+  },
   "jobs": {
     "eyebrow": "监控",
     "title": "工单",

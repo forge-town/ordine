@@ -19,13 +19,11 @@ import {
   type Operation,
   type PipelineData,
 } from "@repo/schemas";
+import { resolveApiBaseUrl } from "./resolveApiBaseUrl";
 
-const pipelineAgentApiBaseUrl =
-  globalThis.window === undefined
-    ? "http://localhost:9433/api"
-    : globalThis.window.location.hostname === "localhost"
-      ? "http://localhost:9433/api"
-      : `${globalThis.window.location.origin}/api`;
+const pipelineAgentApiBaseUrl = resolveApiBaseUrl(
+  globalThis.window === undefined ? undefined : globalThis.window.location,
+);
 const pipelineAgentSessionsBaseUrl = `${pipelineAgentApiBaseUrl}/pipeline-agent-sessions`;
 
 const PipelineAgentOperationSchema = OperationSchema.extend({

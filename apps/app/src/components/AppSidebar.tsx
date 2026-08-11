@@ -75,8 +75,16 @@ const WebUserFooter = () => {
 };
 
 export const AppSidebar = () => {
+  const navigate = useNavigate();
   const store = useSidebarStore();
-  const handleNewPipeline = useStore(store, (state) => state.handleNewPipelineButtonClick);
+  const handleNewPipelineWorkspaceReset = useStore(
+    store,
+    (state) => state.handleNewPipelineWorkspaceReset,
+  );
+  const handleNewPipeline = () => {
+    handleNewPipelineWorkspaceReset();
+    void navigate({ to: "/" });
+  };
 
   return <SharedAppSidebar footer={<WebUserFooter />} onNewPipeline={handleNewPipeline} />;
 };

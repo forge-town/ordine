@@ -8,11 +8,11 @@ const CAPABILITIES_OPEN_STORAGE_KEY = "ordine.sidebar.capabilitiesOpen";
 const CURRENT_PROJECT_STORAGE_KEY = "ordine.sidebar.currentProjectId";
 
 const readStoredCapabilitiesOpen = () => {
-  if (globalThis.localStorage === undefined) return true;
+  if (globalThis.localStorage === undefined) return false;
 
   const value = globalThis.localStorage.getItem(CAPABILITIES_OPEN_STORAGE_KEY);
 
-  return value === null ? true : value === "true";
+  return value === null ? false : value === "true";
 };
 
 const writeStoredCapabilitiesOpen = (value: boolean) => {

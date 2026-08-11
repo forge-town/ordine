@@ -225,6 +225,30 @@
     "quickActionBestPractices": "Best Practices",
     "quickActionBestPracticesSub": "View coding standards"
   },
+  "home": {
+    "title": "Ordine Studio",
+    "subtitle": "Conversation-first Pipeline workspace",
+    "eyebrow": "New Pipeline",
+    "heading": "What should Ordine automate today?",
+    "description": "Describe the goal, inputs, and expected output. Your local Agent will confirm a plan, then create a runnable Pipeline in the existing Canvas.",
+    "agentReady": "Local Agent ready",
+    "connectLocalAgent": "Connect local Agent",
+    "checkingAgent": "Checking local Agent…",
+    "localAgentCount": "{{name}} +{{count}}",
+    "sendHint": "Ctrl ↵ to send",
+    "proposalHint": "Approve this plan and the Agent will create the Pipeline in the existing Canvas.",
+    "suggestions": {
+      "build": "Create a Pipeline",
+      "buildDescription": "Turn a goal and its inputs into a complete flow",
+      "buildPrompt": "Create a Pipeline that ",
+      "organize": "Automate repetitive work",
+      "organizeDescription": "Turn manual steps into a reusable workflow",
+      "organizePrompt": "Turn these repetitive steps into a Pipeline: ",
+      "distill": "Distill an existing process",
+      "distillDescription": "Extract reusable capabilities from a process",
+      "distillPrompt": "Analyze this process and create a reusable Pipeline: "
+    }
+  },
   "jobs": {
     "eyebrow": "Monitor",
     "title": "Jobs",
