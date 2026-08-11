@@ -5,12 +5,9 @@ import { z } from "zod/v4";
 import type { PipelineData } from "@repo/schemas";
 import { CanvasPage } from "@repo/views/CanvasPage";
 import { PageLoadingState } from "@repo/views/PageLoadingState";
-import { NotificationStoreProvider } from "@repo/views/store/notificationStore";
-import { ToastContainer } from "@/components/ToastContainer";
-import { CanvasRoot } from "@/pages/WorkspacePage/canvas";
+import { AppLayout } from "@/components/AppLayout";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { useSession } from "@/integrations/better-auth-client";
-import { ToastStoreProvider } from "@/store/toastStore";
 import { requireAuthenticatedSession } from "./-requireAuthenticatedSession";
 
 const CanvasRouteComponent = () => {
@@ -43,34 +40,35 @@ const CanvasRouteComponent = () => {
   }
 
   if (!id) {
-    return <CanvasPage />;
+    return (
+      <AppLayout canvasMode>
+        <CanvasPage embedded />
+      </AppLayout>
+    );
   }
 
   if (id && pipelineQuery?.isLoading) {
     return (
-      <div className="fixed inset-0 flex h-screen w-screen bg-background">
+      <AppLayout canvasMode>
         <PageLoadingState variant="detail" />
-      </div>
+      </AppLayout>
     );
   }
 
   if (!pipeline) {
     return (
-      <div className="fixed inset-0 flex h-screen w-screen items-center justify-center bg-background">
-        <p className="text-sm text-muted-foreground">Pipeline not found</p>
-      </div>
+      <AppLayout canvasMode>
+        <div className="flex h-full w-full items-center justify-center bg-background">
+          <p className="text-sm text-muted-foreground">Pipeline not found</p>
+        </div>
+      </AppLayout>
     );
   }
 
   return (
-    <NotificationStoreProvider>
-      <ToastStoreProvider>
-        <div className="fixed inset-0 h-screen w-screen overflow-hidden">
-          <CanvasRoot pipeline={pipeline} />
-          <ToastContainer />
-        </div>
-      </ToastStoreProvider>
-    </NotificationStoreProvider>
+    <AppLayout canvasMode>
+      <CanvasPage embedded id={id} />
+    </AppLayout>
   );
 };
 

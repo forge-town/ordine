@@ -36,7 +36,31 @@
     "metadata": "Metadata",
     "createdAt": "Created",
     "updatedAt": "Updated",
-    "clearSearch": "Clear search"
+    "clearSearch": "Clear search",
+    "retry": "Retry"
+  },
+  "auth": {
+    "workspace": "Composable AI workspace",
+    "secureWorkspace": "A private workspace for pipelines, agents, and reusable capabilities.",
+    "signIn": "Sign in",
+    "signInDescription": "Continue to your Ordine workspace",
+    "signUp": "Sign up",
+    "signUpDescription": "Create your Ordine workspace account",
+    "createAccount": "Create account",
+    "signingIn": "Signing in...",
+    "creatingAccount": "Creating account...",
+    "continueWith": "Or continue with",
+    "email": "Email",
+    "password": "Password",
+    "name": "Name",
+    "namePlaceholder": "Your name",
+    "passwordPlaceholder": "At least 8 characters",
+    "noAccount": "Don't have an account?",
+    "hasAccount": "Already have an account?",
+    "invalidEmail": "Enter a valid email address",
+    "passwordRequired": "Password is required",
+    "nameRequired": "Name is required",
+    "passwordMin": "Password must be at least 8 characters"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -161,7 +185,11 @@
   "objects": {
     "title": "Objects",
     "subtitle": "Object types contributed by installed plugins.",
-    "noObjects": "No object types registered"
+    "noObjects": "No object types registered",
+    "files": "Files",
+    "folders": "Folders",
+    "noItems": "No objects found",
+    "notFound": "Object type {{id}} was not found"
   },
   "sidebar": {
     "user": "Ordine User",
@@ -249,7 +277,12 @@
     "result": "Result",
     "agentRuns": {
       "collapse": "Collapse",
-      "showAll": "Show all ({{count}} chars)"
+      "showAll": "Show all ({{count}} chars)",
+      "hideRaw": "Hide raw JSON",
+      "viewRaw": "View raw JSON",
+      "title": "Agent runs",
+      "loading": "Loading agent runs...",
+      "empty": "No agent runs recorded"
     },
     "calendar": {
       "condensed": "High-frequency schedules are condensed to one block per hour.",
@@ -452,6 +485,11 @@
     "systemPrompt": "System Prompt",
     "executorLabel": "Execution Method",
     "executorType": "Executor",
+    "executorAgent": "Agent",
+    "executorScript": "Script",
+    "agentModeSkill": "Skill",
+    "agentModePrompt": "Prompt",
+    "skillId": "Skill ID",
     "executorAgentDesc": "Executed by LLM agent",
     "executorScriptDesc": "Execute a shell script",
     "agentMode": "Agent Mode",
@@ -524,6 +562,8 @@
       "inputPathPlaceholder": "/path/to/file-or-folder",
       "run": "Run",
       "running": "Running...",
+      "console": "Console",
+      "starting": "Starting...",
       "title": "Run Operation"
     }
   },
@@ -643,7 +683,6 @@
     "settingsDrawer": {
       "menuLabel": "Settings",
       "title": "Canvas Settings",
-      "description": "Tune this canvas view without leaving the current pipeline.",
       "close": "Close Canvas settings",
       "globalSettings": "Open global settings",
       "pipelineSharedContext": {

@@ -59,24 +59,24 @@ export const OutputProjectPathNode = ({ id, data, selected }: OutputProjectPathN
         onLabelChange={handleLabelChange}
       >
         <div className="space-y-1.5">
-          <div className="flex items-center gap-1 rounded-md border border-slate-100 bg-slate-50 px-2.5 py-1">
-            <span className="shrink-0 text-[10px] font-medium text-slate-400">
+          <div className="flex items-center gap-1 rounded-md bg-surface-2 px-2.5 py-1 ring-1 ring-border">
+            <span className="shrink-0 text-[10px] font-medium text-muted-foreground">
               {t("nodes.outputProjectPath.projectIdLabel")}
             </span>
             <Input
-              className="nodrag nopan flex-1 min-w-0 bg-transparent font-mono text-[11px] text-slate-700 focus:outline-none border-none shadow-none p-0 h-auto"
+              className="nodrag nopan h-auto min-w-0 flex-1 border-none bg-transparent p-0 font-mono text-[11px] text-foreground shadow-none focus:outline-none"
               placeholder="project-id"
               value={data.projectId ?? ""}
               onChange={handleProjectIdChange}
               onMouseDown={handleMouseDown}
             />
           </div>
-          <div className="flex items-center gap-1 rounded-md border border-teal-100 bg-teal-50 px-2.5 py-1">
-            <span className="shrink-0 text-[10px] font-medium text-teal-500">
+          <div className="flex items-center gap-1 rounded-md bg-teal-500/10 px-2.5 py-1 ring-1 ring-teal-500/20">
+            <span className="shrink-0 text-[10px] font-medium text-teal-700 dark:text-teal-300">
               {t("nodes.outputProjectPath.pathLabel")}
             </span>
             <Input
-              className="nodrag nopan flex-1 min-w-0 bg-transparent font-mono text-[11px] font-semibold text-teal-800 focus:outline-none border-none shadow-none p-0 h-auto"
+              className="nodrag nopan h-auto min-w-0 flex-1 border-none bg-transparent p-0 font-mono text-[11px] font-semibold text-foreground shadow-none focus:outline-none"
               placeholder="src/output/"
               value={data.path}
               onChange={handlePathChange}
@@ -85,7 +85,7 @@ export const OutputProjectPathNode = ({ id, data, selected }: OutputProjectPathN
           </div>
         </div>
         <Textarea
-          className="nodrag nopan text-[11px] text-slate-500 bg-transparent w-full resize-none focus:outline-none focus:bg-slate-50 focus:ring-1 focus:ring-slate-200 rounded px-1 border-none shadow-none min-h-0 p-0"
+          className="nodrag nopan min-h-0 w-full resize-none rounded border-none bg-transparent p-0 px-1 text-[11px] text-muted-foreground shadow-none focus:bg-surface-2 focus:outline-none focus:ring-1 focus:ring-border-strong"
           placeholder={t("nodes.outputProjectPath.descriptionPlaceholder")}
           rows={2}
           value={data.description ?? ""}

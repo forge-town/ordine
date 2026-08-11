@@ -530,7 +530,6 @@
     "settingsDrawer": {
       "menuLabel": "Settings",
       "title": "Canvas Settings",
-      "description": "Tune this canvas view without leaving the current pipeline.",
       "close": "Close Canvas settings",
       "globalSettings": "Open global settings",
       "showMiniMap": {

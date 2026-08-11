@@ -5,7 +5,7 @@ describe("uiSlice AgentPanel layout", () => {
   it("stores an independent, clamped right panel width", () => {
     const store = createCanvasPageStore();
 
-    expect(store.getState().agentPanelWidth).toBe(360);
+    expect(store.getState().agentPanelWidth).toBe(344);
 
     store.getState().setAgentPanelWidth(240);
     expect(store.getState().agentPanelWidth).toBe(300);
@@ -21,14 +21,16 @@ describe("uiSlice AgentPanel layout", () => {
     const store = createCanvasPageStore();
     store.setState({ sidebarPanel: "properties" });
 
-    store.getState().toggleAgentPanel();
-
     expect(store.getState().agentPanel.isOpen).toBe(true);
-    expect(store.getState().sidebarPanel).toBe("properties");
 
     store.getState().toggleAgentPanel();
 
     expect(store.getState().agentPanel.isOpen).toBe(false);
+    expect(store.getState().sidebarPanel).toBe("properties");
+
+    store.getState().toggleAgentPanel();
+
+    expect(store.getState().agentPanel.isOpen).toBe(true);
     expect(store.getState().sidebarPanel).toBe("properties");
   });
 });

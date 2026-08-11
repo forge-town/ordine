@@ -48,10 +48,10 @@ export const LanguageSection = () => {
     },
   });
 
-  const handleSubmit = (formValues: LanguageFormValues) => {
+  const handleSubmit = async (formValues: LanguageFormValues) => {
     updateSection("language", formValues);
     const i18nLang = formValues.language.startsWith("zh") ? "zh" : "en";
-    void i18n.changeLanguage(i18nLang);
+    await i18n.changeLanguage(i18nLang);
     save();
     setSaved(true);
     setTimeout(() => setSaved(false), SAVED_INDICATOR_MS);

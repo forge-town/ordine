@@ -229,7 +229,7 @@ export const OperationRunPanel = ({ operationId }: OperationRunPanelProps) => {
           <div className="mx-4 flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border border-border bg-muted/30">
             <div className="flex h-9 shrink-0 items-center gap-2 border-b border-border/60 px-3">
               <Terminal className="h-3.5 w-3.5 text-muted-foreground" />
-              <span className="text-xs font-medium">Console</span>
+              <span className="text-xs font-medium">{t("operations.run.console")}</span>
               {job && (
                 <span
                   className={cn(
@@ -247,7 +247,7 @@ export const OperationRunPanel = ({ operationId }: OperationRunPanelProps) => {
                 {!job && runStatus === "running" && (
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                    Starting...
+                    {t("operations.run.starting")}
                   </div>
                 )}
                 {traceLogs
@@ -260,9 +260,10 @@ export const OperationRunPanel = ({ operationId }: OperationRunPanelProps) => {
                       <span
                         className={cn(
                           "break-all",
-                          log.includes("ERROR") && "text-red-600 font-medium",
-                          log.includes("completed successfully") && "text-green-600 font-medium",
-                          log.includes("Skill output") && "text-violet-600",
+                          log.includes("ERROR") && "font-medium text-red-600 dark:text-red-400",
+                          log.includes("completed successfully") &&
+                            "font-medium text-emerald-600 dark:text-emerald-400",
+                          log.includes("Skill output") && "text-violet-600 dark:text-violet-400",
                         )}
                       >
                         {parseMessage(log)}

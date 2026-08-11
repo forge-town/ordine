@@ -10,14 +10,14 @@ const EXECUTOR_ICON: Record<string, React.ElementType> = {
   script: Terminal,
 };
 
-const EXECUTOR_LABEL: Record<string, string> = {
-  agent: "Agent",
-  script: "Script",
+const EXECUTOR_LABEL_KEY: Record<string, string> = {
+  agent: "operations.executorAgent",
+  script: "operations.executorScript",
 };
 
-const AGENT_MODE_LABEL: Record<string, string> = {
-  skill: "Skill",
-  prompt: "Prompt",
+const AGENT_MODE_LABEL_KEY: Record<string, string> = {
+  skill: "operations.agentModeSkill",
+  prompt: "operations.agentModePrompt",
 };
 
 interface ExecutorCardProps {
@@ -28,17 +28,22 @@ export const ExecutorCard = ({ executor: raw }: ExecutorCardProps) => {
   const { t } = useTranslation();
   const executor = raw;
   const Icon = EXECUTOR_ICON[executor.type] ?? Wand2;
-  const modeLabel = executor.agentMode ? AGENT_MODE_LABEL[executor.agentMode] : undefined;
-  const label = EXECUTOR_LABEL[executor.type] ?? executor.type;
+  const modeLabelKey = executor.agentMode ? AGENT_MODE_LABEL_KEY[executor.agentMode] : undefined;
+  const modeLabel = modeLabelKey ? t(modeLabelKey) : executor.agentMode;
+  const label = EXECUTOR_LABEL_KEY[executor.type]
+    ? t(EXECUTOR_LABEL_KEY[executor.type])
+    : executor.type;
   const displayLabel = modeLabel ? `${label} · ${modeLabel}` : label;
 
   return (
     <div className={cn(surfaceCardVariants(), "p-4")}>
-      <SectionHeader icon={Icon} label={`执行方式 · ${displayLabel}`} />
+      <SectionHeader icon={Icon} label={`${t("operations.executorLabel")} · ${displayLabel}`} />
       <div className="mt-3 space-y-2">
         {executor.type === "agent" && executor.agentMode === "skill" && executor.skillId && (
           <div className="flex items-center gap-2">
-            <span className="w-16 shrink-0 text-xs text-muted-foreground">Skill ID</span>
+            <span className="w-16 shrink-0 text-xs text-muted-foreground">
+              {t("operations.skillId")}
+            </span>
             <code className="rounded bg-muted px-2 py-0.5 font-mono text-xs">
               {executor.skillId}
             </code>

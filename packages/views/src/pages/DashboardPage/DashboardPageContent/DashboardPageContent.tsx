@@ -50,15 +50,13 @@ export const DashboardPageContent = () => {
     <div className="flex h-full flex-col overflow-hidden">
       <PageHeader
         badge={<DashboardRunningJobsBadge />}
-        eyebrow={t("nav.groups.monitor")}
         icon={<LayoutDashboard className="h-4 w-4 text-primary" />}
-        sub={t("dashboard.subtitle")}
         title={t("dashboard.title")}
       />
 
-      <div className="flex-1 overflow-y-auto px-4 pb-8 pt-4 sm:px-7">
-        <div className="mx-auto flex w-full max-w-7xl flex-col gap-5">
-          <div className="grid gap-5 xl:grid-cols-[minmax(0,1.4fr)_minmax(320px,0.9fr)]">
+      <div className="flex-1 overflow-y-auto px-4 pb-8 pt-4 sm:p-6">
+        <div className="mx-auto flex w-full max-w-7xl flex-col gap-6">
+          <div className="grid gap-6 xl:grid-cols-[minmax(0,1.4fr)_minmax(320px,0.9fr)]">
             <DashboardPanel
               description={t("dashboard.activityDescription")}
               title={t("dashboard.activityTitle")}
@@ -74,7 +72,7 @@ export const DashboardPageContent = () => {
             </DashboardPanel>
           </div>
 
-          <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+          <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
             <DashboardPanel
               description={t("dashboard.pipelineHealthDescription")}
               title={t("dashboard.pipelineHealthTitle")}
@@ -106,7 +104,7 @@ export const DashboardPageContent = () => {
             <DashboardDistillationSummary />
           </DashboardPanel>
 
-          <div className="grid gap-5 xl:grid-cols-[minmax(0,1.1fr)_minmax(280px,0.9fr)]">
+          <div className="grid gap-6 xl:grid-cols-[minmax(0,1.1fr)_minmax(280px,0.9fr)]">
             <DashboardPanel
               actions={
                 <Link

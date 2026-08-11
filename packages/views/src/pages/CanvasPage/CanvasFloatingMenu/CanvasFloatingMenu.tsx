@@ -62,19 +62,19 @@ export const CanvasFloatingMenu = () => {
     <div className="pointer-events-auto" data-testid="canvas-floating-menu">
       <Popover open={isOpen} onOpenChange={handleOpenChange}>
         <PopoverTrigger
-          className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white shadow-md transition-all hover:bg-gray-50 hover:shadow-lg active:scale-95"
+          className="flex size-10 items-center justify-center rounded-full bg-surface text-foreground shadow-float ring-1 ring-border transition-all hover:bg-muted active:scale-95"
           title={t("canvas.floatingMenu.menu")}
         >
-          <Menu className="h-5 w-5 text-gray-700" />
+          <Menu className="h-5 w-5" />
         </PopoverTrigger>
 
         <PopoverContent align="start" className="w-48 p-2" side="bottom" sideOffset={8}>
           {menuItems.map((item, index) => (
             <div key={item.label}>
-              {item.divider && index > 0 && <div className="my-1 border-t border-gray-100" />}
+              {item.divider && index > 0 && <div className="my-1 border-t border-border" />}
               {item.to ? (
                 <Link
-                  className="flex w-full items-center gap-3 px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-50"
+                  className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm text-foreground transition-colors hover:bg-muted"
                   to={item.to}
                   onClick={handleCloseMenu}
                 >
@@ -83,7 +83,7 @@ export const CanvasFloatingMenu = () => {
                 </Link>
               ) : (
                 <Button
-                  className="flex h-auto w-full items-center justify-start gap-3 px-4 py-2 text-sm text-gray-700"
+                  className="flex h-auto w-full items-center justify-start gap-3 px-3 py-2 text-sm text-foreground"
                   disabled={item.disabled}
                   variant="ghost"
                   onClick={handleItemClick(item.onClick)}

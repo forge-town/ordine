@@ -115,7 +115,12 @@ export const ProjectSwitcher = () => {
       <DropdownMenu>
         <DropdownMenuTrigger
           aria-label={t("nav.projects", { defaultValue: "Projects" })}
-          render={<SidebarMenuButton className="h-9 w-full" tooltip={currentProjectName} />}
+          render={
+            <SidebarMenuButton
+              className="h-8 w-full rounded-lg border border-sidebar-border bg-surface/65 text-[12px] shadow-none"
+              tooltip={currentProjectName}
+            />
+          }
         >
           <FolderKanban />
           <span className="truncate text-left">{currentProjectName}</span>

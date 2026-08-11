@@ -1,26 +1,32 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useForm } from "react-hook-form";
 import { z } from "zod/v4";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@repo/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@repo/ui/form";
 import { Input } from "@repo/ui/input";
 import { useAuth } from "../../auth";
+import { AuthShell } from "../../components/AuthShell";
 
-const signUpSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  email: z.email("Invalid email address"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
-});
-
-type SignUpFormValues = z.infer<typeof signUpSchema>;
+type SignUpFormValues = { name: string; email: string; password: string };
 
 export const SignUpPageContent = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { signUpWithEmail } = useAuth();
   const [error, setError] = useState("");
+  const signUpSchema = useMemo(
+    () =>
+      z.object({
+        name: z.string().min(1, t("auth.nameRequired")),
+        email: z.email(t("auth.invalidEmail")),
+        password: z.string().min(8, t("auth.passwordMin")),
+      }),
+    [t],
+  );
 
   const form = useForm<SignUpFormValues>({
     resolver: zodResolver(signUpSchema),
@@ -38,11 +44,11 @@ export const SignUpPageContent = () => {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <Card className="w-full max-w-md" variant="surface">
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl">Create Account</CardTitle>
-          <CardDescription>Sign up for Ordine</CardDescription>
+    <AuthShell>
+      <Card className="w-full shadow-float" variant="surface">
+        <CardHeader className="pb-1 text-center">
+          <CardTitle className="text-xl tracking-[-0.02em]">{t("auth.createAccount")}</CardTitle>
+          <CardDescription className="text-[12.5px]">{t("auth.signUpDescription")}</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -57,9 +63,14 @@ export const SignUpPageContent = () => {
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Name</FormLabel>
+                    <FormLabel>{t("auth.name")}</FormLabel>
                     <FormControl>
-                      <Input placeholder="Your name" type="text" {...field} />
+                      <Input
+                        autoComplete="name"
+                        placeholder={t("auth.namePlaceholder")}
+                        type="text"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -70,9 +81,14 @@ export const SignUpPageContent = () => {
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel>{t("auth.email")}</FormLabel>
                     <FormControl>
-                      <Input placeholder="you@example.com" type="email" {...field} />
+                      <Input
+                        autoComplete="email"
+                        placeholder="you@example.com"
+                        type="email"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -83,28 +99,33 @@ export const SignUpPageContent = () => {
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Password</FormLabel>
+                    <FormLabel>{t("auth.password")}</FormLabel>
                     <FormControl>
-                      <Input placeholder="At least 8 characters" type="password" {...field} />
+                      <Input
+                        autoComplete="new-password"
+                        placeholder={t("auth.passwordPlaceholder")}
+                        type="password"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
               <Button className="w-full" disabled={loading} type="submit">
-                {loading ? "Creating account..." : "Create Account"}
+                {loading ? t("auth.creatingAccount") : t("auth.createAccount")}
               </Button>
             </form>
           </Form>
 
           <p className="mt-4 text-center text-sm text-muted-foreground">
-            Already have an account?{" "}
+            {t("auth.hasAccount")}{" "}
             <a className="text-primary underline-offset-4 hover:underline" href="/login">
-              Sign in
+              {t("auth.signIn")}
             </a>
           </p>
         </CardContent>
       </Card>
-    </div>
+    </AuthShell>
   );
 };

@@ -11,7 +11,7 @@ const resources = {
   zh: { translation: zh },
 };
 
-const getSavedLanguage = (): string | undefined => {
+export const getSavedLanguage = (): string | undefined => {
   if (typeof globalThis === "undefined") return undefined;
 
   const ls = (
@@ -42,12 +42,17 @@ const getCookie = (name: string): string | undefined => {
   return undefined;
 };
 
+export const initialSavedLanguage = getSavedLanguage();
+
 i18n
   .use(LanguageDetector)
   .use(initReactI18next)
   .init({
     resources,
-    lng: getSavedLanguage() ?? undefined,
+    // Keep the server render and the first client render identical. The saved
+    // browser preference is applied by RootDocument after hydration. Capture
+    // it above before LanguageDetector caches the deterministic initial value.
+    lng: "zh",
     fallbackLng: "zh",
     interpolation: {
       escapeValue: false,

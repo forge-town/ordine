@@ -1,13 +1,15 @@
 import { useCallback, useState } from "react";
 import { useNavigate, useParams } from "@tanstack/react-router";
 import { useOne, useCustomMutation } from "@refinedev/core";
-import { Trash2, Server, Pencil } from "lucide-react";
+import { Pencil, RefreshCw, Server, Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
+import { surfaceCardVariants } from "@repo/ui/card";
+import { cn } from "@repo/ui/lib/utils";
 import { Separator } from "@repo/ui/separator";
-import { Skeleton } from "@repo/ui/skeleton";
 import type { AgentRuntimeConfig } from "@repo/schemas";
 import { PageHeader } from "../../../components/PageHeader";
+import { PageLoadingState } from "../../../components/PageLoadingState";
 import { RuntimeIcon } from "../../../pages/RuntimesPage/RuntimeIcon";
 
 const s = "runtimes";
@@ -56,7 +58,7 @@ export const RuntimeDetailPageContent = () => {
     });
   }, [deleteConfirm, runtime, syncAll, navigate]);
 
-  if (runtimeQuery.isLoading || !runtime) {
+  if (runtimeQuery.isLoading) {
     return (
       <div className="flex h-full flex-col overflow-hidden">
         <PageHeader
@@ -64,9 +66,29 @@ export const RuntimeDetailPageContent = () => {
           icon={<Server className="h-4 w-4 text-primary" />}
           title={t(`${s}.title`)}
         />
-        <div className="flex-1 p-6 space-y-6">
-          <Skeleton className="h-8 w-48" />
-          <Skeleton className="h-40 w-full rounded-lg" />
+        <PageLoadingState variant="detail" />
+      </div>
+    );
+  }
+
+  if (!runtime) {
+    return (
+      <div className="flex h-full flex-col overflow-hidden">
+        <PageHeader backTo="/runtimes" title={t(`${s}.title`)} />
+        <div className="grid min-h-0 flex-1 place-items-center px-4 text-center">
+          <div>
+            <Server className="mx-auto size-8 text-muted-foreground/25" />
+            <p className="mt-2 text-sm font-medium text-foreground">{t("common.notFound")}</p>
+            <Button
+              className="mt-2"
+              size="sm"
+              variant="outline"
+              onClick={() => runtimeQuery.refetch()}
+            >
+              <RefreshCw className="size-3.5" />
+              {t("common.retry")}
+            </Button>
+          </div>
         </div>
       </div>
     );
@@ -96,9 +118,9 @@ export const RuntimeDetailPageContent = () => {
         title={runtime.name || t(`${s}.unnamed`)}
       />
 
-      <div className="flex-1 overflow-y-auto">
-        <div className="mx-auto max-w-2xl space-y-6 p-6">
-          <div className="grid grid-cols-2 gap-x-8 gap-y-5">
+      <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-8 pt-4 sm:px-7">
+        <div className={cn(surfaceCardVariants(), "mx-auto max-w-3xl space-y-5 p-4 sm:p-5")}>
+          <div className="grid grid-cols-1 gap-x-8 gap-y-5 sm:grid-cols-2">
             <InfoField label={t(`${s}.name`)} value={runtime.name || "—"} />
             <InfoField label={t(`${s}.type`)} value={runtime.type} />
             <InfoField label={t(`${s}.runtimeMode`)} value={runtime.connection.mode} />
@@ -112,9 +134,11 @@ export const RuntimeDetailPageContent = () => {
           {runtime.connection.mode === "ssh" && (
             <>
               <Separator />
-              <div className="space-y-1">
-                <h3 className="text-xs font-medium text-muted-foreground">{t(`${s}.sshConfig`)}</h3>
-                <div className="grid grid-cols-2 gap-x-8 gap-y-4 pt-2">
+              <div className="rounded-lg bg-surface-2/60 p-4 ring-1 ring-border">
+                <h3 className="text-[10.5px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
+                  {t(`${s}.sshConfig`)}
+                </h3>
+                <div className="grid grid-cols-1 gap-x-8 gap-y-4 pt-3 sm:grid-cols-2">
                   <InfoField label={t(`${s}.host`)} value={runtime.connection.host} />
                   <InfoField label={t(`${s}.user`)} value={runtime.connection.user} />
                   {runtime.connection.port && (
@@ -131,8 +155,10 @@ export const RuntimeDetailPageContent = () => {
           <Separator />
 
           <div className="space-y-2">
-            <h3 className="text-xs font-medium text-muted-foreground">{t(`${s}.metadata`)}</h3>
-            <pre className="overflow-x-auto rounded-lg border bg-muted/30 p-4 font-mono text-xs text-muted-foreground">
+            <h3 className="text-[10.5px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
+              {t(`${s}.metadata`)}
+            </h3>
+            <pre className="overflow-x-auto rounded-lg bg-surface-2/60 p-4 font-mono text-xs text-muted-foreground ring-1 ring-border">
               {JSON.stringify(runtime.connection, null, 2)}
             </pre>
           </div>

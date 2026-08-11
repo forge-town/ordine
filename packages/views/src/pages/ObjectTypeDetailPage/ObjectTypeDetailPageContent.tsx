@@ -8,6 +8,7 @@ import { cn } from "@repo/ui/lib/utils";
 import { ResourceName } from "../../constants";
 import { PageHeader } from "../../components/PageHeader";
 import { PageLoadingState } from "../../components/PageLoadingState";
+import { PageState } from "../../components/PageState";
 
 const objectTypeResourceMap: Record<string, string> = {
   "github-project": ResourceName.githubProjects,
@@ -31,7 +32,7 @@ export const ObjectTypeDetailPageContent = () => {
       <div className="flex h-full flex-col items-center justify-center gap-4">
         <Puzzle className="h-12 w-12 text-muted-foreground" />
         <p className="text-sm text-muted-foreground">
-          Object type &quot;{objectTypeId}&quot; not found
+          {t("objects.notFound", { id: objectTypeId })}
         </p>
         <Link className="text-sm text-primary underline" to="/pipelines/objects">
           {t("common.back")}
@@ -52,7 +53,7 @@ export const ObjectTypeDetailPageContent = () => {
         {query?.isLoading ? (
           <PageLoadingState />
         ) : items.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No items found</p>
+          <PageState icon={<Box />} title={t("objects.noItems")} />
         ) : (
           <div className="grid gap-3">
             {items.map((item) => (

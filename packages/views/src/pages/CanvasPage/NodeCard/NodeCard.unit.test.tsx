@@ -108,7 +108,7 @@ describe("NodeCard", () => {
 
     expect(container.firstElementChild).toHaveClass("relative", "w-fit");
     expect(container.querySelector('[data-slot="card"]')).toHaveClass(
-      "w-72",
+      "w-[214px]",
       "data-[size=sm]:py-0",
     );
     expect(container.querySelector('[data-slot="card-header"] > div')).toHaveClass(
@@ -120,10 +120,7 @@ describe("NodeCard", () => {
       "max-w-full",
       "truncate",
     );
-    expect(container.querySelector('[data-slot="card-header"]')).toHaveClass(
-      "min-h-14",
-      "rounded-none",
-    );
+    expect(container.querySelector('[data-slot="card-header"]')).toHaveClass("min-h-12");
     expect(container.querySelector('[data-slot="card-action"]')).toHaveClass(
       "ml-auto",
       "shrink-0",
@@ -131,20 +128,20 @@ describe("NodeCard", () => {
     );
   });
 
-  it("applies selected ring for each theme", () => {
+  it("applies the neutral Alan selection ring for every theme", () => {
     const { container, rerender } = render(
       <NodeCard selected icon={Box} label="Node" theme="emerald" />,
     );
-    expect(container.querySelector('[data-slot="card"]')).toHaveClass("ring-emerald-500");
+    expect(container.querySelector('[data-slot="card"]')).toHaveClass("ring-foreground/40");
 
     rerender(<NodeCard selected icon={Box} label="Node" theme="violet" />);
-    expect(container.querySelector('[data-slot="card"]')).toHaveClass("ring-violet-500");
+    expect(container.querySelector('[data-slot="card"]')).toHaveClass("ring-foreground/40");
 
     rerender(<NodeCard selected icon={Box} label="Node" theme="amber" />);
-    expect(container.querySelector('[data-slot="card"]')).toHaveClass("ring-amber-500");
+    expect(container.querySelector('[data-slot="card"]')).toHaveClass("ring-foreground/40");
 
     rerender(<NodeCard selected icon={Box} label="Node" theme="sky" />);
-    expect(container.querySelector('[data-slot="card"]')).toHaveClass("ring-sky-500");
+    expect(container.querySelector('[data-slot="card"]')).toHaveClass("ring-foreground/40");
   });
 
   it("renders one small center port per enabled side by default", () => {

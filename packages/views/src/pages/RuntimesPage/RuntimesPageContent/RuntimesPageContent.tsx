@@ -6,6 +6,7 @@ import type { AgentRuntimeConfig } from "@repo/schemas";
 import { Button } from "@repo/ui/button";
 import { Skeleton } from "@repo/ui/skeleton";
 import { PageHeader } from "../../../components/PageHeader";
+import { PageState } from "../../../components/PageState";
 import { LocalAgentCard } from "../LocalAgentCard";
 import { ScanDiffModal } from "../ScanDiffModal";
 import { type DetectedRuntime, useRuntimesPageStore } from "../_store";
@@ -83,14 +84,24 @@ export const RuntimesPageContent = () => {
               <Skeleton key={i} className="h-[190px] w-full rounded-lg" />
             ))}
           </div>
+        ) : runtimesQuery.isError ? (
+          <PageState
+            action={
+              <Button size="sm" variant="outline" onClick={() => runtimesQuery.refetch()}>
+                <RefreshCw className="size-3.5" />
+                {t("common.retry")}
+              </Button>
+            }
+            description={t("errors.networkError")}
+            icon={<Radar />}
+            title={t("common.notFound")}
+          />
         ) : runtimes.length === 0 ? (
-          <div className="grid place-items-center rounded-lg bg-surface-2/50 py-16 text-center text-muted-foreground">
-            <Cpu className="size-8 text-muted-foreground/30" />
-            <p className="mt-2 text-[13px] font-medium text-foreground">{t("localAgents.empty")}</p>
-            <p className="mt-0.5 text-[11.5px] text-muted-foreground">
-              {t("localAgents.emptyHint")}
-            </p>
-          </div>
+          <PageState
+            description={t("localAgents.emptyHint")}
+            icon={<Cpu />}
+            title={t("localAgents.empty")}
+          />
         ) : (
           <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
             {runtimes.map((runtime) => (

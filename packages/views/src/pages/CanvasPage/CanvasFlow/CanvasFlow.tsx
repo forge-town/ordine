@@ -43,7 +43,7 @@ const nodeTypes = {
 const defaultEdgeOptions = {
   type: "default" as const,
   animated: true,
-  style: { stroke: "#94a3b8", strokeWidth: 2 },
+  style: { stroke: "var(--edge)", strokeWidth: 1.5 },
 };
 
 const proOpts = { hideAttribution: false };
@@ -246,7 +246,7 @@ export const CanvasFlow = ({ viewportRef }: CanvasFlowProps) => {
       onDrop={handleDrop}
     >
       <ReactFlow
-        className="bg-slate-50/50"
+        className="bg-canvas"
         defaultEdgeOptions={defaultEdgeOptions}
         defaultViewport={DEFAULT_CANVAS_VIEWPORT}
         deleteKeyCode={isCanvasInteractive ? ["Backspace", "Delete"] : null}
@@ -273,7 +273,7 @@ export const CanvasFlow = ({ viewportRef }: CanvasFlowProps) => {
       >
         {canvasSettings.showBackground && (
           <Background
-            color="#cbd5e1"
+            color="var(--canvas-dot)"
             gap={snapGrid[0]}
             size={1.5}
             variant={BackgroundVariant.Dots}
@@ -282,7 +282,7 @@ export const CanvasFlow = ({ viewportRef }: CanvasFlowProps) => {
         {canvasSettings.showControls && (
           <Controls
             showInteractive
-            className="border-gray-200! bg-white! shadow-sm!"
+            className="border-border! bg-surface! text-foreground! shadow-soft!"
             position="bottom-left"
           />
         )}
@@ -290,9 +290,9 @@ export const CanvasFlow = ({ viewportRef }: CanvasFlowProps) => {
           <MiniMap
             pannable
             zoomable
-            className="border border-border bg-background/90 shadow-sm"
+            className="border border-border bg-surface/90 shadow-soft"
             nodeBorderRadius={6}
-            nodeColor="#94a3b8"
+            nodeColor="var(--muted-foreground)"
             position="bottom-right"
           />
         )}

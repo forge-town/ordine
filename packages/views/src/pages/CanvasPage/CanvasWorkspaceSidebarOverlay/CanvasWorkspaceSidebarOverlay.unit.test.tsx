@@ -43,7 +43,13 @@ describe("CanvasWorkspaceSidebarOverlay", () => {
     const store = renderOpenOverlay();
 
     expect(screen.getByTestId("canvas-workspace-sidebar-overlay")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /Dashboard|仪表盘/i })).toHaveAttribute("href", "/");
+    expect(screen.getByRole("link", { name: /Pipelines|流水线/i })).toHaveAttribute(
+      "href",
+      "/pipelines",
+    );
+    expect(screen.getByText(/Assembly|装配/i)).toBeInTheDocument();
+    expect(screen.getByText(/Monitor|监控/i)).toBeInTheDocument();
+    expect(screen.getByText(/Capabilities|能力/i)).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: /Save|保存/i }));
 

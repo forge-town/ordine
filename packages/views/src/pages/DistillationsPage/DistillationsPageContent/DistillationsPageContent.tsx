@@ -8,6 +8,7 @@ import { surfaceCardVariants } from "@repo/ui/card";
 import type { Distillation, DistillationStatus } from "@repo/schemas";
 import { PageLoadingState } from "../../../components/PageLoadingState";
 import { PageHeader } from "../../../components/PageHeader";
+import { PageState } from "../../../components/PageState";
 import { ResourceName } from "../../../constants";
 import { cn } from "@repo/ui/lib/utils";
 
@@ -64,22 +65,17 @@ export const DistillationsPageContent = () => {
 
       <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-8 pt-4 sm:px-7">
         {distillations.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-24 text-center">
-            <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
-              <FlaskConical className="h-6 w-6 text-muted-foreground" />
-            </div>
-            <p className="text-sm font-medium text-muted-foreground">
-              {t("distillations.emptyTitle")}
-            </p>
-            <p className="mt-1 text-xs text-muted-foreground/60">{t("distillations.emptyHint")}</p>
-            <Link
-              className={buttonVariants({ className: "mt-4", size: "sm" })}
-              to="/distillation-studio"
-            >
-              <Plus className="h-4 w-4" />
-              {t("distillations.openStudio")}
-            </Link>
-          </div>
+          <PageState
+            action={
+              <Link className={buttonVariants({ size: "sm" })} to="/distillation-studio">
+                <Plus className="h-4 w-4" />
+                {t("distillations.openStudio")}
+              </Link>
+            }
+            description={t("distillations.emptyHint")}
+            icon={<FlaskConical />}
+            title={t("distillations.emptyTitle")}
+          />
         ) : (
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
             {distillations.map((distillation) => (
@@ -105,7 +101,7 @@ export const DistillationsPageContent = () => {
                         className={cn(
                           "h-4 w-4",
                           distillation.status === "completed"
-                            ? "text-green-600"
+                            ? "text-emerald-700 dark:text-emerald-300"
                             : distillation.status === "failed"
                               ? "text-destructive"
                               : distillation.status === "running"

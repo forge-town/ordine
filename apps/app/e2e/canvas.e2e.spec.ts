@@ -31,19 +31,22 @@ test.describe("Canvas editor", () => {
   test("supports the current canvas component workflow", async ({ page, pageErrors }) => {
     await openCanvasPage(page);
 
-    await expect(page.getByTestId("canvas-v2-root")).toBeVisible();
-    await expect(page.getByTestId("canvas-v2-flow")).toBeVisible();
-    await expect(page.getByTestId("canvas-v2-toolbar")).toBeVisible();
-    await expect(page.getByTestId("canvas-v2-top-pill")).toBeVisible();
+    await expect(page.getByTestId("canvas-langflow-shell")).toBeVisible();
+    await expect(page.getByTestId("canvas-flow-viewport")).toBeVisible();
+    await expect(page.getByTestId("canvas-toolbar")).toBeVisible();
+    await expect(page.getByTestId("canvas-top-chrome")).toBeVisible();
+    await expect(page.getByTestId("canvas-component-panel")).toBeVisible();
+    await expect(page.getByTestId("canvas-agent-panel")).toBeVisible();
 
-    await page.getByTestId("canvas-v2-components-toggle").click();
-    await expect(page.getByTestId("canvas-v2-components-panel")).toBeVisible();
+    const folderButton = page.getByRole("button", {
+      name: /(?:Folder Folder|文件夹 文件夹)/,
+    });
+    await expect(folderButton).toBeVisible();
 
-    const fileButton = page.getByTestId("canvas-v2-component-object-file");
-    await expect(fileButton).toBeVisible();
-
-    await fileButton.click();
-    await expect(page.getByTestId("canvas-v2-node-card").first()).toBeVisible();
+    await folderButton.click();
+    await expect(
+      page.getByTestId("canvas-flow-viewport").locator(".react-flow__node").first(),
+    ).toBeVisible();
 
     expectNoJSErrors(pageErrors);
   });

@@ -11,7 +11,7 @@ export const CanvasEmptyState = () => {
 
   return (
     <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center px-4">
-      <div className="pointer-events-auto w-[min(24rem,100%)] rounded-lg border border-dashed border-border bg-background/90 px-5 py-5 text-center shadow-sm backdrop-blur-sm">
+      <div className="pointer-events-auto w-[min(24rem,100%)] rounded-xl border border-dashed border-border-strong bg-surface/92 px-5 py-5 text-center shadow-soft backdrop-blur-sm">
         <div className="mx-auto mb-3 flex size-10 items-center justify-center rounded-full bg-primary/10 text-primary">
           <Plus className="size-5" />
         </div>

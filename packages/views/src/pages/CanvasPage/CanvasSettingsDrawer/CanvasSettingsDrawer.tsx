@@ -20,7 +20,6 @@ import {
   Sheet,
   SheetClose,
   SheetContent,
-  SheetDescription,
   SheetHeader,
   SheetTitle,
 } from "@repo/ui/sheet";
@@ -81,18 +80,17 @@ export const CanvasSettingsDrawer = () => {
   return (
     <Sheet open={isOpen} onOpenChange={handleOpenChange}>
       <SheetContent
-        className="w-[min(24rem,calc(100vw-1rem))] max-w-sm gap-0 border-l bg-white/95 p-0 backdrop-blur"
+        className="w-[min(24rem,calc(100vw-1rem))] max-w-sm gap-0 border-l bg-surface/95 p-0 backdrop-blur"
         showCloseButton={false}
         side="right"
       >
         <SheetHeader className="border-b pr-12">
           <div className="flex items-center gap-2">
-            <span className="flex size-8 items-center justify-center rounded-md bg-slate-100 text-slate-700">
+            <span className="flex size-8 items-center justify-center rounded-md bg-surface-2 text-muted-foreground ring-1 ring-border">
               <Settings2 className="size-4" />
             </span>
             <SheetTitle>{t("canvas.settingsDrawer.title")}</SheetTitle>
           </div>
-          <SheetDescription>{t("canvas.settingsDrawer.description")}</SheetDescription>
           <SheetClose
             render={
               <Button
@@ -112,18 +110,18 @@ export const CanvasSettingsDrawer = () => {
           className="flex-1 space-y-3 overflow-y-auto p-4"
           role="group"
         >
-          <div className="rounded-md border border-slate-200 bg-white p-3 shadow-sm">
+          <div className="rounded-lg bg-surface p-3 shadow-soft ring-1 ring-border">
             <div className="flex items-start gap-3">
-              <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-md bg-slate-100 text-slate-600">
+              <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-md bg-surface-2 text-muted-foreground">
                 <FileText className="size-4" />
               </span>
               <div className="min-w-0 flex-1">
-                <Label className="text-slate-800" htmlFor="pipeline-shared-context">
+                <Label className="text-foreground" htmlFor="pipeline-shared-context">
                   {t("canvas.settingsDrawer.pipelineSharedContext.label", {
                     defaultValue: "Pipeline shared context",
                   })}
                 </Label>
-                <p className="mt-0.5 text-xs leading-5 text-slate-500">
+                <p className="mt-0.5 text-xs leading-5 text-muted-foreground">
                   {t("canvas.settingsDrawer.pipelineSharedContext.description", {
                     defaultValue: "Context injected into every operation run in this pipeline.",
                   })}
@@ -149,16 +147,16 @@ export const CanvasSettingsDrawer = () => {
             return (
               <div
                 key={id}
-                className="flex items-start gap-3 rounded-md border border-slate-200 bg-white p-3 shadow-sm"
+                className="flex items-start gap-3 rounded-lg bg-surface p-3 shadow-soft ring-1 ring-border"
               >
-                <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-md bg-slate-100 text-slate-600">
+                <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-md bg-surface-2 text-muted-foreground">
                   <Icon className="size-4" />
                 </span>
                 <div className="min-w-0 flex-1">
-                  <Label className="text-slate-800" htmlFor={inputId}>
+                  <Label className="text-foreground" htmlFor={inputId}>
                     {t(`canvas.settingsDrawer.${id}.label`)}
                   </Label>
-                  <p className="mt-0.5 text-xs leading-5 text-slate-500" id={descriptionId}>
+                  <p className="mt-0.5 text-xs leading-5 text-muted-foreground" id={descriptionId}>
                     {t(`canvas.settingsDrawer.${id}.description`)}
                   </p>
                 </div>
@@ -166,8 +164,8 @@ export const CanvasSettingsDrawer = () => {
                   aria-describedby={descriptionId}
                   checked={settings[id]}
                   className={cn(
-                    "mt-1 size-4 rounded border-slate-300 text-slate-900",
-                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400",
+                    "mt-1 size-4 rounded border-input bg-background text-primary",
+                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                   )}
                   id={inputId}
                   type="checkbox"
@@ -177,18 +175,18 @@ export const CanvasSettingsDrawer = () => {
             );
           })}
 
-          <div className="rounded-md border border-slate-200 bg-white p-3 shadow-sm">
+          <div className="rounded-lg bg-surface p-3 shadow-soft ring-1 ring-border">
             <div className="flex items-start gap-3">
-              <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-md bg-slate-100 text-slate-600">
+              <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-md bg-surface-2 text-muted-foreground">
                 <PanelLeft className="size-4" />
               </span>
               <div className="min-w-0 flex-1">
-                <Label className="text-slate-800">
+                <Label className="text-foreground">
                   {t("canvas.settingsDrawer.nodeCardMode.label", {
                     defaultValue: "Node card mode",
                   })}
                 </Label>
-                <div className="mt-3 grid grid-cols-2 overflow-hidden rounded-md border border-slate-200 bg-slate-50 p-1">
+                <div className="mt-3 grid grid-cols-2 overflow-hidden rounded-md bg-surface-2 p-1 ring-1 ring-border">
                   {nodeCardModeOptions.map(({ id, icon: Icon }) => (
                     <Button
                       key={id}
@@ -211,9 +209,9 @@ export const CanvasSettingsDrawer = () => {
           </div>
         </div>
 
-        <div className="border-t bg-slate-50 p-4">
+        <div className="border-t bg-surface-2/60 p-4">
           <Link
-            className="inline-flex h-8 items-center justify-center rounded-lg border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100"
+            className="inline-flex h-8 items-center justify-center rounded-lg bg-background px-3 text-sm font-medium text-foreground ring-1 ring-border transition-colors hover:bg-muted"
             to="/settings"
             onClick={handleCloseCanvasSettings}
           >

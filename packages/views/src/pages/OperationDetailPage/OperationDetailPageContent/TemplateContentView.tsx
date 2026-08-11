@@ -1,5 +1,6 @@
 import Markdown from "react-markdown";
 import { Code, Eye } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
 import { useShallow } from "zustand/shallow";
 import { Button } from "@repo/ui/button";
@@ -14,6 +15,7 @@ interface TemplateContentViewProps {
 const PREVIEWABLE_TYPES = new Set(["markdown", "html"]);
 
 export const TemplateContentView = ({ templateId }: TemplateContentViewProps) => {
+  const { t } = useTranslation();
   const store = useOperationDetailPageStore();
   const { template, templateViewMode, handleTemplateViewModeButtonClick } = useStore(
     store,
@@ -27,7 +29,7 @@ export const TemplateContentView = ({ templateId }: TemplateContentViewProps) =>
   if (!template) {
     return (
       <div className="flex items-center justify-center py-8">
-        <span className="text-xs text-muted-foreground">Loading…</span>
+        <span className="text-xs text-muted-foreground">{t("common.loading")}</span>
       </div>
     );
   }

@@ -524,7 +524,6 @@
     "settingsDrawer": {
       "menuLabel": "设置",
       "title": "Canvas 设置",
-      "description": "不离开当前 Pipeline，调整此画布视图。",
       "close": "关闭 Canvas 设置",
       "globalSettings": "打开全局设置",
       "showMiniMap": {
