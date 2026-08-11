@@ -20,6 +20,7 @@ const mockPipelineAgent = async (page: Page, generatedPipelineId: string, pipeli
         mode: "generate",
         status: "draft",
       });
+
       return;
     }
     if (pathname.endsWith("/messages") && request.method() === "POST") {
@@ -29,6 +30,7 @@ const mockPipelineAgent = async (page: Page, generatedPipelineId: string, pipeli
         kind: "text",
         content: "Build a review pipeline",
       });
+
       return;
     }
     if (pathname.endsWith("/plan") && request.method() === "POST") {
@@ -48,14 +50,17 @@ const mockPipelineAgent = async (page: Page, generatedPipelineId: string, pipeli
         contentType: "text/event-stream",
         status: 200,
       });
+
       return;
     }
     if (pathname.endsWith("/approve") && request.method() === "POST") {
       await route.fulfill({ status: 204 });
+
       return;
     }
     if (pathname.endsWith("/generate") && request.method() === "POST") {
       await json(route, { pipelineId: generatedPipelineId });
+
       return;
     }
     if (pathname === `/api/pipelines/${generatedPipelineId}` && request.method() === "GET") {
@@ -71,6 +76,7 @@ const mockPipelineAgent = async (page: Page, generatedPipelineId: string, pipeli
         createdAt: "2026-08-11T00:00:00.000Z",
         updatedAt: "2026-08-11T00:00:00.000Z",
       });
+
       return;
     }
 
