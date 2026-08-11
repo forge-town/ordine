@@ -40,12 +40,12 @@ describe("sidebarStore", () => {
   it("persists the capabilities section state", () => {
     const store = createSidebarStore();
 
-    expect(store.getState().capabilitiesOpen).toBe(true);
+    expect(store.getState().capabilitiesOpen).toBe(false);
     store.getState().handleCapabilitiesToggle();
 
-    expect(store.getState().capabilitiesOpen).toBe(false);
-    expect(localStorage.getItem("ordine.sidebar.capabilitiesOpen")).toBe("false");
-    expect(createSidebarStore().getState().capabilitiesOpen).toBe(false);
+    expect(store.getState().capabilitiesOpen).toBe(true);
+    expect(localStorage.getItem("ordine.sidebar.capabilitiesOpen")).toBe("true");
+    expect(createSidebarStore().getState().capabilitiesOpen).toBe(true);
   });
 
   it("persists and validates the current project", () => {

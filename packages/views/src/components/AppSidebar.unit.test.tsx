@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { SidebarProvider } from "@repo/ui/sidebar";
 import { createSidebarStore, SidebarStoreContext } from "../store/sidebarStore";
 import { AppSidebar } from "./AppSidebar";
@@ -32,6 +32,10 @@ describe("AppSidebar", () => {
     vi.unstubAllGlobals();
   });
 
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
   it("renders three navigation groups and valid routes", () => {
     const store = createSidebarStore();
     render(
@@ -44,7 +48,7 @@ describe("AppSidebar", () => {
 
     expect(screen.getByText("装配")).toBeInTheDocument();
     expect(screen.getByText("监控")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "能力" })).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByRole("button", { name: "能力" })).toHaveAttribute("aria-expanded", "false");
     expect(screen.getByRole("link", { name: "流水线" })).toHaveAttribute("href", "/pipelines");
     expect(screen.getByRole("link", { name: "任务" })).toHaveAttribute("href", "/pipelines/jobs");
     expect(screen.getByRole("link", { name: "设置" })).toHaveAttribute("href", "/settings");
@@ -55,7 +59,7 @@ describe("AppSidebar", () => {
     }
   });
 
-  it("persists the capabilities collapsed state", () => {
+  it("persists the capabilities expanded state", () => {
     const store = createSidebarStore();
     render(
       <SidebarStoreContext.Provider value={store}>
@@ -67,10 +71,10 @@ describe("AppSidebar", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "能力" }));
 
-    expect(screen.queryByRole("link", { name: "连接器" })).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "连接器" })).toHaveAttribute("href", "/connectors");
     expect(screen.getByRole("link", { name: "设置" })).toHaveAttribute("href", "/settings");
-    expect(store.getState().capabilitiesOpen).toBe(false);
-    expect(localStorage.getItem("ordine.sidebar.capabilitiesOpen")).toBe("false");
+    expect(store.getState().capabilitiesOpen).toBe(true);
+    expect(localStorage.getItem("ordine.sidebar.capabilitiesOpen")).toBe("true");
   });
 
   it("centers the only visible header control when collapsed", () => {

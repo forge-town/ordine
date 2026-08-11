@@ -1,9 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { DashboardPage } from "@repo/views/DashboardPage";
+import { HomePage } from "@/pages/HomePage";
 
 export const Route = createFileRoute("/_layout/")({
   head: () => ({
-    meta: [{ title: "Dashboard | Ordine" }],
+    meta: [{ title: "Ordine Studio" }],
   }),
-  component: DashboardPage,
+  component: HomePage,
 });
