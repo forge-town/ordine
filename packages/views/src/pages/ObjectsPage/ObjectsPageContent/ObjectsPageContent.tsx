@@ -16,9 +16,9 @@ const iconMap: Record<string, ElementType> = {
   folder: Folder,
 };
 
-const builtinObjectTypes: Pick<ObjectTypeDefinition, "id" | "label" | "icon">[] = [
-  { id: "files", label: "文件", icon: "file" },
-  { id: "folders", label: "文件夹", icon: "folder" },
+const builtinObjectTypes: (Pick<ObjectTypeDefinition, "id" | "icon"> & { labelKey: string })[] = [
+  { id: "files", labelKey: "objects.files", icon: "file" },
+  { id: "folders", labelKey: "objects.folders", icon: "folder" },
 ];
 
 export const ObjectsPageContent = () => {
@@ -46,7 +46,7 @@ export const ObjectsPageContent = () => {
                     <Icon className="h-4 w-4 text-primary" />
                   </div>
                   <div className="flex-1">
-                    <h3 className="text-sm font-medium">{objType.label}</h3>
+                    <h3 className="text-sm font-medium">{t(objType.labelKey)}</h3>
                     <p className="text-xs text-muted-foreground">{objType.id}</p>
                   </div>
                 </div>

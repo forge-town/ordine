@@ -160,7 +160,7 @@ export const ItemDetailPanel = () => {
                 if (!activeTemplateId) {
                   return (
                     <div className="flex items-center justify-center py-8">
-                      <span className="text-xs text-muted-foreground">Loading…</span>
+                      <span className="text-xs text-muted-foreground">{t("common.loading")}</span>
                     </div>
                   );
                 }

@@ -3,11 +3,13 @@ import { useNavigate, useParams } from "@tanstack/react-router";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { z } from "zod/v4";
-import { Save, Server } from "lucide-react";
+import { RefreshCw, Save, Server } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useOne, useCustomMutation } from "@refinedev/core";
 import { Button } from "@repo/ui/button";
+import { surfaceCardVariants } from "@repo/ui/card";
 import { Input } from "@repo/ui/input";
+import { cn } from "@repo/ui/lib/utils";
 import {
   Select,
   SelectContent,
@@ -17,7 +19,6 @@ import {
   SelectValue,
 } from "@repo/ui/select";
 import { Separator } from "@repo/ui/separator";
-import { Skeleton } from "@repo/ui/skeleton";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@repo/ui/form";
 import {
   AgentRuntimeSchema,
@@ -25,6 +26,7 @@ import {
   type AgentRuntimeConfig,
 } from "@repo/schemas";
 import { PageHeader } from "../../../components/PageHeader";
+import { PageLoadingState } from "../../../components/PageLoadingState";
 import { RuntimeIcon } from "../../../pages/RuntimesPage/RuntimeIcon";
 
 const AGENT_TYPE_OPTIONS = AgentRuntimeSchema.options;
@@ -79,7 +81,7 @@ export const RuntimeEditPageContent = () => {
     [form],
   );
 
-  if (runtimeQuery.isLoading || !runtime) {
+  if (runtimeQuery.isLoading) {
     return (
       <div className="flex h-full flex-col overflow-hidden">
         <PageHeader
@@ -87,9 +89,29 @@ export const RuntimeEditPageContent = () => {
           icon={<Server className="h-4 w-4 text-primary" />}
           title={t(`${s}.title`)}
         />
-        <div className="flex-1 p-6 space-y-6">
-          <Skeleton className="h-8 w-48" />
-          <Skeleton className="h-40 w-full rounded-lg" />
+        <PageLoadingState variant="detail" />
+      </div>
+    );
+  }
+
+  if (!runtime) {
+    return (
+      <div className="flex h-full flex-col overflow-hidden">
+        <PageHeader backTo="/runtimes" title={t(`${s}.title`)} />
+        <div className="grid min-h-0 flex-1 place-items-center px-4 text-center">
+          <div>
+            <Server className="mx-auto size-8 text-muted-foreground/25" />
+            <p className="mt-2 text-sm font-medium text-foreground">{t("common.notFound")}</p>
+            <Button
+              className="mt-2"
+              size="sm"
+              variant="outline"
+              onClick={() => runtimeQuery.refetch()}
+            >
+              <RefreshCw className="size-3.5" />
+              {t("common.retry")}
+            </Button>
+          </div>
         </div>
       </div>
     );
@@ -113,10 +135,10 @@ export const RuntimeEditPageContent = () => {
         title={`${t(`${s}.edit`)} — ${runtime.name || t(`${s}.unnamed`)}`}
       />
 
-      <div className="flex-1 overflow-y-auto">
-        <div className="mx-auto max-w-2xl space-y-6 p-6">
+      <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-8 pt-4 sm:px-7">
+        <div className={cn(surfaceCardVariants(), "mx-auto max-w-3xl p-4 sm:p-5")}>
           <Form {...form}>
-            <form className="space-y-6" onSubmit={form.handleSubmit(handleSubmit)}>
+            <form className="space-y-5" onSubmit={form.handleSubmit(handleSubmit)}>
               <FormField
                 control={form.control}
                 name="name"
@@ -131,7 +153,7 @@ export const RuntimeEditPageContent = () => {
                 )}
               />
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <FormField
                   control={form.control}
                   name="type"
@@ -196,10 +218,10 @@ export const RuntimeEditPageContent = () => {
               {connectionMode === "ssh" && (
                 <>
                   <Separator />
-                  <h3 className="text-xs font-medium text-muted-foreground">
+                  <h3 className="text-[10.5px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
                     {t(`${s}.sshConfig`)}
                   </h3>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <FormField
                       control={form.control}
                       name="connection.host"

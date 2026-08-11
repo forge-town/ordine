@@ -38,31 +38,31 @@ import { Stat } from "../Stat";
 const NODE_META: Record<string, { icon: React.ElementType; color: string }> = {
   operation: {
     icon: Zap,
-    color: "text-violet-600 bg-violet-50",
+    color: "bg-violet-500/10 text-violet-700 dark:text-violet-300",
   },
   file: {
     icon: FileCode,
-    color: "text-sky-600 bg-sky-50",
+    color: "bg-sky-500/10 text-sky-700 dark:text-sky-300",
   },
   folder: {
     icon: Folder,
-    color: "text-amber-600 bg-amber-50",
+    color: "bg-amber-500/10 text-amber-700 dark:text-amber-300",
   },
   "github-project": {
     icon: FolderGit2,
-    color: "text-slate-600 bg-slate-50",
+    color: "bg-slate-500/10 text-slate-700 dark:text-slate-300",
   },
   "output-local-path": {
     icon: HardDrive,
-    color: "text-emerald-600 bg-emerald-50",
+    color: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
   },
   "output-project-path": {
     icon: FolderOutput,
-    color: "text-teal-600 bg-teal-50",
+    color: "bg-teal-500/10 text-teal-700 dark:text-teal-300",
   },
   condition: {
     icon: GitMerge,
-    color: "text-rose-600 bg-rose-50",
+    color: "bg-rose-500/10 text-rose-700 dark:text-rose-300",
   },
 };
 
@@ -198,7 +198,7 @@ export const PipelineDetailPageContent = ({ pipelineId }: PipelineDetailPageCont
   if (!pipeline) {
     return (
       <div className="flex h-full items-center justify-center">
-        <p className="text-sm text-muted-foreground">Pipeline 不存在</p>
+        <p className="text-sm text-muted-foreground">{t("common.notFound")}</p>
       </div>
     );
   }
@@ -264,15 +264,17 @@ export const PipelineDetailPageContent = ({ pipelineId }: PipelineDetailPageCont
       {/* ── Body ───────────────────────────────────────────────────────── */}
       <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-4 pb-8 pt-4 sm:px-7">
         {/* Basic info card */}
-        <div className={cn(surfaceCardVariants(), "p-5")}>
+        <div className={cn(surfaceCardVariants(), "p-4 sm:p-5")}>
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
+              <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary ring-1 ring-primary/10">
                 <GitBranch className="h-5 w-5 text-primary" />
               </div>
               <div>
                 {pipeline.description && (
-                  <p className="text-sm text-gray-600 leading-relaxed">{pipeline.description}</p>
+                  <p className="text-[13px] leading-relaxed text-muted-foreground">
+                    {pipeline.description}
+                  </p>
                 )}
               </div>
             </div>
@@ -281,7 +283,7 @@ export const PipelineDetailPageContent = ({ pipelineId }: PipelineDetailPageCont
           {/* Tags */}
           {pipeline.tags.length > 0 && (
             <div className="mt-4 flex flex-wrap items-center gap-1.5">
-              <Tag className="h-3.5 w-3.5 text-gray-400" />
+              <Tag className="h-3.5 w-3.5 text-muted-foreground" />
               {pipeline.tags.map((tag) => (
                 <span
                   key={tag}
@@ -294,7 +296,7 @@ export const PipelineDetailPageContent = ({ pipelineId }: PipelineDetailPageCont
           )}
 
           {/* Stats row */}
-          <div className="mt-5 grid grid-cols-3 gap-4 border-t border-gray-50 pt-4">
+          <div className="mt-5 grid grid-cols-1 gap-3 border-t border-border pt-4 min-[520px]:grid-cols-3">
             <Stat icon={Layers} label={t("pipelines.nodeCount")} value={pipeline.nodes.length} />
             <Stat
               icon={Calendar}
@@ -320,7 +322,7 @@ export const PipelineDetailPageContent = ({ pipelineId }: PipelineDetailPageCont
                     key={type}
                     className={cn(
                       "flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium",
-                      meta?.color ?? "text-gray-600 bg-gray-50",
+                      meta?.color ?? "bg-surface-2 text-muted-foreground",
                       "border-current/20",
                     )}
                   >
@@ -335,12 +337,12 @@ export const PipelineDetailPageContent = ({ pipelineId }: PipelineDetailPageCont
 
         {/* Canvas preview ─────────────────────────────────────────────── */}
         <div className={cn(surfaceCardVariants(), "overflow-hidden")}>
-          <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100">
-            <span className="text-xs font-semibold uppercase tracking-wider text-gray-400">
+          <div className="flex items-center justify-between border-b border-border px-4 py-3 sm:px-5">
+            <span className="text-[10.5px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
               {t("pipelines.preview")}
             </span>
             <Link
-              className="text-xs text-violet-600 hover:underline"
+              className="text-xs font-medium text-primary hover:underline"
               search={{ id: pipeline.id }}
               to="/canvas"
             >
@@ -349,22 +351,22 @@ export const PipelineDetailPageContent = ({ pipelineId }: PipelineDetailPageCont
           </div>
 
           <div
-            className="relative h-72 cursor-pointer group"
+            className="group relative h-72 cursor-pointer bg-canvas"
             data-testid="canvas-preview"
             onClick={handleCanvasClick}
           >
             {/* Clickable overlay */}
-            <div className="absolute inset-0 z-10 bg-transparent group-hover:bg-black/5 transition-colors flex items-center justify-center">
-              <span className="opacity-0 group-hover:opacity-100 transition-opacity rounded-full bg-black/70 px-4 py-1.5 text-xs font-medium text-white">
+            <div className="absolute inset-0 z-10 flex items-center justify-center bg-transparent transition-colors group-hover:bg-foreground/5">
+              <span className="rounded-full bg-foreground/85 px-4 py-1.5 text-xs font-medium text-background opacity-0 shadow-soft transition-opacity group-hover:opacity-100">
                 {t("pipelines.clickToOpenInCanvas")}
               </span>
             </div>
 
             {pipeline.nodes.length === 0 ? (
               <div className="flex h-full flex-col items-center justify-center gap-2 text-center">
-                <GitBranch className="h-8 w-8 text-gray-200" />
-                <p className="text-sm text-gray-400">{t("pipelines.noStepsYet")}</p>
-                <p className="text-xs text-gray-300">{t("pipelines.clickToAdd")}</p>
+                <GitBranch className="h-8 w-8 text-muted-foreground/25" />
+                <p className="text-sm text-muted-foreground">{t("pipelines.noStepsYet")}</p>
+                <p className="text-xs text-muted-foreground/60">{t("pipelines.clickToAdd")}</p>
               </div>
             ) : (
               <ReactFlowProvider>
@@ -384,7 +386,7 @@ export const PipelineDetailPageContent = ({ pipelineId }: PipelineDetailPageCont
                   zoomOnDoubleClick={false}
                   zoomOnScroll={false}
                 >
-                  <Background color="#f3f4f6" gap={20} />
+                  <Background color="var(--canvas-dot)" gap={20} />
                 </ReactFlow>
               </ReactFlowProvider>
             )}
@@ -393,20 +395,20 @@ export const PipelineDetailPageContent = ({ pipelineId }: PipelineDetailPageCont
 
         {/* ── Run panel ─────────────────────────────────────────────────── */}
         <div className={surfaceCardVariants()}>
-          <div className="flex items-center gap-2 px-5 py-3 border-b border-gray-100">
-            <Play className="h-3.5 w-3.5 text-gray-400" />
-            <span className="text-xs font-semibold uppercase tracking-wider text-gray-400">
+          <div className="flex items-center gap-2 border-b border-border px-4 py-3 sm:px-5">
+            <Play className="h-3.5 w-3.5 text-muted-foreground" />
+            <span className="text-[10.5px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
               {t("pipelines.runPipeline")}
             </span>
           </div>
-          <div className="p-5 space-y-4">
+          <div className="space-y-4 p-4 sm:p-5">
             {/* Input path */}
             <div className="flex items-center gap-2">
-              <FolderOpen className="h-4 w-4 shrink-0 text-gray-400" />
+              <FolderOpen className="h-4 w-4 shrink-0 text-muted-foreground" />
               <Input
                 className="flex-1 font-mono text-xs"
                 disabled={runState === "running"}
-                placeholder="/path/to/your/file-or-folder (可选)"
+                placeholder={t("pipelines.inputPathOptional")}
                 value={inputPath}
                 onChange={handleInputPathChange}
               />
@@ -430,16 +432,20 @@ export const PipelineDetailPageContent = ({ pipelineId }: PipelineDetailPageCont
               <div className="space-y-2">
                 <div className="flex items-center gap-1.5">
                   {runState === "running" && (
-                    <Loader2 className="h-3.5 w-3.5 animate-spin text-blue-500" />
+                    <Loader2 className="h-3.5 w-3.5 animate-spin text-blue-500 dark:text-blue-400" />
                   )}
-                  {runState === "done" && <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />}
-                  {runState === "failed" && <XCircle className="h-3.5 w-3.5 text-red-500" />}
+                  {runState === "done" && (
+                    <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 dark:text-emerald-400" />
+                  )}
+                  {runState === "failed" && (
+                    <XCircle className="h-3.5 w-3.5 text-red-500 dark:text-red-400" />
+                  )}
                   <span
                     className={cn(
                       "text-xs font-medium",
-                      runState === "running" && "text-blue-600",
-                      runState === "done" && "text-green-600",
-                      runState === "failed" && "text-red-600",
+                      runState === "running" && "text-blue-700 dark:text-blue-300",
+                      runState === "done" && "text-emerald-700 dark:text-emerald-300",
+                      runState === "failed" && "text-red-700 dark:text-red-300",
                     )}
                   >
                     {runState === "running" && t("pipelines.runningStatus")}
@@ -447,7 +453,7 @@ export const PipelineDetailPageContent = ({ pipelineId }: PipelineDetailPageCont
                     {runState === "failed" && `${t("pipelines.failedStatus")}: ${runError ?? ""}`}
                   </span>
                   {jobId && (
-                    <span className="ml-auto font-mono text-[10px] text-gray-400">
+                    <span className="ml-auto font-mono text-[10px] text-muted-foreground">
                       Job: {jobId.slice(0, 8)}
                     </span>
                   )}
@@ -455,7 +461,7 @@ export const PipelineDetailPageContent = ({ pipelineId }: PipelineDetailPageCont
 
                 {/* Log viewer */}
                 {logs.length > 0 && (
-                  <div className="rounded-lg bg-gray-950 p-3 font-mono text-[11px] leading-relaxed text-gray-300 overflow-y-auto max-h-48 space-y-0.5">
+                  <div className="max-h-48 space-y-0.5 overflow-y-auto rounded-lg bg-neutral-950 p-3 font-mono text-[11px] leading-relaxed text-neutral-300 ring-1 ring-white/10">
                     {logs.map((line, i) => (
                       <div key={i} className="whitespace-pre-wrap break-all">
                         {line}
@@ -471,43 +477,43 @@ export const PipelineDetailPageContent = ({ pipelineId }: PipelineDetailPageCont
         {/* Node list ──────────────────────────────────────────────────── */}
         {pipeline.nodes.length > 0 && (
           <div className={surfaceCardVariants()}>
-            <div className="px-5 py-3 border-b border-gray-100">
-              <span className="text-xs font-semibold uppercase tracking-wider text-gray-400">
+            <div className="border-b border-border px-4 py-3 sm:px-5">
+              <span className="text-[10.5px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
                 {t("pipelines.nodeList")}
               </span>
             </div>
-            <ul className="divide-y divide-gray-50">
+            <ul className="divide-y divide-border">
               {pipeline.nodes.map((node) => {
                 const label = getNodeLabel(node, operations);
                 const meta = NODE_META[node.type];
                 const Icon = meta?.icon ?? Zap;
 
                 return (
-                  <li key={node.id} className="flex items-center gap-3 px-5 py-3">
+                  <li key={node.id} className="flex items-center gap-3 px-4 py-3 sm:px-5">
                     <div
                       className={cn(
                         "flex h-7 w-7 shrink-0 items-center justify-center rounded-md",
-                        meta?.color ?? "text-gray-600 bg-gray-50",
+                        meta?.color ?? "bg-surface-2 text-muted-foreground",
                       )}
                     >
                       <Icon className="h-3.5 w-3.5" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-800 truncate">{label}</p>
+                      <p className="truncate text-sm font-medium text-foreground">{label}</p>
                       {(() => {
                         const data = node.data;
                         if (data.nodeType !== "operation") return null;
                         const op = operations.find((o) => o.id === data.operationId);
 
                         return op?.description ? (
-                          <p className="text-xs text-gray-400 truncate">{op.description}</p>
+                          <p className="truncate text-xs text-muted-foreground">{op.description}</p>
                         ) : null;
                       })()}
                     </div>
                     <span
                       className={cn(
                         "shrink-0 rounded border px-2 py-0.5 text-[10px] font-medium",
-                        meta?.color ?? "text-gray-500 bg-gray-50",
+                        meta?.color ?? "bg-surface-2 text-muted-foreground",
                         "border-current/20",
                       )}
                     >

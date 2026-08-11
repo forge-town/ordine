@@ -1,25 +1,31 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useForm } from "react-hook-form";
 import { z } from "zod/v4";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@repo/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@repo/ui/form";
 import { Input } from "@repo/ui/input";
 import { useAuth } from "../../auth";
+import { AuthShell } from "../../components/AuthShell";
 
-const loginSchema = z.object({
-  email: z.email("Invalid email address"),
-  password: z.string().min(1, "Password is required"),
-});
-
-type LoginFormValues = z.infer<typeof loginSchema>;
+type LoginFormValues = { email: string; password: string };
 
 export const LoginPageContent = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { signInWithEmail, signInWithGitHub, signInWithGoogle } = useAuth();
   const [error, setError] = useState("");
+  const loginSchema = useMemo(
+    () =>
+      z.object({
+        email: z.email(t("auth.invalidEmail")),
+        password: z.string().min(1, t("auth.passwordRequired")),
+      }),
+    [t],
+  );
 
   const handleGitHubClick = () => signInWithGitHub("/");
   const handleGoogleClick = () => signInWithGoogle("/");
@@ -40,11 +46,11 @@ export const LoginPageContent = () => {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <Card className="w-full max-w-md" variant="surface">
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl">Sign In</CardTitle>
-          <CardDescription>Sign in to your Ordine account</CardDescription>
+    <AuthShell>
+      <Card className="w-full shadow-float" variant="surface">
+        <CardHeader className="pb-1 text-center">
+          <CardTitle className="text-xl tracking-[-0.02em]">{t("auth.signIn")}</CardTitle>
+          <CardDescription className="text-[12.5px]">{t("auth.signInDescription")}</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -59,9 +65,14 @@ export const LoginPageContent = () => {
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel>{t("auth.email")}</FormLabel>
                     <FormControl>
-                      <Input placeholder="you@example.com" type="email" {...field} />
+                      <Input
+                        autoComplete="email"
+                        placeholder="you@example.com"
+                        type="email"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -72,16 +83,16 @@ export const LoginPageContent = () => {
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Password</FormLabel>
+                    <FormLabel>{t("auth.password")}</FormLabel>
                     <FormControl>
-                      <Input type="password" {...field} />
+                      <Input autoComplete="current-password" type="password" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
               <Button className="w-full" disabled={loading} type="submit">
-                {loading ? "Signing in..." : "Sign In"}
+                {loading ? t("auth.signingIn") : t("auth.signIn")}
               </Button>
             </form>
           </Form>
@@ -92,7 +103,9 @@ export const LoginPageContent = () => {
                 <span className="w-full border-t" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-card px-2 text-muted-foreground">Or continue with</span>
+                <span className="bg-surface px-2 text-muted-foreground">
+                  {t("auth.continueWith")}
+                </span>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-2">
@@ -106,13 +119,13 @@ export const LoginPageContent = () => {
           </div>
 
           <p className="mt-4 text-center text-sm text-muted-foreground">
-            Don&apos;t have an account?{" "}
+            {t("auth.noAccount")}{" "}
             <a className="text-primary underline-offset-4 hover:underline" href="/sign-up">
-              Sign up
+              {t("auth.signUp")}
             </a>
           </p>
         </CardContent>
       </Card>
-    </div>
+    </AuthShell>
   );
 };

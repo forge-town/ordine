@@ -33,7 +33,7 @@ export const FolderTreePreview = ({
 
   if (loading) {
     return (
-      <div className="flex items-center gap-1 px-1 py-1 text-[10px] text-slate-400">
+      <div className="flex items-center gap-1 px-1 py-1 text-[10px] text-muted-foreground">
         <RotateCw className="h-3 w-3 animate-spin" />
         {t("canvas.folderTreeLoading")}
       </div>
@@ -44,7 +44,7 @@ export const FolderTreePreview = ({
 
   return (
     <div
-      className="nodrag nopan max-h-32 overflow-y-auto rounded-md border border-slate-100 bg-slate-50/50 px-1 py-0.5"
+      className="nodrag nopan max-h-32 overflow-y-auto rounded-md bg-surface-2/60 px-1 py-0.5 ring-1 ring-border"
       onMouseDown={handleStopPropagation}
     >
       {entries.map((entry) => {
@@ -54,18 +54,18 @@ export const FolderTreePreview = ({
         return (
           <div
             key={entry.name}
-            className="group/entry flex items-center gap-1 rounded px-1 py-0.5 text-[10px] hover:bg-slate-100 transition-colors"
+            className="group/entry flex items-center gap-1 rounded px-1 py-0.5 text-[10px] transition-colors hover:bg-muted"
             data-excluded={isExcluded}
           >
             {entry.type === "directory" ? (
               <Folder className="h-3 w-3 shrink-0 text-orange-400" />
             ) : (
-              <File className="h-3 w-3 shrink-0 text-slate-400" />
+              <File className="h-3 w-3 shrink-0 text-muted-foreground" />
             )}
             <span
               className={cn(
                 "flex-1 truncate font-mono",
-                isExcluded ? "line-through text-slate-400" : "text-slate-600",
+                isExcluded ? "text-muted-foreground/60 line-through" : "text-muted-foreground",
               )}
             >
               {entry.name}
@@ -73,7 +73,7 @@ export const FolderTreePreview = ({
             {!isExcluded && entry.type === "directory" && (
               <Button
                 aria-label={t("canvas.excludePath", { name: entry.name })}
-                className="nodrag nopan opacity-0 group-hover/entry:opacity-100 rounded p-0.5 text-red-400 hover:bg-red-100 hover:text-red-600 transition-all h-auto"
+                className="nodrag nopan h-auto rounded p-0.5 text-red-500 opacity-0 transition-all hover:bg-red-500/10 hover:text-red-700 group-hover/entry:opacity-100 dark:hover:text-red-300"
                 size="icon-xs"
                 type="button"
                 variant="ghost"

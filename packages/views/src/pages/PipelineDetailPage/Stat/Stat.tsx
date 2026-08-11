@@ -5,13 +5,13 @@ export type StatProps = {
 };
 
 export const Stat = ({ icon: Icon, label, value }: StatProps) => (
-  <div className="flex items-center gap-2">
-    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-100">
-      <Icon className="h-4 w-4 text-gray-500" />
+  <div className="flex min-w-0 items-center gap-2.5">
+    <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-surface-2 text-muted-foreground ring-1 ring-border">
+      <Icon className="size-3.5" />
     </div>
-    <div>
-      <p className="text-xs text-gray-400">{label}</p>
-      <p className="text-sm font-semibold text-gray-800">{value}</p>
+    <div className="min-w-0">
+      <p className="truncate text-[10.5px] text-muted-foreground">{label}</p>
+      <p className="truncate text-[13px] font-semibold text-foreground">{value}</p>
     </div>
   </div>
 );

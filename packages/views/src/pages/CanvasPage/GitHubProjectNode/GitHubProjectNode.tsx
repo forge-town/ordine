@@ -105,34 +105,34 @@ export const GitHubProjectNode = ({ id, data, selected }: GitHubProjectNodeProps
           isLocal ? (
             /* Local folder connected */
             <div
-              className="flex items-center gap-1.5 rounded-md border border-slate-100 bg-slate-50 px-2.5 py-1.5 cursor-pointer hover:bg-orange-50 hover:border-orange-200 transition-colors"
+              className="flex cursor-pointer items-center gap-1.5 rounded-md bg-surface-2 px-2.5 py-1.5 ring-1 ring-border transition-colors hover:bg-orange-500/10 hover:ring-orange-500/25"
               title={t("canvas.clickToSwitchLocalFolder")}
               onClick={handleLocalFolderOpen}
               onMouseDown={handleMouseDown}
             >
-              <FolderOpen className="h-3 w-3 shrink-0 text-orange-400" />
-              <span className="font-mono text-[11px] font-semibold text-slate-700 flex-1 min-w-0 truncate">
+              <FolderOpen className="h-3 w-3 shrink-0 text-orange-500" />
+              <span className="min-w-0 flex-1 truncate font-mono text-[11px] font-semibold text-foreground">
                 {data.localPath}
               </span>
             </div>
           ) : (
             /* GitHub repo connected */
             <div
-              className="flex items-center gap-1.5 rounded-md border border-slate-100 bg-slate-50 px-2.5 py-1.5 cursor-pointer hover:bg-orange-50 hover:border-orange-200 transition-colors"
+              className="flex cursor-pointer items-center gap-1.5 rounded-md bg-surface-2 px-2.5 py-1.5 ring-1 ring-border transition-colors hover:bg-orange-500/10 hover:ring-orange-500/25"
               title={t("canvas.clickToSwitchRepo")}
               onClick={handlePickOpen}
               onMouseDown={handleMouseDown}
             >
               {data.isPrivate ? (
-                <Lock className="h-3 w-3 shrink-0 text-orange-400" />
+                <Lock className="h-3 w-3 shrink-0 text-orange-500" />
               ) : (
-                <Globe className="h-3 w-3 shrink-0 text-slate-400" />
+                <Globe className="h-3 w-3 shrink-0 text-muted-foreground" />
               )}
-              <span className="font-mono text-[11px] font-semibold text-slate-700 flex-1 min-w-0 truncate">
+              <span className="min-w-0 flex-1 truncate font-mono text-[11px] font-semibold text-foreground">
                 {data.owner}/{data.repo}
               </span>
               {data.branch && (
-                <span className="shrink-0 rounded bg-orange-100 px-1 py-0.5 font-mono text-[10px] font-medium text-orange-700">
+                <span className="shrink-0 rounded bg-orange-500/10 px-1 py-0.5 font-mono text-[10px] font-medium text-orange-700 dark:text-orange-300">
                   {data.branch}
                 </span>
               )}
@@ -141,7 +141,7 @@ export const GitHubProjectNode = ({ id, data, selected }: GitHubProjectNodeProps
         ) : (
           <div className="space-y-1.5" onMouseDown={handleMouseDown}>
             <Button
-              className="nodrag nopan flex w-full items-center justify-center gap-1.5 rounded-md border border-orange-200 bg-orange-50 py-1.5 text-[11px] font-medium text-orange-700 hover:bg-orange-100 transition-colors h-auto"
+              className="nodrag nopan flex h-auto w-full items-center justify-center gap-1.5 rounded-md border border-orange-500/25 bg-orange-500/10 py-1.5 text-[11px] font-medium text-orange-700 transition-colors hover:bg-orange-500/15 dark:text-orange-300"
               type="button"
               variant="ghost"
               onClick={handlePickOpen}
@@ -150,7 +150,7 @@ export const GitHubProjectNode = ({ id, data, selected }: GitHubProjectNodeProps
               {t("canvas.pickFromLibrary")}
             </Button>
             <Button
-              className="nodrag nopan flex w-full items-center justify-center gap-1.5 rounded-md border border-dashed border-slate-200 bg-slate-50/50 py-1.5 text-[11px] text-slate-500 hover:bg-slate-100 transition-colors h-auto"
+              className="nodrag nopan flex h-auto w-full items-center justify-center gap-1.5 rounded-md border border-dashed border-border bg-surface-2/60 py-1.5 text-[11px] text-muted-foreground transition-colors hover:bg-muted"
               type="button"
               variant="ghost"
               onClick={handleConnectOpen}
@@ -159,7 +159,7 @@ export const GitHubProjectNode = ({ id, data, selected }: GitHubProjectNodeProps
               {t("canvas.enterUrlDirectly")}
             </Button>
             <Button
-              className="nodrag nopan flex w-full items-center justify-center gap-1.5 rounded-md border border-dashed border-slate-200 bg-slate-50/50 py-1.5 text-[11px] text-slate-500 hover:bg-slate-100 transition-colors h-auto"
+              className="nodrag nopan flex h-auto w-full items-center justify-center gap-1.5 rounded-md border border-dashed border-border bg-surface-2/60 py-1.5 text-[11px] text-muted-foreground transition-colors hover:bg-muted"
               type="button"
               variant="ghost"
               onClick={handleLocalFolderOpen}
@@ -173,7 +173,7 @@ export const GitHubProjectNode = ({ id, data, selected }: GitHubProjectNodeProps
         {/* Description */}
         {isConnected && !isLocal && (
           <Textarea
-            className="nodrag nopan text-[11px] text-slate-500 bg-transparent w-full resize-none focus:outline-none focus:bg-slate-50 focus:ring-1 focus:ring-slate-200 rounded px-1 border-none shadow-none min-h-0 p-0"
+            className="nodrag nopan min-h-0 w-full resize-none rounded border-none bg-transparent p-0 px-1 text-[11px] text-muted-foreground shadow-none focus:bg-surface-2 focus:outline-none focus:ring-1 focus:ring-border-strong"
             placeholder={t("canvas.repoDescPlaceholder")}
             rows={2}
             value={data.description ?? ""}
@@ -185,7 +185,7 @@ export const GitHubProjectNode = ({ id, data, selected }: GitHubProjectNodeProps
         {/* Connected repo link */}
         {repoUrl && (
           <a
-            className="nodrag nopan flex items-center gap-1 text-[10px] text-slate-400 hover:text-orange-500 transition-colors"
+            className="nodrag nopan flex items-center gap-1 text-[10px] text-muted-foreground transition-colors hover:text-orange-500"
             href={repoUrl}
             rel="noopener noreferrer"
             target="_blank"
@@ -200,9 +200,9 @@ export const GitHubProjectNode = ({ id, data, selected }: GitHubProjectNodeProps
         {isConnected && (
           <>
             <div className="flex items-center gap-1.5" onMouseDown={handleMouseDown}>
-              <Eye className="h-3 w-3 shrink-0 text-slate-400" />
+              <Eye className="h-3 w-3 shrink-0 text-muted-foreground" />
               <Select value={disclosureMode} onValueChange={handleDisclosureModeChange}>
-                <SelectTrigger className="nodrag nopan h-6 flex-1 min-w-0 border-slate-200 bg-slate-50 text-[10px] shadow-none focus:ring-1 focus:ring-slate-300">
+                <SelectTrigger className="nodrag nopan h-6 min-w-0 flex-1 border-border bg-surface-2 text-[10px] shadow-none focus:ring-1 focus:ring-ring">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -218,12 +218,12 @@ export const GitHubProjectNode = ({ id, data, selected }: GitHubProjectNodeProps
                 {excludedPaths.map((ep) => (
                   <span
                     key={ep}
-                    className="inline-flex items-center gap-0.5 rounded-md bg-red-50 px-1.5 py-0.5 text-[10px] font-medium text-red-700 ring-1 ring-red-200"
+                    className="inline-flex items-center gap-0.5 rounded-md bg-red-500/10 px-1.5 py-0.5 text-[10px] font-medium text-red-700 ring-1 ring-red-500/20 dark:text-red-300"
                   >
                     {ep}
                     <Button
                       aria-label={`${t("canvas.removeExclude")} ${ep}`}
-                      className="nodrag nopan rounded-sm p-0 hover:bg-red-200 transition-colors h-auto"
+                      className="nodrag nopan h-auto rounded-sm p-0 transition-colors hover:bg-red-500/15"
                       size="icon-xs"
                       type="button"
                       variant="ghost"

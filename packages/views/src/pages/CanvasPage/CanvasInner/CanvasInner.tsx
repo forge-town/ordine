@@ -133,9 +133,9 @@ export const CanvasInner = () => {
 
         <div className="relative flex min-h-0 flex-1 overflow-hidden">
           {isSidebarOpen && (
-            <div className="relative shrink-0 max-[980px]:pointer-events-auto max-[980px]:absolute max-[980px]:inset-y-0 max-[980px]:left-0 max-[980px]:z-30">
+            <div className="relative shrink-0 max-[981px]:pointer-events-auto max-[981px]:absolute max-[981px]:inset-y-0 max-[981px]:left-0 max-[981px]:z-30">
               <aside
-                className="h-full shrink-0 border-r bg-background shadow-none max-[980px]:max-w-[calc(100vw-4rem)] max-[980px]:shadow-float"
+                className="h-full shrink-0 border-r bg-background shadow-none max-[981px]:max-w-[calc(100vw-4rem)] max-[981px]:shadow-float"
                 data-testid="canvas-work-panel"
                 style={{ width: `${workspacePanelWidth}px` }}
               >
@@ -149,7 +149,7 @@ export const CanvasInner = () => {
                 aria-label={t("canvas.operationsPanel.resize", {
                   defaultValue: "Resize operations panel",
                 })}
-                className="absolute inset-y-0 -right-2 z-10 h-full w-4 cursor-col-resize touch-none rounded-none px-0 max-[980px]:hidden"
+                className="absolute inset-y-0 -right-2 z-10 h-full w-4 cursor-col-resize touch-none rounded-none px-0 max-[981px]:hidden"
                 data-testid="canvas-work-panel-resizer"
                 size="icon"
                 variant="ghost"

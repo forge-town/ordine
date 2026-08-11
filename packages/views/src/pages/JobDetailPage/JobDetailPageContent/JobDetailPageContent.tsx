@@ -33,42 +33,42 @@ import { useStore } from "zustand";
 const STATUS_CONFIG: Record<JobStatus, { icon: React.ElementType; cls: string; bar: string }> = {
   queued: {
     icon: Clock,
-    cls: "bg-gray-100 text-gray-700",
-    bar: "bg-gray-300",
+    cls: "bg-surface-2 text-muted-foreground ring-1 ring-border",
+    bar: "bg-border-strong",
   },
   running: {
     icon: Loader2,
-    cls: "bg-blue-50 text-blue-700",
+    cls: "bg-blue-500/10 text-blue-700 dark:text-blue-300",
     bar: "bg-blue-500",
   },
   paused: {
     icon: Pause,
-    cls: "bg-violet-50 text-violet-700",
+    cls: "bg-violet-500/10 text-violet-700 dark:text-violet-300",
     bar: "bg-violet-400",
   },
   done: {
     icon: CheckCircle2,
-    cls: "bg-emerald-50 text-emerald-700",
+    cls: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
     bar: "bg-emerald-500",
   },
   failed: {
     icon: XCircle,
-    cls: "bg-red-50 text-red-700",
+    cls: "bg-red-500/10 text-red-700 dark:text-red-300",
     bar: "bg-red-500",
   },
   cancelled: {
     icon: Ban,
-    cls: "bg-amber-50 text-amber-700",
+    cls: "bg-amber-500/10 text-amber-700 dark:text-amber-300",
     bar: "bg-amber-400",
   },
   expired: {
     icon: Clock,
-    cls: "bg-slate-100 text-slate-700",
+    cls: "bg-slate-500/10 text-slate-700 dark:text-slate-300",
     bar: "bg-slate-400",
   },
   skipped: {
     icon: SkipForward,
-    cls: "bg-zinc-100 text-zinc-500",
+    cls: "bg-zinc-500/10 text-zinc-600 dark:text-zinc-300",
     bar: "bg-zinc-400",
   },
 };
@@ -309,11 +309,11 @@ export const JobDetailPageContent = () => {
           </div>
 
           {job.error && (
-            <div className="rounded-xl border border-red-100 bg-red-50 p-4">
-              <p className="mb-1.5 text-xs font-semibold text-red-600">
+            <div className="rounded-lg bg-destructive/10 p-4 ring-1 ring-destructive/20">
+              <p className="mb-1.5 text-xs font-semibold text-destructive">
                 {t("errors.networkError")}
               </p>
-              <pre className="text-xs text-red-700 font-mono whitespace-pre-wrap break-all">
+              <pre className="break-all whitespace-pre-wrap font-mono text-xs text-destructive/90">
                 {job.error}
               </pre>
             </div>
@@ -322,7 +322,7 @@ export const JobDetailPageContent = () => {
           <AgentRunsPanel jobId={jobId} />
 
           <div className={cn(surfaceCardVariants(), "overflow-hidden")}>
-            <div className="flex items-center gap-2 border-b border-border bg-muted/50 px-4 py-2.5">
+            <div className="flex items-center gap-2 border-b border-border bg-surface-2/60 px-4 py-2.5">
               <Terminal className="h-3.5 w-3.5 text-muted-foreground" />
               <span className="text-xs font-semibold text-muted-foreground">{t("jobs.logs")}</span>
               <span className="ml-auto text-[11px] text-muted-foreground">{traces.length}</span>
@@ -333,10 +333,10 @@ export const JobDetailPageContent = () => {
                 <p className="mt-2 text-xs text-muted-foreground">{t("jobs.noLogs")}</p>
               </div>
             ) : (
-              <div className="bg-gray-950 p-4 overflow-x-auto max-h-96 overflow-y-auto">
+              <div className="max-h-96 overflow-x-auto overflow-y-auto bg-neutral-950 p-4 ring-1 ring-inset ring-white/10">
                 {traces.map((tr, i) => (
                   <div key={tr.id} className="flex min-w-0 gap-3">
-                    <span className="shrink-0 w-8 text-right text-[10px] text-gray-600 font-mono select-none">
+                    <span className="w-8 shrink-0 select-none text-right font-mono text-[10px] text-neutral-600">
                       {i + 1}
                     </span>
                     <span
@@ -347,7 +347,7 @@ export const JobDetailPageContent = () => {
                     >
                       {tr.level}
                     </span>
-                    <span className="min-w-0 text-xs text-gray-200 font-mono whitespace-pre-wrap break-all">
+                    <span className="min-w-0 break-all whitespace-pre-wrap font-mono text-xs text-neutral-200">
                       {tr.message}
                     </span>
                   </div>

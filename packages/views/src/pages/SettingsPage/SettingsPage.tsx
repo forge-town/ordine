@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { safeJsonParse } from "../../lib/safeJson";
 import { SettingsPageStoreProvider, type AppSettings } from "./_store";
 import { SettingsPageContent } from "./SettingsPageContent";
@@ -15,8 +16,20 @@ const loadInitialSettings = (): Partial<AppSettings> | undefined => {
 };
 
 export const SettingsPage = () => {
+  const [hydratedSettings, setHydratedSettings] = useState<{
+    ready: boolean;
+    value?: Partial<AppSettings>;
+  }>({ ready: false });
+
+  useEffect(() => {
+    setHydratedSettings({ ready: true, value: loadInitialSettings() });
+  }, []);
+
   return (
-    <SettingsPageStoreProvider initialSettings={loadInitialSettings()}>
+    <SettingsPageStoreProvider
+      key={hydratedSettings.ready ? "hydrated" : "server"}
+      initialSettings={hydratedSettings.value}
+    >
       <SettingsPageContent />
     </SettingsPageStoreProvider>
   );

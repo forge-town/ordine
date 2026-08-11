@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Bot,
   ChevronDown,
@@ -25,6 +26,7 @@ interface AgentRunCardProps {
 }
 
 export const AgentRunCard = ({ jobId, run }: AgentRunCardProps) => {
+  const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
   const [rawExpanded, setRawExpanded] = useState(false);
   const handleToggleRawButtonClick = () => setRawExpanded((prev) => !prev);
@@ -109,11 +111,11 @@ export const AgentRunCard = ({ jobId, run }: AgentRunCardProps) => {
               onClick={handleToggleRawButtonClick}
             >
               <FileJson className="h-3 w-3" />
-              {rawExpanded ? "Hide raw JSON" : "View raw JSON"}
+              {rawExpanded ? t("jobs.agentRuns.hideRaw") : t("jobs.agentRuns.viewRaw")}
             </Button>
             {rawExpanded && (
-              <div className="bg-gray-950 p-4 overflow-x-auto max-h-64 overflow-y-auto">
-                <pre className="text-[11px] text-gray-300 font-mono whitespace-pre-wrap break-all">
+              <div className="max-h-64 overflow-x-auto overflow-y-auto bg-neutral-950 p-4 ring-1 ring-inset ring-white/10">
+                <pre className="break-all whitespace-pre-wrap font-mono text-[11px] text-neutral-300">
                   {JSON.stringify(run.rawPayload, null, 2)}
                 </pre>
               </div>

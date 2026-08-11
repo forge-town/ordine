@@ -5,6 +5,7 @@ import { surfaceCardVariants } from "@repo/ui/card";
 import { cn } from "@repo/ui/lib/utils";
 import { pluginRegistry } from "@repo/plugin";
 import { PageHeader } from "../../../components/PageHeader";
+import { PageState } from "../../../components/PageState";
 
 export const PluginsPageContent = () => {
   const { t } = useTranslation();
@@ -21,7 +22,7 @@ export const PluginsPageContent = () => {
 
       <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-8 pt-4 sm:px-7">
         {plugins.length === 0 ? (
-          <p className="text-sm text-muted-foreground">{t("plugins.noPlugins")}</p>
+          <PageState icon={<Puzzle />} title={t("plugins.noPlugins")} />
         ) : (
           <div className="grid gap-3">
             {plugins.map((plugin) => (

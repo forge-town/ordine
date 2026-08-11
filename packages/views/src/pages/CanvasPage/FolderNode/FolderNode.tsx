@@ -97,9 +97,9 @@ export const FolderNode = ({ id, data, selected }: FolderNodeProps) => {
         theme="orange"
         onLabelChange={handleLabelChange}
       >
-        <div className="flex items-center gap-1 rounded-md border border-slate-100 bg-slate-50 px-2 py-1">
+        <div className="flex items-center gap-1 rounded-md bg-surface-2 px-2 py-1 ring-1 ring-border">
           <Input
-            className="nodrag nopan font-mono text-[11px] font-semibold text-slate-700 bg-transparent focus:outline-none flex-1 min-w-0 border-none shadow-none p-0 h-auto"
+            className="nodrag nopan h-auto min-w-0 flex-1 border-none bg-transparent p-0 font-mono text-[11px] font-semibold text-foreground shadow-none focus:outline-none"
             placeholder="src/components/"
             value={data.folderPath}
             onChange={handleFolderPathInputChange}
@@ -108,7 +108,7 @@ export const FolderNode = ({ id, data, selected }: FolderNodeProps) => {
             onMouseDown={handleStopPropagation}
           />
           <Button
-            className="nodrag nopan shrink-0 rounded p-0.5 text-orange-400 hover:bg-orange-100 hover:text-orange-700 transition-colors h-auto"
+            className="nodrag nopan h-auto shrink-0 rounded p-0.5 text-orange-500 transition-colors hover:bg-orange-500/10 hover:text-orange-700 dark:hover:text-orange-300"
             title={t("canvas.browseFolder")}
             type="button"
             variant="ghost"
@@ -124,12 +124,12 @@ export const FolderNode = ({ id, data, selected }: FolderNodeProps) => {
             {excludedPaths.map((ep) => (
               <span
                 key={ep}
-                className="inline-flex items-center gap-0.5 rounded-md bg-red-50 px-1.5 py-0.5 text-[10px] font-medium text-red-700 ring-1 ring-red-200"
+                className="inline-flex items-center gap-0.5 rounded-md bg-red-500/10 px-1.5 py-0.5 text-[10px] font-medium text-red-700 ring-1 ring-red-500/20 dark:text-red-300"
               >
                 {ep}
                 <Button
                   aria-label={`${t("canvas.removeExclude")} ${ep}`}
-                  className="nodrag nopan rounded-sm p-0 hover:bg-red-200 transition-colors h-auto"
+                  className="nodrag nopan h-auto rounded-sm p-0 transition-colors hover:bg-red-500/15"
                   size="icon-xs"
                   type="button"
                   variant="ghost"
@@ -150,7 +150,7 @@ export const FolderNode = ({ id, data, selected }: FolderNodeProps) => {
         />
 
         <Textarea
-          className="nodrag nopan text-[11px] text-slate-500 bg-transparent w-full resize-none focus:outline-none focus:bg-slate-50 focus:ring-1 focus:ring-slate-200 rounded px-1 border-none shadow-none min-h-0 p-0"
+          className="nodrag nopan min-h-0 w-full resize-none rounded border-none bg-transparent p-0 px-1 text-[11px] text-muted-foreground shadow-none focus:bg-surface-2 focus:outline-none focus:ring-1 focus:ring-border-strong"
           placeholder={t("canvas.folderDescPlaceholder")}
           rows={2}
           value={data.description ?? ""}

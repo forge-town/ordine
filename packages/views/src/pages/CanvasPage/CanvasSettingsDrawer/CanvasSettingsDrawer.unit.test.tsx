@@ -42,6 +42,11 @@ describe("CanvasSettingsDrawer", () => {
 
     expect(screen.getByText(/Canvas Settings|Canvas 设置/)).toBeInTheDocument();
     expect(
+      screen.queryByText(
+        /Tune this canvas view without leaving the current pipeline|不离开当前 Pipeline/,
+      ),
+    ).not.toBeInTheDocument();
+    expect(
       screen.getByLabelText(/Pipeline shared context|Pipeline 共享上下文/),
     ).toBeInTheDocument();
     expect(screen.getByLabelText(/Show minimap|显示 MiniMap/)).toBeChecked();

@@ -137,7 +137,7 @@ describe("CanvasInner", () => {
   it("renders the workspace panel at the default width with a resize handle", () => {
     render(<CanvasInner />, { wrapper });
 
-    expect(screen.getByTestId("canvas-work-panel")).toHaveStyle({ width: "350px" });
+    expect(screen.getByTestId("canvas-work-panel")).toHaveStyle({ width: "300px" });
     expect(screen.getByTestId("canvas-work-panel-resizer")).toBeInTheDocument();
   });
 
@@ -164,7 +164,7 @@ describe("CanvasInner", () => {
     expect(workPanel).toHaveStyle({ width: "288px" });
 
     fireEvent.mouseMove(globalWindow, { clientX: 460 });
-    expect(workPanel).toHaveStyle({ width: "458px" });
+    expect(workPanel).toHaveStyle({ width: "408px" });
 
     fireEvent.mouseMove(globalWindow, { clientX: 700 });
     expect(workPanel).toHaveStyle({ width: "560px" });
@@ -195,8 +195,8 @@ describe("CanvasInner", () => {
       "min-[701px]:static",
     );
     expect(screen.getByTestId("canvas-work-panel").parentElement).toHaveClass(
-      "max-[980px]:absolute",
-      "max-[980px]:left-0",
+      "max-[981px]:absolute",
+      "max-[981px]:left-0",
     );
   });
 
@@ -297,7 +297,8 @@ describe("CanvasInner", () => {
     await user.click(screen.getByRole("button", { name: /Workspace/i }));
 
     expect(screen.getByTestId("canvas-workspace-sidebar-overlay")).toBeInTheDocument();
-    expect(screen.getByText("Dashboard")).toBeInTheDocument();
+    expect(screen.getByText("Pipelines")).toBeInTheDocument();
+    expect(screen.getByText("Assembly")).toBeInTheDocument();
   });
 
   it("shows the canvas empty state when there are no nodes", () => {

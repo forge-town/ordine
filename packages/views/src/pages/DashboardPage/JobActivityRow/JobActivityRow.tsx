@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { Clock, Loader2, CheckCircle2, XCircle } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { cn } from "@repo/ui/lib/utils";
 import type { Job } from "@repo/schemas";
 
@@ -11,10 +12,17 @@ const JOB_STATUS_ICON: Record<string, React.ElementType> = {
 };
 
 const JOB_STATUS_CLS: Record<string, string> = {
-  queued: "text-gray-400",
-  running: "text-gray-600",
-  done: "text-gray-600",
-  failed: "text-gray-600",
+  queued: "text-muted-foreground",
+  running: "text-blue-600 dark:text-blue-400",
+  done: "text-emerald-600 dark:text-emerald-400",
+  failed: "text-red-600 dark:text-red-400",
+};
+
+const JOB_STATUS_LABEL: Record<string, string> = {
+  queued: "jobs.statusQueued",
+  running: "jobs.statusRunning",
+  done: "jobs.statusDone",
+  failed: "jobs.statusFailed",
 };
 
 export type JobActivityRowProps = {
@@ -22,11 +30,12 @@ export type JobActivityRowProps = {
 };
 
 export const JobActivityRow = ({ job }: JobActivityRowProps) => {
+  const { t } = useTranslation();
   const Icon = JOB_STATUS_ICON[job.status] ?? Clock;
 
   return (
     <Link params={{ jobId: job.id }} to="/pipelines/jobs/$jobId">
-      <div className="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 hover:bg-accent transition-colors">
+      <div className="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 transition-colors hover:bg-accent">
         <Icon
           className={cn(
             "h-4 w-4 shrink-0",
@@ -46,7 +55,7 @@ export const JobActivityRow = ({ job }: JobActivityRowProps) => {
           </p>
         </div>
         <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
-          {job.status}
+          {t(JOB_STATUS_LABEL[job.status] ?? "common.notFound")}
         </span>
       </div>
     </Link>

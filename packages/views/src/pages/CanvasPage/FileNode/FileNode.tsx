@@ -85,10 +85,10 @@ export const FileNode = ({ id, data, selected }: FileNodeProps) => {
         theme="orange"
         onLabelChange={handleLabelChange}
       >
-        <div className="flex items-center gap-1 rounded-md border border-slate-100 bg-slate-50 px-2 py-1">
+        <div className="flex items-center gap-1 rounded-md bg-surface-2 px-2 py-1 ring-1 ring-border">
           <input
             aria-label={t("nodes.codeFile.pathLabel")}
-            className="nodrag nopan font-mono text-[11px] font-semibold text-slate-700 bg-transparent focus:outline-none flex-1 min-w-0"
+            className="nodrag nopan min-w-0 flex-1 bg-transparent font-mono text-[11px] font-semibold text-foreground focus:outline-none"
             name={`${id}-filePath`}
             placeholder="src/file.tsx"
             value={data.filePath}
@@ -98,7 +98,7 @@ export const FileNode = ({ id, data, selected }: FileNodeProps) => {
             onMouseDown={handleStopPropagation}
           />
           <button
-            className="nodrag nopan shrink-0 rounded p-0.5 text-orange-400 hover:bg-orange-100 hover:text-orange-700 transition-colors"
+            className="nodrag nopan shrink-0 rounded p-0.5 text-orange-500 transition-colors hover:bg-orange-500/10 hover:text-orange-700 dark:hover:text-orange-300"
             title={t("nodes.codeFile.browseFile")}
             type="button"
             onClick={handleBrowseButtonClick}
@@ -108,7 +108,7 @@ export const FileNode = ({ id, data, selected }: FileNodeProps) => {
           </button>
           <input
             aria-label={t("nodes.codeFile.languageLabel")}
-            className="nodrag nopan w-12 shrink-0 rounded bg-orange-100 px-1 py-0.5 font-mono text-[10px] font-medium text-orange-700 focus:outline-none focus:bg-orange-50 text-right"
+            className="nodrag nopan w-12 shrink-0 rounded bg-orange-500/10 px-1 py-0.5 text-right font-mono text-[10px] font-medium text-orange-700 focus:outline-none focus:bg-orange-500/15 dark:text-orange-300"
             name={`${id}-language`}
             placeholder="ts"
             value={data.language ?? ""}
@@ -120,7 +120,7 @@ export const FileNode = ({ id, data, selected }: FileNodeProps) => {
         </div>
         <textarea
           aria-label={t("nodes.codeFile.descriptionLabel")}
-          className="nodrag nopan text-[11px] text-slate-500 bg-transparent w-full resize-none focus:outline-none focus:bg-slate-50 focus:ring-1 focus:ring-slate-200 rounded px-1"
+          className="nodrag nopan w-full resize-none rounded bg-transparent px-1 text-[11px] text-muted-foreground focus:bg-surface-2 focus:outline-none focus:ring-1 focus:ring-border-strong"
           name={`${id}-description`}
           placeholder={t("nodes.codeFile.descriptionPlaceholder")}
           rows={2}

@@ -49,7 +49,7 @@ export const DEFAULT_CANVAS_SETTINGS: CanvasSettingsState = {
   snapToGrid: false,
 };
 
-export const DEFAULT_WORKSPACE_PANEL_WIDTH = 350;
+export const DEFAULT_WORKSPACE_PANEL_WIDTH = 300;
 export const MIN_WORKSPACE_PANEL_WIDTH = 288;
 export const MAX_WORKSPACE_PANEL_WIDTH = 560;
 

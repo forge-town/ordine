@@ -36,7 +36,31 @@
     "createdAt": "创建时间",
     "updatedAt": "更新时间",
     "generating": "生成中...",
-    "clearSearch": "清除搜索"
+    "clearSearch": "清除搜索",
+    "retry": "重试"
+  },
+  "auth": {
+    "workspace": "可组合的 AI 工作区",
+    "secureWorkspace": "用于流水线、智能体与复用能力的私有工作区。",
+    "signIn": "登录",
+    "signInDescription": "继续进入你的 Ordine 工作区",
+    "signUp": "注册",
+    "signUpDescription": "创建你的 Ordine 工作区账户",
+    "createAccount": "创建账户",
+    "signingIn": "正在登录...",
+    "creatingAccount": "正在创建账户...",
+    "continueWith": "或使用以下方式继续",
+    "email": "邮箱",
+    "password": "密码",
+    "name": "姓名",
+    "namePlaceholder": "你的姓名",
+    "passwordPlaceholder": "至少 8 个字符",
+    "noAccount": "还没有账户？",
+    "hasAccount": "已有账户？",
+    "invalidEmail": "请输入有效的邮箱地址",
+    "passwordRequired": "请输入密码",
+    "nameRequired": "请输入姓名",
+    "passwordMin": "密码至少需要 8 个字符"
   },
   "nav": {
     "dashboard": "仪表盘",
@@ -156,7 +180,11 @@
   "objects": {
     "title": "对象",
     "subtitle": "由已安装插件贡献的对象类型。",
-    "noObjects": "暂无已注册的对象类型"
+    "noObjects": "暂无已注册的对象类型",
+    "files": "文件",
+    "folders": "文件夹",
+    "noItems": "暂无对象",
+    "notFound": "未找到对象类型 {{id}}"
   },
   "sidebar": {
     "user": "Ordine 用户",
@@ -244,7 +272,12 @@
     "result": "执行结果",
     "agentRuns": {
       "collapse": "收起",
-      "showAll": "展开全部（{{count}} 字符）"
+      "showAll": "展开全部（{{count}} 字符）",
+      "hideRaw": "收起原始 JSON",
+      "viewRaw": "查看原始 JSON",
+      "title": "智能体运行",
+      "loading": "正在加载智能体运行...",
+      "empty": "暂无智能体运行记录"
     },
     "calendar": {
       "condensed": "高频排程按每小时一个区块聚合显示。",
@@ -444,6 +477,11 @@
     "categoryLabel": "分类",
     "acceptedObjectTypes": "可应用的对象类型",
     "executorType": "执行方式",
+    "executorAgent": "智能体",
+    "executorScript": "脚本",
+    "agentModeSkill": "技能",
+    "agentModePrompt": "提示词",
+    "skillId": "技能 ID",
     "executorAgentDesc": "由 LLM 代理执行",
     "executorScriptDesc": "执行脚本命令",
     "agentMode": "代理模式",
@@ -519,6 +557,8 @@
       "inputPathPlaceholder": "/path/to/file-or-folder",
       "run": "运行",
       "running": "运行中...",
+      "console": "控制台",
+      "starting": "正在启动...",
       "title": "运行 Operation"
     }
   },
@@ -637,7 +677,6 @@
     "settingsDrawer": {
       "menuLabel": "设置",
       "title": "Canvas 设置",
-      "description": "不离开当前 Pipeline，调整此画布视图。",
       "close": "关闭 Canvas 设置",
       "globalSettings": "打开全局设置",
       "pipelineSharedContext": {

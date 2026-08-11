@@ -1,10 +1,14 @@
 import { useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
+import { Loader2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../../auth";
+import { AuthShell } from "../../components/AuthShell";
 import { SignUpPageContent } from "./SignUpPageContent";
 
 export const SignUpPage = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { useSession } = useAuth();
   const { data: session, isPending } = useSession();
 
@@ -17,9 +21,12 @@ export const SignUpPage = () => {
 
   if (isPending) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <p className="text-muted-foreground">Loading...</p>
-      </div>
+      <AuthShell>
+        <div className="flex items-center justify-center gap-2 rounded-lg bg-surface px-4 py-5 text-sm text-muted-foreground shadow-soft ring-1 ring-border">
+          <Loader2 className="size-4 animate-spin" />
+          {t("common.loading")}
+        </div>
+      </AuthShell>
     );
   }
 

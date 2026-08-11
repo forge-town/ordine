@@ -8,6 +8,7 @@ import { useList } from "@refinedev/core";
 import { ResourceName } from "../../../constants";
 import { PageLoadingState } from "../../../components/PageLoadingState";
 import { PageHeader } from "../../../components/PageHeader";
+import { PageState } from "../../../components/PageState";
 import { useAgentsPageStore } from "../_store";
 import { AgentFormDialog } from "../AgentFormDialog";
 import { AgentsDataTable } from "../AgentsDataTable";
@@ -83,10 +84,7 @@ export const AgentsPageContent = () => {
 
       <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-8 pt-4 sm:px-7">
         {filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
-            <Bot className="mb-3 h-10 w-10 opacity-40" />
-            <p className="text-sm">{t("agents.noAgents")}</p>
-          </div>
+          <PageState icon={<Bot />} title={t("agents.noAgents")} />
         ) : (
           <AgentsDataTable data={filtered} />
         )}

@@ -18,7 +18,7 @@ export const CanvasTopChrome = () => {
       data-testid="canvas-top-chrome"
     >
       <div
-        className="min-w-0 shrink-0 max-[980px]:flex-1 max-[980px]:basis-0"
+        className="min-w-0 shrink-0 max-[981px]:flex-1 max-[981px]:basis-0"
         data-testid="canvas-title-desktop"
         style={{ width: isSidebarOpen ? `${workspacePanelWidth}px` : "min(18rem, 38%)" }}
       >

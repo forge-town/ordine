@@ -23,7 +23,7 @@ export const LlmContentCard = () => {
   const nodeLabel = (node?.data as Record<string, unknown>)?.label as string | undefined;
 
   return (
-    <div className="absolute right-4 top-14 z-40 flex w-[480px] max-w-[calc(100vw-2rem)] flex-col rounded-xl border bg-background shadow-2xl">
+    <div className="absolute right-4 top-14 z-40 flex w-[480px] max-w-[calc(100vw-2rem)] flex-col rounded-lg bg-surface shadow-float ring-1 ring-border">
       <div className="flex shrink-0 items-center justify-between border-b px-4 py-2.5">
         <div className="flex items-center gap-2">
           <Brain className="h-4 w-4 text-violet-500" />
@@ -50,7 +50,7 @@ export const LlmContentCard = () => {
             </div>
           )}
           {content ? (
-            <div className="prose prose-sm prose-slate max-w-none overflow-hidden break-words text-xs leading-relaxed [&_pre]:overflow-x-auto [&_pre]:rounded [&_pre]:bg-slate-100 [&_pre]:p-2 [&_pre]:text-[10px] [&_code]:rounded [&_code]:bg-slate-100 [&_code]:px-1 [&_code]:py-0.5 [&_code]:text-[10px] [&_h1]:text-base [&_h2]:text-sm [&_h3]:text-xs [&_p]:my-1.5 [&_ul]:my-1.5 [&_ol]:my-1.5 [&_li]:my-0.5">
+            <div className="prose prose-sm max-w-none overflow-hidden break-words text-xs leading-relaxed dark:prose-invert [&_pre]:overflow-x-auto [&_pre]:rounded [&_pre]:bg-surface-2 [&_pre]:p-2 [&_pre]:text-[10px] [&_code]:rounded [&_code]:bg-surface-2 [&_code]:px-1 [&_code]:py-0.5 [&_code]:text-[10px] [&_h1]:text-base [&_h2]:text-sm [&_h3]:text-xs [&_li]:my-0.5 [&_ol]:my-1.5 [&_p]:my-1.5 [&_ul]:my-1.5">
               <Markdown>{content}</Markdown>
             </div>
           ) : (

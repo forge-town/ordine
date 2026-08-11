@@ -244,11 +244,11 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
       >
         {data.config && Object.keys(data.config).length > 0 && (
           <div className="space-y-1">
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
               {t("nodes.operation.config")}
             </p>
-            <div className="rounded bg-slate-50 px-2 py-1.5">
-              <pre className="text-[9px] text-slate-500 overflow-hidden text-ellipsis">
+            <div className="rounded bg-surface-2 px-2 py-1.5 ring-1 ring-border">
+              <pre className="overflow-hidden text-ellipsis text-[9px] text-muted-foreground">
                 {JSON.stringify(data.config, null, 2).slice(0, 100)}
                 {JSON.stringify(data.config).length > 100 ? "..." : ""}
               </pre>
@@ -258,14 +258,14 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
 
         {operation?.acceptedObjectTypes && (
           <div className="space-y-1">
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
               {t("nodes.operation.acceptedObjectTypes")}
             </p>
             <div className="flex flex-wrap gap-1">
               {operation.acceptedObjectTypes.map((type) => (
                 <span
                   key={type}
-                  className="rounded bg-violet-50 px-1.5 py-0.5 text-[9px] font-medium text-violet-600"
+                  className="rounded bg-violet-500/10 px-1.5 py-0.5 text-[9px] font-medium text-violet-700 dark:text-violet-300"
                 >
                   {objectTypeLabels[type] ?? type}
                 </span>
@@ -275,7 +275,7 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
         )}
 
         <div className="nodrag nopan space-y-1.5" {...canvasInteractionHandlers}>
-          <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
             <Brain className="mr-1 inline-block h-3 w-3" />
             {t("nodes.operation.agent")}
           </p>
@@ -316,7 +316,7 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
         </div>
 
         {hasLlmContent && (
-          <div className="flex items-center gap-1 rounded-md border border-violet-200 bg-violet-50 px-2 py-1 text-[10px] text-violet-600">
+          <div className="flex items-center gap-1 rounded-md border border-violet-500/20 bg-violet-500/10 px-2 py-1 text-[10px] text-violet-700 dark:text-violet-300">
             <Brain className="h-3 w-3 shrink-0" />
             <span>{t("nodes.operation.inspectLlmOutput")}</span>
           </div>
@@ -327,8 +327,8 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
             className={cn(
               "nodrag nopan flex h-8 w-full items-center gap-1.5 rounded-md border px-2.5 text-[11px] font-medium transition-colors",
               data.loopEnabled
-                ? "border-amber-200 bg-amber-50 text-amber-700"
-                : "border-slate-200 bg-slate-50 text-slate-500 hover:bg-slate-100",
+                ? "border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-300"
+                : "border-border bg-surface-2 text-muted-foreground hover:bg-muted",
             )}
             type="button"
             onClick={handleLoopButtonClick}
@@ -338,14 +338,14 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
           </button>
 
           {data.loopEnabled && (
-            <div className="space-y-2 rounded-md border border-amber-100 bg-amber-50/50 p-2.5">
+            <div className="space-y-2 rounded-md border border-amber-500/20 bg-amber-500/10 p-2.5">
               <div className="flex items-center gap-2">
-                <span className="text-[11px] font-medium text-amber-700 whitespace-nowrap">
+                <span className="whitespace-nowrap text-[11px] font-medium text-amber-700 dark:text-amber-300">
                   {t("nodes.operation.maxLoopCount")}
                 </span>
                 <input
                   aria-label={t("nodes.operation.maxLoopCountAria")}
-                  className="nodrag nopan h-7 w-16 rounded border border-amber-200 bg-white px-2 text-xs text-amber-800 focus:outline-none focus:ring-1 focus:ring-amber-300"
+                  className="nodrag nopan h-7 w-16 rounded border border-amber-500/25 bg-background px-2 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-amber-500/40"
                   max={20}
                   min={1}
                   name={`${id}-maxLoopCount`}
@@ -357,12 +357,12 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
                 />
               </div>
               <div className="space-y-1">
-                <span className="text-[11px] font-medium text-amber-700">
+                <span className="text-[11px] font-medium text-amber-700 dark:text-amber-300">
                   {t("nodes.operation.acceptanceCondition")}
                 </span>
                 <textarea
                   aria-label={t("nodes.operation.loopConditionAria")}
-                  className="nodrag nopan min-h-16 w-full rounded border border-amber-200 bg-white px-2 py-1.5 text-xs text-amber-800 placeholder:text-amber-300 focus:outline-none focus:ring-1 focus:ring-amber-300"
+                  className="nodrag nopan min-h-16 w-full rounded border border-amber-500/25 bg-background px-2 py-1.5 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-amber-500/40"
                   name={`${id}-loopCondition`}
                   placeholder={t("nodes.operation.loopConditionPlaceholder")}
                   rows={2}

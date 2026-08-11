@@ -113,12 +113,12 @@ export const OutputLocalPathNode = ({ id, data, selected }: OutputLocalPathNodeP
         theme="teal"
         onLabelChange={handleLabelChange}
       >
-        <div className="flex items-center gap-1 rounded-md border border-teal-100 bg-teal-50 px-2 py-1">
-          <span className="shrink-0 text-[10px] font-medium text-teal-500">
+        <div className="flex items-center gap-1 rounded-md bg-teal-500/10 px-2 py-1 ring-1 ring-teal-500/20">
+          <span className="shrink-0 text-[10px] font-medium text-teal-700 dark:text-teal-300">
             {t("nodes.outputLocalPathNode.pathLabel")}
           </span>
           <Input
-            className="nodrag nopan flex-1 min-w-0 bg-transparent font-mono text-[11px] font-semibold text-teal-800 focus:outline-none border-none shadow-none p-0 h-auto"
+            className="nodrag nopan h-auto min-w-0 flex-1 border-none bg-transparent p-0 font-mono text-[11px] font-semibold text-foreground shadow-none focus:outline-none"
             placeholder="/Users/you/Desktop/output"
             value={data.localPath}
             onChange={handleLocalPathInputChange}
@@ -127,7 +127,7 @@ export const OutputLocalPathNode = ({ id, data, selected }: OutputLocalPathNodeP
             onMouseDown={handleStopPropagation}
           />
           <Button
-            className="nodrag nopan shrink-0 rounded p-0.5 text-teal-400 hover:bg-teal-100 hover:text-teal-700 transition-colors h-auto"
+            className="nodrag nopan h-auto shrink-0 rounded p-0.5 text-teal-500 transition-colors hover:bg-teal-500/10 hover:text-teal-700 dark:hover:text-teal-300"
             title={t("nodes.outputLocalPathNode.browseFolder")}
             type="button"
             variant="ghost"
@@ -138,12 +138,12 @@ export const OutputLocalPathNode = ({ id, data, selected }: OutputLocalPathNodeP
           </Button>
         </div>
 
-        <div className="flex items-center gap-1 rounded-md border border-teal-100 bg-teal-50 px-2 py-1">
-          <span className="shrink-0 text-[10px] font-medium text-teal-500">
+        <div className="flex items-center gap-1 rounded-md bg-teal-500/10 px-2 py-1 ring-1 ring-teal-500/20">
+          <span className="shrink-0 text-[10px] font-medium text-teal-700 dark:text-teal-300">
             {t("nodes.outputLocalPathNode.filenameLabel")}
           </span>
           <Input
-            className="nodrag nopan flex-1 min-w-0 bg-transparent font-mono text-[11px] font-semibold text-teal-800 focus:outline-none border-none shadow-none p-0 h-auto"
+            className="nodrag nopan h-auto min-w-0 flex-1 border-none bg-transparent p-0 font-mono text-[11px] font-semibold text-foreground shadow-none focus:outline-none"
             placeholder="output.md"
             value={data.outputFileName ?? ""}
             onChange={handleFileNameInputChange}
@@ -153,13 +153,13 @@ export const OutputLocalPathNode = ({ id, data, selected }: OutputLocalPathNodeP
           />
         </div>
 
-        <div className="flex items-center gap-1 rounded-md border border-teal-100 bg-teal-50 px-2 py-1">
-          <span className="shrink-0 text-[10px] font-medium text-teal-500">
+        <div className="flex items-center gap-1 rounded-md bg-teal-500/10 px-2 py-1 ring-1 ring-teal-500/20">
+          <span className="shrink-0 text-[10px] font-medium text-teal-700 dark:text-teal-300">
             {t("nodes.outputLocalPathNode.writeModeLabel")}
           </span>
           <Select value={currentMode} onValueChange={handleOutputModeChange}>
             <SelectTrigger
-              className="nodrag nopan h-6 flex-1 min-w-0 border-none bg-transparent px-0 py-0 text-[11px] font-semibold text-teal-800 shadow-none focus:ring-0"
+              className="nodrag nopan h-6 min-w-0 flex-1 border-none bg-transparent px-0 py-0 text-[11px] font-semibold text-foreground shadow-none focus:ring-0"
               onClick={handleStopPropagation}
               onMouseDown={handleStopPropagation}
             >
@@ -176,14 +176,14 @@ export const OutputLocalPathNode = ({ id, data, selected }: OutputLocalPathNodeP
         </div>
 
         {currentMode === "error_if_exists" && (
-          <div className="flex items-center gap-1 rounded-md border border-amber-200 bg-amber-50 px-2 py-1 text-[10px] text-amber-700">
+          <div className="flex items-center gap-1 rounded-md border border-amber-500/20 bg-amber-500/10 px-2 py-1 text-[10px] text-amber-700 dark:text-amber-300">
             <AlertTriangle className="h-3 w-3 shrink-0" />
             <span>{t("nodes.outputLocalPathNode.errorIfExistsWarning")}</span>
           </div>
         )}
 
         <Textarea
-          className="nodrag nopan text-[11px] text-slate-500 bg-transparent w-full resize-none focus:outline-none focus:bg-slate-50 focus:ring-1 focus:ring-slate-200 rounded px-1 border-none shadow-none min-h-0 p-0"
+          className="nodrag nopan min-h-0 w-full resize-none rounded border-none bg-transparent p-0 px-1 text-[11px] text-muted-foreground shadow-none focus:bg-surface-2 focus:outline-none focus:ring-1 focus:ring-border-strong"
           placeholder={t("nodes.outputLocalPathNode.descriptionPlaceholder")}
           rows={2}
           value={data.description ?? ""}

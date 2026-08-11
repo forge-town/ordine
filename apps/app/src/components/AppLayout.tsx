@@ -4,6 +4,8 @@ import { ToastContainer } from "./ToastContainer";
 import { toastStore, ToastStoreProvider } from "@/store/toastStore";
 import { SidebarStoreProvider } from "@/store/sidebarStore";
 import { SidebarStoreProvider as SharedSidebarStoreProvider } from "@repo/views/store/sidebarStore";
+import { ToastStoreProvider as SharedToastStoreProvider } from "@repo/views/store/toastStore";
+import { ToastContainer as SharedToastContainer } from "@repo/views/ToastContainer";
 import { NotificationCenter } from "@repo/views/NotificationCenter";
 import { SearchPipelineDialog } from "@repo/views/SearchPipelineDialog";
 import { NewPipelineDialog } from "./NewPipelineDialog";
@@ -28,29 +30,32 @@ export const AppLayout = ({
         <AutonomyStoreProvider>
           <ToastStoreProvider>
             <SidebarStoreProvider>
-              <SharedSidebarStoreProvider>
-                <ThemeApplier />
-                <ToastNotificationBridge toastStore={toastStore} />
-                <SidebarProvider
-                  className={cn(
-                    canvasMode &&
-                      "max-[1360px]:[&_[data-slot=sidebar-container]]:hidden max-[1360px]:[&_[data-slot=sidebar-gap]]:w-0",
-                  )}
-                  defaultWidth={236}
-                  maxWidth={320}
-                  minWidth={216}
-                  widthStorageKey="ordine.sidebar.width"
-                >
-                  <AppSidebar />
-                  <SidebarInset className={cn(canvasMode && "h-svh min-h-0 overflow-hidden")}>
-                    {children}
-                  </SidebarInset>
-                  <ToastContainer />
-                  <SearchPipelineDialog />
-                  <NewPipelineDialog />
-                  <NotificationCenter />
-                </SidebarProvider>
-              </SharedSidebarStoreProvider>
+              <SharedToastStoreProvider>
+                <SharedSidebarStoreProvider>
+                  <ThemeApplier />
+                  <ToastNotificationBridge toastStore={toastStore} />
+                  <SidebarProvider
+                    className={cn(
+                      canvasMode &&
+                        "max-[1361px]:[&_[data-slot=sidebar-container]]:hidden max-[1361px]:[&_[data-slot=sidebar-gap]]:w-0",
+                    )}
+                    defaultWidth={236}
+                    maxWidth={320}
+                    minWidth={216}
+                    widthStorageKey="ordine.sidebar.width"
+                  >
+                    <AppSidebar />
+                    <SidebarInset className={cn(canvasMode && "h-svh min-h-0 overflow-hidden")}>
+                      {children}
+                    </SidebarInset>
+                    <ToastContainer />
+                    <SharedToastContainer />
+                    <SearchPipelineDialog />
+                    <NewPipelineDialog />
+                    <NotificationCenter />
+                  </SidebarProvider>
+                </SharedSidebarStoreProvider>
+              </SharedToastStoreProvider>
             </SidebarStoreProvider>
           </ToastStoreProvider>
         </AutonomyStoreProvider>
