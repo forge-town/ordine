@@ -25,7 +25,7 @@ test.describe("Operation workflow", () => {
     await page.getByPlaceholder("e.g. eslint src/ --fix").fill(`printf operation-${runId}`);
     await page.getByRole("button", { name: "Save" }).click();
 
-    await expect(page).toHaveURL(/\/pipelines\/operations\/[^/]+$/);
+    await expect(page).toHaveURL(/\/pipelines\/operations\/op-[^/?]+$/);
     await expect(page.getByText(initialDescription, { exact: true })).toBeVisible();
     await page.getByRole("button", { name: "Edit", exact: true }).click();
     await page
@@ -34,7 +34,7 @@ test.describe("Operation workflow", () => {
     await page.getByPlaceholder("e.g. eslint src/ --fix").fill(updatedCommand);
     await page.getByRole("button", { name: "Save" }).click();
 
-    await expect(page).toHaveURL(/\/pipelines\/operations\/[^/]+$/);
+    await expect(page).toHaveURL(/\/pipelines\/operations\/op-[^/?]+$/);
     await expect(page.getByText(updatedDescription, { exact: true })).toBeVisible();
     await expect(page.getByText(updatedCommand, { exact: true })).toBeVisible();
     expectNoJSErrors(pageErrors);
