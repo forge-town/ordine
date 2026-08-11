@@ -57,7 +57,12 @@ export const useCanvasWorkspacePersistence = ({
       updateCanvas({
         resource: ResourceName.pipelines,
         id: pipelineId,
-        values: { sharedContext: pipelineSharedContext, nodes, edges },
+        values: {
+          name: displayPipelineName,
+          sharedContext: pipelineSharedContext,
+          nodes,
+          edges,
+        },
         successNotification: {
           type: "success",
           message: t("canvas.saveSuccess"),

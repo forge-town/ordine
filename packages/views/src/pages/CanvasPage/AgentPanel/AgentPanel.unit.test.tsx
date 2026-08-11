@@ -221,15 +221,20 @@ describe("AgentPanel", () => {
     mockApplyPipelineActions.mockReturnValue(ok({ nodes: [], edges: [] }));
   });
 
-  it("renders panel with title and welcome message", () => {
+  it("renders panel with title and welcome message", async () => {
     render(<AgentPanel />, { wrapper: wrapperWithState() });
     expect(screen.getByText("canvas.agentPanel.title")).toBeInTheDocument();
     expect(screen.getByText("canvas.agentPanel.welcome")).toBeInTheDocument();
     expect(screen.getByText("canvas.agentPanel.runtimeLabel")).toBeInTheDocument();
+    expect(
+      screen.getByRole("combobox", { name: "canvas.agentPanel.runtimeLabel" }),
+    ).toBeInTheDocument();
     expect(screen.getByTestId("canvas-agent-panel")).toHaveClass("bg-surface");
     expect(screen.getByTestId("canvas-agent-panel")).toHaveClass("h-full", "w-full");
     expect(screen.getByTestId("canvas-agent-panel-header")).toBeInTheDocument();
-    expect(screen.getByTestId("canvas-agent-panel-status-dot")).toHaveClass("bg-success");
+    await waitFor(() =>
+      expect(screen.getByTestId("canvas-agent-panel-status-dot")).toHaveClass("bg-success"),
+    );
     expect(screen.getByTestId("canvas-agent-panel-collapse")).toBeInTheDocument();
     expect(screen.getByTestId("canvas-agent-panel-runtime-context")).toHaveClass(
       "mx-3",
@@ -241,6 +246,19 @@ describe("AgentPanel", () => {
       "bg-transparent",
     );
     expect(screen.getByTestId("agent-assistant")).toHaveClass("text-[12px]");
+  });
+
+  it("uses a neutral status when no runtime is selected", async () => {
+    mockGetList.mockResolvedValueOnce({ data: [], total: 0 });
+
+    render(<AgentPanel />, { wrapper: wrapperWithState() });
+
+    await waitFor(() =>
+      expect(screen.getByTestId("canvas-agent-panel-status-dot")).toHaveClass(
+        "bg-muted-foreground/45",
+      ),
+    );
+    expect(screen.getByTestId("canvas-agent-panel-status-dot")).not.toHaveClass("bg-success");
   });
 
   it("binds composer reference removal to the selected Canvas node", async () => {

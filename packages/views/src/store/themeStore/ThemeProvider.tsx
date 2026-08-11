@@ -16,7 +16,9 @@ export const resolveIsDark = (preference: ThemePreference) =>
 
 const applyTheme = (preference: ThemePreference) => {
   if (typeof document !== "undefined") {
-    document.documentElement.classList.toggle("dark", resolveIsDark(preference));
+    const isDark = resolveIsDark(preference);
+    document.documentElement.classList.toggle("dark", isDark);
+    document.documentElement.style.colorScheme = isDark ? "dark" : "light";
   }
 };
 

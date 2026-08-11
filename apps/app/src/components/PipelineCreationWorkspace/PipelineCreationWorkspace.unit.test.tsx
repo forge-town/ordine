@@ -1,4 +1,4 @@
-import type { PropsWithChildren } from "react";
+import { StrictMode, type PropsWithChildren } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -84,11 +84,13 @@ describe("PipelineCreationWorkspace", () => {
     });
 
     render(
-      <PipelineCreationWorkspace
-        active
-        client={client as typeof pipelineAgentSessionsClient}
-        presentation="home"
-      />,
+      <StrictMode>
+        <PipelineCreationWorkspace
+          active
+          client={client as typeof pipelineAgentSessionsClient}
+          presentation="home"
+        />
+      </StrictMode>,
     );
 
     expect(await screen.findByText("Build a review pipeline")).toBeInTheDocument();
@@ -179,6 +181,6 @@ describe("PipelineCreationWorkspace", () => {
     );
     await user.click(screen.getByRole("button", { name: "newPipelineDialog.upload" }));
 
-    expect(await screen.findByText("Session service unavailable")).toBeInTheDocument();
+    expect(await screen.findByText("pipelineAgentErrors.network")).toBeInTheDocument();
   });
 });

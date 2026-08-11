@@ -467,7 +467,11 @@ export const AgentPanel = () => {
               <span
                 className={cn(
                   "size-1.5 shrink-0 rounded-full",
-                  isConversationActive ? "animate-pulse bg-foreground" : "bg-success",
+                  isConversationActive
+                    ? "animate-pulse bg-foreground"
+                    : selectedRuntimeId
+                      ? "bg-success"
+                      : "bg-muted-foreground/45",
                 )}
                 data-testid="canvas-agent-panel-status-dot"
               />
@@ -498,6 +502,7 @@ export const AgentPanel = () => {
           </span>
           <Select value={selectedRuntimeId} onValueChange={handleRuntimeValueChange}>
             <SelectTrigger
+              aria-label={t("canvas.agentPanel.runtimeLabel")}
               className="h-7 w-full text-[11px]"
               disabled={isLoadingRuntimes || runtimeOptions.length === 0}
             >

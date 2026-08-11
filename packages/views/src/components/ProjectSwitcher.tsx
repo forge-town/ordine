@@ -114,7 +114,7 @@ export const ProjectSwitcher = () => {
     <div className="py-2">
       <DropdownMenu>
         <DropdownMenuTrigger
-          aria-label={t("nav.projects", { defaultValue: "Projects" })}
+          aria-label={`${t("nav.projects", { defaultValue: "Projects" })}: ${currentProjectName}`}
           render={
             <SidebarMenuButton
               className="h-8 w-full rounded-lg border border-sidebar-border bg-surface/65 text-[12px] shadow-none"

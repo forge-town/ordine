@@ -43,17 +43,26 @@ const getCookie = (name: string): string | undefined => {
 };
 
 export const initialSavedLanguage = getSavedLanguage();
+export const resolveInitialLanguage = (savedLanguage?: string) => {
+  const normalizedLanguage = savedLanguage?.toLowerCase();
+  if (normalizedLanguage?.startsWith("en")) {
+    return "en";
+  }
+  if (normalizedLanguage?.startsWith("zh")) {
+    return "zh";
+  }
+
+  return "zh";
+};
 
 i18n
   .use(LanguageDetector)
   .use(initReactI18next)
   .init({
     resources,
-    // Keep the server render and the first client render identical. The saved
-    // browser preference is applied by RootDocument after hydration. Capture
-    // it above before LanguageDetector caches the deterministic initial value.
-    lng: "zh",
+    lng: resolveInitialLanguage(initialSavedLanguage),
     fallbackLng: "zh",
+    supportedLngs: ["en", "zh"],
     interpolation: {
       escapeValue: false,
     },

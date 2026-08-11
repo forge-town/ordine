@@ -37,7 +37,9 @@
     "createdAt": "Created",
     "updatedAt": "Updated",
     "clearSearch": "Clear search",
-    "retry": "Retry"
+    "retry": "Retry",
+    "loadFailed": "Couldn't load this page",
+    "loadFailedDescription": "Check your connection and try again."
   },
   "auth": {
     "workspace": "Composable AI workspace",
@@ -232,6 +234,9 @@
     "heading": "What should Ordine automate today?",
     "description": "Describe the goal, inputs, and expected output. Your local Agent will confirm a plan, then create a runnable Pipeline in the existing Canvas.",
     "agentReady": "Local Agent ready",
+    "agentConfigured": "Local Agent configured",
+    "agentQueryFailed": "Agent status unavailable",
+    "runtimeLoadFailed": "Could not load configured local Agents.",
     "connectLocalAgent": "Connect local Agent",
     "checkingAgent": "Checking local Agent…",
     "localAgentCount": "{{name}} +{{count}}",
@@ -657,6 +662,20 @@
       "condition": "Condition"
     }
   },
+  "pipelineAgentErrors": {
+    "attachmentTooLarge": "This attachment is too large. Choose a file under 10 MB.",
+    "invalidAttachment": "This attachment could not be uploaded. Try a different file.",
+    "invalidRequest": "The request was incomplete. Review it and try again.",
+    "attachmentNotFound": "This attachment is no longer available.",
+    "attachmentConflict": "This attachment can only be removed before planning starts.",
+    "cancelled": "The request was cancelled.",
+    "invalidStructure": "The Agent could not build a valid Pipeline. Revise the plan and retry.",
+    "proposalConflict": "This proposal changed. Refresh the conversation and try again.",
+    "sessionNotFound": "This conversation is no longer available. Start a new one.",
+    "stateConflict": "The conversation changed. Refresh it and try again.",
+    "network": "Couldn't reach the Pipeline Agent. Check your connection and retry.",
+    "generic": "The Pipeline Agent couldn't complete the request. Please retry."
+  },
   "newPipelineDialog": {
     "descriptionPlaceholder": "Describe what this pipeline should do...",
     "messagePlaceholder": "Describe your goal and add any useful context...",
@@ -689,6 +708,10 @@
   },
   "canvas": {
     "title": "Canvas",
+    "pipelineLoadFailed": "Couldn't load this Pipeline",
+    "pipelineLoadFailedDescription": "The Pipeline request failed. Check your connection and retry.",
+    "pipelineNotFound": "Pipeline not found",
+    "pipelineNotFoundDescription": "This Pipeline may have been deleted or the link may be invalid.",
     "menu": "Menu",
     "backToWorkspace": "Back to workspace",
     "pipelineTitle": "Pipeline title",
@@ -2131,6 +2154,7 @@
   },
   "agents": {
     "title": "Agents",
+    "notFoundDescription": "This Agent may have been deleted or the link may be invalid.",
     "subtitle": "Configure the agents that plan and coordinate work across this workspace.",
     "noAgents": "No agents found",
     "searchPlaceholder": "Search agents...",
