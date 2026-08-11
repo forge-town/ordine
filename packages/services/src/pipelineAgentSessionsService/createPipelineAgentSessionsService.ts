@@ -1,4 +1,4 @@
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, unlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { extname, resolve, sep } from "node:path";
 import { inflateSync } from "node:zlib";
@@ -9,6 +9,7 @@ import {
   createAgentRuntimesDao,
   createOperationsDao,
   createPipelineAgentAttachmentsDao,
+  createPipelineAgentAttachmentsRepository,
   createPipelineAgentContextArtifactsDao,
   createPipelineAgentMessagesDao,
   createPipelineAgentProposalsDao,
@@ -86,6 +87,7 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
   const sessionsDao = createPipelineAgentSessionsDao(db);
   const messagesDao = createPipelineAgentMessagesDao(db);
   const attachmentsDao = createPipelineAgentAttachmentsDao(db);
+  const attachmentsRepository = createPipelineAgentAttachmentsRepository(db);
   const contextArtifactsDao = createPipelineAgentContextArtifactsDao(db);
   const proposalsDao = createPipelineAgentProposalsDao(db);
   const settingsDao = createSettingsDao(db);
@@ -660,6 +662,35 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
       });
 
       return { attachment, artifacts: [artifact] };
+    },
+
+    removeAttachment: async (sessionId: string, attachmentId: string) => {
+      const session = await sessionsDao.findById(sessionId);
+      if (!session) {
+        throw new Error(`Pipeline agent session not found: ${sessionId}`);
+      }
+      if (session.status !== "draft" && session.status !== "awaiting_user") {
+        throw new Error(
+          `Pipeline agent attachment cannot be removed while session ${sessionId} is ${session.status}`,
+        );
+      }
+
+      const attachment = await attachmentsRepository.deleteWithContextArtifacts(
+        sessionId,
+        attachmentId,
+      );
+      if (!attachment) {
+        throw new Error(`Pipeline agent attachment not found: ${attachmentId}`);
+      }
+
+      const unlinkResult = await ResultAsync.fromPromise(unlink(attachment.storageKey), (error) =>
+        error instanceof Error ? error : new Error(String(error)),
+      );
+      if (unlinkResult.isErr() && (unlinkResult.error as NodeJS.ErrnoException).code !== "ENOENT") {
+        throw unlinkResult.error;
+      }
+
+      return attachment;
     },
 
     saveContextArtifact: async (

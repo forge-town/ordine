@@ -68,6 +68,7 @@ const serviceErrorStatus = (error: Error) => {
   }
   if (
     message.includes("cannot be approved") ||
+    message.includes("cannot be removed") ||
     message.includes("does not belong") ||
     message.includes("does not match") ||
     message.includes("does not have an approved proposal") ||
@@ -154,6 +155,18 @@ pipelineAgentSessionsRoutes.post("/:id/attachments", async (c) => {
   });
 
   return c.json(result, 201);
+});
+
+pipelineAgentSessionsRoutes.delete("/:id/attachments/:attachmentId", async (c) => {
+  const result = await ResultAsync.fromPromise(
+    pipelineAgentSessionsService.removeAttachment(c.req.param("id"), c.req.param("attachmentId")),
+    (error) => (error instanceof Error ? error : new Error(String(error))),
+  );
+  if (result.isErr()) {
+    return c.json({ error: result.error.message }, serviceErrorStatus(result.error));
+  }
+
+  return c.body(null, 204);
 });
 
 pipelineAgentSessionsRoutes.post("/:id/plan", async (c) => {

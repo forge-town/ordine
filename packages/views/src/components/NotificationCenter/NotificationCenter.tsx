@@ -52,7 +52,12 @@ const formatRelativeTime = (timestamp: number, locale: string) => {
   );
 };
 
-export const NotificationCenter = () => {
+export interface NotificationCenterProps {
+  className?: string;
+  variant?: "rail" | "sidebar";
+}
+
+export const NotificationCenter = ({ className, variant = "sidebar" }: NotificationCenterProps) => {
   const { i18n, t } = useTranslation();
   const navigate = useNavigate();
   const store = useNotificationStore();
@@ -62,6 +67,8 @@ export const NotificationCenter = () => {
   const markRead = useStore(store, (state) => state.markRead);
   const [open, setOpen] = useState(false);
   const unreadCount = notifications.filter((notification) => !notification.read).length;
+  const triggerLabel =
+    unreadCount > 0 ? `${t("notifications.title")} (${unreadCount})` : t("notifications.title");
   const handleOpenChange = (value: boolean) => setOpen(value);
   const handleMarkAllRead = () => markAllRead();
   const handleClearNotifications = () => clearNotifications();
@@ -74,17 +81,32 @@ export const NotificationCenter = () => {
   };
 
   return (
-    <div className="fixed bottom-4 right-4 z-40" data-testid="notification-center">
+    <div className={cn("min-w-0", className)} data-testid="notification-center">
       <Popover open={open} onOpenChange={handleOpenChange}>
         <PopoverTrigger
-          aria-label={t("notifications.title")}
-          className="relative flex size-8 items-center justify-center rounded-lg border bg-surface text-muted-foreground shadow-soft transition-colors hover:bg-accent hover:text-foreground"
+          aria-label={triggerLabel}
+          className={cn(
+            "relative flex items-center text-muted-foreground outline-none transition-colors hover:bg-sidebar-accent hover:text-foreground focus-visible:ring-2 focus-visible:ring-sidebar-ring",
+            variant === "rail"
+              ? "size-9 justify-center rounded-md"
+              : "h-8 w-full gap-2 overflow-hidden rounded-md px-2 text-left text-sm group-data-[collapsible=icon]/sidebar:size-8! group-data-[collapsible=icon]/sidebar:p-2!",
+          )}
           data-testid="notification-bell"
         >
           <Bell className="size-4" />
+          {variant === "sidebar" ? (
+            <span className="truncate group-data-[collapsible=icon]/sidebar:hidden">
+              {t("notifications.title")}
+            </span>
+          ) : null}
           {unreadCount > 0 ? (
             <span
-              className="absolute -right-1 -top-1 flex min-h-4 min-w-4 items-center justify-center rounded-full bg-foreground px-1 text-[9px] font-bold text-background"
+              className={cn(
+                "absolute flex min-h-4 min-w-4 items-center justify-center rounded-full bg-foreground px-1 text-[9px] font-bold text-background",
+                variant === "rail"
+                  ? "-right-1 -top-1"
+                  : "right-2 group-data-[collapsible=icon]/sidebar:-right-1 group-data-[collapsible=icon]/sidebar:-top-1",
+              )}
               data-testid="notification-unread"
             >
               {unreadCount > 99 ? "99+" : unreadCount}
@@ -95,7 +117,7 @@ export const NotificationCenter = () => {
         <PopoverContent
           align="end"
           className="w-[min(22rem,calc(100vw-1.5rem))] overflow-hidden p-0 shadow-float"
-          side="top"
+          side="right"
           sideOffset={8}
         >
           <div className="flex min-h-11 items-center gap-2 border-b px-3.5">

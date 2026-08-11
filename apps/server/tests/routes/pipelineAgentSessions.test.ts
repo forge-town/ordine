@@ -9,6 +9,7 @@ const mocks = vi.hoisted(() => ({
   getSessionById: vi.fn(),
   ingestAttachment: vi.fn(),
   planSession: vi.fn(),
+  removeAttachment: vi.fn(),
   supersedeProposal: vi.fn(),
 }));
 
@@ -21,6 +22,7 @@ vi.mock("../../src/services.js", () => ({
     getSessionById: mocks.getSessionById,
     ingestAttachment: mocks.ingestAttachment,
     planSession: mocks.planSession,
+    removeAttachment: mocks.removeAttachment,
     supersedeProposal: mocks.supersedeProposal,
   },
 }));
@@ -245,6 +247,34 @@ describe("pipelineAgentSessionsRoutes", () => {
 
     expect(response.status).toBe(413);
     expect(mocks.ingestAttachment).not.toHaveBeenCalled();
+  });
+
+  it("removes an attachment and returns no content", async () => {
+    mocks.removeAttachment.mockResolvedValue({ id: "attachment-1" });
+
+    const response = await makeApp().request(
+      "/pipeline-agent-sessions/session-1/attachments/attachment-1",
+      { method: "DELETE" },
+    );
+
+    expect(response.status).toBe(204);
+    expect(mocks.removeAttachment).toHaveBeenCalledWith("session-1", "attachment-1");
+  });
+
+  it("returns a conflict when an attachment can no longer be removed", async () => {
+    mocks.removeAttachment.mockRejectedValue(
+      new Error("Pipeline agent attachment cannot be removed while session session-1 is analyzing"),
+    );
+
+    const response = await makeApp().request(
+      "/pipeline-agent-sessions/session-1/attachments/attachment-1",
+      { method: "DELETE" },
+    );
+
+    expect(response.status).toBe(409);
+    expect(await response.json()).toEqual({
+      error: "Pipeline agent attachment cannot be removed while session session-1 is analyzing",
+    });
   });
 
   it("streams planning events for a session", async () => {

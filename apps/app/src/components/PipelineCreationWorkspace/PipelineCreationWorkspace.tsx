@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { type MouseEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { ResultAsync } from "neverthrow";
@@ -16,6 +16,7 @@ import {
   Upload,
   WandSparkles,
   Workflow,
+  X,
 } from "lucide-react";
 import { Badge } from "@repo/ui/badge";
 import { Button } from "@repo/ui/button";
@@ -42,6 +43,7 @@ interface ConversationMessage {
 interface AttachmentItem {
   id: string;
   filename: string;
+  parseError?: string | null;
   parseStatus: string;
 }
 
@@ -68,6 +70,8 @@ export const PipelineCreationWorkspace = ({
 }: PipelineCreationWorkspaceProps) => {
   const { t } = useTranslation();
   const [attachments, setAttachments] = useState<AttachmentItem[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
+  const [removingAttachmentId, setRemovingAttachmentId] = useState<string | null>(null);
   const [createdPipelineId, setCreatedPipelineId] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [inputValue, setInputValue] = useState("");
@@ -86,6 +90,8 @@ export const PipelineCreationWorkspace = ({
   const resetWorkspace = useCallback(() => {
     sessionIdRef.current = null;
     setAttachments([]);
+    setIsUploading(false);
+    setRemovingAttachmentId(null);
     setCreatedPipelineId(null);
     setErrorMessage(null);
     setInputValue("");
@@ -412,8 +418,18 @@ export const PipelineCreationWorkspace = ({
     void router.navigate({ to: "/canvas", search: { id: createdPipelineId } });
   };
 
-  const handleUploadClick = () => {
-    void ensureSession().then(() => fileInputRef.current?.click());
+  const handleUploadClick = async () => {
+    setErrorMessage(null);
+    const sessionResult = await ResultAsync.fromPromise(ensureSession(), (error) =>
+      error instanceof Error ? error : new Error(String(error)),
+    );
+    if (sessionResult.isErr()) {
+      setErrorMessage(sessionResult.error.message);
+
+      return;
+    }
+
+    fileInputRef.current?.click();
   };
 
   const handleUploadChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -423,13 +439,19 @@ export const PipelineCreationWorkspace = ({
     }
     event.target.value = "";
 
-    const sessionId = await ensureSession();
+    setErrorMessage(null);
+    setIsUploading(true);
     const uploadResult = await ResultAsync.fromPromise(
-      runtimeId
-        ? client.uploadAttachment(sessionId, file, { runtimeId })
-        : client.uploadAttachment(sessionId, file),
+      (async () => {
+        const sessionId = await ensureSession();
+
+        return runtimeId
+          ? client.uploadAttachment(sessionId, file, { runtimeId })
+          : client.uploadAttachment(sessionId, file);
+      })(),
       (error) => (error instanceof Error ? error : new Error(String(error))),
     );
+    setIsUploading(false);
     if (uploadResult.isErr()) {
       setErrorMessage(uploadResult.error.message);
 
@@ -443,9 +465,41 @@ export const PipelineCreationWorkspace = ({
         {
           id: attachment.id,
           filename: attachment.filename,
+          parseError: attachment.parseError,
           parseStatus: attachment.parseStatus ?? "parsed",
         },
       ]);
+    }
+  };
+
+  const handleAttachmentRemove = async (attachmentId: string) => {
+    const sessionId = sessionIdRef.current;
+    if (!sessionId || phase !== "conversation") {
+      return;
+    }
+
+    setErrorMessage(null);
+    setRemovingAttachmentId(attachmentId);
+    const removeResult = await ResultAsync.fromPromise(
+      client.removeAttachment(sessionId, attachmentId),
+      (error) => (error instanceof Error ? error : new Error(String(error))),
+    );
+    setRemovingAttachmentId(null);
+    if (removeResult.isErr()) {
+      setErrorMessage(removeResult.error.message);
+
+      return;
+    }
+
+    setAttachments((currentAttachments) =>
+      currentAttachments.filter((attachment) => attachment.id !== attachmentId),
+    );
+  };
+
+  const handleAttachmentRemoveClick = (event: MouseEvent<HTMLButtonElement>) => {
+    const attachmentId = event.currentTarget.dataset.attachmentId;
+    if (attachmentId) {
+      void handleAttachmentRemove(attachmentId);
     }
   };
 
@@ -549,12 +603,50 @@ export const PipelineCreationWorkspace = ({
           )}
           {attachments.length > 0 && (
             <div className="flex flex-wrap gap-2">
-              {attachments.map((attachment) => (
-                <Badge key={attachment.id} className="gap-1.5" variant="secondary">
-                  {isHome && <FileText className="size-3" />}
-                  {attachment.filename}
-                </Badge>
-              ))}
+              {attachments.map((attachment) => {
+                const failed = attachment.parseStatus === "failed";
+
+                return (
+                  <div
+                    key={attachment.id}
+                    className={cn(
+                      "flex max-w-full items-center gap-1.5 rounded-full border px-2 py-1 text-xs",
+                      failed
+                        ? "border-destructive/35 bg-destructive/8 text-destructive"
+                        : "border-border bg-secondary text-secondary-foreground",
+                    )}
+                    title={attachment.parseError ?? undefined}
+                  >
+                    {isHome && <FileText className="size-3 shrink-0" />}
+                    <span className="min-w-0 break-words [overflow-wrap:anywhere]">
+                      {attachment.filename}
+                    </span>
+                    <span className="shrink-0 text-[10px] opacity-70">
+                      {failed
+                        ? t("newPipelineDialog.attachmentFailed")
+                        : t("newPipelineDialog.attachmentReady")}
+                    </span>
+                    <Button
+                      aria-label={t("newPipelineDialog.removeAttachment", {
+                        name: attachment.filename,
+                      })}
+                      className="size-5 shrink-0 rounded-full"
+                      data-attachment-id={attachment.id}
+                      disabled={phase !== "conversation" || removingAttachmentId === attachment.id}
+                      size="icon-xs"
+                      type="button"
+                      variant="ghost"
+                      onClick={handleAttachmentRemoveClick}
+                    >
+                      {removingAttachmentId === attachment.id ? (
+                        <Loader2 className="size-3 animate-spin" />
+                      ) : (
+                        <X className="size-3" />
+                      )}
+                    </Button>
+                  </div>
+                );
+              })}
             </div>
           )}
           {proposal?.mode === "generate" && (
@@ -624,12 +716,19 @@ export const PipelineCreationWorkspace = ({
           <Button
             aria-label={t("newPipelineDialog.upload")}
             className={cn("shrink-0", !isHome && "px-2.5")}
+            disabled={isUploading || phase === "planning" || phase === "generating"}
             size={isHome ? "icon" : "sm"}
             type="button"
             variant="ghost"
             onClick={handleUploadClick}
           >
-            {isHome ? <Paperclip className="size-4" /> : <Upload className="size-4" />}
+            {isUploading ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : isHome ? (
+              <Paperclip className="size-4" />
+            ) : (
+              <Upload className="size-4" />
+            )}
             {!isHome && <span>{t("newPipelineDialog.upload")}</span>}
           </Button>
 

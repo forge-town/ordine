@@ -53,6 +53,8 @@ const expandTildeInNodes = (nodes: PipelineData["nodes"]): PipelineData["nodes"]
   });
 
 const SKILL_REFERENCES = [nodeTypesRef, pipelineAnatomyRef].filter(Boolean).join("\n\n---\n\n");
+const MAX_STRUCTURE_DIAGNOSTIC_ISSUES = 8;
+const MAX_STRUCTURE_SCHEMA_RETRIES = 1;
 
 export const createPipelinesService = (db: DbConnection) => {
   const agentRuntimesDao = createAgentRuntimesDao(db);
@@ -476,45 +478,87 @@ export const createPipelinesService = (db: DbConnection) => {
 
       const systemPrompt = buildGenerateSystemPrompt(SKILL_REFERENCES);
 
-      const structured = await runStructuredAgent({
-        agent: opts.runtimeType ?? settings.defaultAgentRuntime,
-        systemPrompt,
-        userPrompt: userPromptText,
-        agentId: GENERATE_AGENT_ID,
-        logPrefix: "generateStructure",
-        apiKey: settings.defaultApiKey,
-        model: settings.defaultModel,
-      });
+      const NodesEdgesSchema = PipelineSchema.pick({ nodes: true, edges: true });
+      const runGenerationAttempt = async (
+        prompt: string,
+        semanticRetry: number,
+      ): Promise<
+        { ok: true; data: Pick<PipelineData, "edges" | "nodes"> } | { ok: false; error: string }
+      > => {
+        const structured = await runStructuredAgent({
+          agent: opts.runtimeType ?? settings.defaultAgentRuntime,
+          systemPrompt,
+          userPrompt: prompt,
+          agentId: GENERATE_AGENT_ID,
+          logPrefix: "generateStructure",
+          apiKey: settings.defaultApiKey,
+          model: settings.defaultModel,
+        });
 
-      if (!structured.ok) {
-        if (structured.code === "AGENT_FAILED") {
+        if (!structured.ok) {
+          if (structured.code === "AGENT_FAILED") {
+            logger.error(
+              { detail: structured.detail },
+              "generateStructure: agent failed after retries",
+            );
+
+            return {
+              ok: false,
+              error: "Agent failed to generate pipeline structure after retries",
+            };
+          }
           logger.error(
             { detail: structured.detail },
-            "generateStructure: agent failed after retries",
+            "generateStructure: failed to parse agent output as JSON",
           );
 
-          return { error: "Agent failed to generate pipeline structure after retries" };
+          return { ok: false, error: "Agent returned invalid JSON" };
         }
+
+        const validated = NodesEdgesSchema.safeParse(structured.json);
+        if (validated.success) {
+          return { ok: true, data: validated.data };
+        }
+
+        const issueSummaries = validated.error.issues
+          .slice(0, MAX_STRUCTURE_DIAGNOSTIC_ISSUES)
+          .map((issue) => `${issue.path.join(".") || "(root)"}: ${issue.message}`);
         logger.error(
-          { detail: structured.detail },
-          "generateStructure: failed to parse agent output as JSON",
+          { error: validated.error, semanticRetry },
+          "generateStructure: invalid structure from agent",
         );
 
-        return { error: "Agent returned invalid JSON" };
-      }
+        if (semanticRetry >= MAX_STRUCTURE_SCHEMA_RETRIES) {
+          return { ok: false, error: "Agent returned invalid pipeline structure" };
+        }
 
-      const NodesEdgesSchema = PipelineSchema.pick({ nodes: true, edges: true });
-      const validated = NodesEdgesSchema.safeParse(structured.json);
+        logger.warn(
+          { issues: issueSummaries },
+          "generateStructure: retrying once with schema diagnostics",
+        );
+        const repairPrompt = [
+          userPromptText,
+          "",
+          "=== PREVIOUS INVALID STRUCTURE ===",
+          JSON.stringify(structured.json, null, 2),
+          "",
+          "=== VALIDATION ISSUES TO FIX ===",
+          ...issueSummaries.map((issue) => `- ${issue}`),
+          "",
+          "Return a corrected complete pipeline structure. Return ONLY the JSON with nodes and edges.",
+        ].join("\n");
 
-      if (!validated.success) {
-        logger.error({ error: validated.error }, "generateStructure: invalid structure from agent");
+        return runGenerationAttempt(repairPrompt, semanticRetry + 1);
+      };
 
-        return { error: "Agent returned invalid pipeline structure" };
+      const generationResult = await runGenerationAttempt(userPromptText, 0);
+      if (!generationResult.ok) {
+        return { error: generationResult.error };
       }
 
       return {
-        nodes: expandTildeInNodes(validated.data.nodes),
-        edges: validated.data.edges,
+        nodes: expandTildeInNodes(generationResult.data.nodes),
+        edges: generationResult.data.edges,
         ...(pendingOperations.length > 0 ? { pendingOperations } : {}),
       };
     },

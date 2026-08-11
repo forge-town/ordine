@@ -11,6 +11,7 @@ import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
 import { Button } from "@repo/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@repo/ui/tooltip";
+import { NotificationCenter } from "../../../components/NotificationCenter";
 import { useCanvasPageStore } from "../_store";
 
 export const CANVAS_WORKSPACE_SIDEBAR_ID = "canvas-workspace-sidebar-overlay";
@@ -131,6 +132,8 @@ export const CanvasMiniSidebar = () => {
           <TooltipContent>{settingsLabel}</TooltipContent>
         </Tooltip>
       </div>
+
+      <NotificationCenter className="hidden max-[1361px]:block" variant="rail" />
     </aside>
   );
 };
