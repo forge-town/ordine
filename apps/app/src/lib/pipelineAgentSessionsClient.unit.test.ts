@@ -197,11 +197,11 @@ describe("pipelineAgentSessionsClient.getGeneratedPipelineMaterialization", () =
 
     expect(globalThis.fetch).toHaveBeenNthCalledWith(
       1,
-      "http://localhost:9433/api/pipelines/pipeline-1",
+      "http://localhost:3000/api/pipelines/pipeline-1",
     );
     expect(globalThis.fetch).toHaveBeenNthCalledWith(
       2,
-      "http://localhost:9433/api/operations/operation-1",
+      "http://localhost:3000/api/operations/operation-1",
     );
     expect(result.pipeline.id).toBe("pipeline-1");
     expect(result.operations).toEqual([
