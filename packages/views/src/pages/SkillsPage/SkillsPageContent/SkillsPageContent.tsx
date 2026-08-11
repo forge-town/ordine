@@ -198,6 +198,7 @@ export const SkillsPageContent = () => {
     await createSkill({
       resource: ResourceName.skills,
       values: {
+        id: crypto.randomUUID(),
         name: createForm.name.trim(),
         label: createForm.label.trim(),
         description: createForm.description.trim(),
