@@ -108,7 +108,7 @@ JOB_ID="job_xxxxxxxx"
 while true; do
   STATUS=$(curl -s http://localhost:9433/api/jobs/$JOB_ID | python3 -c "import sys,json; print(json.load(sys.stdin)['status'])")
   echo "Status: $STATUS"
-  if [ "$STATUS" = "done" ] || [ "$STATUS" = "failed" ] || [ "$STATUS" = "cancelled" ] || [ "$STATUS" = "expired" ]; then
+  if [ "$STATUS" = "paused" ] || [ "$STATUS" = "done" ] || [ "$STATUS" = "failed" ] || [ "$STATUS" = "cancelled" ] || [ "$STATUS" = "expired" ] || [ "$STATUS" = "skipped" ]; then
     break
   fi
   sleep 2
@@ -121,18 +121,24 @@ curl -s http://localhost:9433/api/jobs/$JOB_ID | python3 -m json.tool
 ## Job 状态流转
 
 ```
-queued → running → done
-                 → failed
-                 → cancelled
-                 → expired
+queued → running ↔ paused
+           ├→ done
+           ├→ failed
+           ├→ cancelled
+           ├→ expired
+           └→ skipped
 ```
 
-| 状态      | 含义             |
-| --------- | ---------------- |
-| `queued`  | 已创建，等待执行 |
-| `running` | 正在执行         |
-| `done`    | 执行成功         |
-| `failed`  | 执行失败         |
+| 状态        | 含义               |
+| ----------- | ------------------ |
+| `queued`    | 已创建，等待执行   |
+| `running`   | 正在执行           |
+| `paused`    | 已暂停，可稍后恢复 |
+| `done`      | 执行成功           |
+| `failed`    | 执行失败           |
+| `cancelled` | 已取消             |
+| `expired`   | 已过期             |
+| `skipped`   | 已跳过             |
 
 ## 查看 Job 列表
 

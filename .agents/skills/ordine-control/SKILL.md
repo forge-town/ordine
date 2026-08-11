@@ -10,7 +10,7 @@ Use the repository CLI as the supported Codex-facing interface. This skill does 
 ## Preconditions
 
 1. Work from the Ordine repository root.
-2. Confirm the target server with `ORDINE_API_URL`. The CLI defaults to `http://localhost:9430`; the standalone API server defaults to `http://localhost:9433`.
+2. Confirm the target server with `ORDINE_API_URL`. The CLI and standalone API server default to `http://localhost:9433`.
 3. Confirm the server is reachable with `curl -fsS "$ORDINE_API_URL/health"` before any write or run command.
 4. If Desktop mode requires authentication, read `ORDINE_DESKTOP_AUTH_TOKEN` from the environment. Never print, persist, or copy the token into a command argument, file, log, or response.
 5. Prefer an installed `ordine` executable. In a source checkout, use `bun apps/cli/src/index.ts`.
@@ -30,8 +30,9 @@ bun apps/cli/src/index.ts --json jobs traces <job-id>
 ```
 
 - `run --no-follow` returns `{ "jobId": "..." }`.
-- A following `run` returns `{ "job": {...}, "traces": [...] }` after the job reaches a terminal state.
-- Failed runs exit non-zero. Inspect the JSON written to stdout and the concise error written to stderr.
+- A following `run` returns `{ "job": {...}, "traces": [...] }` after the job reaches a terminal state or pauses.
+- Only `done` exits zero. `paused`, `failed`, `cancelled`, `expired`, and `skipped` stop following and exit non-zero. Inspect the JSON written to stdout and the concise error written to stderr.
+- If job traces cannot be fetched, the CLI exits non-zero and adds `tracesError` to the JSON instead of silently reporting an empty trace list.
 
 ## Workflow
 

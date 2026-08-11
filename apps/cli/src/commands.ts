@@ -1,6 +1,5 @@
 import { api } from "./api";
 import { readFileSync, writeFileSync } from "node:fs";
-import { getEnv } from "./integrations/env";
 
 interface Pipeline {
   id: string;
@@ -41,6 +40,12 @@ interface DirEntry {
 
 type OutputOptions = { json?: boolean };
 
+interface PollResult {
+  job: Job;
+  traces: unknown[];
+  tracesError?: string;
+}
+
 class CliError extends Error {
   constructor(
     message: string,
@@ -52,6 +57,8 @@ class CliError extends Error {
 }
 
 const POLL_INTERVAL_MS = 3000;
+
+const toSingleLine = (message: string): string => message.replaceAll(/\s+/g, " ").trim();
 
 const formatDuration = (ms: number): string => {
   const seconds = Math.floor(ms / 1000);
@@ -351,10 +358,11 @@ export const deleteBestPractice = async (id: string): Promise<void> => {
 };
 
 export const exportBestPractices = async (outPath: string): Promise<void> => {
-  const res = await fetch(`${getEnv().ORDINE_API_URL}/api/best-practices/export`);
-  if (!res.ok) throw new CliError(`Failed to export: ${res.statusText}`);
-  const buffer = Buffer.from(await res.arrayBuffer());
-  writeFileSync(outPath, buffer);
+  const data = assertOk(
+    await api.getBytes("/api/best-practices/export"),
+    "export best practices",
+  );
+  writeFileSync(outPath, data);
   console.log(`Exported best practices to: ${outPath}`);
 };
 
@@ -396,12 +404,12 @@ export const browseFilesystem = async (dirPath?: string): Promise<void> => {
 const pollJob = async (
   jobId: string,
   options: OutputOptions,
-): Promise<{ job: Job; traces: unknown[] }> => {
+): Promise<PollResult> => {
   const startTime = Date.now();
   const seenTraceCount = { value: 0 };
   const allTraces: unknown[] = [];
 
-  const poll = async (): Promise<{ job: Job; traces: unknown[] }> => {
+  const poll = async (): Promise<PollResult> => {
     const result = await api.get<Job>(`/api/jobs/${jobId}`);
 
     if (!result.ok) {
@@ -412,6 +420,7 @@ const pollJob = async (
 
     // Print new trace lines
     const tracesResult = await api.get<unknown[]>(`/api/jobs/${jobId}/traces`);
+    const tracesError = tracesResult.ok ? undefined : toSingleLine(tracesResult.message);
     if (tracesResult.ok) {
       const newTraces = tracesResult.data.slice(seenTraceCount.value);
       allTraces.splice(0, allTraces.length, ...tracesResult.data);
@@ -425,6 +434,7 @@ const pollJob = async (
     }
 
     if (
+      job.status === "paused" ||
       job.status === "done" ||
       job.status === "failed" ||
       job.status === "cancelled" ||
@@ -433,21 +443,24 @@ const pollJob = async (
     ) {
       const elapsed = formatDuration(Date.now() - startTime);
       if (!options.json) console.log();
+      const output: PollResult = tracesError
+        ? { job, traces: allTraces, tracesError }
+        : { job, traces: allTraces };
+
+      if (tracesError) {
+        if (options.json) console.log(JSON.stringify(output));
+        throw new CliError(`Failed to fetch job traces: ${tracesError}`);
+      }
 
       if (job.status === "done") {
         if (!options.json) console.log(`Pipeline completed in ${elapsed}`);
-      } else if (job.status === "failed" || job.status === "expired") {
-        if (options.json) console.log(JSON.stringify({ job, traces: allTraces }));
-        else {
-          console.error(`Pipeline ${job.status} after ${elapsed}`);
-          if (job.error) console.error(`  Error: ${job.error}`);
-        }
-        throw new CliError(`Pipeline ${job.status}`);
       } else {
-        if (!options.json) console.log(`Pipeline ${job.status} after ${elapsed}`);
+        if (options.json) console.log(JSON.stringify(output));
+        const detail = job.error ? `: ${toSingleLine(job.error)}` : "";
+        throw new CliError(`Pipeline ${job.status} after ${elapsed}${detail}`);
       }
 
-      return { job, traces: allTraces };
+      return output;
     }
 
     await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));

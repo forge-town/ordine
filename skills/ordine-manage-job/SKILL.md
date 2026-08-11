@@ -81,10 +81,12 @@ curl -X DELETE http://localhost:9433/api/jobs/job_manual_001
 ## Job 状态流转
 
 ```
-queued → running → done
-                 → failed
-                 → cancelled
-                 → expired
+queued → running ↔ paused
+           ├→ done
+           ├→ failed
+           ├→ cancelled
+           ├→ expired
+           └→ skipped
 ```
 
 ## 常见任务

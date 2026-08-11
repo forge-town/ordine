@@ -60,8 +60,23 @@ const requestNoBody = async (method: string, path: string): Promise<ApiResult<vo
   return { ok: true, data: undefined };
 };
 
+const requestBytes = async (path: string): Promise<ApiResult<Uint8Array>> => {
+  const url = `${getBaseUrl()}${path}`;
+  const res = await fetch(url, { method: "GET", headers: getHeaders() });
+
+  if (!res.ok) {
+    const result = await ResultAsync.fromPromise(res.text(), () => undefined);
+    const text = result.unwrapOr("");
+
+    return { ok: false, status: res.status, message: text || res.statusText };
+  }
+
+  return { ok: true, data: new Uint8Array(await res.arrayBuffer()) };
+};
+
 export const api = {
   get: <T>(path: string) => request<T>("GET", path),
+  getBytes: (path: string) => requestBytes(path),
   post: <T>(path: string, body?: unknown) => request<T>("POST", path, body),
   put: <T>(path: string, body: unknown) => request<T>("PUT", path, body),
   patch: <T>(path: string, body: unknown) => request<T>("PATCH", path, body),

@@ -1,6 +1,8 @@
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { spawn } from "node:child_process";
+import { existsSync, unlinkSync } from "node:fs";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { envSchema } from "../src/integrations/env/envSchema";
 
 const requests: Array<{ method: string; url: string; desktopToken?: string }> = [];
 
@@ -26,6 +28,16 @@ const handleRequest = (request: IncomingMessage, response: ServerResponse): void
 
     return;
   }
+  if (request.method === "POST" && request.url === "/api/pipelines/pipe-fail/run") {
+    sendJson(response, 202, { jobId: "job-fail" });
+
+    return;
+  }
+  if (request.method === "POST" && request.url === "/api/pipelines/pipe-trace-fail/run") {
+    sendJson(response, 202, { jobId: "job-trace-fail" });
+
+    return;
+  }
   if (request.method === "GET" && request.url === "/api/jobs/job-1") {
     sendJson(response, 200, { id: "job-1", title: "Agent Pipeline", status: "done", error: null });
 
@@ -36,12 +48,49 @@ const handleRequest = (request: IncomingMessage, response: ServerResponse): void
 
     return;
   }
+  if (request.method === "GET" && request.url === "/api/jobs/job-fail") {
+    sendJson(response, 200, {
+      id: "job-fail",
+      title: "Failed Pipeline",
+      status: "failed",
+      error: "Test failure\nwith details",
+    });
+
+    return;
+  }
+  if (request.method === "GET" && request.url === "/api/jobs/job-fail/traces") {
+    sendJson(response, 200, [{ message: "failed" }]);
+
+    return;
+  }
+  if (request.method === "GET" && request.url === "/api/jobs/job-trace-fail") {
+    sendJson(response, 200, {
+      id: "job-trace-fail",
+      title: "Trace Failure",
+      status: "done",
+      error: null,
+    });
+
+    return;
+  }
+  if (request.method === "GET" && request.url === "/api/jobs/job-trace-fail/traces") {
+    sendJson(response, 503, { error: "trace backend unavailable" });
+
+    return;
+  }
+  if (request.method === "GET" && request.url === "/api/best-practices/export") {
+    response.writeHead(200, { "content-type": "application/octet-stream" });
+    response.end("exported-data");
+
+    return;
+  }
 
   sendJson(response, 404, { error: "Not found" });
 };
 
 const server = createServer(handleRequest);
 let apiUrl = "";
+const exportOutPath = `/tmp/ordine-cli-export-${process.pid}.bestpractice`;
 
 const runCli = (
   args: string[],
@@ -77,9 +126,14 @@ afterAll(async () => {
   await new Promise<void>((resolve, reject) =>
     server.close((error) => (error ? reject(error) : resolve())),
   );
+  if (existsSync(exportOutPath)) unlinkSync(exportOutPath);
 });
 
 describe("Codex-facing CLI", () => {
+  it("defaults to the standalone REST API port", () => {
+    expect(envSchema.parse({}).ORDINE_API_URL).toBe("http://localhost:9433");
+  });
+
   it("lists pipelines as machine-readable JSON over the real HTTP client", async () => {
     const result = await runCli(["--json", "pipelines", "list"]);
 
@@ -112,5 +166,53 @@ describe("Codex-facing CLI", () => {
     expect(result.exitCode).toBe(0);
     expect(result.stderr).toBe("");
     expect(JSON.parse(result.stdout)).toEqual([{ message: "completed" }]);
+  });
+
+  it("keeps failed follow output machine-readable and exits non-zero", async () => {
+    const result = await runCli(["--json", "run", "pipe-fail"]);
+
+    expect(result.exitCode).toBe(1);
+    expect(JSON.parse(result.stdout)).toEqual({
+      job: {
+        id: "job-fail",
+        title: "Failed Pipeline",
+        status: "failed",
+        error: "Test failure\nwith details",
+      },
+      traces: [{ message: "failed" }],
+    });
+    expect(result.stderr.trim()).toMatch(/^Pipeline failed after \d+s: Test failure with details$/);
+    expect(result.stderr.trim().split("\n")).toHaveLength(1);
+  });
+
+  it("reports trace fetch failures instead of silently returning an empty list", async () => {
+    const result = await runCli(["--json", "run", "pipe-trace-fail"]);
+
+    expect(result.exitCode).toBe(1);
+    expect(JSON.parse(result.stdout)).toEqual({
+      job: {
+        id: "job-trace-fail",
+        title: "Trace Failure",
+        status: "done",
+        error: null,
+      },
+      traces: [],
+      tracesError: '{"error":"trace backend unavailable"}',
+    });
+    expect(result.stderr.trim()).toBe(
+      'Failed to fetch job traces: {"error":"trace backend unavailable"}',
+    );
+  });
+
+  it("sends Desktop authentication when exporting best practices", async () => {
+    const result = await runCli(["best-practices", "export", exportOutPath]);
+
+    expect(result.exitCode).toBe(0);
+    expect(result.stderr).toBe("");
+    expect(requests.at(-1)).toEqual({
+      method: "GET",
+      url: "/api/best-practices/export",
+      desktopToken: "test-desktop-token-that-is-long-enough",
+    });
   });
 });
