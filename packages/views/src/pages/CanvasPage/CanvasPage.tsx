@@ -9,9 +9,10 @@ import { CanvasPageContent } from "./CanvasPageContent";
 interface CanvasPageProps {
   // Pipeline id to load, read from the route's search params by each app.
   id?: string;
+  embedded?: boolean;
 }
 
-export const CanvasPage = ({ id }: CanvasPageProps) => {
+export const CanvasPage = ({ embedded = false, id }: CanvasPageProps) => {
   const { result: pipelineResult, query: pipelineQuery } = useOne<PipelineData>({
     resource: ResourceName.pipelines,
     id: id ?? "",
@@ -21,14 +22,14 @@ export const CanvasPage = ({ id }: CanvasPageProps) => {
 
   if (id && pipelineQuery?.isLoading) {
     return (
-      <CanvasLayout>
+      <CanvasLayout embedded={embedded}>
         <PageLoadingState variant="detail" />
       </CanvasLayout>
     );
   }
 
   return (
-    <CanvasLayout>
+    <CanvasLayout embedded={embedded}>
       <CanvasPageStoreProvider pipeline={pipeline}>
         <CanvasPageContent />
       </CanvasPageStoreProvider>

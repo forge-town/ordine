@@ -20,6 +20,7 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
 import { Separator } from "@repo/ui/separator";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@repo/ui/tooltip";
+import { cn } from "@repo/ui/lib/utils";
 
 export const CanvasToolbar = () => {
   const { t } = useTranslation();
@@ -55,7 +56,7 @@ export const CanvasToolbar = () => {
 
   return (
     <div className="pointer-events-auto shrink-0 w-max max-w-full" data-testid="canvas-toolbar">
-      <div className="flex h-10 w-max items-center gap-0.5 rounded-md border bg-background px-1.5 py-1 shadow-md max-[420px]:gap-0 max-[420px]:px-1">
+      <div className="flex h-10 w-max items-center gap-0.5 rounded-md bg-surface px-1.5 py-1 shadow-soft ring-1 ring-border max-[420px]:gap-0 max-[420px]:px-1">
         {/* Canvas tools */}
         <Tooltip>
           <TooltipTrigger
@@ -63,9 +64,10 @@ export const CanvasToolbar = () => {
               <Button
                 aria-label={t("canvas.selectTool")}
                 aria-pressed={canvasTool === "select"}
-                className={`h-7 w-7 ${
-                  canvasTool === "select" ? "bg-accent text-foreground" : "text-muted-foreground"
-                }`}
+                className={cn(
+                  "h-7 w-7",
+                  canvasTool === "select" ? "bg-accent text-foreground" : "text-muted-foreground",
+                )}
                 size="icon"
                 title={t("canvas.selectTool")}
                 variant="ghost"
@@ -83,9 +85,10 @@ export const CanvasToolbar = () => {
               <Button
                 aria-label={t("canvas.handTool")}
                 aria-pressed={canvasTool === "hand"}
-                className={`h-7 w-7 ${
-                  canvasTool === "hand" ? "bg-accent text-foreground" : "text-muted-foreground"
-                }`}
+                className={cn(
+                  "h-7 w-7",
+                  canvasTool === "hand" ? "bg-accent text-foreground" : "text-muted-foreground",
+                )}
                 size="icon"
                 title={t("canvas.handTool")}
                 variant="ghost"
@@ -284,7 +287,7 @@ export const CanvasToolbar = () => {
             render={
               <Button
                 aria-label={t("canvas.runTest")}
-                className="h-7 gap-1.5 px-2 text-xs text-green-600 hover:bg-green-50 hover:text-green-700 disabled:text-muted-foreground/30 max-[420px]:w-7 max-[420px]:gap-0 max-[420px]:px-0"
+                className="h-7 gap-1.5 px-2 text-xs text-emerald-600 hover:bg-emerald-500/10 hover:text-emerald-700 disabled:text-muted-foreground/30 dark:text-emerald-400 dark:hover:text-emerald-300 max-[420px]:w-7 max-[420px]:gap-0 max-[420px]:px-0"
                 disabled={isRunning || !pipelineId}
                 size="sm"
                 title={t("canvas.runTest")}

@@ -262,7 +262,7 @@ export const CanvasComponentPanel = ({
           label,
           defaultValue: "{{label}} category",
         })}
-        className="h-9 w-full justify-start gap-2 rounded-none border-t px-5 text-sm font-semibold"
+        className="h-9 w-full justify-start gap-2 rounded-none border-t bg-surface-2/80 px-5 text-sm font-semibold hover:bg-surface-3"
         type="button"
         variant="ghost"
         onClick={handleCategoryHeaderClick(category)}
@@ -314,12 +314,9 @@ export const CanvasComponentPanel = ({
   };
 
   return (
-    <div
-      className="flex h-full min-h-0 flex-col bg-background"
-      data-testid="canvas-component-panel"
-    >
+    <div className="flex h-full min-h-0 flex-col bg-surface" data-testid="canvas-component-panel">
       <div className="border-b p-4">
-        <div className="flex h-10 items-center gap-2 rounded-md border bg-muted/30 px-3">
+        <div className="flex h-10 items-center gap-2 rounded-lg border bg-background px-3 shadow-none">
           <Search className="size-4 text-muted-foreground" />
           <Input
             ref={searchInputRef}

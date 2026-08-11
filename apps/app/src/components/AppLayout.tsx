@@ -13,8 +13,15 @@ import {
   ToastNotificationBridge,
 } from "@repo/views/store/notificationStore";
 import { ThemeApplier, ThemeStoreProvider } from "@repo/views/store/themeStore";
+import { cn } from "@repo/ui/lib/utils";
 
-export const AppLayout = ({ children }: { children: React.ReactNode }) => {
+export const AppLayout = ({
+  canvasMode = false,
+  children,
+}: {
+  canvasMode?: boolean;
+  children: React.ReactNode;
+}) => {
   return (
     <ThemeStoreProvider>
       <NotificationStoreProvider>
@@ -25,13 +32,19 @@ export const AppLayout = ({ children }: { children: React.ReactNode }) => {
                 <ThemeApplier />
                 <ToastNotificationBridge toastStore={toastStore} />
                 <SidebarProvider
+                  className={cn(
+                    canvasMode &&
+                      "max-[1360px]:[&_[data-slot=sidebar-container]]:hidden max-[1360px]:[&_[data-slot=sidebar-gap]]:w-0",
+                  )}
                   defaultWidth={236}
                   maxWidth={320}
                   minWidth={216}
                   widthStorageKey="ordine.sidebar.width"
                 >
                   <AppSidebar />
-                  <SidebarInset>{children}</SidebarInset>
+                  <SidebarInset className={cn(canvasMode && "h-svh min-h-0 overflow-hidden")}>
+                    {children}
+                  </SidebarInset>
                   <ToastContainer />
                   <SearchPipelineDialog />
                   <NewPipelineDialog />

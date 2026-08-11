@@ -26,6 +26,7 @@ import { Input } from "@repo/ui/input";
 import { Label } from "@repo/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@repo/ui/select";
 import { Textarea } from "@repo/ui/textarea";
+import { cn } from "@repo/ui/lib/utils";
 import { SiGitHubIcon } from "../../../components/icons/SiGitHubIcon";
 import { ResourceName } from "../../../constants";
 import { selectSelectedNode, useCanvasPageStore } from "../_store";
@@ -236,7 +237,10 @@ export const CanvasNodePropertiesPanel = () => {
         </Button>
         <div className="flex items-center gap-3">
           <span
-            className={`flex size-9 items-center justify-center rounded-md ${meta?.iconBg ?? "bg-slate-500"}`}
+            className={cn(
+              "flex size-9 items-center justify-center rounded-md",
+              meta?.iconBg ?? "bg-muted",
+            )}
           >
             <Icon className="size-4 text-white" />
           </span>

@@ -55,8 +55,10 @@ export const NodeCardFrame = memo(
     return (
       <Card
         className={cn(
-          "w-72 shrink-0 gap-0 py-0 transition-all duration-200 data-[size=sm]:gap-0 data-[size=sm]:py-0",
-          selected ? cn("ring-2 shadow-lg", t.ringSelected) : cn("ring-1 hover:ring-2", t.ring),
+          "w-[214px] shrink-0 gap-0 rounded-xl bg-surface py-0 shadow-soft transition-all duration-200 data-[size=sm]:gap-0 data-[size=sm]:py-0",
+          selected
+            ? "shadow-float ring-2 ring-foreground/40"
+            : "ring-1 ring-border hover:shadow-float hover:ring-border-strong",
           runStatus === "running" &&
             "ring-2 ring-blue-500 shadow-[0_0_12px_rgba(59,130,246,0.4)] animate-pulse",
           runStatus === "done" && "ring-2 ring-green-500",
@@ -65,17 +67,17 @@ export const NodeCardFrame = memo(
         )}
         size="sm"
       >
-        <CardHeader className={cn("flex min-h-14 items-center rounded-none px-3 py-2", t.headerBg)}>
-          <div className="flex w-full min-w-0 items-center gap-3">
+        <CardHeader className={cn("flex min-h-12 items-center px-2.5 py-2", t.headerBg)}>
+          <div className="flex w-full min-w-0 items-center gap-2">
             <div
               className={cn(
-                "flex h-8 w-8 shrink-0 items-center justify-center rounded-md",
+                "flex size-6 shrink-0 items-center justify-center rounded-md",
                 t.iconBg,
               )}
             >
-              <Icon className={cn("h-4 w-4", t.iconColor)} />
+              <Icon className={cn("size-3.5", t.iconColor)} />
             </div>
-            <div className="flex min-h-8 min-w-0 flex-1 flex-col items-start justify-center overflow-hidden">
+            <div className="flex min-h-6 min-w-0 flex-1 flex-col items-start justify-center overflow-hidden">
               {handleChange ? (
                 <span className="relative inline-block max-w-full min-w-0 overflow-hidden align-top">
                   <span
@@ -117,7 +119,9 @@ export const NodeCardFrame = memo(
           </div>
         </CardHeader>
         {children && (
-          <CardContent className={cn("px-3 py-3", bodyClassName)}>{children}</CardContent>
+          <CardContent className={cn("border-t border-border/70 px-2.5 py-2.5", bodyClassName)}>
+            {children}
+          </CardContent>
         )}
       </Card>
     );

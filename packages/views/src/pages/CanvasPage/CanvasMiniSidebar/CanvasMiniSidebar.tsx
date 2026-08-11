@@ -43,10 +43,10 @@ export const CanvasMiniSidebar = () => {
 
   return (
     <aside
-      className="flex w-14 shrink-0 flex-col items-center gap-2 border-r bg-background/95 px-2 py-3 backdrop-blur"
+      className="flex w-14 shrink-0 flex-col items-center gap-2 border-r bg-surface px-2 py-3"
       data-testid="canvas-mini-sidebar"
     >
-      <div className="flex size-9 items-center justify-center rounded-md border bg-muted/40 text-primary">
+      <div className="flex size-9 items-center justify-center rounded-lg bg-surface-2 text-primary ring-1 ring-border">
         <Workflow className="size-4" />
       </div>
 

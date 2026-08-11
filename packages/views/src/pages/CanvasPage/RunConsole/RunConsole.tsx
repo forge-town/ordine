@@ -219,12 +219,12 @@ export const RunConsole = () => {
   return (
     <div
       className={cn(
-        "absolute bottom-0 left-0 right-0 z-30 border-t bg-background shadow-lg transition-all",
+        "absolute bottom-0 left-0 right-0 z-30 border-t bg-surface shadow-float transition-all",
         isConsoleCollapsed ? "h-9" : "h-64",
       )}
     >
       {/* Status bar */}
-      <div className="flex h-9 items-center justify-between border-b bg-muted/50 px-3">
+      <div className="flex h-9 items-center justify-between border-b bg-surface-2/80 px-3">
         <div className="flex items-center gap-2 text-xs">
           <Terminal className="h-3.5 w-3.5 text-muted-foreground" />
           <span className="font-medium">{t("canvas.runConsole.title")}</span>
@@ -235,10 +235,10 @@ export const RunConsole = () => {
               <span
                 className={cn(
                   "font-medium",
-                  job.status === "running" && "text-blue-600",
-                  job.status === "done" && "text-green-600",
-                  job.status === "failed" && "text-red-600",
-                  job.status === "expired" && "text-slate-600",
+                  job.status === "running" && "text-blue-600 dark:text-blue-400",
+                  job.status === "done" && "text-emerald-600 dark:text-emerald-400",
+                  job.status === "failed" && "text-red-600 dark:text-red-400",
+                  job.status === "expired" && "text-muted-foreground",
                 )}
               >
                 {t(statusLabelKeys[job.status])}
@@ -293,7 +293,7 @@ export const RunConsole = () => {
                       {runTimeline.latestProgressMessage}
                     </p>
                   )}
-                  <p className="mt-2 rounded-md bg-blue-50 px-2 py-1 text-[11px] text-blue-700">
+                  <p className="mt-2 rounded-md bg-blue-500/10 px-2 py-1 text-[11px] text-blue-700 dark:text-blue-300">
                     {multiInputSummary.count > 0
                       ? t("canvas.runConsole.multiInputRuleWithCount", {
                           count: multiInputSummary.count,
@@ -324,9 +324,12 @@ export const RunConsole = () => {
                           key={item.nodeId}
                           className={cn(
                             "inline-flex max-w-[220px] items-center gap-1 rounded-full border px-2 py-1",
-                            item.status === "running" && "border-blue-200 bg-blue-50 text-blue-700",
-                            item.status === "done" && "border-green-200 bg-green-50 text-green-700",
-                            item.status === "failed" && "border-red-200 bg-red-50 text-red-700",
+                            item.status === "running" &&
+                              "border-blue-500/20 bg-blue-500/10 text-blue-700 dark:text-blue-300",
+                            item.status === "done" &&
+                              "border-emerald-500/20 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
+                            item.status === "failed" &&
+                              "border-red-500/20 bg-red-500/10 text-red-700 dark:text-red-300",
                           )}
                         >
                           <span className="truncate">
@@ -371,10 +374,11 @@ export const RunConsole = () => {
                   <span
                     className={cn(
                       "break-all",
-                      log.includes("ERROR") && "text-red-600 font-medium",
-                      log.includes("Pipeline complete") && "text-green-600 font-medium",
-                      log.includes("Cloned to") && "text-blue-600",
-                      log.includes("Skill output") && "text-violet-600",
+                      log.includes("ERROR") && "font-medium text-red-600 dark:text-red-400",
+                      log.includes("Pipeline complete") &&
+                        "font-medium text-emerald-600 dark:text-emerald-400",
+                      log.includes("Cloned to") && "text-blue-600 dark:text-blue-400",
+                      log.includes("Skill output") && "text-violet-600 dark:text-violet-400",
                     )}
                   >
                     {parseMessage(log)}
@@ -382,7 +386,7 @@ export const RunConsole = () => {
                 </div>
               ))}
             {job?.status === "failed" && job.error && (
-              <div className="mt-2 rounded border border-red-200 bg-red-50 px-3 py-2 text-red-700">
+              <div className="mt-2 rounded border border-red-500/20 bg-red-500/10 px-3 py-2 text-red-700 dark:text-red-300">
                 {job.error}
               </div>
             )}

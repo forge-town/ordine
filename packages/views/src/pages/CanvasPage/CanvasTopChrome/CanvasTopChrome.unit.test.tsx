@@ -34,9 +34,13 @@ describe("CanvasTopChrome", () => {
     const toolbarSlot = screen.getByTestId("canvas-toolbar").parentElement;
     expect(toolbarSlot).not.toBeNull();
     expect(toolbarSlot as HTMLElement).toHaveClass("min-w-0", "max-w-full", "overflow-x-auto");
-    expect(screen.getByTestId("canvas-title-desktop")).toHaveClass("min-w-0", "flex-1");
-    expect(screen.getByTestId("canvas-title-desktop").firstElementChild).toHaveClass("min-w-0");
-    expect(toolbarSlot as HTMLElement).toHaveClass("shrink-0");
+    expect(screen.getByTestId("canvas-title-desktop")).toHaveClass("min-w-0", "shrink-0");
+    expect(screen.getByTestId("canvas-title-desktop").firstElementChild).toHaveClass(
+      "min-w-0",
+      "shadow-soft",
+      "ring-1",
+    );
+    expect(toolbarSlot as HTMLElement).toHaveClass("flex-1");
   });
 
   it("preserves pipeline title editing", async () => {

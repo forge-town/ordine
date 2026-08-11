@@ -49,11 +49,11 @@ export const DEFAULT_CANVAS_SETTINGS: CanvasSettingsState = {
   snapToGrid: false,
 };
 
-export const DEFAULT_WORKSPACE_PANEL_WIDTH = 352;
+export const DEFAULT_WORKSPACE_PANEL_WIDTH = 350;
 export const MIN_WORKSPACE_PANEL_WIDTH = 288;
 export const MAX_WORKSPACE_PANEL_WIDTH = 560;
 
-export const DEFAULT_AGENT_PANEL_WIDTH = 360;
+export const DEFAULT_AGENT_PANEL_WIDTH = 344;
 export const MIN_AGENT_PANEL_WIDTH = 300;
 export const MAX_AGENT_PANEL_WIDTH = 520;
 
@@ -222,7 +222,7 @@ export const createUISlice = (
   nodeLlmContent: {},
   inspectingNodeId: null,
   agentPanel: {
-    isOpen: false,
+    isOpen: true,
     pendingProposal: null,
     diagnostics: null,
     isLoading: false,

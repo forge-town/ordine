@@ -8,15 +8,21 @@ export const CanvasTopChrome = () => {
   const { t } = useTranslation();
   const store = useCanvasPageStore();
   const pipelineName = useStore(store, (state) => state.pipelineName);
+  const isSidebarOpen = useStore(store, (state) => state.isSidebarOpen);
+  const workspacePanelWidth = useStore(store, (state) => state.workspacePanelWidth);
   const handlePipelineNameChange = useStore(store, (state) => state.handlePipelineNameChange);
 
   return (
     <div
-      className="flex min-h-16 min-w-0 items-center gap-3 border-b bg-background/95 px-3 py-3 backdrop-blur"
+      className="flex h-14 min-w-0 shrink-0 items-center gap-3 border-b bg-background/95 px-3 py-2 backdrop-blur"
       data-testid="canvas-top-chrome"
     >
-      <div className="min-w-0 flex-1 basis-0" data-testid="canvas-title-desktop">
-        <div className="flex h-10 w-full min-w-0 items-center rounded-md border bg-background px-3 shadow-sm">
+      <div
+        className="min-w-0 shrink-0 max-[980px]:flex-1 max-[980px]:basis-0"
+        data-testid="canvas-title-desktop"
+        style={{ width: isSidebarOpen ? `${workspacePanelWidth}px` : "min(18rem, 38%)" }}
+      >
+        <div className="flex h-10 w-full min-w-0 items-center rounded-md bg-surface px-3 shadow-soft ring-1 ring-border">
           <Input
             aria-label={t("canvas.pipelineTitle")}
             className="h-7 min-w-0 w-full border-none bg-transparent px-0 text-sm font-medium text-foreground shadow-none outline-none placeholder:text-muted-foreground focus-visible:ring-0"
@@ -28,7 +34,7 @@ export const CanvasTopChrome = () => {
         </div>
       </div>
 
-      <div className="min-w-0 max-w-full shrink-0 overflow-x-auto [scrollbar-width:none]">
+      <div className="min-w-0 max-w-full flex-1 overflow-x-auto [scrollbar-width:none]">
         <CanvasToolbar />
       </div>
     </div>

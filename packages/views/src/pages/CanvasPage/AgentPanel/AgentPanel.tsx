@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
-import { ChevronsRight, AlertCircle, AlertTriangle } from "lucide-react";
+import { Bot, ChevronsRight, AlertCircle, AlertTriangle } from "lucide-react";
 import { Button } from "@repo/ui/button";
 import { ScrollArea } from "@repo/ui/scroll-area";
 import {
@@ -454,19 +454,26 @@ export const AgentPanel = () => {
   return (
     <aside className="flex h-full w-full flex-col bg-surface" data-testid="canvas-agent-panel">
       <header
-        className="flex shrink-0 items-center justify-between px-3.5 pb-2 pt-3"
+        className="flex h-14 shrink-0 items-center justify-between border-b border-border/70 px-3"
         data-testid="canvas-agent-panel-header"
       >
-        <div className="flex min-w-0 items-center gap-2">
-          <span
-            className={cn(
-              "size-1.5 shrink-0 rounded-full",
-              isConversationActive ? "animate-pulse bg-foreground" : "bg-success",
-            )}
-            data-testid="canvas-agent-panel-status-dot"
-          />
-          <span className="text-[12px] font-semibold">{t("canvas.agentPanel.title")}</span>
-          <span className="truncate text-[10.5px] text-muted-foreground">· {headerSubtitle}</span>
+        <div className="flex min-w-0 items-center gap-2.5">
+          <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-surface-2 text-foreground ring-1 ring-border">
+            <Bot className="size-4" />
+          </span>
+          <div className="min-w-0">
+            <div className="truncate text-[12px] font-semibold">{t("canvas.agentPanel.title")}</div>
+            <div className="flex min-w-0 items-center gap-1.5">
+              <span
+                className={cn(
+                  "size-1.5 shrink-0 rounded-full",
+                  isConversationActive ? "animate-pulse bg-foreground" : "bg-success",
+                )}
+                data-testid="canvas-agent-panel-status-dot"
+              />
+              <span className="truncate text-[10.5px] text-muted-foreground">{headerSubtitle}</span>
+            </div>
+          </div>
         </div>
         <Button
           aria-label={t("canvas.agentPanel.close")}
@@ -554,8 +561,8 @@ export const AgentPanel = () => {
                     className={cn(
                       "flex items-start gap-2 rounded-md px-2.5 py-2 text-xs",
                       d.severity === "error"
-                        ? "border border-red-200 bg-red-50 text-red-700"
-                        : "border border-amber-200 bg-amber-50 text-amber-700",
+                        ? "border border-red-500/20 bg-red-500/10 text-red-700 dark:text-red-300"
+                        : "border border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-300",
                     )}
                   >
                     {d.severity === "error" ? (
@@ -596,8 +603,8 @@ export const AgentPanel = () => {
       </ScrollArea>
 
       {needsRuntimeSetup && (
-        <div className="border-t bg-amber-50/70">
-          <div className="flex items-center gap-2 p-3 text-xs text-amber-800">
+        <div className="border-t bg-amber-500/10">
+          <div className="flex items-center gap-2 p-3 text-xs text-amber-800 dark:text-amber-300">
             <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
             <span>{t("canvas.agentPanel.runtimeNotConfigured")}</span>
             <a className="font-medium underline underline-offset-2" href="/runtimes">
