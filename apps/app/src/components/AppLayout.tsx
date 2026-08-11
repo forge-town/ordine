@@ -6,7 +6,6 @@ import { SidebarStoreProvider } from "@/store/sidebarStore";
 import { SidebarStoreProvider as SharedSidebarStoreProvider } from "@repo/views/store/sidebarStore";
 import { ToastStoreProvider as SharedToastStoreProvider } from "@repo/views/store/toastStore";
 import { ToastContainer as SharedToastContainer } from "@repo/views/ToastContainer";
-import { NotificationCenter } from "@repo/views/NotificationCenter";
 import { SearchPipelineDialog } from "@repo/views/SearchPipelineDialog";
 import { NewPipelineDialog } from "./NewPipelineDialog";
 import { AutonomyStoreProvider } from "@repo/views/store/autonomyStore";
@@ -52,7 +51,6 @@ export const AppLayout = ({
                     <SharedToastContainer />
                     <SearchPipelineDialog />
                     <NewPipelineDialog />
-                    <NotificationCenter />
                   </SidebarProvider>
                 </SharedSidebarStoreProvider>
               </SharedToastStoreProvider>

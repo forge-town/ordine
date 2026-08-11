@@ -44,6 +44,7 @@ export type PipelineAgentSessionClientRecord = z.infer<
 const PipelineAgentAttachmentClientRecordSchema = z.object({
   id: z.string().min(1),
   filename: z.string().min(1),
+  parseError: z.string().nullable().optional(),
   parseStatus: PipelineAgentAttachmentParseStatusSchema.nullable().optional(),
 });
 export type PipelineAgentAttachmentClientRecord = z.infer<
@@ -78,6 +79,7 @@ export type PipelineAgentStoredProposalClientRecord = z.infer<
 >;
 
 const PipelineAgentSessionClientDetailSchema = PipelineAgentSessionClientRecordSchema.extend({
+  attachments: z.array(PipelineAgentAttachmentClientRecordSchema).optional(),
   createdPipelineId: z.string().nullable().optional(),
   messages: z.array(PipelineAgentMessageClientRecordSchema).optional(),
   proposals: z.array(PipelineAgentStoredProposalClientRecordSchema).optional(),
@@ -257,6 +259,16 @@ export const pipelineAgentSessionsClient = {
     });
 
     return readResponseJson(response, PipelineAgentAttachmentUploadResultSchema);
+  },
+
+  async removeAttachment(sessionId: string, attachmentId: string): Promise<void> {
+    const response = await fetch(
+      `${pipelineAgentSessionsBaseUrl}/${sessionId}/attachments/${attachmentId}`,
+      { method: "DELETE" },
+    );
+    if (!response.ok) {
+      throw await readResponseError(response);
+    }
   },
 
   async getSessionById(sessionId: string): Promise<PipelineAgentSessionClientDetail> {

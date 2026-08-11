@@ -48,6 +48,7 @@ import { cn } from "@repo/ui/lib/utils";
 import { useSidebarStore } from "../store/sidebarStore";
 import { NavGroup, NavItems, type NavItem } from "./NavGroup";
 import { DefaultUserFooter, ProjectSwitcher } from "./ProjectSwitcher";
+import { NotificationCenter } from "./NotificationCenter";
 
 const assemblyItems: NavItem[] = [
   { labelKey: "nav.pipelines", icon: Layers, to: "/pipelines", exact: true },
@@ -220,6 +221,9 @@ export const AppSidebar = ({
 
       <SidebarFooter className="gap-1 border-t border-sidebar-border p-2">
         <SidebarMenu>
+          <SidebarMenuItem>
+            <NotificationCenter />
+          </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton
               className="h-8 text-muted-foreground"

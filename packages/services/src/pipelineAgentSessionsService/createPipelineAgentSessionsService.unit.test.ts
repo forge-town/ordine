@@ -18,6 +18,10 @@ const mockAttachmentsDao = {
   findManyBySessionId: vi.fn(),
 };
 
+const mockAttachmentsRepository = {
+  deleteWithContextArtifacts: vi.fn(),
+};
+
 const mockContextArtifactsDao = {
   create: vi.fn(),
   findManyBySessionId: vi.fn(),
@@ -65,6 +69,7 @@ vi.mock("@repo/models", () => ({
   createPipelineAgentSessionsDao: () => mockSessionsDao,
   createPipelineAgentMessagesDao: () => mockMessagesDao,
   createPipelineAgentAttachmentsDao: () => mockAttachmentsDao,
+  createPipelineAgentAttachmentsRepository: () => mockAttachmentsRepository,
   createPipelineAgentContextArtifactsDao: () => mockContextArtifactsDao,
   createPipelineAgentProposalsDao: () => mockProposalsDao,
   createSettingsDao: () => mockSettingsDao,
@@ -1099,5 +1104,46 @@ describe("createPipelineAgentSessionsService", () => {
       }),
     );
     expect(result.artifacts).toEqual([]);
+  });
+
+  it("removes an attachment and its context artifacts before planning", async () => {
+    mockSessionsDao.findById.mockResolvedValueOnce({
+      id: "session-1",
+      entrypoint: "new-pipeline-dialog",
+      mode: "generate",
+      status: "draft",
+    });
+    mockAttachmentsRepository.deleteWithContextArtifacts.mockResolvedValueOnce({
+      id: "attachment-1",
+      sessionId: "session-1",
+      filename: "missing.txt",
+      storageKey: "Z:/ordine-tests/missing.txt",
+      parseStatus: "parsed",
+      parseError: null,
+    });
+    const service = createPipelineAgentSessionsService({} as never);
+
+    const attachment = await service.removeAttachment("session-1", "attachment-1");
+
+    expect(mockAttachmentsRepository.deleteWithContextArtifacts).toHaveBeenCalledWith(
+      "session-1",
+      "attachment-1",
+    );
+    expect(attachment.id).toBe("attachment-1");
+  });
+
+  it("rejects attachment removal after planning starts", async () => {
+    mockSessionsDao.findById.mockResolvedValueOnce({
+      id: "session-1",
+      entrypoint: "new-pipeline-dialog",
+      mode: "generate",
+      status: "analyzing",
+    });
+    const service = createPipelineAgentSessionsService({} as never);
+
+    await expect(service.removeAttachment("session-1", "attachment-1")).rejects.toThrow(
+      "cannot be removed",
+    );
+    expect(mockAttachmentsRepository.deleteWithContextArtifacts).not.toHaveBeenCalled();
   });
 });

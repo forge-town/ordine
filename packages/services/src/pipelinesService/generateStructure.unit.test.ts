@@ -151,6 +151,71 @@ describe("generateStructure", () => {
     }
   });
 
+  it("retries once with schema diagnostics and accepts a corrected structure", async () => {
+    const invalidStructure = {
+      nodes: [
+        {
+          id: "prompt-1",
+          type: "prompt",
+          position: { x: 0, y: 0 },
+          data: { nodeType: "prompt", label: "Prompt" },
+        },
+      ],
+      edges: [],
+    };
+    const correctedStructure = {
+      nodes: [
+        {
+          id: "prompt-1",
+          type: "prompt",
+          position: { x: 0, y: 0 },
+          data: { nodeType: "prompt", label: "Prompt", prompt: "Review this repository" },
+        },
+      ],
+      edges: [],
+    };
+    mockRunAgent
+      .mockResolvedValueOnce(JSON.stringify(invalidStructure))
+      .mockResolvedValueOnce(JSON.stringify(correctedStructure));
+
+    const svc = createPipelinesService({} as never);
+    const result = await svc.generateStructure({
+      name: "Review Pipeline",
+      description: "Review a repository",
+    });
+
+    expect("error" in result).toBe(false);
+    expect(mockRunAgent).toHaveBeenCalledTimes(2);
+    const repairCall = mockRunAgent.mock.calls[1]![0] as { userPrompt: string };
+    expect(repairCall.userPrompt).toContain("VALIDATION ISSUES TO FIX");
+    expect(repairCall.userPrompt).toContain("prompt");
+    expect(repairCall.userPrompt).toContain("PREVIOUS INVALID STRUCTURE");
+  });
+
+  it("stops after one schema repair retry when the structure remains invalid", async () => {
+    const invalidStructure = {
+      nodes: [
+        {
+          id: "prompt-1",
+          type: "prompt",
+          position: { x: 0, y: 0 },
+          data: { nodeType: "prompt", label: "Prompt" },
+        },
+      ],
+      edges: [],
+    };
+    mockRunAgent.mockResolvedValue(JSON.stringify(invalidStructure));
+
+    const svc = createPipelinesService({} as never);
+    const result = await svc.generateStructure({
+      name: "Invalid Pipeline",
+      description: "Return an invalid prompt node",
+    });
+
+    expect(result).toEqual({ error: "Agent returned invalid pipeline structure" });
+    expect(mockRunAgent).toHaveBeenCalledTimes(2);
+  });
+
   it("expands ~ in folder and output-local-path nodes", async () => {
     const generatedPipeline = {
       nodes: [
