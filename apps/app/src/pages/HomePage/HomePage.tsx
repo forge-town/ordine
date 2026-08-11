@@ -1,9 +1,10 @@
 import { useList } from "@refinedev/core";
-import { Bot, ChevronRight } from "lucide-react";
+import { AlertTriangle, Bot, ChevronRight, RefreshCw } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
 import type { AgentRuntimeConfig } from "@repo/schemas";
 import { Link } from "@tanstack/react-router";
+import { Button } from "@repo/ui/button";
 import { PipelineCreationWorkspace } from "@/components/PipelineCreationWorkspace";
 import { useSidebarStore } from "@/store/sidebarStore";
 
@@ -18,11 +19,14 @@ export const HomePage = () => {
   const runtime = localRuntimes.find((candidate) => candidate.type === "codex") ?? localRuntimes[0];
   const runtimeLabel = query.isLoading
     ? t("home.checkingAgent")
-    : runtime
-      ? localRuntimes.length > 1
-        ? t("home.localAgentCount", { name: runtime.name, count: localRuntimes.length - 1 })
-        : runtime.name
-      : undefined;
+    : query.isError
+      ? t("home.agentQueryFailed")
+      : runtime
+        ? localRuntimes.length > 1
+          ? t("home.localAgentCount", { name: runtime.name, count: localRuntimes.length - 1 })
+          : runtime.name
+        : undefined;
+  const handleRuntimeRetry = () => void query.refetch();
 
   return (
     <div className="flex h-full min-h-0 flex-col overflow-hidden bg-background">
@@ -37,7 +41,11 @@ export const HomePage = () => {
         >
           <Bot className="size-3.5" />
           <span className="hidden sm:inline">
-            {runtime ? t("home.agentReady") : t("home.connectLocalAgent")}
+            {query.isError
+              ? t("home.agentQueryFailed")
+              : runtime
+                ? t("home.agentConfigured")
+                : t("home.connectLocalAgent")}
           </span>
           <ChevronRight className="size-3.5" />
         </Link>
@@ -55,11 +63,27 @@ export const HomePage = () => {
             </p>
           </div>
 
+          {query.isError ? (
+            <div
+              className="mb-3 flex items-center gap-3 rounded-xl border border-destructive/30 bg-destructive/8 px-3 py-2.5 text-sm"
+              role="alert"
+            >
+              <AlertTriangle className="size-4 shrink-0 text-destructive" />
+              <span className="min-w-0 flex-1 break-words text-foreground">
+                {t("home.runtimeLoadFailed")}
+              </span>
+              <Button size="sm" variant="outline" onClick={handleRuntimeRetry}>
+                <RefreshCw className="size-3.5" />
+                {t("common.retry")}
+              </Button>
+            </div>
+          ) : null}
+
           <PipelineCreationWorkspace
             key={workspaceVersion}
             active
             presentation="home"
-            runtimeConnected={Boolean(runtime)}
+            runtimeConfigured={Boolean(runtime)}
             runtimeId={runtime?.id}
             runtimeLabel={runtimeLabel}
           />

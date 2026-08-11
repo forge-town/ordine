@@ -14,6 +14,9 @@ import {
   FileText,
   Copy,
   Check,
+  AlertTriangle,
+  RefreshCw,
+  SearchX,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
@@ -25,6 +28,7 @@ import { cn } from "@repo/ui/lib/utils";
 import type { Agent } from "@repo/schemas";
 import { ResourceName } from "../../../constants";
 import { PageHeader } from "../../../components/PageHeader";
+import { PageState } from "../../../components/PageState";
 import { useAgentDetailPageStore } from "../_store";
 import { AgentEditDialog } from "../AgentEditDialog";
 import { PropRow } from "./PropRow";
@@ -50,6 +54,7 @@ export const AgentDetailPageContent = () => {
   const handleCopyIdButtonClick = useStore(store, (s) => s.handleCopyIdButtonClick);
 
   const agent = result ?? null;
+  const handleAgentRetry = () => void agentQuery.refetch();
   const handleDeleteAgentButtonClick = (id: string) => {
     void handleDeleteButtonClick(id, {
       deleteAgent: (agentIdToDelete) =>
@@ -72,7 +77,7 @@ export const AgentDetailPageContent = () => {
     );
   };
 
-  if (agentQuery.isLoading || !agent) {
+  if (agentQuery.isLoading) {
     return (
       <div className="flex h-full flex-col overflow-hidden">
         <PageHeader
@@ -93,6 +98,56 @@ export const AgentDetailPageContent = () => {
               <Skeleton className="m-4 h-40 w-full" />
             </div>
           </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (agentQuery.isError) {
+    return (
+      <div className="flex h-full flex-col overflow-hidden">
+        <PageHeader
+          backTo="/agents"
+          icon={<Bot className="h-4 w-4 text-primary" />}
+          title={t(`${s}.title`)}
+        />
+        <div className="flex-1 p-6">
+          <PageState
+            action={
+              <Button size="sm" variant="outline" onClick={handleAgentRetry}>
+                <RefreshCw className="size-3.5" />
+                {t("common.retry")}
+              </Button>
+            }
+            description={t("common.loadFailedDescription")}
+            icon={<AlertTriangle />}
+            title={t("common.loadFailed")}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  if (!agent) {
+    return (
+      <div className="flex h-full flex-col overflow-hidden">
+        <PageHeader
+          backTo="/agents"
+          icon={<Bot className="h-4 w-4 text-primary" />}
+          title={t(`${s}.title`)}
+        />
+        <div className="flex-1 p-6">
+          <PageState
+            action={
+              <Button size="sm" variant="outline" onClick={handleAgentRetry}>
+                <RefreshCw className="size-3.5" />
+                {t("common.retry")}
+              </Button>
+            }
+            description={t("agents.notFoundDescription")}
+            icon={<SearchX />}
+            title={t("common.notFound")}
+          />
         </div>
       </div>
     );

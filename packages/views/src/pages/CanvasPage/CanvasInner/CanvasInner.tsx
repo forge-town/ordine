@@ -149,7 +149,7 @@ export const CanvasInner = () => {
                 aria-label={t("canvas.operationsPanel.resize", {
                   defaultValue: "Resize operations panel",
                 })}
-                className="absolute inset-y-0 -right-2 z-10 h-full w-4 cursor-col-resize touch-none rounded-none px-0 max-[981px]:hidden"
+                className="absolute inset-y-0 -right-3 z-10 h-full w-6 cursor-col-resize touch-none rounded-none px-0 max-[981px]:hidden"
                 data-testid="canvas-work-panel-resizer"
                 size="icon"
                 variant="ghost"

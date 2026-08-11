@@ -40,15 +40,15 @@ vi.mock("@tanstack/react-router", () => ({
 vi.mock("@/components/PipelineCreationWorkspace", () => ({
   PipelineCreationWorkspace: ({
     presentation,
-    runtimeConnected,
+    runtimeConfigured,
     runtimeLabel,
   }: {
     presentation: string;
-    runtimeConnected: boolean;
+    runtimeConfigured: boolean;
     runtimeLabel?: string;
   }) => (
     <div
-      data-connected={runtimeConnected}
+      data-connected={runtimeConfigured}
       data-presentation={presentation}
       data-runtime={runtimeLabel}
       data-testid="pipeline-creation-workspace"
@@ -94,7 +94,7 @@ describe("HomePage", () => {
     renderHomePage();
 
     expect(screen.getByText("home.heading")).toBeInTheDocument();
-    expect(screen.getByText("home.agentReady")).toBeInTheDocument();
+    expect(screen.getByText("home.agentConfigured")).toBeInTheDocument();
     expect(screen.getByTestId("pipeline-creation-workspace")).toHaveAttribute(
       "data-presentation",
       "home",
@@ -135,5 +135,19 @@ describe("HomePage", () => {
     act(() => store.getState().handleNewPipelineWorkspaceReset());
 
     expect(screen.getByTestId("pipeline-creation-workspace")).not.toBe(firstWorkspace);
+  });
+
+  it("shows a retryable error when runtime discovery fails", () => {
+    const refetch = vi.fn();
+    mockUseList.mockReturnValue({
+      result: { data: [] },
+      query: { isError: true, isLoading: false, refetch },
+    });
+
+    renderHomePage();
+
+    expect(screen.getByRole("alert")).toHaveTextContent("home.runtimeLoadFailed");
+    screen.getByRole("button", { name: "common.retry" }).click();
+    expect(refetch).toHaveBeenCalledOnce();
   });
 });

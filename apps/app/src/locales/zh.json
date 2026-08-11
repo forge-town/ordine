@@ -37,7 +37,9 @@
     "updatedAt": "更新时间",
     "generating": "生成中...",
     "clearSearch": "清除搜索",
-    "retry": "重试"
+    "retry": "重试",
+    "loadFailed": "页面加载失败",
+    "loadFailedDescription": "请检查网络连接后重试。"
   },
   "auth": {
     "workspace": "可组合的 AI 工作区",
@@ -227,6 +229,9 @@
     "heading": "今天想让 Ordine 自动化什么？",
     "description": "描述目标、输入和期望产物。本地 Agent 会先与你确认方案，再直接生成可运行的 Pipeline。",
     "agentReady": "本地 Agent 已就绪",
+    "agentConfigured": "本地 Agent 已配置",
+    "agentQueryFailed": "Agent 状态不可用",
+    "runtimeLoadFailed": "无法加载已配置的本地 Agent。",
     "connectLocalAgent": "连接本地 Agent",
     "checkingAgent": "正在检查本地 Agent…",
     "localAgentCount": "{{name}} +{{count}}",
@@ -651,6 +656,20 @@
       "condition": "条件"
     }
   },
+  "pipelineAgentErrors": {
+    "attachmentTooLarge": "附件过大，请选择 10 MB 以内的文件。",
+    "invalidAttachment": "附件上传失败，请更换文件后重试。",
+    "invalidRequest": "请求内容不完整，请检查后重试。",
+    "attachmentNotFound": "该附件已不存在。",
+    "attachmentConflict": "附件只能在规划开始前移除。",
+    "cancelled": "请求已取消。",
+    "invalidStructure": "Agent 未能生成有效的 Pipeline，请修改方案后重试。",
+    "proposalConflict": "方案状态已变化，请刷新对话后重试。",
+    "sessionNotFound": "该对话已不存在，请开始新对话。",
+    "stateConflict": "对话状态已变化，请刷新后重试。",
+    "network": "无法连接 Pipeline Agent，请检查网络后重试。",
+    "generic": "Pipeline Agent 未能完成请求，请重试。"
+  },
   "newPipelineDialog": {
     "descriptionPlaceholder": "描述这个流水线要做什么...",
     "messagePlaceholder": "描述你的目标，并补充任何有帮助的上下文...",
@@ -683,6 +702,10 @@
   },
   "canvas": {
     "title": "画布",
+    "pipelineLoadFailed": "Pipeline 加载失败",
+    "pipelineLoadFailedDescription": "Pipeline 请求失败，请检查网络后重试。",
+    "pipelineNotFound": "未找到 Pipeline",
+    "pipelineNotFoundDescription": "该 Pipeline 可能已删除，或当前链接无效。",
     "menu": "菜单",
     "backToWorkspace": "回到工作区",
     "pipelineTitle": "Pipeline 标题",
@@ -2120,6 +2143,7 @@
   },
   "agents": {
     "title": "智能体",
+    "notFoundDescription": "该 Agent 可能已删除，或当前链接无效。",
     "subtitle": "配置在当前工作区中规划并协调任务的智能体。",
     "noAgents": "暂无智能体",
     "searchPlaceholder": "搜索智能体...",

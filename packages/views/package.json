@@ -42,6 +42,7 @@
     "./PipelineDetailPage": "./src/pages/PipelineDetailPage/index.ts",
     "./PageHeader": "./src/components/PageHeader/index.ts",
     "./PageLoadingState": "./src/components/PageLoadingState/index.ts",
+    "./PageState": "./src/components/PageState/index.ts",
     "./ToastContainer": "./src/components/ToastContainer.tsx",
     "./platform": "./src/platform/index.ts",
     "./auth": "./src/auth/index.ts",

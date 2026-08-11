@@ -135,7 +135,13 @@ export const usePipelineCreationSessionRecovery = ({
       }
     })();
 
-    return () => controller.abort();
+    return () => {
+      controller.abort();
+      if (activeRequestRef.current === controller) {
+        activeRequestRef.current = null;
+        sessionIdRef.current = null;
+      }
+    };
   }, [
     active,
     activeRequestRef,

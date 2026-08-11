@@ -179,6 +179,7 @@ describe("pipelineAgentSessionsRoutes", () => {
 
     expect(response.status).toBe(409);
     expect(await response.json()).toEqual({
+      code: "PIPELINE_AGENT_PROPOSAL_STATE_CONFLICT",
       error: "Pipeline agent proposal proposal-1 cannot be approved from status approved",
     });
   });
@@ -275,6 +276,7 @@ describe("pipelineAgentSessionsRoutes", () => {
 
     expect(response.status).toBe(409);
     expect(await response.json()).toEqual({
+      code: "PIPELINE_AGENT_ATTACHMENT_STATE_CONFLICT",
       error: "Pipeline agent attachment cannot be removed while session session-1 is analyzing",
     });
   });
@@ -319,7 +321,10 @@ describe("pipelineAgentSessionsRoutes", () => {
     });
 
     expect(response.status).toBe(400);
-    expect(await response.json()).toEqual({ error: "Invalid request body" });
+    expect(await response.json()).toEqual({
+      code: "INVALID_REQUEST",
+      error: "Invalid request body",
+    });
     expect(mocks.planSession).not.toHaveBeenCalled();
   });
 
@@ -359,6 +364,7 @@ describe("pipelineAgentSessionsRoutes", () => {
 
     expect(response.status).toBe(404);
     expect(await response.json()).toEqual({
+      code: "PIPELINE_AGENT_SESSION_NOT_FOUND",
       error: "Pipeline agent session not found: missing",
     });
   });
@@ -374,6 +380,7 @@ describe("pipelineAgentSessionsRoutes", () => {
 
     expect(response.status).toBe(409);
     expect(await response.json()).toEqual({
+      code: "PIPELINE_AGENT_PROPOSAL_STATE_CONFLICT",
       error: "Pipeline agent session session-1 does not have an approved proposal",
     });
   });
@@ -389,6 +396,7 @@ describe("pipelineAgentSessionsRoutes", () => {
 
     expect(response.status).toBe(500);
     expect(await response.json()).toEqual({
+      code: "PIPELINE_AGENT_INVALID_STRUCTURE",
       error: "Agent returned invalid pipeline structure",
     });
   });

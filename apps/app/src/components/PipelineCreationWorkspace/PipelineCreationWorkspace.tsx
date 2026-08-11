@@ -17,6 +17,7 @@ import type { PipelineAgentProposal } from "@repo/schemas";
 import { sidebarStore as sharedSidebarStore } from "@repo/views/store/sidebarStore";
 import { dataProvider } from "@/integrations/refine/dataProvider";
 import { materializeGeneratedPipeline } from "@/lib/materializeGeneratedPipeline";
+import { getPipelineAgentErrorMessage } from "@/lib/pipelineAgentErrorMessage";
 import {
   pipelineAgentSessionsClient,
   type PipelineAgentPlanEvent,
@@ -38,7 +39,7 @@ export interface PipelineCreationWorkspaceProps {
   client?: typeof pipelineAgentSessionsClient;
   materializePipeline?: typeof materializeGeneratedPipeline;
   presentation?: WorkspacePresentation;
-  runtimeConnected?: boolean;
+  runtimeConfigured?: boolean;
   runtimeId?: string;
   runtimeLabel?: string;
   onClose?: () => void;
@@ -49,7 +50,7 @@ export const PipelineCreationWorkspace = ({
   client = pipelineAgentSessionsClient,
   materializePipeline = materializeGeneratedPipeline,
   presentation = "dialog",
-  runtimeConnected = false,
+  runtimeConfigured = false,
   runtimeId,
   runtimeLabel,
   onClose: handleClose,
@@ -72,8 +73,14 @@ export const PipelineCreationWorkspace = ({
   const sessionIdRef = useRef<string | null>(null);
   const activeRequestRef = useRef<AbortController | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const translationRef = useRef(t);
+  translationRef.current = t;
   const isHome = presentation === "home";
   const welcomeMessage = t("newPipelineDialog.welcome");
+  const handlePipelineAgentError = useCallback(
+    (error: Error) => setErrorMessage(getPipelineAgentErrorMessage(error, translationRef.current)),
+    [],
+  );
 
   const rememberSessionId = useCallback(
     (sessionId: string | null) => {
@@ -200,10 +207,13 @@ export const PipelineCreationWorkspace = ({
     setCreatedPipelineId(pipelineId);
     setPhase("success");
   }, []);
-  const handleRestoreError = useCallback((error: Error) => {
-    setErrorMessage(error.message);
-    setPhase("conversation");
-  }, []);
+  const handleRestoreError = useCallback(
+    (error: Error) => {
+      handlePipelineAgentError(error);
+      setPhase("conversation");
+    },
+    [handlePipelineAgentError],
+  );
   const handleMissingSession = useCallback(() => resetWorkspace(true), [resetWorkspace]);
   const isRestoring = usePipelineCreationSessionRecovery({
     active,
@@ -278,7 +288,9 @@ export const PipelineCreationWorkspace = ({
 
     if (event.type === "error") {
       setStreamingAssistantText("");
-      setErrorMessage(event.message);
+      handlePipelineAgentError(
+        Object.assign(new Error(event.message), event.code ? { code: event.code } : {}),
+      );
       setPhase("conversation");
     }
   };
@@ -367,7 +379,7 @@ export const PipelineCreationWorkspace = ({
     }
     if (sendResult.isErr()) {
       setStreamingAssistantText("");
-      setErrorMessage(sendResult.error.message);
+      handlePipelineAgentError(sendResult.error);
       setPhase("conversation");
     }
   };
@@ -418,7 +430,7 @@ export const PipelineCreationWorkspace = ({
       if (activeRequestRef.current === controller) {
         activeRequestRef.current = null;
       }
-      setErrorMessage(generationResult.error.message);
+      handlePipelineAgentError(generationResult.error);
       setPhase("proposal_ready");
 
       return;
@@ -438,7 +450,7 @@ export const PipelineCreationWorkspace = ({
       return;
     }
     if (materializationResult.isErr()) {
-      setErrorMessage(materializationResult.error.message);
+      handlePipelineAgentError(materializationResult.error);
       setPhase("proposal_ready");
 
       return;
@@ -466,7 +478,7 @@ export const PipelineCreationWorkspace = ({
     );
     setIsCancelling(false);
     if (cancelResult.isErr()) {
-      setErrorMessage(cancelResult.error.message);
+      handlePipelineAgentError(cancelResult.error);
 
       return;
     }
@@ -485,7 +497,7 @@ export const PipelineCreationWorkspace = ({
       (error) => (error instanceof Error ? error : new Error(String(error))),
     );
     if (supersedeResult.isErr()) {
-      setErrorMessage(supersedeResult.error.message);
+      handlePipelineAgentError(supersedeResult.error);
 
       return false;
     }
@@ -549,7 +561,7 @@ export const PipelineCreationWorkspace = ({
       (error) => (error instanceof Error ? error : new Error(String(error))),
     );
     if (runNowResult.isErr()) {
-      setErrorMessage(runNowResult.error.message);
+      handlePipelineAgentError(runNowResult.error);
 
       return;
     }
@@ -565,7 +577,7 @@ export const PipelineCreationWorkspace = ({
       error instanceof Error ? error : new Error(String(error)),
     );
     if (sessionResult.isErr()) {
-      setErrorMessage(sessionResult.error.message);
+      handlePipelineAgentError(sessionResult.error);
 
       return;
     }
@@ -594,7 +606,7 @@ export const PipelineCreationWorkspace = ({
     );
     setIsUploading(false);
     if (uploadResult.isErr()) {
-      setErrorMessage(uploadResult.error.message);
+      handlePipelineAgentError(uploadResult.error);
 
       return;
     }
@@ -627,7 +639,7 @@ export const PipelineCreationWorkspace = ({
     );
     setRemovingAttachmentId(null);
     if (removeResult.isErr()) {
-      setErrorMessage(removeResult.error.message);
+      handlePipelineAgentError(removeResult.error);
 
       return;
     }
@@ -691,7 +703,7 @@ export const PipelineCreationWorkspace = ({
         {errorMessage && (
           <div className="flex w-full items-center gap-2 rounded-lg border border-destructive/40 bg-destructive/8 px-3 py-2 text-left text-sm text-destructive">
             <AlertCircle className="size-4 shrink-0" />
-            <span>{errorMessage}</span>
+            <span className="min-w-0 break-words [overflow-wrap:anywhere]">{errorMessage}</span>
           </div>
         )}
         <div className="flex w-full flex-col gap-2 sm:flex-row">
@@ -717,7 +729,7 @@ export const PipelineCreationWorkspace = ({
       {errorMessage && (
         <div className="flex items-center gap-2 rounded-lg border border-destructive/40 bg-destructive/8 px-3 py-2 text-sm text-destructive">
           <AlertCircle className="size-4 shrink-0" />
-          <span>{errorMessage}</span>
+          <span className="min-w-0 break-words [overflow-wrap:anywhere]">{errorMessage}</span>
         </div>
       )}
 
@@ -744,7 +756,7 @@ export const PipelineCreationWorkspace = ({
         isUploading={isUploading}
         phase={phase}
         proposalVisible={proposal !== null}
-        runtimeConfigured={runtimeConnected}
+        runtimeConfigured={runtimeConfigured}
         runtimeLabel={runtimeLabel}
         onApprove={handleApprove}
         onCancel={handleCancel}
