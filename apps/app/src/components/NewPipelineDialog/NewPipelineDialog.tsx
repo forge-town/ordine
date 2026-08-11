@@ -23,6 +23,7 @@ import { dataProvider } from "@/integrations/refine/dataProvider";
 import { router } from "@/router";
 import type { PipelineAgentProposal } from "@repo/schemas";
 import { materializeGeneratedPipeline } from "@/lib/materializeGeneratedPipeline";
+import { sidebarStore as sharedSidebarStore } from "@repo/views/store/sidebarStore";
 
 interface ConversationMessage {
   id: string;
@@ -282,7 +283,10 @@ export const NewPipelineDialog = ({
     }
 
     const materializationResult = await ResultAsync.fromPromise(
-      materializePipeline(generationResult.value.pipelineId),
+      materializePipeline(
+        generationResult.value.pipelineId,
+        sharedSidebarStore.getState().currentProjectId,
+      ),
       (error) => (error instanceof Error ? error : new Error(String(error))),
     );
     if (materializationResult.isErr()) {

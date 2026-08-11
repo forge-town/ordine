@@ -82,4 +82,16 @@ describe("materializeGeneratedPipeline", () => {
       variables: expect.objectContaining({ id: "pipeline-1" }),
     });
   });
+
+  it("assigns an Agent-generated pipeline to the active project", async () => {
+    await materializeGeneratedPipeline("pipeline-1", "project-1");
+
+    expect(mockCreate).toHaveBeenNthCalledWith(2, {
+      resource: "pipelines",
+      variables: expect.objectContaining({
+        id: "pipeline-1",
+        projectId: "project-1",
+      }),
+    });
+  });
 });
