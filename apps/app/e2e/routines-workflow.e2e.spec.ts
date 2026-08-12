@@ -1,5 +1,5 @@
 import { expect } from "@playwright/test";
-import { test, expectNoJSErrors, navigateAndWait } from "./fixtures";
+import { test, expectNoJSErrors, navigateAndWait, renameCanvasPipeline } from "./fixtures";
 
 test.describe("Routine workflow", () => {
   test("creates, validates, edits, persists, and deletes a Pipeline schedule", async ({
@@ -10,14 +10,11 @@ test.describe("Routine workflow", () => {
     const pipelineName = `Routine Pipeline ${runId}`;
 
     await navigateAndWait(page, "/pipelines");
-    await page.locator("main").getByRole("button", { name: "New Pipeline" }).click();
+    await page.locator("main").getByRole("button", { name: "New Pipeline", exact: true }).click();
     await expect(page).toHaveURL(/\/canvas\?id=pipeline-/);
     const pipelineId = new URL(page.url()).searchParams.get("id");
     expect(pipelineId).toBeTruthy();
-    await page.getByTestId("canvas-v2-crumb-0").click();
-    await page.getByTestId("canvas-v2-rename-input").fill(pipelineName);
-    await page.getByTestId("canvas-v2-rename-input").press("Enter");
-    await expect(page.getByTestId("canvas-v2-top-pill")).toContainText(pipelineName);
+    await renameCanvasPipeline(page, pipelineName);
 
     await navigateAndWait(page, "/pipelines");
     await page.getByRole("button", { name: `Schedule ${pipelineName}` }).click();
@@ -26,9 +23,7 @@ test.describe("Routine workflow", () => {
 
     await editor.getByTestId("schedule-cron-minute").fill("99");
     await editor.getByTestId("schedule-save").click();
-    await expect(editor.getByRole("alert")).toHaveText(
-      "Enter a valid five-field Cron expression",
-    );
+    await expect(editor.getByRole("alert")).toHaveText("Enter a valid five-field Cron expression");
 
     await editor.getByTestId("schedule-preset-daily").click();
     await editor.getByTestId("schedule-save").click();
