@@ -222,6 +222,7 @@ export const RunConsole = () => {
         "absolute bottom-0 left-0 right-0 z-30 border-t bg-surface shadow-float transition-all",
         isConsoleCollapsed ? "h-9" : "h-64",
       )}
+      data-testid="canvas-run-console"
     >
       {/* Status bar */}
       <div className="flex h-9 items-center justify-between border-b bg-surface-2/80 px-3">

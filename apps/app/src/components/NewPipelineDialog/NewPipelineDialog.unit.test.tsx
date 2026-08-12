@@ -118,12 +118,19 @@ vi.mock("@repo/ui/form", () => ({
 vi.mock("lucide-react", () => ({
   AlertCircle: () => <span data-testid="alert-circle-icon" />,
   ArrowLeft: () => <span data-testid="arrow-left-icon" />,
+  ArrowUp: () => <span data-testid="arrow-up-icon" />,
   CheckCircle2: () => <span data-testid="check-icon" />,
   ExternalLink: () => <span data-testid="external-link-icon" />,
   Loader2: () => <span data-testid="loader" />,
+  Paperclip: () => <span data-testid="paperclip-icon" />,
   Play: () => <span data-testid="play-icon" />,
   Plus: () => <span data-testid="plus-icon" />,
+  Sparkles: () => <span data-testid="sparkles-icon" />,
+  Square: () => <span data-testid="square-icon" />,
   Upload: () => <span data-testid="upload-icon" />,
+  WandSparkles: () => <span data-testid="wand-sparkles-icon" />,
+  Workflow: () => <span data-testid="workflow-icon" />,
+  X: () => <span data-testid="x-icon" />,
 }));
 
 const createWrapper = (store: SidebarStore) => {
@@ -197,16 +204,23 @@ describe("NewPipelineDialog", () => {
     await userEvent.click(screen.getByText("newPipelineDialog.send"));
 
     await waitFor(() => {
-      expect(mockCreateSession).toHaveBeenCalledWith({
-        entrypoint: "new-pipeline-dialog",
-        mode: "generate",
-      });
+      expect(mockCreateSession).toHaveBeenCalledWith(
+        {
+          entrypoint: "new-pipeline-dialog",
+          mode: "generate",
+        },
+        { signal: expect.any(AbortSignal) },
+      );
     });
-    expect(mockAppendMessage).toHaveBeenCalledWith("session-1", {
-      role: "user",
-      kind: "text",
-      content: "Build me a review pipeline",
-    });
+    expect(mockAppendMessage).toHaveBeenCalledWith(
+      "session-1",
+      {
+        role: "user",
+        kind: "text",
+        content: "Build me a review pipeline",
+      },
+      { signal: expect.any(AbortSignal) },
+    );
     expect(mockPlanSessionStream).toHaveBeenCalled();
     await waitFor(() => {
       expect(screen.getByText("What output format do you want?")).toBeInTheDocument();
@@ -280,6 +294,7 @@ describe("NewPipelineDialog", () => {
     await waitFor(() => {
       expect(mockGetLatestReadyProposal).toHaveBeenCalledWith("session-1", "generate", {
         excludeProposalId: null,
+        signal: expect.any(AbortSignal),
       });
       expect(screen.getByText("Review repository code")).toBeInTheDocument();
     });
@@ -440,7 +455,9 @@ describe("NewPipelineDialog", () => {
     await userEvent.click(screen.getByText("newPipelineDialog.send"));
 
     await waitFor(() => {
-      expect(mockGetLatestAssistantQuestion).toHaveBeenCalledWith("session-1");
+      expect(mockGetLatestAssistantQuestion).toHaveBeenCalledWith("session-1", {
+        signal: expect.any(AbortSignal),
+      });
       expect(
         screen.getByText("Should I create placeholder operations for unavailable capabilities?"),
       ).toBeInTheDocument();
@@ -484,9 +501,13 @@ describe("NewPipelineDialog", () => {
     await userEvent.click(screen.getByText("newPipelineDialog.approve"));
 
     await waitFor(() => {
-      expect(mockApproveProposal).toHaveBeenCalledWith("session-1", "proposal-1");
+      expect(mockApproveProposal).toHaveBeenCalledWith("session-1", "proposal-1", {
+        signal: expect.any(AbortSignal),
+      });
     });
-    expect(mockGeneratePipeline).toHaveBeenCalledWith("session-1");
+    expect(mockGeneratePipeline).toHaveBeenCalledWith("session-1", {
+      signal: expect.any(AbortSignal),
+    });
     await waitFor(() => {
       expect(screen.getByText("newPipelineDialog.pipelineReady")).toBeInTheDocument();
     });
@@ -557,7 +578,10 @@ describe("NewPipelineDialog", () => {
       });
     });
     mockGeneratePipeline.mockRejectedValueOnce(
-      Object.assign(new Error("Agent returned invalid pipeline structure"), { status: 500 }),
+      Object.assign(new Error("Agent returned invalid pipeline structure"), {
+        code: "PIPELINE_AGENT_INVALID_STRUCTURE",
+        status: 500,
+      }),
     );
 
     const store = createSidebarStore();
@@ -576,7 +600,7 @@ describe("NewPipelineDialog", () => {
     await userEvent.click(screen.getByText("newPipelineDialog.approve"));
 
     await waitFor(() => {
-      expect(screen.getByText("Agent returned invalid pipeline structure")).toBeInTheDocument();
+      expect(screen.getByText("pipelineAgentErrors.invalidStructure")).toBeInTheDocument();
       expect(screen.getByText("newPipelineDialog.approve")).toBeInTheDocument();
     });
     expect(mockWaitForCreatedPipeline).not.toHaveBeenCalled();
@@ -603,7 +627,10 @@ describe("NewPipelineDialog", () => {
     });
     mockGeneratePipeline
       .mockRejectedValueOnce(
-        Object.assign(new Error("Agent returned invalid pipeline structure"), { status: 500 }),
+        Object.assign(new Error("Agent returned invalid pipeline structure"), {
+          code: "PIPELINE_AGENT_INVALID_STRUCTURE",
+          status: 500,
+        }),
       )
       .mockResolvedValueOnce({ pipelineId: "pipe-2" });
 
@@ -622,7 +649,7 @@ describe("NewPipelineDialog", () => {
 
     await userEvent.click(screen.getByText("newPipelineDialog.approve"));
     await waitFor(() => {
-      expect(screen.getByText("Agent returned invalid pipeline structure")).toBeInTheDocument();
+      expect(screen.getByText("pipelineAgentErrors.invalidStructure")).toBeInTheDocument();
     });
 
     await userEvent.click(screen.getByText("newPipelineDialog.approve"));

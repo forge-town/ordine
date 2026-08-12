@@ -1,5 +1,5 @@
 import { expect, type Page } from "@playwright/test";
-import { test, navigateAndWait, expectNoJSErrors } from "./fixtures";
+import { test, navigateAndWait, expectNoJSErrors, renameCanvasPipeline } from "./fixtures";
 
 const createProject = async (page: Page, name: string) => {
   await page.getByRole("button", { name: "Projects" }).click();
@@ -11,12 +11,9 @@ const createProject = async (page: Page, name: string) => {
 
 const createAndRenamePipeline = async (page: Page, name: string) => {
   await navigateAndWait(page, "/pipelines");
-  await page.locator("main").getByRole("button", { name: "New Pipeline" }).click();
+  await page.locator("main").getByRole("button", { name: "New Pipeline", exact: true }).click();
   await expect(page).toHaveURL(/\/canvas\?id=pipeline-/);
-  await page.getByTestId("canvas-v2-crumb-0").click();
-  await page.getByTestId("canvas-v2-rename-input").fill(name);
-  await page.getByTestId("canvas-v2-rename-input").press("Enter");
-  await expect(page.getByTestId("canvas-v2-top-pill")).toContainText(name);
+  await renameCanvasPipeline(page, name);
 };
 
 test.describe("Project-scoped Pipeline workflow", () => {

@@ -6,6 +6,10 @@ import { describe, expect, it, vi } from "vitest";
 import { ReactFlowProvider } from "@xyflow/react";
 import type * as XyFlowReact from "@xyflow/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import {
+  createNotificationStore,
+  NotificationStoreContext,
+} from "../../../store/notificationStore";
 import { CanvasPageStoreProvider, useCanvasPageStore } from "../_store";
 import type { PipelineNode } from "../_store/canvasSlice";
 import { CanvasInner } from "./CanvasInner";
@@ -59,6 +63,7 @@ vi.mock("@tanstack/react-router", () => ({
       {children}
     </a>
   ),
+  useNavigate: () => vi.fn(),
 }));
 
 vi.mock("../AgentPanel", () => ({
@@ -68,6 +73,7 @@ vi.mock("../AgentPanel", () => ({
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: false } },
 });
+const notificationStore = createNotificationStore();
 
 const existingNode = {
   id: "node-1",
@@ -99,11 +105,13 @@ const makeWrapper =
   (nodes: PipelineNode[] = []) =>
   ({ children }: React.PropsWithChildren) => (
     <QueryClientProvider client={queryClient}>
-      <CanvasPageStoreProvider pipeline={{ id: "pipe-1", name: "Pipeline", nodes, edges: [] }}>
-        <ClosedAgentPanelSetup>
-          <ReactFlowProvider>{children}</ReactFlowProvider>
-        </ClosedAgentPanelSetup>
-      </CanvasPageStoreProvider>
+      <NotificationStoreContext.Provider value={notificationStore}>
+        <CanvasPageStoreProvider pipeline={{ id: "pipe-1", name: "Pipeline", nodes, edges: [] }}>
+          <ClosedAgentPanelSetup>
+            <ReactFlowProvider>{children}</ReactFlowProvider>
+          </ClosedAgentPanelSetup>
+        </CanvasPageStoreProvider>
+      </NotificationStoreContext.Provider>
     </QueryClientProvider>
   );
 
@@ -113,9 +121,11 @@ const wrapperWithNode = makeWrapper([existingNode]);
 
 const wrapperWithoutPipeline = ({ children }: React.PropsWithChildren) => (
   <QueryClientProvider client={queryClient}>
-    <CanvasPageStoreProvider pipeline={null}>
-      <ReactFlowProvider>{children}</ReactFlowProvider>
-    </CanvasPageStoreProvider>
+    <NotificationStoreContext.Provider value={notificationStore}>
+      <CanvasPageStoreProvider pipeline={null}>
+        <ReactFlowProvider>{children}</ReactFlowProvider>
+      </CanvasPageStoreProvider>
+    </NotificationStoreContext.Provider>
   </QueryClientProvider>
 );
 

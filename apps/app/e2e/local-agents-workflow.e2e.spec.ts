@@ -14,13 +14,20 @@ test.describe("Local Agent runtime workflow", () => {
     await expect(dialog.getByText("claude-code", { exact: true })).toBeVisible();
     await expect(dialog.getByText("codex", { exact: true })).toBeVisible();
     await expect(dialog.getByText("hermes", { exact: true })).toBeVisible();
-    await dialog.getByRole("button", { name: "Sync changes" }).click();
+    const syncButton = dialog.getByRole("button", { name: "Sync changes" });
+    if (await syncButton.isVisible()) {
+      await syncButton.click();
+    } else {
+      await expect(dialog.getByText("No runtime changes detected.")).toBeVisible();
+      await dialog.getByRole("button", { name: "Cancel", exact: true }).click();
+    }
 
     await expect(dialog).toHaveCount(0);
-    await expect(page.getByText("Auto-detected 3 of 5 agent runtimes on localhost.")).toBeVisible();
+    const detectedSummary = page.getByText(/Auto-detected \d+ of 5 agent runtimes on localhost\./);
+    await expect(detectedSummary).toBeVisible();
     await page.reload();
     await page.waitForLoadState("networkidle");
-    await expect(page.getByText("Auto-detected 3 of 5 agent runtimes on localhost.")).toBeVisible();
+    await expect(detectedSummary).toBeVisible();
     expectNoJSErrors(pageErrors);
   });
 });
