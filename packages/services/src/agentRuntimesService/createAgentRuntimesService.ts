@@ -1,5 +1,10 @@
 import { createAgentRuntimesDao, type DbConnection } from "@repo/models";
-import { mapWithMeta, withMeta, type AgentRuntimeConfig } from "@repo/schemas";
+import {
+  LOCAL_AGENT_RUNTIME_ID_PREFIX,
+  mapWithMeta,
+  withMeta,
+  type AgentRuntimeConfig,
+} from "@repo/schemas";
 
 export const createAgentRuntimesService = (db: DbConnection) => {
   const dao = createAgentRuntimesDao(db);
@@ -18,7 +23,16 @@ export const createAgentRuntimesService = (db: DbConnection) => {
 
       const toCreate = incoming.filter((r) => !existingIds.has(r.id));
       const toUpdate = incoming.filter((r) => existingIds.has(r.id));
-      const toDelete = existing.filter((r) => !incomingIds.has(r.id));
+      // syncAll 的调用方(daemon 定时推送、Web 端 scanAndSync)只上报本地扫描结果,
+      // 因此删除必须同时满足两个条件(COD-336):
+      // 1. 本轮上报非空 —— 空结果意味着扫描失败/PATH 漂移,清空列表会让 agent"时有时无";
+      // 2. 只删 local- 前缀的记录 —— 远程/手动添加的 runtime 永不被同步误删。
+      const toDelete =
+        incoming.length === 0
+          ? []
+          : existing.filter(
+              (r) => r.id.startsWith(LOCAL_AGENT_RUNTIME_ID_PREFIX) && !incomingIds.has(r.id),
+            );
 
       await Promise.all([
         ...toCreate.map((r) => dao.create(r)),

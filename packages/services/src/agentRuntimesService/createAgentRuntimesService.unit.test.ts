@@ -141,4 +141,66 @@ describe("createAgentRuntimesService", () => {
     expect(mockDao.delete).not.toHaveBeenCalled();
     expect(result).toHaveLength(2);
   });
+
+  // COD-336 regression guards
+  const runtimeRecord = (id: string) => ({
+    id,
+    name: id,
+    type: "claude-code",
+    connection: { mode: "local" },
+    createdAt: new Date(0),
+    updatedAt: new Date(0),
+  });
+
+  it("syncAll never deletes remote (non local-) runtimes missing from incoming", async () => {
+    mockDao.findMany
+      .mockResolvedValueOnce([runtimeRecord("remote-team-shared"), runtimeRecord("local-codex")])
+      .mockResolvedValueOnce([runtimeRecord("remote-team-shared"), runtimeRecord("local-codex")]);
+
+    const svc = createAgentRuntimesService({} as never);
+    await svc.syncAll([
+      {
+        id: "local-codex",
+        name: "Codex",
+        type: "codex",
+        connection: { mode: "local" },
+      },
+    ]);
+
+    expect(mockDao.delete).not.toHaveBeenCalled();
+  });
+
+  it("syncAll deletes stale local- runtimes while keeping remote ones", async () => {
+    mockDao.findMany
+      .mockResolvedValueOnce([
+        runtimeRecord("local-claude-code"),
+        runtimeRecord("local-codex"),
+        runtimeRecord("remote-team-shared"),
+      ])
+      .mockResolvedValueOnce([runtimeRecord("local-codex"), runtimeRecord("remote-team-shared")]);
+
+    const svc = createAgentRuntimesService({} as never);
+    await svc.syncAll([
+      {
+        id: "local-codex",
+        name: "Codex",
+        type: "codex",
+        connection: { mode: "local" },
+      },
+    ]);
+
+    expect(mockDao.delete).toHaveBeenCalledTimes(1);
+    expect(mockDao.delete).toHaveBeenCalledWith("local-claude-code");
+  });
+
+  it("syncAll with empty incoming deletes nothing (failed scan must not wipe the list)", async () => {
+    mockDao.findMany
+      .mockResolvedValueOnce([runtimeRecord("local-claude-code"), runtimeRecord("local-codex")])
+      .mockResolvedValueOnce([runtimeRecord("local-claude-code"), runtimeRecord("local-codex")]);
+
+    const svc = createAgentRuntimesService({} as never);
+    await svc.syncAll([]);
+
+    expect(mockDao.delete).not.toHaveBeenCalled();
+  });
 });
