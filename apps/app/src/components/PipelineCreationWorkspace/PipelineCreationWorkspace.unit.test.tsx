@@ -4,6 +4,7 @@ import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { render } from "@/test/test-wrapper";
 import { pipelineAgentSessionsClient } from "@/lib/pipelineAgentSessionsClient";
+import { router } from "@/router";
 import { PipelineCreationWorkspace } from "./PipelineCreationWorkspace";
 
 vi.mock("react-i18next", () => ({
@@ -38,6 +39,7 @@ const createClient = () => ({
 describe("PipelineCreationWorkspace", () => {
   beforeEach(() => {
     globalThis.localStorage.clear();
+    globalThis.sessionStorage.clear();
     vi.clearAllMocks();
   });
 
@@ -171,7 +173,7 @@ describe("PipelineCreationWorkspace", () => {
         active
         runtimeConfigured
         client={client as typeof pipelineAgentSessionsClient}
-        presentation="home"
+        presentation="dialog"
       />,
     );
     const composer = screen.getByRole("textbox", {
@@ -228,7 +230,7 @@ describe("PipelineCreationWorkspace", () => {
         runtimeConfigured
         client={client as typeof pipelineAgentSessionsClient}
         materializePipeline={materializePipeline}
-        presentation="home"
+        presentation="dialog"
         runtimeId="local-codex"
       />,
     );
@@ -333,5 +335,91 @@ describe("PipelineCreationWorkspace", () => {
     await user.click(screen.getByRole("button", { name: "newPipelineDialog.upload" }));
 
     expect(await screen.findByText("pipelineAgentErrors.network")).toBeInTheDocument();
+  });
+
+  it("stashes the first home message and jumps to the id-less canvas workspace", async () => {
+    const user = userEvent.setup();
+    const client = createClient();
+
+    render(
+      <PipelineCreationWorkspace
+        active
+        runtimeConfigured
+        client={client as typeof pipelineAgentSessionsClient}
+        presentation="home"
+      />,
+    );
+    await user.type(
+      screen.getByRole("textbox", { name: "newPipelineDialog.messagePlaceholder" }),
+      "Scout hackathons for me",
+    );
+    await user.click(screen.getByRole("button", { name: "newPipelineDialog.send" }));
+
+    expect(globalThis.sessionStorage.getItem("ordine.pendingPipelinePrompt")).toBe(
+      "Scout hackathons for me",
+    );
+    expect(router.navigate).toHaveBeenCalledWith({
+      to: "/canvas",
+      search: { id: undefined },
+    });
+    expect(client.createSession).not.toHaveBeenCalled();
+    expect(client.appendMessage).not.toHaveBeenCalled();
+  });
+
+  it("keeps the in-page flow when a home session already exists", async () => {
+    globalThis.localStorage.setItem("ordine.pipeline-agent.current-session-id", "session-live");
+    const user = userEvent.setup();
+    const client = createClient();
+    client.getSessionById.mockResolvedValue({
+      id: "session-live",
+      entrypoint: "new-pipeline-dialog",
+      mode: "generate",
+      status: "awaiting_user",
+      latestProposalId: null,
+      createdPipelineId: null,
+      messages: [
+        {
+          id: "message-1",
+          role: "user",
+          kind: "text",
+          content: "Build a pipeline",
+        },
+      ],
+      attachments: [],
+      proposals: [],
+    });
+    client.appendMessage.mockResolvedValue({
+      id: "message-2",
+      role: "user",
+      kind: "text",
+      content: "More details",
+    });
+    client.planSessionStream.mockImplementation(async (_sessionId, input) => {
+      input.onEvent({ type: "question", question: "What inputs?" });
+    });
+
+    render(
+      <PipelineCreationWorkspace
+        active
+        runtimeConfigured
+        client={client as typeof pipelineAgentSessionsClient}
+        presentation="home"
+      />,
+    );
+    await screen.findByText("Build a pipeline");
+    await user.type(
+      screen.getByRole("textbox", { name: "newPipelineDialog.messagePlaceholder" }),
+      "More details",
+    );
+    await user.click(screen.getByRole("button", { name: "newPipelineDialog.send" }));
+
+    expect(await screen.findByText("What inputs?")).toBeInTheDocument();
+    expect(client.appendMessage).toHaveBeenCalledWith(
+      "session-live",
+      expect.objectContaining({ content: "More details" }),
+      expect.anything(),
+    );
+    expect(router.navigate).not.toHaveBeenCalled();
+    expect(globalThis.sessionStorage.getItem("ordine.pendingPipelinePrompt")).toBeNull();
   });
 });
