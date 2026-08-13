@@ -129,7 +129,7 @@ const json = (route: Route, body: unknown, status = 200) =>
 
 const mockCanvasAgent = async (page: Page) => {
   const state = { messageIndex: 0 };
-  await page.route("http://localhost:9433/api/**", async (route) => {
+  await page.route("**/api/**", async (route) => {
     const request = route.request();
     const pathname = new URL(request.url()).pathname;
     if (pathname === "/api/pipeline-agent-sessions" && request.method() === "POST") {
@@ -159,7 +159,7 @@ const mockCanvasAgent = async (page: Page) => {
       return;
     }
 
-    await route.abort("failed");
+    await route.fallback();
   });
 };
 

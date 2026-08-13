@@ -27,11 +27,15 @@ export const expectNoJSErrors = (errors: string[]) => {
 };
 
 /**
- * Navigate to a page and wait for it to be ready (network idle).
+ * Navigate to a page and wait for the document to be ready.
+ *
+ * The application keeps background queries alive, so `networkidle` is not a
+ * reliable readiness signal. Individual tests should wait for the UI state
+ * they need after this helper returns.
  */
 export const navigateAndWait = async (page: Page, path: string) => {
-  await page.goto(path);
-  await page.waitForLoadState("networkidle");
+  await page.goto(path, { waitUntil: "domcontentloaded" });
+  await expect(page.locator("body")).toBeVisible();
 };
 
 /**
