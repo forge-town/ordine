@@ -33,6 +33,8 @@ describe("CanvasMiniSidebar", () => {
     const user = userEvent.setup();
     const store = renderMiniSidebar();
 
+    expect(screen.getByRole("button", { name: /Notifications|通知/i })).toBeInTheDocument();
+
     const workspaceButton = screen.getByRole("button", { name: /Workspace/i });
     expect(workspaceButton).toHaveAttribute("aria-expanded", "false");
 

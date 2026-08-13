@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useList } from "@refinedev/core";
 import { AlertTriangle, Bot, ChevronRight, RefreshCw } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -5,18 +6,23 @@ import { useStore } from "zustand";
 import type { AgentRuntimeConfig } from "@repo/schemas";
 import { Link } from "@tanstack/react-router";
 import { Button } from "@repo/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@repo/ui/select";
 import { PipelineCreationWorkspace } from "@/components/PipelineCreationWorkspace";
 import { useSidebarStore } from "@/store/sidebarStore";
 
 export const HomePage = () => {
   const { t } = useTranslation();
+  const [selectedRuntimeId, setSelectedRuntimeId] = useState<string | null>(null);
   const sidebarStore = useSidebarStore();
   const workspaceVersion = useStore(sidebarStore, (state) => state.newPipelineWorkspaceVersion);
   const { result, query } = useList<AgentRuntimeConfig>({
     resource: "agentRuntimes",
   });
   const localRuntimes = result.data.filter((runtime) => runtime.connection.mode === "local");
-  const runtime = localRuntimes.find((candidate) => candidate.type === "codex") ?? localRuntimes[0];
+  const defaultRuntime =
+    localRuntimes.find((candidate) => candidate.type === "codex") ?? localRuntimes[0];
+  const runtime =
+    localRuntimes.find((candidate) => candidate.id === selectedRuntimeId) ?? defaultRuntime;
   const runtimeLabel = query.isLoading
     ? t("home.checkingAgent")
     : query.isError
@@ -27,6 +33,9 @@ export const HomePage = () => {
           : runtime.name
         : undefined;
   const handleRuntimeRetry = () => void query.refetch();
+  const handleRuntimeValueChange = (runtimeId: string | null) => {
+    setSelectedRuntimeId(runtimeId);
+  };
 
   return (
     <div className="flex h-full min-h-0 flex-col overflow-hidden bg-background">
@@ -35,32 +44,52 @@ export const HomePage = () => {
           <p className="truncate text-sm font-semibold tracking-[-0.015em]">{t("home.title")}</p>
           <p className="truncate text-[11px] text-muted-foreground">{t("home.subtitle")}</p>
         </div>
-        <Link
-          className="inline-flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-surface-2 hover:text-foreground"
-          to="/local-agents"
-        >
-          <Bot className="size-3.5" />
-          <span className="hidden sm:inline">
-            {query.isError
-              ? t("home.agentQueryFailed")
-              : runtime
-                ? t("home.agentConfigured")
-                : t("home.connectLocalAgent")}
-          </span>
-          <ChevronRight className="size-3.5" />
-        </Link>
+        {runtime ? (
+          <div className="flex items-center gap-1">
+            <Select value={runtime.id} onValueChange={handleRuntimeValueChange}>
+              <SelectTrigger
+                aria-label={t("home.selectLocalAgent")}
+                className="h-8 max-w-48 border-0 px-2 text-xs text-muted-foreground shadow-none hover:bg-surface-2 hover:text-foreground"
+                size="sm"
+              >
+                <SelectValue>{runtime.name}</SelectValue>
+              </SelectTrigger>
+              <SelectContent align="end">
+                {localRuntimes.map((candidate) => (
+                  <SelectItem key={candidate.id} value={candidate.id}>
+                    {candidate.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Link
+              aria-label={t("home.manageLocalAgents")}
+              className="inline-flex size-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-surface-2 hover:text-foreground"
+              to="/local-agents"
+            >
+              <ChevronRight className="size-3.5" />
+            </Link>
+          </div>
+        ) : (
+          <Link
+            className="inline-flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-surface-2 hover:text-foreground"
+            to="/local-agents"
+          >
+            <Bot className="size-3.5" />
+            <span className="hidden sm:inline">
+              {query.isError ? t("home.agentQueryFailed") : t("home.connectLocalAgent")}
+            </span>
+            <ChevronRight className="size-3.5" />
+          </Link>
+        )}
       </header>
 
       <main className="min-h-0 flex-1 overflow-y-auto">
         <div className="mx-auto flex min-h-full w-full max-w-[860px] flex-col justify-center px-4 py-10 sm:px-8 sm:py-14">
           <div className="mb-6 text-center">
-            <p className="mb-2 text-xs font-medium text-muted-foreground">{t("home.eyebrow")}</p>
             <h1 className="text-balance text-2xl font-semibold tracking-[-0.035em] text-foreground sm:text-[30px]">
               {t("home.heading")}
             </h1>
-            <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-muted-foreground">
-              {t("home.description")}
-            </p>
           </div>
 
           {query.isError ? (
@@ -83,7 +112,7 @@ export const HomePage = () => {
             key={workspaceVersion}
             active
             presentation="home"
-            runtimeConfigured={Boolean(runtime)}
+            runtimeConfigured={query.isLoading ? undefined : Boolean(runtime)}
             runtimeId={runtime?.id}
             runtimeLabel={runtimeLabel}
           />

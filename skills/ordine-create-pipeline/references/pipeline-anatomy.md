@@ -34,14 +34,14 @@
 
 ### 节点类型
 
-| type | 用途 | data 特有字段 |
-|------|------|-------------|
-| `folder` | 输入源 - 本地文件夹 | `folderPath` |
-| `file` | 输入源 - 代码文件 | `filePath` |
-| `github-project` | 输入源 - GitHub 项目 | `repo`, `branch` |
-| `operation` | 执行动作（检查/修复） | `operationId`, `operationName`, `status` |
-| `output-local-path` | 输出目标 - 本地路径 | `localPath`, `outputMode` |
-| `condition` | 条件分支 | `condition` |
+| type                | 用途                  | data 特有字段                            |
+| ------------------- | --------------------- | ---------------------------------------- |
+| `folder`            | 输入源 - 本地文件夹   | `folderPath`                             |
+| `file`              | 输入源 - 代码文件     | `filePath`                               |
+| `github-project`    | 输入源 - GitHub 项目  | `owner`, `repo`, `branch`                |
+| `operation`         | 执行动作（检查/修复） | `operationId`, `operationName`, `status` |
+| `output-local-path` | 输出目标 - 本地路径   | `localPath`, `outputMode`                |
+| `condition`         | 条件分支              | `condition`                              |
 
 ## 边 (edges)
 
@@ -54,6 +54,8 @@
   "target": "n_check"
 }
 ```
+
+边必须引用已存在的节点，并遵守方向约束。`output-local-path` 和 `output-project-path` 是终点，不能作为边的 source。
 
 ## 典型 Pipeline 模式
 

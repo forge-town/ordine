@@ -252,6 +252,23 @@ describe("pipelineAgentSessionsRoutes", () => {
     expect(mocks.ingestAttachment).not.toHaveBeenCalled();
   });
 
+  it("returns a stable attachment code when ingestion fails", async () => {
+    mocks.ingestAttachment.mockRejectedValue(new Error("Storage unavailable"));
+    const formData = new FormData();
+    formData.append("file", new File(["hello"], "brief.txt", { type: "text/plain" }));
+
+    const response = await makeApp().request("/pipeline-agent-sessions/session-1/attachments", {
+      method: "POST",
+      body: formData,
+    });
+
+    expect(response.status).toBe(500);
+    expect(await response.json()).toEqual({
+      code: "PIPELINE_AGENT_ATTACHMENT_UPLOAD_FAILED",
+      error: "Storage unavailable",
+    });
+  });
+
   it("removes an attachment and returns no content", async () => {
     mocks.removeAttachment.mockResolvedValue({ id: "attachment-1" });
 
@@ -302,6 +319,7 @@ describe("pipelineAgentSessionsRoutes", () => {
     const body = await response.text();
     expect(body).toContain("event: phase");
     expect(body).toContain("event: progress");
+    expect(body).not.toContain("event: assistant_chunk");
     expect(body).toContain("event: question");
     expect(body).toContain("What output format do you want?");
     expect(mocks.planSession).toHaveBeenCalledWith(
@@ -311,6 +329,24 @@ describe("pipelineAgentSessionsRoutes", () => {
         onProgress: expect.any(Function),
       }),
     );
+  });
+
+  it("streams a stable runtime error when planning has no configured runtime", async () => {
+    const runtimeError = Object.assign(new Error("No Agent runtime is configured"), {
+      code: "PIPELINE_AGENT_RUNTIME_NOT_FOUND",
+    });
+    mocks.planSession.mockRejectedValue(runtimeError);
+
+    const response = await makeApp().request("/pipeline-agent-sessions/session-1/plan", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({}),
+    });
+
+    expect(response.status).toBe(200);
+    const body = await response.text();
+    expect(body).toContain("event: error");
+    expect(body).toContain("PIPELINE_AGENT_RUNTIME_NOT_FOUND");
   });
 
   it("returns 400 for malformed planning JSON without invoking the planner", async () => {
@@ -335,11 +371,15 @@ describe("pipelineAgentSessionsRoutes", () => {
 
     const response = await makeApp().request("/pipeline-agent-sessions/session-1/generate", {
       method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ runtimeId: "local-codex" }),
     });
 
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({ pipelineId: "pipeline-1" });
-    expect(mocks.generatePipelineFromApprovedProposal).toHaveBeenCalledWith("session-1");
+    expect(mocks.generatePipelineFromApprovedProposal).toHaveBeenCalledWith("session-1", {
+      runtimeId: "local-codex",
+    });
   });
 
   it("cancels the active session task", async () => {

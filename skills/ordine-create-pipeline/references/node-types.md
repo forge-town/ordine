@@ -61,6 +61,7 @@
 ```
 
 **字段说明**:
+
 - `outputMode`: `"overwrite"` 覆盖 | `"append"` 追加
 
 ## file — 代码文件输入
@@ -87,12 +88,15 @@
   "data": {
     "label": "GitHub 项目",
     "nodeType": "github-project",
-    "repo": "owner/repo",
+    "owner": "owner",
+    "repo": "repo",
     "branch": "main"
   },
   "position": { "x": 0, "y": 0 }
 }
 ```
+
+**注意**: `owner` 和 `repo` 均为必填字段。若用户输入 `owner/repo`，必须拆分成两个字段，不能把完整值只放进 `repo`。
 
 ## condition — 条件分支
 

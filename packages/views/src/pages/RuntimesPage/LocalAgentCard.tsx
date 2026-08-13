@@ -1,4 +1,4 @@
-import { ChevronRight, Clock, Sparkles } from "lucide-react";
+import { ChevronRight, Clock, FileCode2, Sparkles } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { AgentRuntimeConfig } from "@repo/schemas";
 import { Button } from "@repo/ui/button";
@@ -45,7 +45,11 @@ const RUNTIME_META: Record<
 export const LocalAgentCard = ({ runtime }: { runtime: AgentRuntimeConfig }) => {
   const { t } = useTranslation();
   const meta = RUNTIME_META[runtime.type];
-  const isLocal = runtime.connection.mode === "local";
+  const connection = runtime.connection;
+  const isLocal = connection.mode === "local";
+  const executable = connection.mode === "local" ? connection.path : connection.host;
+  const version = connection.mode === "local" ? connection.version : undefined;
+  const detected = connection.mode === "local" && Boolean(connection.path);
 
   return (
     <article className={cn(surfaceCardVariants(), "flex min-h-[190px] flex-col p-4")}>
@@ -62,7 +66,10 @@ export const LocalAgentCard = ({ runtime }: { runtime: AgentRuntimeConfig }) => 
           </div>
           <div className="truncate text-[11.5px] text-muted-foreground">{meta.models}</div>
         </div>
-        <StatusPill status="connected" />
+        <StatusPill
+          label={t(detected ? "localAgents.detectedStatus" : "localAgents.configuredStatus")}
+          status={detected ? "ready" : "idle"}
+        />
       </div>
 
       <div className="mt-3.5 flex flex-wrap gap-1.5">
@@ -71,7 +78,29 @@ export const LocalAgentCard = ({ runtime }: { runtime: AgentRuntimeConfig }) => 
         ))}
       </div>
 
-      <div className="mt-auto flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-border/70 pt-3 text-[11px] text-muted-foreground">
+      <div className="mt-3 space-y-2 rounded-lg bg-surface-2/70 px-3 py-2.5 ring-1 ring-border/70">
+        <div className="flex min-w-0 items-start gap-2">
+          <FileCode2 className="mt-0.5 size-3.5 shrink-0 text-muted-foreground" />
+          <div className="min-w-0">
+            <div className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+              {t("localAgents.executable")}
+            </div>
+            <div
+              className="mt-0.5 break-all font-mono text-[10.5px] leading-4 text-foreground"
+              title={executable}
+            >
+              {executable ?? t("localAgents.notDetectedPath")}
+            </div>
+          </div>
+        </div>
+        {version && (
+          <div className="line-clamp-2 whitespace-pre-line pl-[22px] text-[10.5px] leading-4 text-muted-foreground">
+            {version}
+          </div>
+        )}
+      </div>
+
+      <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-border/70 pt-3 text-[11px] text-muted-foreground">
         <span className="inline-flex items-center gap-1">
           <Sparkles className="size-3" />
           {t("localAgents.assembled")}

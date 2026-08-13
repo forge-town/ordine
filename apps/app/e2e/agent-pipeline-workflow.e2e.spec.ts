@@ -23,7 +23,7 @@ const makeProposal = (purpose: string) => ({
 const noop = () => undefined;
 
 const mockPipelineAgent = async (page: Page, generatedPipelineId: string, pipelineName: string) => {
-  await page.route("http://localhost:9433/api/**", async (route) => {
+  await page.route("**/api/**", async (route) => {
     const request = route.request();
     const pathname = new URL(request.url()).pathname;
 
@@ -84,7 +84,7 @@ const mockPipelineAgent = async (page: Page, generatedPipelineId: string, pipeli
       return;
     }
 
-    await route.abort("failed");
+    await route.fallback();
   });
 };
 
@@ -107,6 +107,7 @@ test.describe("Agent-first Pipeline workflow", () => {
     const pipelineName = `Agent Pipeline ${runId}`;
     const pipelineId = `agent-pipeline-${runId}`;
 
+    await page.addInitScript(() => globalThis.localStorage.setItem("i18nextLng", "en"));
     await mockPipelineAgent(page, pipelineId, pipelineName);
     await navigateAndWait(page, "/");
     await page.getByRole("button", { name: "Projects" }).click();
@@ -135,7 +136,7 @@ test.describe("Agent-first Pipeline workflow", () => {
 
   test("recovers after a failed attachment upload", async ({ page, pageErrors }) => {
     const uploadState = { attempt: 0 };
-    await page.route("http://localhost:9433/api/**", async (route) => {
+    await page.route("**/api/**", async (route) => {
       const request = route.request();
       const pathname = new URL(request.url()).pathname;
       if (pathname === "/api/pipeline-agent-sessions" && request.method() === "POST") {
@@ -153,7 +154,10 @@ test.describe("Agent-first Pipeline workflow", () => {
         if (uploadState.attempt === 1) {
           await json(
             route,
-            { code: "PIPELINE_AGENT_REQUEST_FAILED", error: "Storage unavailable" },
+            {
+              code: "PIPELINE_AGENT_ATTACHMENT_UPLOAD_FAILED",
+              error: "Storage unavailable",
+            },
             500,
           );
 
@@ -171,7 +175,7 @@ test.describe("Agent-first Pipeline workflow", () => {
         return;
       }
 
-      await route.abort("failed");
+      await route.fallback();
     });
 
     await navigateAndWait(page, "/");
@@ -182,7 +186,7 @@ test.describe("Agent-first Pipeline workflow", () => {
       name: "failed.txt",
     });
     await expect(
-      page.getByText("The Pipeline Agent couldn't complete the request. Please retry."),
+      page.getByText("This attachment could not be uploaded. Check storage access and retry."),
     ).toBeVisible();
 
     await upload.setInputFiles({
@@ -193,14 +197,14 @@ test.describe("Agent-first Pipeline workflow", () => {
     await expect(page.getByText("retry.txt", { exact: true })).toBeVisible();
     await expect(page.getByText("Ready", { exact: true })).toBeVisible();
     await expect(
-      page.getByText("The Pipeline Agent couldn't complete the request. Please retry."),
+      page.getByText("This attachment could not be uploaded. Check storage access and retry."),
     ).toHaveCount(0);
     expectNoJSErrors(pageErrors);
   });
 
   test("restores a pending Proposal after refresh", async ({ page, pageErrors }) => {
     const proposal = makeProposal("Restored review pipeline");
-    await page.route("http://localhost:9433/api/**", async (route) => {
+    await page.route("**/api/**", async (route) => {
       const request = route.request();
       const pathname = new URL(request.url()).pathname;
       if (pathname === "/api/pipeline-agent-sessions" && request.method() === "POST") {
@@ -261,13 +265,13 @@ test.describe("Agent-first Pipeline workflow", () => {
         return;
       }
 
-      await route.abort("failed");
+      await route.fallback();
     });
 
     await startHomeConversation(page);
     await expect(page.getByText("Restored review pipeline", { exact: true })).toBeVisible();
     await page.reload();
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
     await expect(page.getByText("Restored review pipeline", { exact: true })).toBeVisible();
     await expect(page.getByRole("button", { name: "Approve plan" })).toBeEnabled();
     expectNoJSErrors(pageErrors);
@@ -275,7 +279,7 @@ test.describe("Agent-first Pipeline workflow", () => {
 
   test("cancels planning and returns to an editable conversation", async ({ page, pageErrors }) => {
     const cancellation = { completed: false };
-    await page.route("http://localhost:9433/api/**", async (route) => {
+    await page.route("**/api/**", async (route) => {
       const request = route.request();
       const pathname = new URL(request.url()).pathname;
       if (pathname === "/api/pipeline-agent-sessions" && request.method() === "POST") {
@@ -323,7 +327,7 @@ test.describe("Agent-first Pipeline workflow", () => {
         return;
       }
 
-      await route.abort("failed");
+      await route.fallback();
     });
 
     await startHomeConversation(page);
@@ -348,7 +352,7 @@ test.describe("Agent-first Pipeline workflow", () => {
     const generationStarted = new Promise<void>((resolve) => {
       generationControl.markStarted = resolve;
     });
-    await page.route("http://localhost:9433/api/**", async (route) => {
+    await page.route("**/api/**", async (route) => {
       const request = route.request();
       const pathname = new URL(request.url()).pathname;
       if (pathname === "/api/pipeline-agent-sessions" && request.method() === "POST") {
@@ -397,7 +401,7 @@ test.describe("Agent-first Pipeline workflow", () => {
         return;
       }
 
-      await route.abort("failed");
+      await route.fallback();
     });
 
     await startHomeConversation(page);

@@ -10,6 +10,23 @@ export const AGENT_RUNTIME_ENUM = {
 export const AgentRuntimeSchema = z.enum(AGENT_RUNTIME_ENUM);
 export type AgentRuntime = z.infer<typeof AgentRuntimeSchema>;
 
+export const LOCAL_AGENT_RUNTIME_ID_PREFIX = "local-";
+
+export const getLocalAgentRuntimeId = (runtime: AgentRuntime) =>
+  `${LOCAL_AGENT_RUNTIME_ID_PREFIX}${runtime}`;
+
+export const parseLocalAgentRuntimeId = (runtimeId: string): AgentRuntime | null => {
+  if (!runtimeId.startsWith(LOCAL_AGENT_RUNTIME_ID_PREFIX)) {
+    return null;
+  }
+
+  const parsed = AgentRuntimeSchema.safeParse(
+    runtimeId.slice(LOCAL_AGENT_RUNTIME_ID_PREFIX.length),
+  );
+
+  return parsed.success ? parsed.data : null;
+};
+
 export const DEFAULT_AGENT_RUNTIME_ENUM = {
   CLAUDE_CODE: AGENT_RUNTIME_ENUM.CLAUDE_CODE,
   CODEX: AGENT_RUNTIME_ENUM.CODEX,

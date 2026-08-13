@@ -29,7 +29,7 @@ const approveProposalBodySchema = z.object({
   proposalId: z.string().min(1),
 });
 
-const planSessionBodySchema = z.object({
+const runtimeSelectionBodySchema = z.object({
   runtimeId: z.string().optional(),
 });
 
@@ -62,6 +62,10 @@ const parseOptionalJsonBody = (c: Context) =>
   );
 
 const serviceErrorStatus = (error: Error) => {
+  const explicitCode = (error as Error & { code?: string }).code;
+  if (explicitCode === "PIPELINE_AGENT_RUNTIME_NOT_FOUND") {
+    return 409;
+  }
   const message = error.message.toLowerCase();
   if (message.includes("not found")) {
     return 404;
@@ -84,7 +88,10 @@ const serviceErrorStatus = (error: Error) => {
 
 const serviceErrorCode = (error: Error) => {
   const explicitCode = (error as Error & { code?: string }).code;
-  if (explicitCode === "PIPELINE_AGENT_CANCELLED") {
+  if (
+    explicitCode === "PIPELINE_AGENT_CANCELLED" ||
+    explicitCode === "PIPELINE_AGENT_RUNTIME_NOT_FOUND"
+  ) {
     return explicitCode;
   }
 
@@ -188,7 +195,13 @@ pipelineAgentSessionsRoutes.post("/:id/attachments", async (c) => {
     (error) => (error instanceof Error ? error : new Error(String(error))),
   );
   if (ingestResult.isErr()) {
-    return c.json(serviceErrorPayload(ingestResult.error), serviceErrorStatus(ingestResult.error));
+    return c.json(
+      {
+        code: "PIPELINE_AGENT_ATTACHMENT_UPLOAD_FAILED",
+        error: ingestResult.error.message,
+      },
+      serviceErrorStatus(ingestResult.error),
+    );
   }
 
   return c.json(ingestResult.value, 201);
@@ -212,7 +225,7 @@ pipelineAgentSessionsRoutes.post("/:id/plan", async (c) => {
     return c.json({ code: "INVALID_REQUEST", error: "Invalid request body" }, 400);
   }
 
-  const parsed = planSessionBodySchema.safeParse(bodyResult.value);
+  const parsed = runtimeSelectionBodySchema.safeParse(bodyResult.value);
   if (!parsed.success) {
     return c.json({ code: "INVALID_REQUEST", error: "Invalid request body" }, 400);
   }
@@ -231,7 +244,6 @@ pipelineAgentSessionsRoutes.post("/:id/plan", async (c) => {
           runtimeId: parsed.data.runtimeId,
           onProgress: (message) => {
             send("progress", { message });
-            send("assistant_chunk", { text: message });
           },
         }),
         (error) => (error instanceof Error ? error : new Error(String(error))),
@@ -330,8 +342,21 @@ pipelineAgentSessionsRoutes.post("/:id/cancel", async (c) => {
 });
 
 pipelineAgentSessionsRoutes.post("/:id/generate", async (c) => {
+  const bodyResult = await parseOptionalJsonBody(c);
+  if (bodyResult.isErr()) {
+    return c.json({ code: "INVALID_REQUEST", error: "Invalid request body" }, 400);
+  }
+
+  const parsed = runtimeSelectionBodySchema.safeParse(bodyResult.value);
+  if (!parsed.success) {
+    return c.json({ code: "INVALID_REQUEST", error: "Invalid request body" }, 400);
+  }
+
   const result = await ResultAsync.fromPromise(
-    pipelineAgentSessionsService.generatePipelineFromApprovedProposal(c.req.param("id")),
+    pipelineAgentSessionsService.generatePipelineFromApprovedProposal(
+      c.req.param("id"),
+      parsed.data.runtimeId ? { runtimeId: parsed.data.runtimeId } : undefined,
+    ),
     (error) => (error instanceof Error ? error : new Error(String(error))),
   );
   if (result.isErr()) {

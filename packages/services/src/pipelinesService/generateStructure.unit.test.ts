@@ -151,32 +151,23 @@ describe("generateStructure", () => {
     }
   });
 
-  it("retries once with schema diagnostics and accepts a corrected structure", async () => {
+  it("fills a missing prompt from the node description without an Agent retry", async () => {
     const invalidStructure = {
       nodes: [
         {
           id: "prompt-1",
           type: "prompt",
           position: { x: 0, y: 0 },
-          data: { nodeType: "prompt", label: "Prompt" },
+          data: {
+            nodeType: "prompt",
+            label: "Prompt",
+            description: "Review this repository",
+          },
         },
       ],
       edges: [],
     };
-    const correctedStructure = {
-      nodes: [
-        {
-          id: "prompt-1",
-          type: "prompt",
-          position: { x: 0, y: 0 },
-          data: { nodeType: "prompt", label: "Prompt", prompt: "Review this repository" },
-        },
-      ],
-      edges: [],
-    };
-    mockRunAgent
-      .mockResolvedValueOnce(JSON.stringify(invalidStructure))
-      .mockResolvedValueOnce(JSON.stringify(correctedStructure));
+    mockRunAgent.mockResolvedValueOnce(JSON.stringify(invalidStructure));
 
     const svc = createPipelinesService({} as never);
     const result = await svc.generateStructure({
@@ -185,24 +176,152 @@ describe("generateStructure", () => {
     });
 
     expect("error" in result).toBe(false);
+    expect(mockRunAgent).toHaveBeenCalledTimes(1);
+    if ("error" in result) return;
+    expect(result.nodes[0]?.data).toMatchObject({ prompt: "Review this repository" });
+  });
+
+  it("repairs an illegal output-to-operation edge before returning a graph", async () => {
+    const outputNode = {
+      id: "output-1",
+      type: "output-local-path",
+      position: { x: 300, y: 0 },
+      data: { nodeType: "output-local-path", label: "Output", localPath: "/tmp/out" },
+    };
+    const operationNode = {
+      id: "operation-1",
+      type: "operation",
+      position: { x: 0, y: 0 },
+      data: {
+        nodeType: "operation",
+        label: "Review",
+        operationId: "review-code",
+        operationName: "Review Code",
+        status: "idle",
+      },
+    };
+    mockRunAgent
+      .mockResolvedValueOnce(
+        JSON.stringify({
+          nodes: [outputNode, operationNode],
+          edges: [{ id: "edge-1", source: outputNode.id, target: operationNode.id }],
+        }),
+      )
+      .mockResolvedValueOnce(
+        JSON.stringify({
+          nodes: [operationNode, outputNode],
+          edges: [{ id: "edge-1", source: operationNode.id, target: outputNode.id }],
+        }),
+      );
+
+    const result = await createPipelinesService({} as never).generateStructure({
+      name: "Review Pipeline",
+      description: "Review code and write a report",
+    });
+
+    expect("error" in result).toBe(false);
     expect(mockRunAgent).toHaveBeenCalledTimes(2);
     const repairCall = mockRunAgent.mock.calls[1]![0] as { userPrompt: string };
-    expect(repairCall.userPrompt).toContain("VALIDATION ISSUES TO FIX");
-    expect(repairCall.userPrompt).toContain("prompt");
-    expect(repairCall.userPrompt).toContain("PREVIOUS INVALID STRUCTURE");
+    expect(repairCall.userPrompt).toContain(
+      "Connection output-local-path -> operation is not allowed",
+    );
+    expect(repairCall.userPrompt).not.toContain("=== PIPELINE GOAL ===");
+    expect(repairCall.userPrompt).not.toContain("=== AVAILABLE OPERATIONS");
+    expect(repairCall.userPrompt).toContain(JSON.stringify(outputNode));
   });
+
+  it("normalizes the common GitHub project alias and owner/repo shorthand", async () => {
+    mockRunAgent.mockResolvedValue(
+      JSON.stringify({
+        nodes: [
+          {
+            id: "repo-1",
+            type: "github-projects",
+            position: { x: 0, y: 0 },
+            data: {
+              nodeType: "github-projects",
+              label: "ORDINE",
+              repo: "forge-town/ordine",
+              sourceType: "github",
+            },
+          },
+        ],
+        edges: [],
+      }),
+    );
+
+    const result = await createPipelinesService({} as never).generateStructure({
+      name: "ORDINE Review",
+      description: "Review forge-town/ordine",
+    });
+
+    expect("error" in result).toBe(false);
+    if ("error" in result) return;
+    expect(result.nodes[0]).toMatchObject({
+      type: "github-project",
+      data: {
+        nodeType: "github-project",
+        owner: "forge-town",
+        repo: "ordine",
+      },
+    });
+  });
+
+  it.runIf(process.platform === "win32")(
+    "normalizes a POSIX-prefixed Windows drive path",
+    async () => {
+      mockRunAgent.mockResolvedValue(
+        JSON.stringify({
+          nodes: [
+            {
+              id: "folder-1",
+              type: "folder",
+              position: { x: 0, y: 0 },
+              data: {
+                nodeType: "folder",
+                label: "Project",
+                folderPath: "/D:/Coding/project",
+              },
+            },
+          ],
+          edges: [],
+        }),
+      );
+
+      const result = await createPipelinesService({} as never).generateStructure({
+        name: "Windows Project",
+        description: "Read the project on D drive",
+      });
+
+      expect("error" in result).toBe(false);
+      if ("error" in result) return;
+      expect(result.nodes[0]?.data).toMatchObject({ folderPath: "D:\\Coding\\project" });
+    },
+  );
 
   it("stops after one schema repair retry when the structure remains invalid", async () => {
     const invalidStructure = {
       nodes: [
         {
-          id: "prompt-1",
-          type: "prompt",
+          id: "output-1",
+          type: "output-local-path",
           position: { x: 0, y: 0 },
-          data: { nodeType: "prompt", label: "Prompt" },
+          data: { nodeType: "output-local-path", label: "Output", localPath: "/tmp/out" },
+        },
+        {
+          id: "operation-1",
+          type: "operation",
+          position: { x: 300, y: 0 },
+          data: {
+            nodeType: "operation",
+            label: "Review",
+            operationId: "review-code",
+            operationName: "Review Code",
+            status: "idle",
+          },
         },
       ],
-      edges: [],
+      edges: [{ id: "edge-1", source: "output-1", target: "operation-1" }],
     };
     mockRunAgent.mockResolvedValue(JSON.stringify(invalidStructure));
 
@@ -334,13 +453,41 @@ describe("generateStructure", () => {
           data: { nodeType: "folder", label: "Input", folderPath: "/src" },
         },
         {
+          id: "op1",
+          type: "operation",
+          position: { x: 0, y: 160 },
+          data: {
+            nodeType: "operation",
+            label: "Fetch Polymarket data",
+            operationId: "op-auto-1",
+            operationName: "Fetch Polymarket data",
+            status: "idle",
+          },
+        },
+        {
+          id: "op2",
+          type: "operation",
+          position: { x: 0, y: 320 },
+          data: {
+            nodeType: "operation",
+            label: "Summarize into markdown",
+            operationId: "op-auto-2",
+            operationName: "Summarize into markdown",
+            status: "idle",
+          },
+        },
+        {
           id: "n2",
           type: "output-local-path",
-          position: { x: 0, y: 200 },
+          position: { x: 0, y: 480 },
           data: { nodeType: "output-local-path", label: "Output", localPath: "/tmp/out" },
         },
       ],
-      edges: [{ id: "e1", source: "n1", target: "n2" }],
+      edges: [
+        { id: "e1", source: "n1", target: "op1" },
+        { id: "e2", source: "op1", target: "op2" },
+        { id: "e3", source: "op2", target: "n2" },
+      ],
     };
 
     mockRunAgent.mockResolvedValue(JSON.stringify(generatedPipeline));
@@ -350,6 +497,7 @@ describe("generateStructure", () => {
       name: "Polymarket Pipeline",
       description: "Collect Polymarket trends",
       matchedOperations: [],
+      runtimeType: "hermes",
       unmatchedSteps: [
         { step: "Fetch Polymarket data", reason: "No data fetching operation available" },
         { step: "Summarize into markdown", reason: "No summarization operation available" },
@@ -365,6 +513,18 @@ describe("generateStructure", () => {
       expect(result.pendingOperations).toHaveLength(2);
       expect(result.pendingOperations![0]!.name).toBe("Fetch Polymarket data");
       expect(result.pendingOperations![1]!.name).toBe("Summarize into markdown");
+      expect(result.pendingOperations![0]!.description).toBe(
+        "Execute this Pipeline step: Fetch Polymarket data",
+      );
+      expect(result.pendingOperations![0]!.description).not.toContain("No data fetching");
+      expect(
+        (result.pendingOperations![0]!.config.executor as { prompt: string }).prompt,
+      ).not.toContain("No data fetching operation available");
+      const operationNodeRuntimes = result.nodes.flatMap((node) =>
+        node.data.nodeType === "operation" ? [node.data.agentRuntime] : [],
+      );
+      expect(operationNodeRuntimes).toHaveLength(2);
+      expect(operationNodeRuntimes.every((runtime) => runtime === "hermes")).toBe(true);
     }
 
     const agentCall = mockRunAgent.mock.calls[0]![0] as { userPrompt: string };
@@ -372,5 +532,6 @@ describe("generateStructure", () => {
     expect(agentCall.userPrompt).toContain("Fetch Polymarket data");
     expect(agentCall.userPrompt).toContain("Summarize into markdown");
     expect(agentCall.userPrompt).not.toContain("UNMATCHED STEPS");
+    expect(agentCall.userPrompt).not.toContain("lint-code");
   });
 });

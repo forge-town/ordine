@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import type { CSSProperties } from "react";
 import { useStore } from "zustand";
 import { Input } from "@repo/ui/input";
 import { CanvasToolbar } from "../CanvasToolbar";
@@ -18,9 +19,13 @@ export const CanvasTopChrome = () => {
       data-testid="canvas-top-chrome"
     >
       <div
-        className="min-w-0 shrink-0 max-[981px]:flex-1 max-[981px]:basis-0"
+        className="w-[var(--canvas-title-width)] min-w-0 shrink-0 max-[1180px]:w-40"
         data-testid="canvas-title-desktop"
-        style={{ width: isSidebarOpen ? `${workspacePanelWidth}px` : "min(18rem, 38%)" }}
+        style={
+          {
+            "--canvas-title-width": isSidebarOpen ? `${workspacePanelWidth}px` : "min(18rem, 38%)",
+          } as CSSProperties
+        }
       >
         <div className="flex h-10 w-full min-w-0 items-center rounded-md bg-surface px-3 shadow-soft ring-1 ring-border">
           <Input

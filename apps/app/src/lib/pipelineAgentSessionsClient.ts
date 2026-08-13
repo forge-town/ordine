@@ -30,6 +30,10 @@ interface PipelineAgentRequestOptions {
   signal?: AbortSignal;
 }
 
+interface PipelineAgentRuntimeRequestOptions extends PipelineAgentRequestOptions {
+  runtimeId?: string | null;
+}
+
 const PipelineAgentOperationSchema = OperationSchema.extend({
   sourceSkillId: z.string().nullish(),
 });
@@ -375,10 +379,12 @@ export const pipelineAgentSessionsClient = {
 
   async generatePipelineFromApprovedProposal(
     sessionId: string,
-    options?: PipelineAgentRequestOptions,
+    options?: PipelineAgentRuntimeRequestOptions,
   ): Promise<{ pipelineId: string }> {
     const response = await fetch(`${pipelineAgentSessionsBaseUrl}/${sessionId}/generate`, {
       method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(options?.runtimeId ? { runtimeId: options.runtimeId } : {}),
       signal: options?.signal,
     });
 

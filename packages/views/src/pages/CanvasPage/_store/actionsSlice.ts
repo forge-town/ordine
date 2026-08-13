@@ -73,6 +73,7 @@ const makeSkillBackedOperation = (skill: Skill): Operation => ({
 });
 
 export interface ActionsSlice {
+  _nodeDragStartPositions: Map<string, XYPosition>;
   exportCanvas: () => void;
   importCanvas: (data: CanvasImportPayload) => void;
   fitView: (options?: { padding?: number }) => void;
@@ -93,6 +94,11 @@ export interface ActionsSlice {
   handleFlowEdgeClick: (event: React.MouseEvent, edge: PipelineEdge) => void;
   handleFlowPaneClick: (event: React.MouseEvent) => void;
   handleFlowPaneContextMenu: (event: React.MouseEvent | MouseEvent) => void;
+  handleFlowNodeDragStart: (
+    event: React.MouseEvent,
+    node: PipelineNode,
+    nodes: PipelineNode[],
+  ) => void;
   handleFlowNodeDrag: (event: React.MouseEvent, node: PipelineNode, nodes: PipelineNode[]) => void;
   handleFlowNodeDragStop: (
     event: React.MouseEvent,
@@ -177,6 +183,7 @@ export const createActionsSlice = (
   set: Parameters<CanvasPageStoreSlice>[0],
   get: Parameters<CanvasPageStoreSlice>[1],
 ): ActionsSlice => ({
+  _nodeDragStartPositions: new Map(),
   exportCanvas: () => {
     const state = get();
     const exportData = {
@@ -410,12 +417,45 @@ export const createActionsSlice = (
     });
   },
 
+  handleFlowNodeDragStart: (_event, node, draggedNodes) => {
+    const draggedNodeIds = new Set(
+      (draggedNodes.length > 0 ? draggedNodes : [node]).map((draggedNode) => draggedNode.id),
+    );
+    set({
+      _nodeDragStartPositions: new Map(
+        get()
+          .nodes.filter((currentNode) => draggedNodeIds.has(currentNode.id))
+          .map((currentNode) => [currentNode.id, { ...currentNode.position }]),
+      ),
+    });
+  },
+
   handleFlowNodeDrag: (_event, node) => {
     if (node.type === "compound") return;
     get().handleDragOverCompound(node.id, node.position);
   },
 
   handleFlowNodeDragStop: (_event, node) => {
+    const nodeDragStartPositions = get()._nodeDragStartPositions;
+    if (nodeDragStartPositions.size > 0) {
+      const current = get();
+      const previousNodes = current.nodes.map((currentNode) => {
+        const previousPosition = nodeDragStartPositions.get(currentNode.id);
+
+        return previousPosition
+          ? { ...currentNode, position: { ...previousPosition } }
+          : currentNode;
+      });
+      current.recordStateTransition(
+        {
+          type: "MOVE_NODE",
+          label: i18n.t("canvas.history.moveNode", { label: node.data.label }),
+          payload: { nodeIds: [...nodeDragStartPositions.keys()] },
+        },
+        { nodes: previousNodes, edges: current.edges },
+      );
+      set({ _nodeDragStartPositions: new Map() });
+    }
     get().handleDragEndOnCompound(node.id, node.type === "compound");
   },
 

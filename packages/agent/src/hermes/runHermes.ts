@@ -12,7 +12,7 @@ export interface RunHermesOptions {
   onProgress?: (line: string) => Promise<void> | void;
 }
 
-const HERMES_BIN = "hermes";
+export const getHermesBin = (): string => process.env.HERMES_BIN ?? "hermes";
 export const MAX_HERMES_PROMPT_ARG_CHARS = 20_000;
 const HERMES_SAFE_TOOLSETS = ["safe"] as const;
 const HERMES_SAFE_TOOL_NAMES = ["WebSearch", "WebFetch"] as const;
@@ -65,7 +65,7 @@ const execHermes = ({
 }): Promise<Result<string, Error>> =>
   new Promise((resolve) => {
     execFile(
-      HERMES_BIN,
+      getHermesBin(),
       args,
       {
         cwd,

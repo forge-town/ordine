@@ -9,6 +9,14 @@ export const materializeGeneratedPipeline = async (
   const { operations, pipeline } =
     await pipelineAgentSessionsClient.getGeneratedPipelineMaterialization(pipelineId);
 
+  const existingPipeline = await dataProvider.getOne<PipelineData>({
+    resource: ResourceName.pipelines,
+    id: pipeline.id,
+  });
+  if (existingPipeline.data) {
+    return existingPipeline.data.id;
+  }
+
   await Promise.all(
     operations.map(async (operation: Operation) => {
       const existing = await dataProvider.getOne<Operation>({

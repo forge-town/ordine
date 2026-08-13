@@ -67,7 +67,11 @@ export const buildGenerateSystemPrompt = (skillReferences: string): string =>
     "- Infer the most appropriate input type from the user's description",
     "- If the task is about processing/transforming TEXT, instructions, or data NOT tied to a local file/folder, use a PROMPT input node instead of folder/code-file.",
     "- If the task is about processing a local folder or codebase, use a FOLDER input node.",
-    "- If the task is about a GitHub repository, use a GITHUB-PROJECTS input node.",
+    "- If the task is about a GitHub repository, use a GITHUB-PROJECT input node.",
+    "- The node.type and data.nodeType values MUST be identical.",
+    "- A github-project node MUST include separate non-empty owner and repo fields. If the user gives owner/repo, split it into those two fields.",
+    "- Every edge source and target MUST reference an existing node, and output nodes MUST NEVER have outgoing edges.",
+    "- Scheduling and trigger phrases (for example, daily or weekdays at 09:00) are Pipeline metadata, NOT processing steps. Never create an Operation node for a schedule.",
     "",
     "=== OPERATION SELECTION RULES (CRITICAL) ===",
     "- Read the user's PIPELINE GOAL carefully. Every operation you pick MUST directly serve that goal.",
@@ -87,7 +91,12 @@ export const buildGenerateSystemPrompt = (skillReferences: string): string =>
     "- If a NEWLY CREATED OPERATIONS section is provided, you MUST use ALL of those operations.",
     "",
     "=== PATH RULES (CRITICAL) ===",
-    "- All file/folder paths MUST be absolute (starting with /). NEVER use ~ or ~/.",
+    "- All file/folder paths MUST be absolute for the current operating system. NEVER use ~ or ~/.",
+    ...(process.platform === "win32"
+      ? [
+          "- On Windows, use native drive paths such as D:\\work\\output. NEVER prefix a drive path with a slash (do not emit /D:/work/output).",
+        ]
+      : ["- On Unix-like systems, absolute paths start with /. "]),
     `- The current user's home directory is: ${homedir()}`,
     `- 'Desktop' means: ${join(homedir(), "Desktop")}`,
     `- 'Documents' means: ${join(homedir(), "Documents")}`,
@@ -115,6 +124,7 @@ export const ANALYZE_SYSTEM_PROMPT = [
   "- Be STRICT about matching — only match when the operation clearly serves the described step.",
   "- Do NOT match operations just because they exist. Only match when there is genuine semantic alignment.",
   "- Order matchedOperations in the logical execution sequence the user described.",
+  "- Treat schedules and triggers as Pipeline metadata, not processing steps. Do not add them to matchedOperations or unmatchedSteps.",
   "",
   "Return ONLY the JSON object. No markdown, no explanation, no code fences.",
 ].join("\n");

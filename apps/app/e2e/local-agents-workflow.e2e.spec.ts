@@ -23,11 +23,24 @@ test.describe("Local Agent runtime workflow", () => {
     }
 
     await expect(dialog).toHaveCount(0);
-    const detectedSummary = page.getByText(/Auto-detected \d+ of 5 agent runtimes on localhost\./);
+    const detectedSummary = page.getByText(/\d+ of 5 supported Local Agents are synced\./);
     await expect(detectedSummary).toBeVisible();
+    const hermesCard = page
+      .locator("article")
+      .filter({ has: page.getByText("hermes", { exact: true }) });
+    await expect(hermesCard).toBeVisible();
+    await expect(hermesCard.getByText("Detected", { exact: true })).toBeVisible();
+    await expect(hermesCard.locator('a[href="/runtimes/local-hermes"]')).toBeVisible();
+    await expect(page.getByText("Connected", { exact: true })).toHaveCount(0);
     await page.reload();
     await page.waitForLoadState("networkidle");
     await expect(detectedSummary).toBeVisible();
+    await expect(hermesCard).toBeVisible();
+    await page.setViewportSize({ width: 701, height: 820 });
+    await expect(page.getByRole("heading", { name: "Local Agents" })).toBeVisible();
+    expect(
+      await page.evaluate(() => document.documentElement.scrollWidth <= globalThis.innerWidth),
+    ).toBe(true);
     expectNoJSErrors(pageErrors);
   });
 });

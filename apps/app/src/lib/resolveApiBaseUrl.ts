@@ -1,5 +1,4 @@
 interface BrowserLocation {
-  hostname: string;
   origin: string;
 }
 
@@ -9,8 +8,6 @@ interface ResolveApiBaseUrlOptions {
 }
 
 const normalizeExplicitBaseUrl = (baseUrl: string) => baseUrl.trim().replace(/\/+$/, "");
-const formatHostname = (hostname: string) =>
-  hostname.includes(":") && !hostname.startsWith("[") ? `[${hostname}]` : hostname;
 
 export const resolveApiBaseUrl = (
   location?: BrowserLocation,
@@ -23,15 +20,9 @@ export const resolveApiBaseUrl = (
     return normalizeExplicitBaseUrl(explicitBaseUrl);
   }
 
-  if (isDevelopment) {
-    if (!location) {
-      return "http://localhost:9433/api";
-    }
-
-    const protocol = new URL(location.origin).protocol;
-
-    return `${protocol}//${formatHostname(location.hostname)}:9433/api`;
+  if (location) {
+    return `${location.origin}/api`;
   }
 
-  return location ? `${location.origin}/api` : "/api";
+  return isDevelopment ? "http://localhost:9433/api" : "/api";
 };

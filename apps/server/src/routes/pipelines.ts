@@ -122,7 +122,16 @@ pipelinesRoutes.post("/:id/run", async (c) => {
   });
 
   if (result.isErr()) {
-    return c.json({ error: result.error.message }, 404);
+    const runtimeMissing =
+      (result.error as Error & { code?: string }).code === "AGENT_RUNTIME_NOT_FOUND";
+
+    return c.json(
+      {
+        code: runtimeMissing ? "AGENT_RUNTIME_NOT_FOUND" : "PIPELINE_NOT_FOUND",
+        error: result.error.message,
+      },
+      runtimeMissing ? 409 : 404,
+    );
   }
 
   return c.json({ jobId: result.value.jobId }, 202);
