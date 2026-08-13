@@ -1,9 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-const accessMock = vi.fn<(path: string) => Promise<void>>();
+const accessMock = vi.fn<(path: string, mode?: number) => Promise<void>>();
 
 vi.mock("node:fs/promises", () => ({
-  access: (path: string) => accessMock(path),
+  access: (path: string, mode?: number) => accessMock(path, mode),
 }));
 
 vi.mock("@repo/logger", () => ({
@@ -42,8 +42,10 @@ describe("scanRuntimes", () => {
   beforeEach(() => {
     execFileMock.mockClear();
     accessMock.mockReset();
-    accessMock.mockResolvedValue(undefined);
     vi.stubEnv("ORDINE_EXTRA_RUNTIMES", "");
+    // Default: filesystem probing finds nothing (keeps tests hermetic —
+    // the real machine may actually have these binaries installed).
+    accessMock.mockRejectedValue(new Error("ENOENT"));
   });
 
   afterEach(() => {
@@ -87,7 +89,7 @@ describe("scanRuntimes", () => {
     expect(codex!.version).toBeUndefined();
   });
 
-  it("does not include a runtime when which fails", async () => {
+  it("does not include a runtime when which fails and fallback dirs miss", async () => {
     execFileMock.mockImplementation((_bin, _args, _opts, cb) => {
       cb({ message: "not found", code: 1 }, "", "");
     });
@@ -95,6 +97,28 @@ describe("scanRuntimes", () => {
     const results = await scanRuntimes();
 
     expect(results).toHaveLength(0);
+  });
+
+  it("falls back to common install dirs when which fails", async () => {
+    execFileMock.mockImplementation((bin, args, _opts, cb) => {
+      if (args[0] === "--version") {
+        cb(null, "kimi 1.0.0\n", "");
+
+        return;
+      }
+      cb({ message: "not found", code: 1 }, "", "");
+    });
+    accessMock.mockImplementation(async (path) => {
+      if (path.endsWith("/.local/bin/kimi")) return;
+      throw new Error("ENOENT");
+    });
+
+    const results = await scanRuntimes();
+    const kimi = results.find((r) => r.type === "kimi-code");
+
+    expect(kimi).toBeDefined();
+    expect(kimi!.path).toMatch(/\.local\/bin\/kimi$/);
+    expect(kimi!.version).toBe("kimi 1.0.0");
   });
 
   it("returns all detected runtimes", async () => {
@@ -108,7 +132,7 @@ describe("scanRuntimes", () => {
 
     const results = await scanRuntimes();
 
-    expect(results.length).toBeGreaterThanOrEqual(5);
+    expect(results.length).toBeGreaterThanOrEqual(8);
     const types = results.map((r) => r.type);
 
     expect(types).toContain("claude-code");
@@ -116,6 +140,9 @@ describe("scanRuntimes", () => {
     expect(types).toContain("mastra");
     expect(types).toContain("openclaw");
     expect(types).toContain("hermes");
+    expect(types).toContain("pi-agent");
+    expect(types).toContain("opencode");
+    expect(types).toContain("kimi-code");
   });
 
   it("detects hermes when the binary exists", async () => {
@@ -186,6 +213,10 @@ describe("scanRuntimes", () => {
       }
       cb({ message: "not found", code: 1 }, "", "");
     });
+    accessMock.mockImplementation(async (path) => {
+      if (path === absoluteBinary) return;
+      throw new Error("ENOENT");
+    });
     vi.stubEnv("ORDINE_EXTRA_RUNTIMES", `hermes:${absoluteBinary}`);
 
     const results = await scanRuntimes();
@@ -216,9 +247,10 @@ describe("scanRuntimes", () => {
     expect(parseExtraRuntimes(undefined)).toEqual({});
   });
 
-  it("only lets ORDINE_EXTRA_RUNTIMES override binaries for known runtimes", () => {
-    // Unknown runtime names are ignored — the rest of the stack (AgentRuntimeSchema,
-    // DRIVERS) is closed, so a new type here would only be rejected downstream.
+  it("lets ORDINE_EXTRA_RUNTIMES register binaries for enum runtimes only", () => {
+    // Names outside AgentRuntimeSchema are ignored — the rest of the stack
+    // (DRIVERS, UI) is closed over the enum, so a truly unknown type would
+    // only be rejected downstream.
     const withUnknown = getRuntimeBinaries({ ORDINE_EXTRA_RUNTIMES: "myagent:my-bin" });
     expect(withUnknown).not.toHaveProperty("myagent");
     expect(withUnknown).toHaveProperty("claude-code", "claude");
@@ -226,6 +258,10 @@ describe("scanRuntimes", () => {
     // A known runtime's binary can be overridden (e.g. a renamed CLI).
     const withOverride = getRuntimeBinaries({ ORDINE_EXTRA_RUNTIMES: "codex:custom-codex" });
     expect(withOverride).toHaveProperty("codex", "custom-codex");
+
+    // Any enum member can be (re)registered, not just builtin ones.
+    const withEnumMember = getRuntimeBinaries({ ORDINE_EXTRA_RUNTIMES: "kimi-code:kimi-custom" });
+    expect(withEnumMember).toHaveProperty("kimi-code", "kimi-custom");
   });
 
   it("each detected runtime has correct shape", async () => {

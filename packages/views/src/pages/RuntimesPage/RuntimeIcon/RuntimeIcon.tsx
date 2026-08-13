@@ -7,6 +7,9 @@ const ICON_MAP: Record<string, { icon: typeof Bot; color: string }> = {
   hermes: { icon: Sparkles, color: "text-cyan-500" },
   openclaw: { icon: Bot, color: "text-rose-500" },
   mastra: { icon: Cpu, color: "text-violet-500" },
+  "pi-agent": { icon: Bot, color: "text-amber-500" },
+  opencode: { icon: Cpu, color: "text-sky-500" },
+  "kimi-code": { icon: Sparkles, color: "text-blue-500" },
 };
 
 export const RuntimeIcon = ({ type, className }: { type: string; className?: string }) => {

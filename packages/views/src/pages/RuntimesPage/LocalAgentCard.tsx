@@ -40,6 +40,24 @@ const RUNTIME_META: Record<
     mono: "OC",
     models: "OpenClaw runtime",
   },
+  "pi-agent": {
+    capabilities: ["File edit", "Shell"],
+    label: "Pi Agent",
+    mono: "Pi",
+    models: "Multi-provider via local CLI",
+  },
+  opencode: {
+    capabilities: ["File edit", "Shell"],
+    label: "OpenCode",
+    mono: "Oc",
+    models: "Multi-provider via local CLI",
+  },
+  "kimi-code": {
+    capabilities: ["File edit", "Shell"],
+    label: "Kimi Code",
+    mono: "Ki",
+    models: "Moonshot models via local CLI",
+  },
 };
 
 export const LocalAgentCard = ({ runtime }: { runtime: AgentRuntimeConfig }) => {
