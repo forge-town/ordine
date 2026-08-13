@@ -9,7 +9,7 @@ const json = (route: Route, body: unknown, status = 200) =>
   });
 
 const mockPipelineAgent = async (page: Page, generatedPipelineId: string, pipelineName: string) => {
-  await page.route("http://localhost:9433/api/**", async (route) => {
+  await page.route("**/api/**", async (route) => {
     const request = route.request();
     const pathname = new URL(request.url()).pathname;
 
@@ -80,7 +80,7 @@ const mockPipelineAgent = async (page: Page, generatedPipelineId: string, pipeli
       return;
     }
 
-    await route.abort("failed");
+    await route.fallback();
   });
 };
 
@@ -94,6 +94,7 @@ test.describe("Agent-first Pipeline workflow", () => {
     const pipelineName = `Agent Pipeline ${runId}`;
     const pipelineId = `agent-pipeline-${runId}`;
 
+    await page.addInitScript(() => globalThis.localStorage.setItem("i18nextLng", "en"));
     await mockPipelineAgent(page, pipelineId, pipelineName);
     await navigateAndWait(page, "/");
     await page.getByRole("button", { name: "Projects" }).click();
@@ -103,7 +104,9 @@ test.describe("Agent-first Pipeline workflow", () => {
     await expect(page.getByRole("button", { name: "Projects" })).toContainText(projectName);
 
     await page.getByRole("button", { name: "New Pipeline" }).click();
-    await page.getByPlaceholder("Describe your goal and add any useful context...").fill("Build a review pipeline");
+    await page
+      .getByPlaceholder("Describe your goal and add any useful context...")
+      .fill("Build a review pipeline");
     await page.getByRole("button", { name: "Send" }).click();
     await expect(page.getByText(pipelineName, { exact: true })).toBeVisible();
     await page.getByRole("button", { name: "Approve plan" }).click();
@@ -111,7 +114,7 @@ test.describe("Agent-first Pipeline workflow", () => {
     await page.getByRole("button", { name: "Open in Canvas" }).click();
 
     await expect(page).toHaveURL(new RegExp(`/canvas\\?id=${pipelineId}$`));
-    await expect(page.getByTestId("canvas-v2-top-pill")).toContainText(pipelineName);
+    await expect(page.getByRole("textbox", { name: "Pipeline title" })).toHaveValue(pipelineName);
     await navigateAndWait(page, "/pipelines");
     await expect(page.getByRole("button", { name: "Projects" })).toContainText(projectName);
     await expect(page.getByText(pipelineName, { exact: true })).toBeVisible();

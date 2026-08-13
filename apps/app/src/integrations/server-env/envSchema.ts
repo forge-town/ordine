@@ -4,6 +4,7 @@ export const serverEnvSchema = z
   .object({
     DATABASE_URL: z.string().optional(),
     PGLITE_DATA_DIR: z.string().optional(),
+    ORDINE_API_PROXY_TARGET: z.url().default("http://localhost:9433"),
     VITE_APP_URL: z.string().default("http://localhost:9430"),
     BETTER_AUTH_SECRET: z.string(),
     GITHUB_CLIENT_ID: z.string().optional(),
