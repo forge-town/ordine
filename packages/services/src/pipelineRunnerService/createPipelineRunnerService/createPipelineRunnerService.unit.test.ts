@@ -19,35 +19,44 @@ const {
   mockPipelinesDao,
   mockAgentRuntimesDao,
   mockMcpInjections,
+  mockMcpServerKey,
+  mockMcpToolReference,
   mockPipelineRunExecutorRun,
-} = vi.hoisted(() => ({
-  mockMcpInjections: [] as unknown[],
-  mockJobsDao: {
-    findById: vi.fn(),
-    updateStatus: vi.fn().mockResolvedValue(undefined),
-    create: vi.fn().mockResolvedValue(undefined),
-    setNodeStatuses: vi.fn().mockResolvedValue(undefined),
-  },
-  mockConnectorsDao: {
-    findMany: vi.fn().mockResolvedValue([]),
-  },
-  mockPipelinesDao: {
-    findById: vi.fn(),
-  },
-  mockAgentRuntimesDao: {
-    findMany: vi.fn().mockResolvedValue([
-      {
-        id: "runtime-codex",
-        name: "Codex Local",
-        type: "codex",
-        connection: { mode: "local" },
-      },
-    ]),
-  },
-  mockPipelineRunExecutorRun: vi.fn(async (opts: PipelineRunOptionsMock) => {
-    await opts.engineDeps.runSkill({ allowedTools: ["mcp__github__read_issue"] } as never);
-  }),
-}));
+} = vi.hoisted(() => {
+  const mockMcpServerKey = "connector_636f6e6e6563746f722d676974687562";
+  const mockMcpToolReference = `mcp__${mockMcpServerKey}__read_issue`;
+
+  return {
+    mockMcpInjections: [] as unknown[],
+    mockMcpServerKey,
+    mockMcpToolReference,
+    mockJobsDao: {
+      findById: vi.fn(),
+      updateStatus: vi.fn().mockResolvedValue(undefined),
+      create: vi.fn().mockResolvedValue(undefined),
+      setNodeStatuses: vi.fn().mockResolvedValue(undefined),
+    },
+    mockConnectorsDao: {
+      findMany: vi.fn().mockResolvedValue([]),
+    },
+    mockPipelinesDao: {
+      findById: vi.fn(),
+    },
+    mockAgentRuntimesDao: {
+      findMany: vi.fn().mockResolvedValue([
+        {
+          id: "runtime-codex",
+          name: "Codex Local",
+          type: "codex",
+          connection: { mode: "local" },
+        },
+      ]),
+    },
+    mockPipelineRunExecutorRun: vi.fn(async (opts: PipelineRunOptionsMock) => {
+      await opts.engineDeps.runSkill({ allowedTools: [mockMcpToolReference] } as never);
+    }),
+  };
+});
 
 vi.mock("@repo/obs", () => ({
   initObs: vi.fn(),
@@ -79,7 +88,7 @@ vi.mock("../engineDeps", () => ({
     build: vi.fn((opts: EngineDepsBuildOptionsMock) => ({
       runPrompt: vi.fn(),
       runSkill: vi.fn(async () => {
-        mockMcpInjections.push(await opts.getMcpConnectorInjection?.(["mcp__github__read_issue"]));
+        mockMcpInjections.push(await opts.getMcpConnectorInjection?.([mockMcpToolReference]));
       }),
       structuredJsonToMarkdown: vi.fn(),
       evaluateLoopCondition: vi.fn(),
@@ -300,13 +309,13 @@ describe("createPipelineRunnerService run controls", () => {
     expect(mockMcpInjections).toEqual([
       {
         mcpServers: {
-          github: {
+          [mockMcpServerKey]: {
             type: "http",
             url: "https://example.test/mcp",
             headers: { Authorization: "Bearer pipeline-runtime-value" },
           },
         },
-        toolNames: ["mcp__github__read_issue"],
+        toolNames: [mockMcpToolReference],
       },
     ]);
   });

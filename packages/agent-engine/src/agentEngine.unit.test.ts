@@ -186,9 +186,10 @@ describe("agentEngine", () => {
   });
 
   it("loads only the selected connector tools inside a supported adapter", async () => {
+    const stableMcpReference = "mcp__connector_676974687562__read_issue";
     const injection = {
-      mcpServers: { github: { command: "github-mcp" } },
-      toolNames: ["mcp__github__read_issue"],
+      mcpServers: { connector_676974687562: { command: "github-mcp" } },
+      toolNames: [stableMcpReference],
     };
     const getMcpConnectorInjection = vi.fn().mockResolvedValue(injection);
 
@@ -198,11 +199,11 @@ describe("agentEngine", () => {
       systemPrompt: "Analyze this",
       userPrompt: "Hello",
       cwd: "/tmp/test",
-      allowedTools: ["Read", "mcp__github__read_issue"],
+      allowedTools: ["Read", stableMcpReference],
       getMcpConnectorInjection,
     });
 
-    expect(getMcpConnectorInjection).toHaveBeenCalledWith(["mcp__github__read_issue"]);
+    expect(getMcpConnectorInjection).toHaveBeenCalledWith([stableMcpReference], "codex");
     expect(runCodex).toHaveBeenCalledWith(
       expect.objectContaining({ connectorInjection: injection }),
     );

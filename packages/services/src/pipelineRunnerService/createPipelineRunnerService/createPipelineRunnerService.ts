@@ -139,7 +139,10 @@ export const createPipelineRunnerService = (
     });
 
   const buildMcpConnectorInjectionProvider = (preferredSource: AgentRuntime) => {
-    return async (selectedToolNames: readonly string[]) => {
+    return async (
+      selectedToolNames: readonly string[],
+      operationAgent: AgentRuntime = preferredSource,
+    ) => {
       const connectors = await connectorsDao.findMany();
       const hydratedConnectors = connectors.map((connector) => {
         if (connector.method !== "mcp" || connector.status !== "connected") return connector;
@@ -148,7 +151,7 @@ export const createPipelineRunnerService = (
             ? {}
             : { encryptionSecret: options.encryptionSecret }),
           ...(options.env ? { env: options.env } : {}),
-          preferredSource,
+          preferredSource: operationAgent,
         });
         if (hydrated.isErr()) throw hydrated.error;
 

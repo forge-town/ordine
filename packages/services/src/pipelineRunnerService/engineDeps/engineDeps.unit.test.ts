@@ -74,6 +74,8 @@ describe("pipelineRunnerEngineDeps", () => {
       evaluateLoopCondition,
       jobId: "job-1",
       defaultAgent: "claude-code",
+      model: "claude-default",
+      ssh: { mode: "ssh", host: "example.com", user: "runner" },
     });
 
     deps.runPrompt({
@@ -85,6 +87,8 @@ describe("pipelineRunnerEngineDeps", () => {
     expect(promptExecutor.run).toHaveBeenCalledWith(
       expect.objectContaining({
         agent: "claude-code",
+        model: "claude-default",
+        ssh: { mode: "ssh", host: "example.com", user: "runner" },
       }),
     );
   });
@@ -94,6 +98,8 @@ describe("pipelineRunnerEngineDeps", () => {
       evaluateLoopCondition,
       jobId: "job-1",
       defaultAgent: "claude-code",
+      model: "claude-default",
+      ssh: { mode: "ssh", host: "example.com", user: "runner" },
     });
 
     deps.runPrompt({
@@ -108,6 +114,12 @@ describe("pipelineRunnerEngineDeps", () => {
         agent: "codex",
       }),
     );
+    const call = vi.mocked(promptExecutor.run).mock.calls[0]?.[0] as {
+      model?: unknown;
+      ssh?: unknown;
+    };
+    expect(call.model).toBeUndefined();
+    expect(call.ssh).toBeUndefined();
   });
 
   it("applies defaultAgent to runSkill when agent is not specified", () => {

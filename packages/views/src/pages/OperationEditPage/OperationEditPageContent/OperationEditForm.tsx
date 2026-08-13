@@ -47,6 +47,7 @@ import {
   type OperationExecutorType,
   type AgentMode,
   type OperationConfigInput,
+  type OperationExecutorConfig,
 } from "@repo/schemas";
 import { useStore } from "zustand";
 import { useOperationEditPageStore } from "../_store";
@@ -96,11 +97,29 @@ const editFormSchema = z.object({
 
 type EditFormValues = z.infer<typeof editFormSchema>;
 
-const buildConfig = (values: EditFormValues): OperationConfigInput => {
+const buildConfig = (
+  values: EditFormValues,
+  existingExecutor?: OperationExecutorConfig,
+): OperationConfigInput => {
+  const assignedAgentFields =
+    existingExecutor?.type === "agent"
+      ? {
+          ...(existingExecutor.agent ? { agent: existingExecutor.agent } : {}),
+          ...(existingExecutor.model ? { model: existingExecutor.model } : {}),
+          ...(existingExecutor.allowedTools !== undefined
+            ? { allowedTools: existingExecutor.allowedTools }
+            : {}),
+          ...(existingExecutor.assignmentReason
+            ? { assignmentReason: existingExecutor.assignmentReason }
+            : {}),
+        }
+      : {};
+
   if (values.executorType === "agent") {
     if (values.agentMode === "skill") {
       return {
         executor: {
+          ...assignedAgentFields,
           type: "agent",
           agentMode: "skill",
           skillId: values.skillId,
@@ -110,6 +129,7 @@ const buildConfig = (values: EditFormValues): OperationConfigInput => {
 
     return {
       executor: {
+        ...assignedAgentFields,
         type: "agent",
         agentMode: "prompt",
         prompt: values.promptText,
@@ -334,7 +354,7 @@ export const OperationEditForm = ({ operation, skills }: OperationEditFormProps)
         description: values.description || null,
         config: {
           ...operation.config,
-          ...buildConfig(values),
+          ...buildConfig(values, operation.config.executor),
           outputs: values.outputs.map((output) => ({
             ...output,
             description: output.description || undefined,

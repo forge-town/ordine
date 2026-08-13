@@ -13,11 +13,18 @@ import {
   PipelineActionProposalSchema,
   type AgentContextPayload,
   type ArtifactAnalysis,
+  type CapabilityCatalogEntry,
   type ProposeAttachment,
   type PipelineGraphSnapshot,
   type ProposeActionsResponse,
 } from "@repo/schemas";
 import { normalizeSettingsRecord } from "../../settingsService/normalizeSettingsRecord";
+import type { createCapabilityCatalogService } from "../../capabilityCatalogService";
+import {
+  deriveCapabilityAssignmentAgentTargets,
+  validateAssignedOperationExecutor,
+  type AssignmentRuntimeRecord,
+} from "../capabilityAssignment";
 import { analyzeArtifacts } from "./analyzeArtifacts";
 import { buildProposeUserPrompt } from "./buildProposePrompt";
 import { setProposeProgress } from "./progressStore";
@@ -38,6 +45,10 @@ export type ProposeActionsDeps = {
   jobTracesDao: ReturnType<typeof createJobTracesDao>;
   operationsDao: ReturnType<typeof createOperationsDao>;
   settingsDao: ReturnType<typeof createSettingsDao>;
+  capabilityCatalog: Pick<
+    ReturnType<typeof createCapabilityCatalogService>,
+    "getMany" | "validateOperationConfigs"
+  >;
 };
 
 export type ProposeActionsOptions = {
@@ -106,6 +117,21 @@ export const proposeActions = async (
     };
   }
 
+  const capabilityCatalogResult = await deps.capabilityCatalog.getMany();
+  if (capabilityCatalogResult.isErr()) {
+    logger.error(
+      { error: capabilityCatalogResult.error },
+      "proposeActions: failed to load capability catalog",
+    );
+  }
+  const capabilityCatalogAvailable = capabilityCatalogResult.isOk();
+  const capabilityCatalog: CapabilityCatalogEntry[] = capabilityCatalogResult.isOk()
+    ? capabilityCatalogResult.value
+    : [];
+  const agentTargets = deriveCapabilityAssignmentAgentTargets(
+    configuredRuntimes as AssignmentRuntimeRecord[],
+  );
+
   const defaultRuntime =
     configuredRuntimes.find((runtime) => runtime.type === settings.defaultAgentRuntime) ?? null;
   const effectiveRuntime = selectedRuntime ?? defaultRuntime;
@@ -115,7 +141,16 @@ export const proposeActions = async (
     name: operation.name,
     description: operation.description,
     acceptedObjectTypes: operation.acceptedObjectTypes,
+    executor:
+      operation.config && typeof operation.config === "object" && "executor" in operation.config
+        ? operation.config.executor
+        : undefined,
   }));
+  const editableOperationIds = new Set(
+    snapshot.nodes.flatMap((node) =>
+      node.data.nodeType === "operation" ? [node.data.operationId] : [],
+    ),
+  );
   const operationById = new Map(
     operationCatalog.map((operation) => [operation.id, { name: operation.name }]),
   );
@@ -153,8 +188,10 @@ export const proposeActions = async (
       : undefined);
   const userPromptText = buildProposeUserPrompt({
     activeRun,
+    agentTargets,
     artifactAnalysis,
     attachments: opts.attachments ?? [],
+    capabilityCatalog,
     context: opts.context,
     diagnostics: opts.diagnostics ?? [],
     failedProposal: opts.failedProposal,
@@ -288,6 +325,64 @@ export const proposeActions = async (
     ...parsed.data,
     actions: normalizeProposalActionCatalogNames(parsed.data.actions, operationById),
   };
+  const updateOperationActions = proposal.actions.filter(
+    (action) => action.type === "updateOperation",
+  );
+  const updateOperationDiagnostics = updateOperationActions.flatMap((action) => {
+    if (!capabilityCatalogAvailable) {
+      return [
+        `updateOperation.${action.operationId}: capability catalog is unavailable; executor changes fail closed.`,
+      ];
+    }
+
+    if (!editableOperationIds.has(action.operationId)) {
+      return [
+        `updateOperation.${action.operationId}: only an existing Operation used by the current pipeline may be updated in place.`,
+      ];
+    }
+
+    return validateAssignedOperationExecutor({
+      executor: action.executor,
+      context: { agentTargets, capabilityCatalog },
+      pathPrefix: `updateOperation.${action.operationId}.executor`,
+    });
+  });
+  if (updateOperationActions.length > 0 && capabilityCatalogAvailable) {
+    const catalogValidation = await deps.capabilityCatalog.validateOperationConfigs(
+      updateOperationActions.map((action) => ({
+        executor: action.executor,
+        inputs: [],
+        outputs: [],
+      })),
+    );
+    if (catalogValidation.isErr()) {
+      updateOperationDiagnostics.push(catalogValidation.error.message);
+    }
+  }
+
+  if (updateOperationDiagnostics.length > 0) {
+    if ((opts.semanticRetry ?? 0) < MAX_SEMANTIC_RETRIES) {
+      return proposeActions(deps, {
+        ...opts,
+        diagnostics: [...(opts.diagnostics ?? []), ...updateOperationDiagnostics],
+        failedProposal: proposal,
+        precomputedAnalysis: artifactAnalysis,
+        semanticRetry: (opts.semanticRetry ?? 0) + 1,
+      });
+    }
+
+    return {
+      proposal: null,
+      diagnostics: updateOperationDiagnostics.map((message) => ({
+        actionIndex: null,
+        code: "INVALID_NODE_DATA" as const,
+        message,
+        severity: "error" as const,
+      })),
+      error: { code: "BAD_AGENT_OUTPUT", detail: "updateOperation failed validation" },
+      ...(agentOutput.reply ? { reply: agentOutput.reply } : {}),
+    };
+  }
   const validationResult = validatePipelineActions(snapshot, proposal.actions);
   const graphDiagnostics = validationResult.isErr() ? validationResult.error : [];
   const operationDiagnostics = validateProposalActionCatalog(proposal.actions, operationById);

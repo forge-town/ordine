@@ -13,9 +13,9 @@ import { AlertCircle, CheckCircle2, ExternalLink, Loader2, Play, Plus } from "lu
 import { Badge } from "@repo/ui/badge";
 import { Button } from "@repo/ui/button";
 import { cn } from "@repo/ui/lib/utils";
-import type { PipelineAgentProposal } from "@repo/schemas";
+import type { PipelineAgentProposal, PipelineData } from "@repo/schemas";
 import { sidebarStore as sharedSidebarStore } from "@repo/views/store/sidebarStore";
-import { dataProvider } from "@/integrations/refine/dataProvider";
+import { dataProvider, ResourceName } from "@/integrations/refine/dataProvider";
 import { materializeGeneratedPipeline } from "@/lib/materializeGeneratedPipeline";
 import { getPipelineAgentErrorMessage } from "@/lib/pipelineAgentErrorMessage";
 import {
@@ -309,12 +309,48 @@ export const PipelineCreationWorkspace = ({
       return;
     }
 
-    // COD-345:首页首条消息不就地开聊,暂存 prompt 并跳转无 id 的 /canvas 三栏工作区,
-    // 对话由右侧 AgentPanel 接管(COD-346)。已有会话/附件时保持原流程,避免中断进行中的 session。
+    // 首页首条消息先创建可持久化的空 Pipeline，再把 prompt/runtime 一次性交给画布 AgentPanel。
+    // 画布编辑会话必须有 pipelineId；直接跳无 id 的 /canvas 会丢消息并触发“Pipeline 尚未保存”。
     if (isHome && !sessionIdRef.current && messages.length === 0 && attachments.length === 0) {
-      savePendingPipelinePrompt(text);
+      setErrorMessage(null);
+      setPhase("planning");
+      const now = new Date();
+      const pipelineId = `pipeline-${Date.now()}`;
+      const currentProjectId = sharedSidebarStore.getState().currentProjectId;
+      const draftPipeline: PipelineData = {
+        id: pipelineId,
+        name: t("pipelines.createNew"),
+        description: text,
+        sharedContext: "",
+        tags: [],
+        createdAt: now,
+        updatedAt: now,
+        timeoutMs: null,
+        status: "draft",
+        version: 1,
+        nodes: [],
+        edges: [],
+      };
+      const createResult = await ResultAsync.fromPromise(
+        dataProvider.create<PipelineData>({
+          resource: ResourceName.pipelines,
+          variables: {
+            ...draftPipeline,
+            ...(currentProjectId ? { projectId: currentProjectId } : {}),
+          },
+        }),
+        (error) => (error instanceof Error ? error : new Error(String(error))),
+      );
+      if (createResult.isErr()) {
+        handlePipelineAgentError(createResult.error);
+        setPhase("conversation");
+
+        return;
+      }
+
+      savePendingPipelinePrompt(text, runtimeId);
       setInputValue("");
-      void router.navigate({ to: "/canvas", search: { id: undefined } });
+      void router.navigate({ to: "/canvas", search: { id: createResult.value.data.id } });
 
       return;
     }

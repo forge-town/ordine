@@ -25,8 +25,8 @@ import { useAgentBarStore } from "./_store";
 import { Assistant, MessageTurn, ProposalCard } from "./messages";
 import type { MessageTurnSubmitInput } from "./messages/MessageTurn";
 import { Composer, type ComposerSubmitInput } from "./Composer";
+import { takePendingPipelinePrompt } from "./pendingPipelinePrompt";
 import { buildProposalItems } from "./proposalView";
-import { takePendingPipelinePrompt } from "../../../lib/pendingPipelinePrompt";
 import { useAgentConversation } from "./useAgentConversation";
 
 interface RuntimeState {
@@ -56,9 +56,6 @@ export const AgentPanel = ({ onGeneratedPipeline }: AgentPanelProps) => {
   const nodes = useStore(store, (state) => state.nodes);
   const edges = useStore(store, (state) => state.edges);
   const [composerDraft, setComposerDraft] = useState<string | null>(null);
-  const [pendingPipelinePrompt, setPendingPipelinePrompt] = useState<string | null>(() =>
-    pipelineId ? null : takePendingPipelinePrompt(),
-  );
   const [isPreparingSend, setIsPreparingSend] = useState(false);
   const [isPreparingUpload, setIsPreparingUpload] = useState(false);
   const [isLoadingRuntimes, setIsLoadingRuntimes] = useState(true);
@@ -82,6 +79,7 @@ export const AgentPanel = ({ onGeneratedPipeline }: AgentPanelProps) => {
   } = useAgentConversation({ onGeneratedPipeline, pipelineId });
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const attachmentGraphSignatureRef = useRef<string | null>(null);
+  const pendingPromptConsumedRef = useRef(false);
   const sendInFlightRef = useRef(false);
   const isSending = isPreparingSend || isConversationSending;
   const isUploadBlocked = isHistoryLoading || isPreparingUpload || isSending;
@@ -321,21 +319,48 @@ export const AgentPanel = ({ onGeneratedPipeline }: AgentPanelProps) => {
   );
 
   useEffect(() => {
-    if (!pendingPipelinePrompt || pipelineId || !selectedRuntimeId || isLoadingRuntimes) {
+    if (
+      pendingPromptConsumedRef.current ||
+      isHistoryLoading ||
+      isLoadingRuntimes ||
+      runtimeOptions.length === 0 ||
+      isSending ||
+      agentPanel.isLoading ||
+      sendInFlightRef.current
+    ) {
       return;
     }
 
-    setPendingPipelinePrompt(null);
-    void handleComposerSubmit({
-      content: pendingPipelinePrompt,
-      metadata: { attachments: [], referencedNodeIds: [] },
+    pendingPromptConsumedRef.current = true;
+    const pending = takePendingPipelinePrompt();
+    if (!pending) {
+      return;
+    }
+
+    const effectiveRuntimeId =
+      runtimeOptions.find((runtime) => runtime.id === pending.runtimeId)?.id ?? selectedRuntimeId;
+    if (!effectiveRuntimeId) {
+      setComposerDraft(pending.prompt);
+
+      return;
+    }
+
+    setSelectedRuntimeId(effectiveRuntimeId);
+    sendInFlightRef.current = true;
+    setIsPreparingSend(true);
+    void submitMessage({ content: pending.prompt, runtimeId: effectiveRuntimeId }).finally(() => {
+      sendInFlightRef.current = false;
+      setIsPreparingSend(false);
     });
   }, [
-    handleComposerSubmit,
+    agentPanel.isLoading,
+    isHistoryLoading,
     isLoadingRuntimes,
-    pendingPipelinePrompt,
+    isSending,
     pipelineId,
+    runtimeOptions,
     selectedRuntimeId,
+    submitMessage,
   ]);
 
   const handleComposerAttach = useCallback(

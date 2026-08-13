@@ -1,25 +1,52 @@
 const PENDING_PIPELINE_PROMPT_KEY = "ordine.pendingPipelinePrompt";
 
+export interface PendingPipelinePrompt {
+  prompt: string;
+  runtimeId?: string;
+}
+
 /**
- * COD-345:首页首条消息跳转无 id 的 /canvas 前,把 prompt 暂存到 sessionStorage;
- * COD-346 的 AgentPanel 在 CanvasPage 挂载后取出并自动首发。
+ * 首页首条消息跳转画布前，把 prompt/runtime 暂存到 sessionStorage；
+ * AgentPanel 在已保存的 Pipeline 画布挂载后取出并自动首发。
  * 一次性语义:take 即删。key 与 packages/views 侧消费方保持同名,勿单边改。
  */
-export const savePendingPipelinePrompt = (prompt: string) => {
+export const savePendingPipelinePrompt = (prompt: string, runtimeId?: string) => {
   if (globalThis.sessionStorage === undefined) {
     return;
   }
 
-  globalThis.sessionStorage.setItem(PENDING_PIPELINE_PROMPT_KEY, prompt);
+  globalThis.sessionStorage.setItem(
+    PENDING_PIPELINE_PROMPT_KEY,
+    JSON.stringify({ prompt, ...(runtimeId ? { runtimeId } : {}) } satisfies PendingPipelinePrompt),
+  );
 };
 
-export const takePendingPipelinePrompt = (): string | null => {
+export const takePendingPipelinePrompt = (): PendingPipelinePrompt | null => {
   if (globalThis.sessionStorage === undefined) {
     return null;
   }
 
-  const prompt = globalThis.sessionStorage.getItem(PENDING_PIPELINE_PROMPT_KEY);
+  const stored = globalThis.sessionStorage.getItem(PENDING_PIPELINE_PROMPT_KEY);
   globalThis.sessionStorage.removeItem(PENDING_PIPELINE_PROMPT_KEY);
 
-  return prompt;
+  if (!stored) {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(stored) as Partial<PendingPipelinePrompt>;
+    if (typeof parsed.prompt === "string" && parsed.prompt.trim().length > 0) {
+      return {
+        prompt: parsed.prompt,
+        ...(typeof parsed.runtimeId === "string" && parsed.runtimeId.length > 0
+          ? { runtimeId: parsed.runtimeId }
+          : {}),
+      };
+    }
+  } catch {
+    // Backward compatibility for prompts saved by COD-345 before the runtime was included.
+    return { prompt: stored };
+  }
+
+  return null;
 };

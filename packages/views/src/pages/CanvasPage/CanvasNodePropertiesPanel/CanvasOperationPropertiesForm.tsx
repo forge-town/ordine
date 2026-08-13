@@ -25,6 +25,7 @@ import type {
   ObjectType,
   Operation,
   OperationConfigInput,
+  OperationExecutorConfig,
   OperationExecutorType,
   Skill,
 } from "@repo/schemas";
@@ -100,11 +101,27 @@ const buildConfig = (
   promptText: string,
   scriptCommand: string,
   scriptLanguage: "bash" | "python" | "javascript",
+  existingExecutor?: OperationExecutorConfig,
 ): OperationConfigInput => {
+  const assignedAgentFields =
+    existingExecutor?.type === "agent"
+      ? {
+          ...(existingExecutor.agent ? { agent: existingExecutor.agent } : {}),
+          ...(existingExecutor.model ? { model: existingExecutor.model } : {}),
+          ...(existingExecutor.allowedTools !== undefined
+            ? { allowedTools: existingExecutor.allowedTools }
+            : {}),
+          ...(existingExecutor.assignmentReason
+            ? { assignmentReason: existingExecutor.assignmentReason }
+            : {}),
+        }
+      : {};
+
   if (executorType === "agent") {
     if (agentMode === "skill") {
       return {
         executor: {
+          ...assignedAgentFields,
           type: "agent",
           agentMode: "skill",
           skillId,
@@ -114,6 +131,7 @@ const buildConfig = (
 
     return {
       executor: {
+        ...assignedAgentFields,
         type: "agent",
         agentMode: "prompt",
         prompt: promptText,
@@ -290,6 +308,7 @@ export const CanvasOperationPropertiesForm = ({
       promptText,
       scriptCommand,
       scriptLanguage,
+      operation.config.executor,
     );
     const result = await ResultAsync.fromPromise(
       updateOpMutate({

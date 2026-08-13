@@ -24,6 +24,7 @@ const ACTION_TYPE_ALIASES = {
   remove_edge: "removeEdge",
   reconnect_edge: "reconnectEdge",
   replace_node_data: "replaceNodeData",
+  update_operation: "updateOperation",
 } as const;
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>

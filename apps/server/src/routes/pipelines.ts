@@ -1,10 +1,18 @@
 import { Hono } from "hono";
 import { ResultAsync } from "neverthrow";
 import { z } from "zod/v4";
-import { PipelineGraphSnapshotSchema, ProposeAttachmentSchema } from "@repo/schemas";
+import {
+  PipelineGraphSnapshotSchema,
+  ProposeAttachmentSchema,
+  ProposePendingOperationSchema,
+} from "@repo/schemas";
 import { pipelinesService, pipelineRunnerService } from "../services.js";
 
 export const pipelinesRoutes = new Hono();
+
+const isOperationValidationError = (error: Error): error is Error & { issues: unknown[] } =>
+  error.name === "CapabilityCatalogValidationError" ||
+  error.name === "OperationConfigValidationError";
 
 const proposeActionsBodySchema = z.object({
   attachments: z.array(ProposeAttachmentSchema).optional(),
@@ -17,6 +25,36 @@ const proposeActionsBodySchema = z.object({
   runtimeId: z.string().optional(),
 });
 
+const generateStructureBodySchema = z
+  .object({
+    name: z.string(),
+    description: z.string(),
+    matchedOperations: z
+      .array(
+        z
+          .object({
+            operationId: z.string().min(1),
+            operationName: z.string().min(1),
+            reason: z.string(),
+          })
+          .strict(),
+      )
+      .optional(),
+    unmatchedSteps: z
+      .array(
+        z
+          .object({
+            step: z.string().min(1),
+            reason: z.string(),
+          })
+          .strict(),
+      )
+      .optional(),
+    runtimeId: z.string().min(1).optional(),
+    model: z.string().min(1).optional(),
+  })
+  .strict();
+
 pipelinesRoutes.get("/", async (c) => {
   const pipelines = await pipelinesService.getAll();
 
@@ -26,8 +64,31 @@ pipelinesRoutes.get("/", async (c) => {
 pipelinesRoutes.post("/", async (c) => {
   const body = await c.req.json();
   const { pendingOperations, ...pipelineData } = body;
-  if (Array.isArray(pendingOperations) && pendingOperations.length > 0) {
-    await pipelinesService.createPendingOperations(pendingOperations);
+  const parsedPendingOperations = z
+    .array(ProposePendingOperationSchema)
+    .optional()
+    .safeParse(pendingOperations);
+  if (!parsedPendingOperations.success) {
+    return c.json(
+      {
+        error: "Invalid pending operations",
+        issues: parsedPendingOperations.error.issues,
+      },
+      422,
+    );
+  }
+  if (parsedPendingOperations.data && parsedPendingOperations.data.length > 0) {
+    const result = await pipelinesService.createWithPendingOperations(
+      pipelineData,
+      parsedPendingOperations.data,
+    );
+    if (result.isErr()) {
+      return isOperationValidationError(result.error)
+        ? c.json({ error: result.error.message, issues: result.error.issues }, 422)
+        : c.json({ error: "Failed to create pipeline" }, 500);
+    }
+
+    return c.json(result.value, 201);
   }
   const pipeline = await pipelinesService.create(pipelineData);
 
@@ -138,17 +199,22 @@ pipelinesRoutes.post("/:id/run", async (c) => {
 });
 
 pipelinesRoutes.post("/generate-structure", async (c) => {
-  const body = (await c.req.json()) as {
-    name: string;
-    description: string;
-    matchedOperations?: Array<{ operationId: string; operationName: string; reason: string }>;
-    unmatchedSteps?: Array<{ step: string; reason: string }>;
-  };
+  const bodyResult = await ResultAsync.fromPromise(
+    c.req.json() as Promise<unknown>,
+    () => undefined,
+  );
+  const parsed = generateStructureBodySchema.safeParse(bodyResult.unwrapOr(undefined));
+  if (!parsed.success) {
+    return c.json({ error: "Invalid request body", issues: parsed.error.issues }, 400);
+  }
+
   const result = await pipelinesService.generateStructure({
-    name: body.name ?? "",
-    description: body.description ?? "",
-    matchedOperations: body.matchedOperations,
-    unmatchedSteps: body.unmatchedSteps,
+    name: parsed.data.name,
+    description: parsed.data.description,
+    matchedOperations: parsed.data.matchedOperations,
+    unmatchedSteps: parsed.data.unmatchedSteps,
+    runtimeId: parsed.data.runtimeId,
+    model: parsed.data.model,
   });
 
   if ("error" in result) {

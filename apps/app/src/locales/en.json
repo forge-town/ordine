@@ -918,7 +918,8 @@
           "addEdge": "Add edge",
           "removeEdge": "Remove edge",
           "reconnectEdge": "Reconnect edge",
-          "replaceNodeData": "Replace node data"
+          "replaceNodeData": "Replace node data",
+          "updateOperation": "Update operation executor"
         }
       },
       "checkpoint": {
@@ -2001,7 +2002,8 @@
         "reconnectEdge": "Reconnect edge",
         "removeEdge": "Remove edge",
         "removeNode": "Remove node",
-        "replaceNodeData": "Update node"
+        "replaceNodeData": "Update node",
+        "updateOperation": "Update operation executor"
       },
       "applied": {
         "hint": "Applied — the nodes are on the canvas, yours to edit. Click any node to reference it here, or hit Run."

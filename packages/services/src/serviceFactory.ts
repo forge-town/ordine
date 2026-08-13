@@ -1,6 +1,7 @@
 import { db } from "@repo/db";
 import { createAgentsService } from "./agentsService";
 import { createConnectorsService } from "./connectorsService";
+import { createCapabilityCatalogService } from "./capabilityCatalogService";
 import { createConversationMessagesService } from "./conversationMessagesService";
 import { createDistillationsService } from "./distillationsService";
 import { createGithubProjectsService } from "./githubProjectsService";
@@ -20,6 +21,7 @@ const pipelineRunnerService = createPipelineRunnerService(db);
 
 export const serviceFactory = {
   createAgentsService: () => createAgentsService(db),
+  createCapabilityCatalogService: () => createCapabilityCatalogService(db),
   createConnectorsService: () => createConnectorsService(db),
   createConversationMessagesService: () => createConversationMessagesService(db),
   createDistillationsService: () => createDistillationsService(db),

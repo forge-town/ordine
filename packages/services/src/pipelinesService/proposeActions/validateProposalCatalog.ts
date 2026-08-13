@@ -59,5 +59,15 @@ export const validateProposalActionCatalog = (
       return validateOperationNodeCatalog(action.nodeId, action.data, operationById, actionIndex);
     }
 
+    if (action.type === "updateOperation" && !operationById.has(action.operationId)) {
+      return [
+        makeProposalDiagnostic(
+          "OPERATION_NOT_FOUND",
+          `updateOperation references unknown operationId "${action.operationId}".`,
+          actionIndex,
+        ),
+      ];
+    }
+
     return [];
   });

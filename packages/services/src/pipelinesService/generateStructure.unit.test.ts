@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { homedir } from "node:os";
 import { join } from "node:path";
+import { okAsync } from "neverthrow";
 
 const mockRunAgent = vi.fn();
 const mockDao = {
@@ -490,9 +491,60 @@ describe("generateStructure", () => {
       ],
     };
 
-    mockRunAgent.mockResolvedValue(JSON.stringify(generatedPipeline));
+    mockAgentRuntimesDao.findMany.mockResolvedValueOnce([
+      {
+        id: "runtime-hermes",
+        type: "hermes",
+        connection: {
+          mode: "local",
+          models: [{ id: "hermes-model", displayName: "Hermes", isDefault: true }],
+        },
+      },
+    ]);
+    mockRunAgent.mockImplementation(async (input: { agentId: string; userPrompt: string }) => {
+      if (input.agentId !== "pipeline-capability-assignment") {
+        return JSON.stringify(generatedPipeline);
+      }
 
-    const svc = createPipelinesService({} as never);
+      const operationIds = [...input.userPrompt.matchAll(/"operationId": "(op_auto_[^"]+)"/gu)].map(
+        (match) => match[1]!,
+      );
+
+      return JSON.stringify({
+        assignments: [
+          {
+            operationId: operationIds[0],
+            executor: {
+              type: "script",
+              language: "bash",
+              command: "curl -fsSL https://example.invalid/data",
+              assignmentReason: "Calling a fixed API is deterministic and needs no model.",
+            },
+          },
+          {
+            operationId: operationIds[1],
+            executor: {
+              type: "agent",
+              agentMode: "prompt",
+              agent: "hermes",
+              model: "hermes-model",
+              prompt: "Summarize the supplied data into structured markdown.",
+              allowedTools: [],
+              assignmentReason: "Summarization needs model judgment but no external capability.",
+            },
+          },
+        ],
+      });
+    });
+
+    const capabilityCatalog = {
+      getMany: vi.fn(() => okAsync([])),
+      validateOperationConfigs: vi.fn(() => okAsync(undefined)),
+    };
+
+    const svc = createPipelinesService({} as never, {
+      capabilityCatalog: capabilityCatalog as never,
+    });
     const result = await svc.generateStructure({
       name: "Polymarket Pipeline",
       description: "Collect Polymarket trends",
@@ -517,17 +569,35 @@ describe("generateStructure", () => {
         "Execute this Pipeline step: Fetch Polymarket data",
       );
       expect(result.pendingOperations![0]!.description).not.toContain("No data fetching");
-      expect(
-        (result.pendingOperations![0]!.config.executor as { prompt: string }).prompt,
-      ).not.toContain("No data fetching operation available");
+      expect(result.pendingOperations![0]!.config.executor).toMatchObject({
+        type: "script",
+        command: "curl -fsSL https://example.invalid/data",
+      });
+      expect(result.pendingOperations![1]!.config.executor).toMatchObject({
+        type: "agent",
+        agent: "hermes",
+        model: "hermes-model",
+        allowedTools: [],
+      });
       const operationNodeRuntimes = result.nodes.flatMap((node) =>
         node.data.nodeType === "operation" ? [node.data.agentRuntime] : [],
       );
       expect(operationNodeRuntimes).toHaveLength(2);
-      expect(operationNodeRuntimes.every((runtime) => runtime === "hermes")).toBe(true);
+      expect(operationNodeRuntimes.every((runtime) => runtime === undefined)).toBe(true);
     }
 
-    const agentCall = mockRunAgent.mock.calls[0]![0] as { userPrompt: string };
+    expect(mockRunAgent).toHaveBeenCalledTimes(2);
+    expect(capabilityCatalog.validateOperationConfigs).toHaveBeenCalledOnce();
+    const assignmentCall = mockRunAgent.mock.calls[0]![0] as {
+      agentId: string;
+      model: string;
+      systemPrompt: string;
+      userPrompt: string;
+    };
+    expect(assignmentCall.agentId).toBe("pipeline-capability-assignment");
+    expect(assignmentCall.model).toBe("hermes-model");
+    expect(assignmentCall.systemPrompt).toContain("calling a known API");
+    const agentCall = mockRunAgent.mock.calls[1]![0] as { userPrompt: string };
     expect(agentCall.userPrompt).toContain("NEWLY CREATED OPERATIONS (MUST USE)");
     expect(agentCall.userPrompt).toContain("Fetch Polymarket data");
     expect(agentCall.userPrompt).toContain("Summarize into markdown");

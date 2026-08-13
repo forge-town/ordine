@@ -1,4 +1,5 @@
 import { z } from "zod/v4";
+import { AssignedOperationExecutorConfigSchema } from "../operation/OperationExecutorConfigSchema";
 import { PipelineNodeDataSchema } from "./node-data/PipelineNodeDataSchema";
 import { PipelineGraphNodeSchema, PipelineGraphEdgeSchema } from "./PipelineGraphSnapshotSchema";
 
@@ -37,6 +38,15 @@ export const ReplaceNodeDataPipelineActionSchema = z.object({
   data: PipelineNodeDataSchema,
 });
 
+/** Replace the executor on the shared Operation entity without cloning it. */
+export const UpdateOperationPipelineActionSchema = z
+  .object({
+    type: z.literal("updateOperation"),
+    operationId: z.string().min(1),
+    executor: AssignedOperationExecutorConfigSchema,
+  })
+  .strict();
+
 export const PipelineActionSchema = z.discriminatedUnion("type", [
   AddNodePipelineActionSchema,
   RemoveNodePipelineActionSchema,
@@ -44,5 +54,6 @@ export const PipelineActionSchema = z.discriminatedUnion("type", [
   RemoveEdgePipelineActionSchema,
   ReconnectEdgePipelineActionSchema,
   ReplaceNodeDataPipelineActionSchema,
+  UpdateOperationPipelineActionSchema,
 ]);
 export type PipelineAction = z.infer<typeof PipelineActionSchema>;

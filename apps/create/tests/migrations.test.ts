@@ -59,7 +59,7 @@ describe("runMigrations", () => {
     const result = await runMigrations(db, migrationsDir);
 
     expect(result.isOk()).toBe(true);
-    expect(result._unsafeUnwrap()).toBe(4);
+    expect(result._unsafeUnwrap()).toBe(6);
     const migrations = await db.query<{ name: string }>(
       `SELECT name FROM _ordine_migrations ORDER BY name`,
     );
@@ -69,6 +69,8 @@ describe("runMigrations", () => {
       "0002_routines_claude_spec.sql",
       "0003_harvest_capabilities.sql",
       "0004_add_agent_default_model.sql",
+      "0005_capability_risk_overrides.sql",
+      "0006_add_pipeline_agent_session_tables.sql",
     ]);
     const projects = await db.query<{ table_name: string }>(
       `SELECT table_name FROM information_schema.tables WHERE table_name = 'projects'`,
@@ -85,7 +87,7 @@ describe("runMigrations", () => {
     const result = await runMigrations(db, migrationsDir);
 
     expect(result.isOk()).toBe(true);
-    expect(result._unsafeUnwrap()).toBe(4);
+    expect(result._unsafeUnwrap()).toBe(6);
 
     const migrations = await db.query<{ name: string }>(
       `SELECT name FROM _ordine_migrations ORDER BY name`,
@@ -96,6 +98,8 @@ describe("runMigrations", () => {
       "0002_routines_claude_spec.sql",
       "0003_harvest_capabilities.sql",
       "0004_add_agent_default_model.sql",
+      "0005_capability_risk_overrides.sql",
+      "0006_add_pipeline_agent_session_tables.sql",
     ]);
 
     const columns = await db.query<{ column_name: string; table_name: string }>(

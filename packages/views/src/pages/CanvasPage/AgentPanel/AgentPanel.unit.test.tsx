@@ -175,6 +175,7 @@ const wrapperWithMutableStore = () => {
 
 describe("AgentPanel", () => {
   beforeEach(() => {
+    globalThis.sessionStorage.clear();
     vi.clearAllMocks();
     Object.defineProperty(globalThis.HTMLElement.prototype, "scrollIntoView", {
       configurable: true,
@@ -246,6 +247,48 @@ describe("AgentPanel", () => {
       "bg-transparent",
     );
     expect(screen.getByTestId("agent-assistant")).toHaveClass("text-[12px]");
+  });
+
+  it("auto-sends the home prompt with the runtime selected on the home page", async () => {
+    globalThis.sessionStorage.setItem(
+      "ordine.pendingPipelinePrompt",
+      JSON.stringify({ prompt: "Build an exam pipeline", runtimeId: "runtime-codex" }),
+    );
+    mockGetOne.mockResolvedValue({ data: { defaultAgentRuntime: "pi-agent" } });
+    mockGetList.mockResolvedValue({
+      data: [
+        {
+          id: "runtime-pi",
+          name: "local-pi-agent",
+          type: "pi-agent",
+          connection: { mode: "local" },
+        },
+        {
+          id: "runtime-codex",
+          name: "Codex Local",
+          type: "codex",
+          connection: { mode: "local" },
+        },
+      ],
+      total: 2,
+    });
+    mockPlanSessionStream.mockImplementation(async (_sessionId, { onEvent }) => {
+      onEvent({ type: "question", question: "Which exam sections?" });
+    });
+
+    render(<AgentPanel />, { wrapper: wrapperWithState() });
+
+    await waitFor(() =>
+      expect(mockPlanSessionStream).toHaveBeenCalledWith(
+        "session-1",
+        expect.objectContaining({ runtimeId: "runtime-codex" }),
+      ),
+    );
+    expect(mockAppendMessage).toHaveBeenCalledWith(
+      "session-1",
+      expect.objectContaining({ content: "Build an exam pipeline", role: "user" }),
+    );
+    expect(globalThis.sessionStorage.getItem("ordine.pendingPipelinePrompt")).toBeNull();
   });
 
   it("uses a neutral status when no runtime is selected", async () => {

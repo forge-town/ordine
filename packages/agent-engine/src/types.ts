@@ -41,6 +41,7 @@ export interface DriverResult {
 
 export type McpConnectorInjectionProvider = (
   selectedToolNames: readonly string[],
+  agent?: AgentRuntime,
 ) => Promise<McpConnectorInjection | null>;
 
 export interface AgentRunOptions {
