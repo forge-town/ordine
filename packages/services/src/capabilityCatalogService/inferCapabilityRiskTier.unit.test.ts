@@ -7,11 +7,15 @@ describe("inferCapabilityRiskTier", () => {
     ["list_issues", "readonly"],
     ["search-issues", "readonly"],
     ["createIssue", "write"],
+    ["modify_record", "write"],
     ["update_issue", "write"],
     ["upload-file", "write"],
+    ["create_payment", "irreversible"],
     ["deleteIssue", "irreversible"],
+    ["publish_draft", "irreversible"],
     ["send_message", "irreversible"],
     ["deploy-release", "irreversible"],
+    ["get_release", "readonly"],
   ] as const)("infers %s as %s", (name, expected) => {
     expect(inferCapabilityRiskTier(name)).toBe(expected);
   });

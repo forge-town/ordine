@@ -14,7 +14,7 @@ import {
   createPipelineRunsDao,
   createPipelinesDao,
   createSettingsDao,
-  type DbConnection,
+  type DbExecutor,
 } from "@repo/models";
 import { ResultAsync } from "neverthrow";
 import { logger } from "@repo/logger";
@@ -141,7 +141,16 @@ export interface PipelinesServiceOptions {
   capabilityCatalogOptions?: CapabilityCatalogServiceOptions;
 }
 
-export const createPipelinesService = (db: DbConnection, options: PipelinesServiceOptions = {}) => {
+export interface PendingOperationInput {
+  id: string;
+  name: string;
+  description: string;
+  config: Record<string, unknown>;
+  acceptedObjectTypes: ObjectNodeType[];
+  sourceSkillId?: string;
+}
+
+export const createPipelinesService = (db: DbExecutor, options: PipelinesServiceOptions = {}) => {
   const agentRuntimesDao = createAgentRuntimesDao(db);
   const conversationMessagesDao = createConversationMessagesDao(db);
   const dao = createPipelinesDao(db);
@@ -151,42 +160,48 @@ export const createPipelinesService = (db: DbConnection, options: PipelinesServi
   const jobTracesDao = createJobTracesDao(db);
   const operationsDao = createOperationsDao(db);
   const settingsDao = createSettingsDao(db);
-  const capabilityCatalogRef = { current: options.capabilityCatalog };
-  const getCapabilityCatalog = () => {
-    capabilityCatalogRef.current ??= createCapabilityCatalogService(
-      db,
-      options.capabilityCatalogOptions,
+  const getCapabilityCatalog = (executor: DbExecutor) =>
+    options.capabilityCatalog ??
+    createCapabilityCatalogService(executor, options.capabilityCatalogOptions);
+  const insertPendingOperations = async (
+    executor: DbExecutor,
+    pendingOperations: PendingOperationInput[],
+  ): Promise<void> => {
+    const validation =
+      await getCapabilityCatalog(executor).validateOperationInputs(pendingOperations);
+    if (validation.isErr()) throw validation.error;
+
+    const transactionalOperationsDao = createOperationsDao(executor);
+    for (const operation of pendingOperations) {
+      await transactionalOperationsDao.create(operation);
+    }
+  };
+
+  const createPendingOperations = (pendingOperations: PendingOperationInput[]) =>
+    ResultAsync.fromPromise(
+      db.transaction((transaction) => insertPendingOperations(transaction, pendingOperations)),
+      (error) => toServiceError(error, "Create pending operations"),
     );
 
-    return capabilityCatalogRef.current;
-  };
+  const createWithPendingOperations = (
+    pipeline: Parameters<typeof dao.create>[0],
+    pendingOperations: PendingOperationInput[],
+  ) =>
+    ResultAsync.fromPromise(
+      db.transaction(async (transaction) => {
+        await insertPendingOperations(transaction, pendingOperations);
+
+        return createPipelinesDao(transaction).create(pipeline);
+      }),
+      (error) => toServiceError(error, "Create pipeline with pending operations"),
+    );
 
   return {
     getAll: () => dao.findMany(),
     getById: (id: string) => dao.findById(id),
     create: (...args: Parameters<typeof dao.create>) => dao.create(...args),
-    createPendingOperations: (
-      pendingOperations: Array<{
-        id: string;
-        name: string;
-        description: string;
-        config: Record<string, unknown>;
-        acceptedObjectTypes: ObjectNodeType[];
-        sourceSkillId?: string;
-      }>,
-    ) =>
-      getCapabilityCatalog()
-        .validateOperationConfigs(pendingOperations.map((operation) => operation.config))
-        .andThen(() =>
-          ResultAsync.fromPromise(
-            (async () => {
-              for (const operation of pendingOperations) {
-                await operationsDao.create(operation);
-              }
-            })(),
-            (error) => toServiceError(error, "Create pending operations"),
-          ),
-        ),
+    createPendingOperations,
+    createWithPendingOperations,
     update: (...args: Parameters<typeof dao.update>) => dao.update(...args),
     delete: async (id: string) => {
       await pipelineRunsDao.deleteByPipelineId(id);

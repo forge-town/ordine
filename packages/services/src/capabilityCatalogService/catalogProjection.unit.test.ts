@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { buildMcpConnectorInjection } from "../connectorsService/buildClaudeMcpInjection";
+import {
+  buildMcpConnectorInjection,
+  buildMcpServerKey,
+  buildMcpToolReference,
+} from "../connectorsService/buildClaudeMcpInjection";
 import {
   projectCapabilityCatalog,
   type CatalogConnector,
@@ -74,12 +78,12 @@ describe("projectCapabilityCatalog", () => {
         expect.objectContaining({
           id: "mcp:connector-a:read_issue",
           kind: "mcp-tool",
-          reference: "mcp__github__read_issue",
+          reference: buildMcpToolReference(buildMcpServerKey("connector-a"), "read_issue"),
           riskTier: "readonly",
         }),
         expect.objectContaining({
           id: "mcp:connector-b:create_issue",
-          reference: "mcp__github___create_issue",
+          reference: buildMcpToolReference(buildMcpServerKey("connector-b"), "create_issue"),
           riskTier: "write",
         }),
       ]),

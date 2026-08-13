@@ -1,4 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  buildMcpServerKey,
+  buildMcpToolReference,
+} from "../connectorsService/buildClaudeMcpInjection";
 import { createCapabilityCatalogService } from "./createCapabilityCatalogService";
 
 const connectorsDao = {
@@ -94,12 +98,13 @@ describe("createCapabilityCatalogService", () => {
       },
     ]);
     const service = createService();
+    const createIssueReference = buildMcpToolReference(buildMcpServerKey("github"), "create_issue");
 
     const valid = await service.validateOperationConfig({
       executor: {
         type: "agent",
         skillId: "skill-1",
-        allowedTools: ["Read", "mcp__github__create_issue"],
+        allowedTools: ["Read", createIssueReference],
       },
     });
     expect(valid.isOk()).toBe(true);
@@ -145,6 +150,44 @@ describe("createCapabilityCatalogService", () => {
         },
       ],
     });
+
+    const malformed = await service.validateOperationConfig({
+      executor: {
+        type: "agent",
+        agent: "not-a-runtime",
+        allowedTools: [42],
+        hiddenToolPermission: "shell",
+      },
+    });
+    expect(malformed._unsafeUnwrapErr()).toMatchObject({
+      name: "OperationConfigValidationError",
+      issues: expect.arrayContaining([
+        expect.objectContaining({ path: "config.executor.agent" }),
+        expect.objectContaining({ path: "config.executor.allowedTools[0]" }),
+        expect.objectContaining({ path: "config.executor" }),
+      ]),
+    });
+
+    const missingSourceSkill = await service.validateOperationInput({
+      config: {},
+      sourceSkillId: "missing-source-skill",
+    });
+    expect(missingSourceSkill._unsafeUnwrapErr()).toMatchObject({
+      name: "CapabilityCatalogValidationError",
+      issues: [
+        {
+          path: "sourceSkillId",
+          reference: "missing-source-skill",
+          expectedKinds: ["skill"],
+        },
+      ],
+    });
+
+    const validSourceSkill = await service.validateOperationInput({
+      config: {},
+      sourceSkillId: "skill-1",
+    });
+    expect(validSourceSkill.isOk()).toBe(true);
   });
 
   it("fails closed when catalog loading fails", async () => {

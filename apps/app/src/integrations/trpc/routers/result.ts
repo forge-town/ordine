@@ -2,7 +2,11 @@ import { TRPCError } from "@trpc/server";
 import type { Result } from "neverthrow";
 
 const codeForError = (error: unknown) => {
-  if (error instanceof Error && error.name === "CapabilityCatalogValidationError") {
+  if (
+    error instanceof Error &&
+    (error.name === "CapabilityCatalogValidationError" ||
+      error.name === "OperationConfigValidationError")
+  ) {
     return "BAD_REQUEST";
   }
   if (error instanceof Error && error.name.endsWith("NotFoundError")) return "NOT_FOUND";

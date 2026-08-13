@@ -1,4 +1,6 @@
 import { z } from "zod/v4";
+import { ObjectNodeTypeSchema } from "./node/ObjectNodeTypeSchema";
+import { StrictOperationConfigSchema } from "../operation/OperationConfigSchema";
 import { PipelineActionDiagnosticSchema } from "./PipelineActionDiagnosticSchema";
 import { PipelineActionProposalSchema } from "./PipelineActionProposalSchema";
 
@@ -20,11 +22,12 @@ export type ProposeActionsErrorCode = z.infer<typeof ProposeActionsErrorCodeSche
 
 /** Operation drafted by the agent because no existing one matched. */
 export const ProposePendingOperationSchema = z.object({
-  acceptedObjectTypes: z.array(z.string()),
-  config: z.record(z.string(), z.unknown()),
+  acceptedObjectTypes: z.array(ObjectNodeTypeSchema),
+  config: StrictOperationConfigSchema,
   description: z.string(),
   id: z.string(),
   name: z.string(),
+  sourceSkillId: z.string().optional(),
 });
 export type ProposePendingOperation = z.infer<typeof ProposePendingOperationSchema>;
 

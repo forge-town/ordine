@@ -23,7 +23,10 @@ export const createOperationsService = (
 
   const create = (data: Parameters<typeof dao.create>[0]) =>
     capabilityCatalog
-      .validateOperationConfig(data.config ?? {})
+      .validateOperationInput({
+        config: data.config === undefined ? {} : data.config,
+        sourceSkillId: data.sourceSkillId,
+      })
       .andThen(() =>
         ResultAsync.fromPromise(dao.create(data), (error) =>
           toServiceError(error, "Create operation"),
@@ -33,9 +36,14 @@ export const createOperationsService = (
 
   const update = (id: string, patch: Parameters<typeof dao.update>[1]) => {
     const validation =
-      patch.config === undefined
+      !Object.hasOwn(patch, "config") && !Object.hasOwn(patch, "sourceSkillId")
         ? okAsync(undefined)
-        : capabilityCatalog.validateOperationConfig(patch.config);
+        : capabilityCatalog.validateOperationPatch({
+            ...(Object.hasOwn(patch, "config") ? { config: patch.config } : {}),
+            ...(Object.hasOwn(patch, "sourceSkillId")
+              ? { sourceSkillId: patch.sourceSkillId }
+              : {}),
+          });
 
     return validation
       .andThen(() =>

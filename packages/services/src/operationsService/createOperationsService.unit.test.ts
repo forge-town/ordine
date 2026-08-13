@@ -45,6 +45,30 @@ describe("createOperationsService", () => {
     expect(mockDao.create).toHaveBeenCalledWith(data);
   });
 
+  it("rejects malformed configs and catalog-missing source skills before insert", async () => {
+    const svc = createOperationsService({} as never);
+    mockDao.create.mockClear();
+
+    const malformed = await svc.create({
+      name: "broken",
+      config: { executor: { type: "agent", agent: "not-a-runtime" } },
+    } as never);
+    expect(malformed._unsafeUnwrapErr()).toMatchObject({
+      name: "OperationConfigValidationError",
+    });
+
+    const missingSourceSkill = await svc.create({
+      name: "broken source",
+      config: {},
+      sourceSkillId: "missing-skill",
+    } as never);
+    expect(missingSourceSkill._unsafeUnwrapErr()).toMatchObject({
+      name: "CapabilityCatalogValidationError",
+      issues: [expect.objectContaining({ path: "sourceSkillId" })],
+    });
+    expect(mockDao.create).not.toHaveBeenCalled();
+  });
+
   it("update delegates to dao.update", async () => {
     const svc = createOperationsService({} as never);
     await svc.update("o1", { name: "updated" } as never);

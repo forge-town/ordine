@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
   buildMcpConnectorInjection,
+  buildMcpServerKey,
+  buildMcpToolReference,
   resolveMcpConnectorTools,
-  sanitizeServerKey,
 } from "./buildClaudeMcpInjection";
 
 const connected = (
@@ -13,12 +14,8 @@ const connected = (
   id = `connector-${name}`,
 ) => ({ id, name, method, status, config }) as never;
 
-describe("sanitizeServerKey", () => {
-  it("keeps word chars, replaces the rest", () => {
-    expect(sanitizeServerKey("GitHub MCP!")).toBe("GitHub_MCP");
-    expect(sanitizeServerKey("###")).toBe("server");
-  });
-});
+const toolReference = (connectorId: string, toolName: string): string =>
+  buildMcpToolReference(buildMcpServerKey(connectorId), toolName);
 
 describe("buildMcpConnectorInjection", () => {
   it("returns null when there are no connected mcp connectors", () => {
@@ -41,6 +38,8 @@ describe("buildMcpConnectorInjection", () => {
   });
 
   it("builds stdio server entry + per-tool allow names", () => {
+    const connectorId = "connector-fs";
+    const serverKey = buildMcpServerKey(connectorId);
     const out = buildMcpConnectorInjection([
       connected("fs", {
         transport: "stdio",
@@ -52,29 +51,36 @@ describe("buildMcpConnectorInjection", () => {
       }),
     ]);
     expect(out).not.toBeNull();
-    expect(out!.mcpServers.fs).toEqual({
+    expect(out!.mcpServers[serverKey]).toEqual({
       command: "npx",
       args: ["-y", "server-fs"],
       cwd: "/workspace",
       env: { TOKEN: "x" },
     });
-    expect(out!.toolNames).toEqual(["mcp__fs__read_file", "mcp__fs__write_file"]);
+    expect(out!.toolNames).toEqual([
+      toolReference(connectorId, "read_file"),
+      toolReference(connectorId, "write_file"),
+    ]);
   });
 
   it("builds http entry and whole-server allow when no tools discovered", () => {
+    const connectorId = "connector-remote api";
+    const serverKey = buildMcpServerKey(connectorId);
     const out = buildMcpConnectorInjection([
       connected("remote api", { transport: "http", url: "https://x/sse" }),
     ]);
-    expect(out!.mcpServers.remote_api).toEqual({ type: "http", url: "https://x/sse" });
-    expect(out!.toolNames).toEqual(["mcp__remote_api"]);
+    expect(out!.mcpServers[serverKey]).toEqual({ type: "http", url: "https://x/sse" });
+    expect(out!.toolNames).toEqual([`mcp__${serverKey}`]);
   });
 
-  it("dedupes server keys with the same sanitized name", () => {
+  it("uses stable connector ids when display names collide", () => {
     const out = buildMcpConnectorInjection([
-      connected("api x", { transport: "stdio", command: "a" }),
-      connected("api!x", { transport: "stdio", command: "b" }),
+      connected("api", { transport: "stdio", command: "a" }, "connected", "mcp", "a"),
+      connected("api", { transport: "stdio", command: "b" }, "connected", "mcp", "b"),
     ]);
-    expect(Object.keys(out!.mcpServers).sort()).toEqual(["api_x", "api_x_"]);
+    expect(Object.keys(out!.mcpServers).sort()).toEqual(
+      [buildMcpServerKey("a"), buildMcpServerKey("b")].sort(),
+    );
   });
 
   it("only includes connectors selected for the current run", () => {
@@ -91,16 +97,16 @@ describe("buildMcpConnectorInjection", () => {
           tools: [{ name: "create_issue" }],
         }),
       ],
-      ["mcp__github__read_issue"],
+      [toolReference("connector-github", "read_issue")],
     );
 
     expect(out).toEqual({
-      mcpServers: { github: { command: "github-mcp" } },
-      toolNames: ["mcp__github__read_issue"],
+      mcpServers: { [buildMcpServerKey("connector-github")]: { command: "github-mcp" } },
+      toolNames: [toolReference("connector-github", "read_issue")],
     });
   });
 
-  it("uses connector id order for stable deduped keys", () => {
+  it("does not drift an existing reference when a same-name connector is added", () => {
     const connectors = [
       connected(
         "api",
@@ -117,38 +123,55 @@ describe("buildMcpConnectorInjection", () => {
         "connector-a",
       ),
     ];
+    const existingReference = toolReference("connector-b", "read");
 
-    for (const orderedConnectors of [connectors, [...connectors].reverse()]) {
-      expect(buildMcpConnectorInjection(orderedConnectors, ["mcp__api___read"])).toEqual({
-        mcpServers: { api_: { command: "second-mcp" } },
-        toolNames: ["mcp__api___read"],
+    for (const orderedConnectors of [
+      connectors.slice(0, 1),
+      connectors,
+      [...connectors].reverse(),
+    ]) {
+      expect(buildMcpConnectorInjection(orderedConnectors, [existingReference])).toEqual({
+        mcpServers: {
+          [buildMcpServerKey("connector-b")]: { command: "second-mcp" },
+        },
+        toolNames: [existingReference],
       });
     }
   });
 
-  it("fails closed when a selected tool name maps to multiple servers", () => {
-    expect(() =>
-      buildMcpConnectorInjection(
-        [
-          connected("api x", {
-            transport: "stdio",
-            command: "first-mcp",
-            tools: [{ name: "_read" }],
-          }),
-          connected("api!x", {
-            transport: "stdio",
-            command: "second-mcp",
-            tools: [{ name: "read" }],
-          }),
-        ],
-        ["mcp__api_x___read"],
-      ),
-    ).toThrow("Ambiguous MCP tool selection mcp__api_x___read");
+  it("keeps formerly ambiguous connector/tool pairs unique at runtime", () => {
+    const first = connected(
+      "api x",
+      { transport: "stdio", command: "first-mcp", tools: [{ name: "_read" }] },
+      "connected",
+      "mcp",
+      "connector-a",
+    );
+    const second = connected(
+      "api!x",
+      { transport: "stdio", command: "second-mcp", tools: [{ name: "read" }] },
+      "connected",
+      "mcp",
+      "connector-b",
+    );
+    const references = [
+      toolReference("connector-a", "_read"),
+      toolReference("connector-b", "read"),
+    ];
+
+    expect(new Set(references).size).toBe(2);
+    expect(buildMcpConnectorInjection([first, second], references)).toEqual({
+      mcpServers: {
+        [buildMcpServerKey("connector-a")]: { command: "first-mcp" },
+        [buildMcpServerKey("connector-b")]: { command: "second-mcp" },
+      },
+      toolNames: references,
+    });
   });
 });
 
 describe("resolveMcpConnectorTools", () => {
-  it("uses the exact runtime references and stable connector-name disambiguation", () => {
+  it("uses the exact runtime references and stable connector identity", () => {
     const connectors = [
       connected(
         "github",
@@ -176,8 +199,8 @@ describe("resolveMcpConnectorTools", () => {
 
     const tools = resolveMcpConnectorTools(connectors);
     expect(tools.map((tool) => tool.reference)).toEqual([
-      "mcp__github__read_issue",
-      "mcp__github___create_issue",
+      toolReference("connector-a", "read_issue"),
+      toolReference("connector-b", "create_issue"),
     ]);
     expect(
       buildMcpConnectorInjection(

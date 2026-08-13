@@ -23,36 +23,27 @@ export const pipelinesRouter = router({
     .input(
       z.object({
         pipeline: PipelineSchema.omit({ createdAt: true, updatedAt: true }),
-        pendingOperations: z
-          .array(
-            z.object({
-              id: z.string(),
-              name: z.string(),
-              description: z.string(),
-              config: z.record(z.string(), z.unknown()),
-              acceptedObjectTypes: z.array(z.string()),
-              sourceSkillId: z.string().optional(),
-            }),
-          )
-          .optional(),
+        pendingOperations: z.array(ProposePendingOperationSchema).optional(),
       }),
     )
     .mutation(async ({ input }) => {
+      const pipeline = {
+        ...input.pipeline,
+        nodes: input.pipeline.nodes as never,
+        edges: input.pipeline.edges as never,
+      };
       if (input.pendingOperations && input.pendingOperations.length > 0) {
-        unwrapResult(
-          await pipelinesService.createPendingOperations(
+        return unwrapResult(
+          await pipelinesService.createWithPendingOperations(
+            pipeline,
             input.pendingOperations as Parameters<
-              typeof pipelinesService.createPendingOperations
-            >[0],
+              typeof pipelinesService.createWithPendingOperations
+            >[1],
           ),
         );
       }
 
-      return pipelinesService.create({
-        ...input.pipeline,
-        nodes: input.pipeline.nodes as never,
-        edges: input.pipeline.edges as never,
-      });
+      return pipelinesService.create(pipeline);
     }),
 
   update: publicProcedure

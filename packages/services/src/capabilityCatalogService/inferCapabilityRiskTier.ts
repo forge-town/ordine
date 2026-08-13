@@ -43,6 +43,8 @@ const IRREVERSIBLE_KEYWORDS = new Set([
   "destroy",
   "drop",
   "pay",
+  "payment",
+  "payments",
   "charge",
   "refund",
   "transfer",
@@ -62,6 +64,18 @@ export const tokenizeCapabilityName = (value: string): string[] =>
 
 export const inferCapabilityRiskTier = (value: string): CapabilityRiskTier => {
   const tokens = tokenizeCapabilityName(value);
+  const hasActionSequence = tokens.some((token) => token === "and" || token === "then");
+  const firstRecognizedAction = tokens.find(
+    (token) =>
+      READONLY_KEYWORDS.has(token) || WRITE_KEYWORDS.has(token) || IRREVERSIBLE_KEYWORDS.has(token),
+  );
+
+  // A leading read verb describes the operation; later words such as
+  // "release" are commonly the object (get_release), not a second action.
+  // Explicit multi-action names still use the highest matched risk.
+  if (firstRecognizedAction && READONLY_KEYWORDS.has(firstRecognizedAction) && !hasActionSequence) {
+    return "readonly";
+  }
 
   if (tokens.some((token) => IRREVERSIBLE_KEYWORDS.has(token))) return "irreversible";
   if (tokens.some((token) => WRITE_KEYWORDS.has(token))) return "write";
