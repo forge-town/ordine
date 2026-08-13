@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
+import { ResultAsync } from "neverthrow";
 import { useTranslation } from "react-i18next";
 import { useOne } from "@refinedev/core";
 import { AlertTriangle, RefreshCw, SearchX } from "lucide-react";
@@ -13,6 +14,9 @@ import { AppLayout } from "@/components/AppLayout";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { useSession } from "@/integrations/better-auth-client";
 import { requireAuthenticatedSession } from "./-requireAuthenticatedSession";
+import { materializeGeneratedPipeline } from "@/lib/materializeGeneratedPipeline";
+import { toastStore } from "@/store/toastStore";
+import { sidebarStore as sharedSidebarStore } from "@repo/views/store/sidebarStore";
 
 const CanvasRouteComponent = () => {
   const { t } = useTranslation();
@@ -26,6 +30,30 @@ const CanvasRouteComponent = () => {
   });
   const pipeline = id ? (pipelineResult ?? null) : null;
   const handlePipelineRetry = () => void pipelineQuery?.refetch();
+  const handleGeneratedPipeline = useCallback(
+    async (generatedPipelineId: string) => {
+      const result = await ResultAsync.fromPromise(
+        materializeGeneratedPipeline(
+          generatedPipelineId,
+          sharedSidebarStore.getState().currentProjectId,
+        ),
+        (error) => (error instanceof Error ? error : new Error(String(error))),
+      );
+      await result.match(
+        async (pipelineId) => {
+          await navigate({ to: "/canvas", search: { id: pipelineId } });
+        },
+        (error) => {
+          toastStore.getState().addToast({
+            type: "error",
+            title: t("canvas.agentPanel.errorTitle"),
+            description: error.message,
+          });
+        },
+      );
+    },
+    [navigate, t],
+  );
 
   useEffect(() => {
     if (!isPending && !session) {
@@ -48,7 +76,7 @@ const CanvasRouteComponent = () => {
   if (!id) {
     return (
       <AppLayout canvasMode>
-        <CanvasPage embedded />
+        <CanvasPage embedded onGeneratedPipeline={handleGeneratedPipeline} />
       </AppLayout>
     );
   }

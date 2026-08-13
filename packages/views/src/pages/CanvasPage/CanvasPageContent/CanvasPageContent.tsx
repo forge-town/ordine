@@ -3,11 +3,15 @@ import "@xyflow/react/dist/style.css";
 import "../canvas.css";
 import { CanvasInner } from "../CanvasInner";
 
-export const CanvasPageContent = () => {
+export const CanvasPageContent = ({
+  onGeneratedPipeline,
+}: {
+  onGeneratedPipeline?: (pipelineId: string) => Promise<void> | void;
+}) => {
   return (
     <div className="h-full w-full overflow-hidden">
       <ReactFlowProvider>
-        <CanvasInner />
+        <CanvasInner onGeneratedPipeline={onGeneratedPipeline} />
       </ReactFlowProvider>
     </div>
   );

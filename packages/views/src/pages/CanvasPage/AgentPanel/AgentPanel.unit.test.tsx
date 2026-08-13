@@ -791,7 +791,7 @@ describe("AgentPanel", () => {
     expect(screen.getByText("canvas.agentPanel.applied")).toBeInTheDocument();
   });
 
-  it("does not send when pipelineId is missing", async () => {
+  it("starts a generate session when pipelineId is missing", async () => {
     render(<AgentPanel />, { wrapper: wrapperWithoutPipeline });
     await waitFor(() => {
       expect(mockGetList).toHaveBeenCalled();
@@ -801,7 +801,13 @@ describe("AgentPanel", () => {
     await userEvent.type(input, "test");
     await userEvent.keyboard("{Enter}");
 
-    expect(mockCreateSession).not.toHaveBeenCalled();
-    expect(input).toHaveValue("test");
+    await waitFor(() => {
+      expect(mockCreateSession).toHaveBeenCalledWith({
+        entrypoint: "canvas-agent-panel",
+        mode: "generate",
+        snapshot: { edges: [], nodes: [] },
+      });
+    });
+    expect(input).toHaveValue("");
   });
 });

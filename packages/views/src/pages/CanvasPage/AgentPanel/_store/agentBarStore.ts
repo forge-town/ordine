@@ -1,7 +1,7 @@
 import { createContext, createElement, useContext, useRef, type ReactNode } from "react";
 import { useStore } from "zustand";
 import { createStore, type StoreApi } from "zustand/vanilla";
-import type { ConversationMessageMetadata } from "@repo/schemas";
+import type { ConversationMessageMetadata, PipelineGenerationPlan } from "@repo/schemas";
 
 export type AgentConversationState = "idle" | "thinking" | "streaming" | "done";
 
@@ -16,6 +16,8 @@ export type AgentBarMessage = {
 
 export type AgentBarState = {
   conversationState: AgentConversationState;
+  /** COD-346:空画布 generate 会话产生的建图方案(与画布 edit 提案互斥)。 */
+  generateProposal: PipelineGenerationPlan | null;
   messages: AgentBarMessage[];
   pipelineId: string | null;
   proposalId: string | null;
@@ -31,6 +33,7 @@ export type AgentBarState = {
   resetSession: () => void;
   resolveMessage: (id: string) => void;
   setConversationState: (state: AgentConversationState) => void;
+  setGenerateProposal: (proposal: PipelineGenerationPlan | null) => void;
   setMessages: (messages: AgentBarMessage[]) => void;
   setProposalId: (proposalId: string | null) => void;
   setSession: (sessionId: string, graphSignature: string) => void;
@@ -39,6 +42,7 @@ export type AgentBarState = {
 };
 
 const initialSessionState = {
+  generateProposal: null,
   proposalId: null,
   sessionGraphSignature: null,
   sessionId: null,
@@ -111,10 +115,11 @@ export const createAgentBarStore = (pipelineId: string | null = null): AgentBarS
         ),
       })),
     setConversationState: (conversationState) => set({ conversationState }),
+    setGenerateProposal: (generateProposal) => set({ generateProposal }),
     setMessages: (messages) => set({ messages }),
     setProposalId: (proposalId) => set({ proposalId }),
     setSession: (sessionId, sessionGraphSignature) =>
-      set({ sessionId, sessionGraphSignature, proposalId: null }),
+      set({ sessionId, sessionGraphSignature, generateProposal: null, proposalId: null }),
     setStreamingAssistantText: (streamingAssistantText) => set({ streamingAssistantText }),
     setStreamingProgress: (streamingProgress) => set({ streamingProgress }),
   }));

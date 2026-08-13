@@ -332,11 +332,20 @@ export const createPipelineAgentSessionsClient = (platform: PipelineAgentSession
       }
     },
 
-    async generatePipelineFromApprovedProposal(sessionId: string): Promise<{ pipelineId: string }> {
+    async generatePipelineFromApprovedProposal(
+      sessionId: string,
+      input?: { runtimeId?: string },
+    ): Promise<{ pipelineId: string }> {
       const response = await platform.request(
         `${pipelineAgentSessionsBaseUrl}/${sessionId}/generate`,
         {
           method: "POST",
+          ...(input?.runtimeId
+            ? {
+                headers: { "content-type": "application/json" },
+                body: JSON.stringify({ runtimeId: input.runtimeId }),
+              }
+            : {}),
         },
       );
 
