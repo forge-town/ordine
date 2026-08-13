@@ -3,6 +3,7 @@ import { err } from "neverthrow";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
+  generateStructure: vi.fn(),
   getById: vi.fn(),
   proposeActions: vi.fn(),
   startRun: vi.fn(),
@@ -15,6 +16,7 @@ vi.mock("../../src/services.js", () => ({
     create: vi.fn(),
     update: vi.fn(),
     delete: vi.fn(),
+    generateStructure: mocks.generateStructure,
     proposeActions: mocks.proposeActions,
   },
   pipelineRunnerService: {
@@ -33,9 +35,57 @@ const makeApp = () => {
 
 describe("pipelinesRoutes", () => {
   beforeEach(() => {
+    mocks.generateStructure.mockReset();
     mocks.proposeActions.mockReset();
     mocks.startRun.mockReset();
     mocks.getById.mockReset();
+  });
+
+  it("returns 400 when generate-structure receives invalid JSON", async () => {
+    const response = await makeApp().request("/pipelines/generate-structure", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: "not-json",
+    });
+
+    expect(response.status).toBe(400);
+    expect(mocks.generateStructure).not.toHaveBeenCalled();
+  });
+
+  it("rejects blank runtime and model selections for generate-structure", async () => {
+    const response = await makeApp().request("/pipelines/generate-structure", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        name: "Review",
+        description: "Review code",
+        runtimeId: " ",
+        model: "",
+      }),
+    });
+
+    expect(response.status).toBe(400);
+    expect(mocks.generateStructure).not.toHaveBeenCalled();
+  });
+
+  it("forwards validated runtime and model selections to generate-structure", async () => {
+    mocks.generateStructure.mockResolvedValue({ nodes: [], edges: [] });
+    const body = {
+      name: "Review",
+      description: "Review code",
+      unmatchedSteps: [{ step: "Review code", reason: "No matching operation" }],
+      runtimeId: "runtime-codex",
+      model: "gpt-review",
+    };
+
+    const response = await makeApp().request("/pipelines/generate-structure", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(body),
+    });
+
+    expect(response.status).toBe(200);
+    expect(mocks.generateStructure).toHaveBeenCalledWith(body);
   });
 
   it("returns 400 when propose-actions receives invalid JSON", async () => {

@@ -24,7 +24,9 @@ export const validateRejectedOperationReferences = (
         ? action.node.data.operationId
         : action.type === "replaceNodeData" && action.data.nodeType === "operation"
           ? action.data.operationId
-          : undefined;
+          : action.type === "updateOperation"
+            ? action.operationId
+            : undefined;
 
     if (operationId && rejectedSet.has(operationId)) {
       diagnostics.push({

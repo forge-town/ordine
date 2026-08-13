@@ -16,10 +16,12 @@ import {
   createSettingsDao,
   type DbExecutor,
 } from "@repo/models";
-import { ResultAsync } from "neverthrow";
+import { errAsync, ResultAsync } from "neverthrow";
 import { logger } from "@repo/logger";
 import {
   PipelineSchema,
+  StrictOperationConfigSchema,
+  type AssignedOperationExecutorConfig,
   type AgentRuntime,
   type ObjectNodeType,
   type PipelineData,
@@ -31,8 +33,16 @@ import {
   createCapabilityCatalogService,
   type CapabilityCatalogServiceOptions,
 } from "../capabilityCatalogService";
-import { toServiceError } from "../serviceErrors";
+import { ConflictError, NotFoundError, ServiceError, toServiceError } from "../serviceErrors";
 import { MAX_SNAPSHOT_CHARS, truncate } from "./promptText";
+import {
+  CAPABILITY_ASSIGNMENT_SYSTEM_PROMPT,
+  deriveCapabilityAssignmentAgentTargets,
+  planCapabilityAssignments,
+  resolveAssignmentOrchestrator,
+  type AssignmentRuntimeRecord,
+  type PerStepCapabilityAssignment,
+} from "./capabilityAssignment";
 import { proposeActions, type ProposeActionsOptions } from "./proposeActions";
 import {
   ANALYZE_AGENT_ID,
@@ -75,6 +85,20 @@ const expandTildeInNodes = (nodes: PipelineData["nodes"]): PipelineData["nodes"]
 const SKILL_REFERENCES = [nodeTypesRef, pipelineAnatomyRef].filter(Boolean).join("\n\n---\n\n");
 const MAX_STRUCTURE_DIAGNOSTIC_ISSUES = 8;
 const MAX_STRUCTURE_SCHEMA_RETRIES = 1;
+const CAPABILITY_ASSIGNMENT_AGENT_ID = "pipeline-capability-assignment";
+
+const buildAssignedOperationConfig = (assignment: PerStepCapabilityAssignment) => ({
+  executor: assignment.executor,
+  inputs: [],
+  outputs: [
+    {
+      name: "result",
+      contentType: "markdown" as const,
+      description: "Generated result",
+      templateIds: [],
+    },
+  ],
+});
 
 const sanitizeGeneratedGraph = (value: unknown): unknown => {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
@@ -202,6 +226,58 @@ export const createPipelinesService = (db: DbExecutor, options: PipelinesService
     create: (...args: Parameters<typeof dao.create>) => dao.create(...args),
     createPendingOperations,
     createWithPendingOperations,
+    updateOperationExecutors: (
+      updates: Array<{
+        operationId: string;
+        executor: AssignedOperationExecutorConfig;
+      }>,
+    ) => {
+      const seen = new Set<string>();
+      const duplicate = updates.find(({ operationId }) => {
+        if (seen.has(operationId)) return true;
+        seen.add(operationId);
+
+        return false;
+      });
+      if (duplicate) {
+        return errAsync(
+          new ConflictError(`Duplicate updateOperation for ${duplicate.operationId}`),
+        );
+      }
+
+      return ResultAsync.fromPromise(
+        Promise.all(
+          updates.map(async (update) => {
+            const operation = await operationsDao.findById(update.operationId);
+            if (!operation) throw new NotFoundError("Operation", update.operationId);
+
+            const parsedConfig = StrictOperationConfigSchema.safeParse(operation.config);
+            if (!parsedConfig.success) {
+              throw new ServiceError(`Operation:${update.operationId} has invalid stored config`);
+            }
+
+            return {
+              operationId: update.operationId,
+              config: { ...parsedConfig.data, executor: update.executor },
+            };
+          }),
+        ),
+        (error) => toServiceError(error, "Prepare operation executor updates"),
+      ).andThen((prepared) =>
+        getCapabilityCatalog(db)
+          .validateOperationConfigs(prepared.map(({ config }) => config))
+          .andThen(() =>
+            ResultAsync.fromPromise(
+              (async () => {
+                for (const { operationId, config } of prepared) {
+                  await operationsDao.update(operationId, { config });
+                }
+              })(),
+              (error) => toServiceError(error, "Update operation executors"),
+            ),
+          ),
+      );
+    },
     update: (...args: Parameters<typeof dao.update>) => dao.update(...args),
     delete: async (id: string) => {
       await pipelineRunsDao.deleteByPipelineId(id);
@@ -217,6 +293,7 @@ export const createPipelinesService = (db: DbExecutor, options: PipelinesService
           jobTracesDao,
           operationsDao,
           settingsDao,
+          capabilityCatalog: getCapabilityCatalog(db),
         },
         opts,
       ),
@@ -465,7 +542,9 @@ export const createPipelinesService = (db: DbExecutor, options: PipelinesService
       description: string;
       matchedOperations?: Array<{ operationId: string; operationName: string; reason: string }>;
       unmatchedSteps?: Array<{ step: string; reason: string }>;
+      runtimeId?: string;
       runtimeType?: AgentRuntime;
+      model?: string;
     }): Promise<
       | {
           nodes: PipelineData["nodes"];
@@ -495,37 +574,94 @@ export const createPipelinesService = (db: DbExecutor, options: PipelinesService
         acceptedObjectTypes: ObjectNodeType[];
       }> = [];
       const newOperations: Array<{ id: string; name: string; description: string }> = [];
+      const assignmentState = {
+        orchestrator: null as ReturnType<typeof resolveAssignmentOrchestrator>,
+      };
 
       if (opts.unmatchedSteps && opts.unmatchedSteps.length > 0) {
-        for (const step of opts.unmatchedSteps) {
+        const draftedOperations = opts.unmatchedSteps.map((step) => {
           const opId = `op_auto_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
           const operationDescription = `Execute this Pipeline step: ${step.step}`;
-          const systemPrompt = [
-            `You are an automation agent executing the task: "${step.step}".`,
-            "",
-            "You will receive input data from the previous pipeline step.",
-            "Analyze the input thoroughly and execute the task described above.",
-            "Output your results in well-structured markdown format.",
-            "Be specific, actionable, and data-driven in your output.",
-          ]
-            .filter(Boolean)
-            .join("\n");
-          const config = {
-            executor: {
-              type: "agent",
-              agentMode: "prompt",
-              prompt: systemPrompt,
-            },
-            inputs: [],
-            outputs: [
-              {
-                name: "result",
-                contentType: "markdown",
-                description: "Generated result",
-                templateIds: [],
-              },
-            ],
-          };
+
+          return { opId, operationDescription, step };
+        });
+        const [runtimeRecords, capabilityCatalogResult] = await Promise.all([
+          agentRuntimesDao.findMany(),
+          getCapabilityCatalog(db).getMany(),
+        ]);
+        if (capabilityCatalogResult.isErr()) {
+          logger.error(
+            { error: capabilityCatalogResult.error },
+            "generateStructure: failed to load capability catalog",
+          );
+
+          return { error: "Capability catalog is unavailable" };
+        }
+
+        const assignmentRuntimes = runtimeRecords as AssignmentRuntimeRecord[];
+        const assignmentOrchestrator = resolveAssignmentOrchestrator({
+          runtimes: assignmentRuntimes,
+          requestedRuntimeId: opts.runtimeId,
+          requestedRuntimeType: opts.runtimeType,
+          requestedModel: opts.model,
+          defaultRuntime: settings.defaultAgentRuntime,
+          defaultModel: settings.defaultModel,
+        });
+        assignmentState.orchestrator = assignmentOrchestrator;
+        const agentTargets = deriveCapabilityAssignmentAgentTargets(assignmentRuntimes);
+        if (!assignmentOrchestrator || agentTargets.length === 0) {
+          return { error: "No configured runtime has a usable model catalog" };
+        }
+
+        const assignmentContext = {
+          steps: draftedOperations.map(({ opId, operationDescription, step }) => ({
+            operationId: opId,
+            name: step.step,
+            description: operationDescription,
+          })),
+          agentTargets,
+          capabilityCatalog: capabilityCatalogResult.value,
+        };
+        const assignmentPlan = await planCapabilityAssignments({
+          context: assignmentContext,
+          runAgent: async (userPrompt) => {
+            const result = await runStructuredAgent({
+              agent: assignmentOrchestrator!.runtime.type,
+              systemPrompt: CAPABILITY_ASSIGNMENT_SYSTEM_PROMPT,
+              userPrompt,
+              agentId: CAPABILITY_ASSIGNMENT_AGENT_ID,
+              logPrefix: "assignOperationCapabilities",
+              apiKey: settings.defaultApiKey,
+              model: assignmentOrchestrator!.model,
+              ...(assignmentOrchestrator!.ssh ? { ssh: assignmentOrchestrator!.ssh } : {}),
+            });
+
+            return result.ok
+              ? { ok: true as const, json: result.json }
+              : {
+                  ok: false as const,
+                  error:
+                    result.code === "AGENT_FAILED"
+                      ? "Capability assignment agent failed"
+                      : "Capability assignment agent returned invalid JSON",
+                };
+          },
+        });
+        if (!assignmentPlan.ok) {
+          logger.error(
+            { diagnostics: assignmentPlan.diagnostics },
+            "generateStructure: capability assignment failed after one repair",
+          );
+
+          return { error: "Agent returned invalid capability assignments" };
+        }
+
+        const assignmentByOperationId = new Map(
+          assignmentPlan.assignments.map((assignment) => [assignment.operationId, assignment]),
+        );
+        for (const { opId, operationDescription, step } of draftedOperations) {
+          const assignment = assignmentByOperationId.get(opId)!;
+          const config = buildAssignedOperationConfig(assignment);
           pendingOperations.push({
             id: opId,
             name: step.step,
@@ -538,6 +674,18 @@ export const createPipelinesService = (db: DbExecutor, options: PipelinesService
             { opId, name: step.step },
             "generateStructure: prepared pending operation for unmatched step",
           );
+        }
+
+        const capabilityValidation = await getCapabilityCatalog(db).validateOperationConfigs(
+          pendingOperations.map((operation) => operation.config),
+        );
+        if (capabilityValidation.isErr()) {
+          logger.error(
+            { error: capabilityValidation.error },
+            "generateStructure: assigned operation failed catalog revalidation",
+          );
+
+          return { error: "Generated operation capability validation failed" };
         }
       }
 
@@ -661,13 +809,17 @@ export const createPipelinesService = (db: DbExecutor, options: PipelinesService
         { ok: true; data: Pick<PipelineData, "edges" | "nodes"> } | { ok: false; error: string }
       > => {
         const structured = await runStructuredAgent({
-          agent: opts.runtimeType ?? settings.defaultAgentRuntime,
+          agent:
+            assignmentState.orchestrator?.runtime.type ??
+            opts.runtimeType ??
+            settings.defaultAgentRuntime,
           systemPrompt,
           userPrompt: prompt,
           agentId: GENERATE_AGENT_ID,
           logPrefix: "generateStructure",
           apiKey: settings.defaultApiKey,
-          model: settings.defaultModel,
+          model: assignmentState.orchestrator?.model ?? settings.defaultModel,
+          ...(assignmentState.orchestrator?.ssh ? { ssh: assignmentState.orchestrator.ssh } : {}),
         });
 
         if (!structured.ok) {
@@ -732,22 +884,8 @@ export const createPipelinesService = (db: DbExecutor, options: PipelinesService
         return { error: generationResult.error };
       }
 
-      const generatedNodes = generationResult.data.nodes.map((node) => {
-        if (node.data.nodeType !== "operation" || !opts.runtimeType) {
-          return node;
-        }
-
-        return {
-          ...node,
-          data: {
-            ...node.data,
-            agentRuntime: opts.runtimeType,
-          },
-        };
-      });
-
       return {
-        nodes: expandTildeInNodes(generatedNodes),
+        nodes: expandTildeInNodes(generationResult.data.nodes),
         edges: generationResult.data.edges,
         ...(pendingOperations.length > 0 ? { pendingOperations } : {}),
       };

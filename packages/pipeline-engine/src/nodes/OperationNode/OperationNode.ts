@@ -87,6 +87,7 @@ export const executeOperationNode = async (
         return {
           agent: agent.defaultRuntime as OperationExecutorConfig["agent"],
           model: agent.defaultModel ?? undefined,
+          overridesExecutor: true,
         };
       }
       await trace(
@@ -95,9 +96,12 @@ export const executeOperationNode = async (
       );
     }
 
+    const agent = data.agentRuntime as OperationExecutorConfig["agent"] | undefined;
+
     return {
-      agent: data.agentRuntime as OperationExecutorConfig["agent"] | undefined,
+      agent,
       model: undefined,
+      overridesExecutor: Boolean(agent),
     };
   })();
   const agentOverride = agentSelection.agent;
@@ -127,6 +131,8 @@ export const executeOperationNode = async (
 
   const effectiveAgentMode =
     executor.agentMode ?? (executor.type === "agent" ? "prompt" : undefined);
+  const effectiveModel =
+    agentSelection.model ?? (agentSelection.overridesExecutor ? undefined : executor.model);
 
   // lastContent tracks the most recently emitted LLM_CONTENT so the final emit can dedupe:
   // the last streamed frame's accumulated text often equals the final full text, and
@@ -189,7 +195,7 @@ export const executeOperationNode = async (
         instruction: prompt,
       }),
       agent: agentOverride ?? executor.agent,
-      ...(agentSelection.model ? { model: agentSelection.model } : {}),
+      ...(effectiveModel ? { model: effectiveModel } : {}),
       onChunk: handleChunk,
       onProgress,
       allowedTools: executor.allowedTools,
@@ -246,7 +252,7 @@ export const executeOperationNode = async (
         instruction: skillDescription,
       }),
       agent,
-      ...(agentSelection.model ? { model: agentSelection.model } : {}),
+      ...(effectiveModel ? { model: effectiveModel } : {}),
       allowedTools: executor.allowedTools,
       onChunk: handleChunk,
       onProgress,

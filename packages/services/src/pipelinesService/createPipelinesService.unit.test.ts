@@ -1,5 +1,5 @@
 import { beforeEach, describe, it, expect, vi } from "vitest";
-import { ok } from "neverthrow";
+import { errAsync, ok, okAsync } from "neverthrow";
 
 const mockDao = {
   findMany: vi.fn().mockResolvedValue([{ id: "p1" }]),
@@ -25,6 +25,8 @@ const mockOperationsDao = {
       acceptedObjectTypes: ["folder"],
     },
   ]),
+  findById: vi.fn(),
+  update: vi.fn(),
 };
 const mockAgentRuntimesDao = {
   findMany: vi.fn().mockResolvedValue([
@@ -49,6 +51,11 @@ const mockDistillationsDao = {
 };
 const mockConversationMessagesDao = {
   findManyByPipelineId: vi.fn().mockResolvedValue([]),
+};
+const mockCapabilityCatalog = {
+  getMany: vi.fn(() => okAsync([])),
+  validateOperationConfig: vi.fn(() => okAsync(undefined)),
+  validateOperationConfigs: vi.fn(() => okAsync(undefined)),
 };
 
 vi.mock("@repo/models", () => ({
@@ -80,6 +87,9 @@ vi.mock("@repo/agent", () => ({
 }));
 vi.mock("../pipelineRunnerService/agentRunner/agentRunner", () => ({
   runAgent: (opts: unknown) => mockRunAgent(opts),
+}));
+vi.mock("../capabilityCatalogService", () => ({
+  createCapabilityCatalogService: () => mockCapabilityCatalog,
 }));
 
 import { createPipelinesService } from "./createPipelinesService";
@@ -118,6 +128,8 @@ describe("createPipelinesService", () => {
     mockSettingsDao.get.mockClear();
     mockOperationsDao.findMany.mockClear();
     mockOperationsDao.create.mockClear();
+    mockOperationsDao.findById.mockReset();
+    mockOperationsDao.update.mockReset();
     mockAgentRuntimesDao.findMany.mockClear();
     mockRunAgent.mockReset();
     mockExtractJsonFromText.mockReset();
@@ -125,6 +137,9 @@ describe("createPipelinesService", () => {
     mockDistillationsDao.findById.mockReset();
     mockConversationMessagesDao.findManyByPipelineId.mockClear();
     mockConversationMessagesDao.findManyByPipelineId.mockResolvedValue([]);
+    mockCapabilityCatalog.getMany.mockClear();
+    mockCapabilityCatalog.validateOperationConfig.mockClear();
+    mockCapabilityCatalog.validateOperationConfigs.mockClear();
   };
 
   beforeEach(() => {
@@ -264,6 +279,83 @@ describe("createPipelinesService", () => {
     expect(result.isErr()).toBe(true);
     expect(transaction).toHaveBeenCalledOnce();
     expect(persistedOperations).toEqual([]);
+  });
+
+  it("updates a shared Operation executor while preserving ports", async () => {
+    mockOperationsDao.findById.mockResolvedValueOnce({
+      id: "op-known",
+      config: {
+        executor: { type: "agent", prompt: "Old prompt" },
+        inputs: [{ name: "source", kind: "file", required: true }],
+        outputs: [
+          {
+            name: "result",
+            contentType: "markdown",
+            description: "Review result",
+            templateIds: [],
+          },
+        ],
+      },
+    });
+    mockOperationsDao.update.mockResolvedValueOnce({ id: "op-known" });
+    const capabilityCatalog = {
+      validateOperationConfigs: vi.fn(() => okAsync(undefined)),
+    };
+    const executor = {
+      type: "agent" as const,
+      agentMode: "prompt" as const,
+      agent: "codex" as const,
+      model: "gpt-review",
+      prompt: "Review the supplied diff.",
+      allowedTools: ["Read"],
+      assignmentReason: "Read-only repository access is sufficient for review.",
+    };
+    const svc = createPipelinesService({} as never, {
+      capabilityCatalog: capabilityCatalog as never,
+    });
+
+    const result = await svc.updateOperationExecutors([{ operationId: "op-known", executor }]);
+
+    expect(result.isOk()).toBe(true);
+    expect(capabilityCatalog.validateOperationConfigs).toHaveBeenCalledOnce();
+    expect(mockOperationsDao.update).toHaveBeenCalledWith("op-known", {
+      config: expect.objectContaining({
+        executor,
+        inputs: [expect.objectContaining({ name: "source" })],
+        outputs: [expect.objectContaining({ name: "result" })],
+      }),
+    });
+  });
+
+  it("rejects an off-catalog executor before updating the shared Operation", async () => {
+    mockOperationsDao.findById.mockResolvedValueOnce({
+      id: "op-known",
+      config: { executor: { type: "agent", prompt: "Old prompt" }, inputs: [], outputs: [] },
+    });
+    const capabilityCatalog = {
+      validateOperationConfigs: vi.fn(() => errAsync(new Error("off-catalog capability"))),
+    };
+    const svc = createPipelinesService({} as never, {
+      capabilityCatalog: capabilityCatalog as never,
+    });
+
+    const result = await svc.updateOperationExecutors([
+      {
+        operationId: "op-known",
+        executor: {
+          type: "agent",
+          agentMode: "prompt",
+          agent: "codex",
+          model: "gpt-review",
+          prompt: "Review the supplied diff.",
+          allowedTools: ["invented-tool"],
+          assignmentReason: "Review needs repository access.",
+        },
+      },
+    ]);
+
+    expect(result.isErr()).toBe(true);
+    expect(mockOperationsDao.update).not.toHaveBeenCalled();
   });
 
   it("proposeActions returns a parsed proposal and diagnostics", async () => {
@@ -473,6 +565,7 @@ describe("createPipelinesService", () => {
       error: { code: "RUNTIME_NOT_FOUND", detail: "missing-runtime" },
     });
     expect(mockRunAgent).not.toHaveBeenCalled();
+    expect(mockCapabilityCatalog.getMany).not.toHaveBeenCalled();
   });
 
   it("proposeActions retries the agent three times, then reports AGENT_FAILED", async () => {

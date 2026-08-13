@@ -38,4 +38,25 @@ describe("proposalView", () => {
       },
     ]);
   });
+
+  it("renders an updateOperation action", () => {
+    const updateProposal = {
+      summary: "change executor",
+      actions: [
+        {
+          type: "updateOperation",
+          operationId: "op-1",
+          executor: { type: "script", command: "bun run lint" },
+        },
+      ],
+    } as PipelineActionProposal;
+
+    expect(buildProposalItems(updateProposal, [], t)).toEqual([
+      {
+        badges: [],
+        detail: "op-1",
+        title: "canvas.agentPanel.proposalDetails.actionTitles.updateOperation",
+      },
+    ]);
+  });
 });

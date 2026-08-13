@@ -55,7 +55,7 @@ const loadConnectorInjection = async (
   const selectedTools = selectedConnectorToolNames(opts);
   if (!opts.getMcpConnectorInjection || selectedTools.length === 0) return undefined;
 
-  return (await opts.getMcpConnectorInjection(selectedTools)) ?? undefined;
+  return (await opts.getMcpConnectorInjection(selectedTools, opts.agent)) ?? undefined;
 };
 
 const hasRequestedConnectorInjection = (opts: AgentRunOptions): boolean =>

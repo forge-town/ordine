@@ -212,6 +212,8 @@ export const pipelinesRouter = router({
             }),
           )
           .optional(),
+        runtimeId: z.string().min(1).optional(),
+        model: z.string().min(1).optional(),
       }),
     )
     .mutation(({ input }) => pipelinesService.generateStructure(input)),

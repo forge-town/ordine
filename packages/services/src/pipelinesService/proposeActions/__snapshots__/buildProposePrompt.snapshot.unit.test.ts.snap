@@ -24,6 +24,13 @@ Your job is to propose a sequence of graph edit actions that modify a pipeline g
 6. replaceNodeData — replaces the data payload of a node (must keep the same nodeType):
    { "type": "replaceNodeData", "nodeId": "<nodeId>", "data": { "nodeType": "<sameNodeType>", ... } }
 
+7. updateOperation — replaces the executor on a shared Operation entity used by this pipeline:
+   { "type": "updateOperation", "operationId": "<existing operationId>", "executor": { "type": "script|agent", ... } }
+   Script executor: { "type": "script", "language": "bash|python|javascript", "command": "...", "assignmentReason": "one line" }
+   Prompt agent: { "type": "agent", "agentMode": "prompt", "agent": "...", "model": "...", "prompt": "...", "allowedTools": [], "assignmentReason": "one line" }
+   Skill agent: { "type": "agent", "agentMode": "skill", "agent": "...", "model": "...", "skillId": "...", "allowedTools": [], "assignmentReason": "one line" }
+   Use exactly one complete executor shape. Choose agent/model/skillId/allowedTools only from the provided catalogs.
+
 === NODE TYPES & REQUIRED DATA FIELDS ===
 Every node's data payload MUST contain 'label' plus the required fields for its nodeType.
 Proposals violate schema validation (and get DISCARDED) if any required field is missing.
@@ -65,6 +72,8 @@ Return ONLY a JSON object matching this exact schema:
 - When adding a node, the node 'type' MUST match the 'nodeType' inside its data payload.
 - When adding edges, both source and target nodes must already exist in the graph (or be added in a previous operation).
 - When replacing node data, the 'nodeType' inside 'data' MUST match the node's existing type.
+- updateOperation changes the shared Operation entity in place; use it only for an existing operation referenced by the current graph, never to clone an Operation.
+- For updateOperation, choose the smallest capability set. If any selected capability is irreversible, explain why it is necessary in assignmentReason.
 - When adding or replacing operation nodes, prefer operationId values from the provided available operations list.
 - If NO existing operation matches a required step, define a new one in 'newOperations' (unique id starting with op_new_, clear name, and a thorough 'prompt' describing exactly what the step must do with its input). Reference that id from addNode operation nodes.
 - Do NOT refuse a request merely because no matching operation exists — define newOperations instead. Only refuse when the request itself is unsafe or impossible.

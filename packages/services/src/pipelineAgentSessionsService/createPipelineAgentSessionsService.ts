@@ -829,21 +829,47 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
           throw new Error(`Pipeline agent proposal ${proposalId} is not ready for approval`);
         }
 
-        if (proposal.proposal.mode === "edit" && proposal.proposal.pendingOperations?.length > 0) {
-          const createPendingResult = await transactionalPipelinesService.createPendingOperations(
-            proposal.proposal.pendingOperations.map((operation) => ({
-              ...operation,
-              acceptedObjectTypes: operation.acceptedObjectTypes as ObjectNodeType[],
-            })),
+        if (proposal.proposal.mode === "edit") {
+          if (proposal.proposal.pendingOperations?.length > 0) {
+            const createPendingResult = await transactionalPipelinesService.createPendingOperations(
+              proposal.proposal.pendingOperations.map((operation) => ({
+                ...operation,
+                acceptedObjectTypes: operation.acceptedObjectTypes as ObjectNodeType[],
+              })),
+            );
+            if (createPendingResult.isErr()) throw createPendingResult.error;
+          }
+
+          const operationUpdates = (proposal.proposal.actions ?? []).flatMap((action) =>
+            action.type === "updateOperation"
+              ? [{ operationId: action.operationId, executor: action.executor }]
+              : [],
           );
-          if (createPendingResult.isErr()) throw createPendingResult.error;
+          if (operationUpdates.length > 0) {
+            const editableOperationIds = new Set(
+              (session.snapshot?.nodes ?? []).flatMap((node) =>
+                node.data.nodeType === "operation" ? [node.data.operationId] : [],
+              ),
+            );
+            const invalidUpdate = operationUpdates.find(
+              (update) => !editableOperationIds.has(update.operationId),
+            );
+            if (invalidUpdate) {
+              throw new Error(
+                `Operation ${invalidUpdate.operationId} is not used by edit session ${sessionId}`,
+              );
+            }
+
+            const updateResult =
+              await transactionalPipelinesService.updateOperationExecutors(operationUpdates);
+            if (updateResult.isErr()) throw updateResult.error;
+          }
         }
 
         await transactionalProposalsDao.update(proposalId, {
           status: "approved",
           approvedAt: new Date(),
         });
-
         await transactionalSessionsDao.update(sessionId, {
           status: "approved",
           approvedProposalId: proposalId,
@@ -1261,6 +1287,7 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
               description: pipelineDescription,
               matchedOperations: analysis.matchedOperations,
               unmatchedSteps: analysis.unmatchedSteps,
+              runtimeId: input?.runtimeId,
               runtimeType: effectiveRuntime,
             }),
             activity.controller.signal,

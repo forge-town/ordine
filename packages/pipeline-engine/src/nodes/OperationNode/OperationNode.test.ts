@@ -490,6 +490,48 @@ describe("executeOperationNode — agent override", () => {
     expect(deps.runPrompt).toHaveBeenCalledWith(expect.objectContaining({ agent: "codex" }));
   });
 
+  it("uses the model persisted on the operation executor", async () => {
+    const deps = makeDeps();
+    const op = makeOperation({
+      type: "agent",
+      agentMode: "prompt",
+      prompt: "Analyze",
+      agent: "codex",
+      model: "gpt-operation",
+    });
+    const ops = new Map([["op-id", op]]);
+    const node = makeNode({ operationId: "op-id" });
+    const ctx = makeCtx(deps, ops);
+
+    const result = await executeOperationNode(node, makeInput(), ctx);
+
+    expect(result.outcome).toBe("completed");
+    expect(deps.runPrompt).toHaveBeenCalledWith(
+      expect.objectContaining({ agent: "codex", model: "gpt-operation" }),
+    );
+  });
+
+  it("does not reuse an executor model when a node overrides only the runtime", async () => {
+    const deps = makeDeps();
+    const op = makeOperation({
+      type: "agent",
+      agentMode: "prompt",
+      prompt: "Analyze",
+      agent: "codex",
+      model: "gpt-operation",
+    });
+    const ops = new Map([["op-id", op]]);
+    const node = makeNode({ operationId: "op-id", agentRuntime: "mastra" });
+    const ctx = makeCtx(deps, ops);
+
+    const result = await executeOperationNode(node, makeInput(), ctx);
+
+    expect(result.outcome).toBe("completed");
+    const call = (deps.runPrompt as ReturnType<typeof vi.fn>).mock.calls[0]![0];
+    expect(call.agent).toBe("mastra");
+    expect(call).not.toHaveProperty("model");
+  });
+
   it("resolves agentId to agent runtime for prompt mode", async () => {
     const deps = makeDeps();
     const op = makeOperation({
