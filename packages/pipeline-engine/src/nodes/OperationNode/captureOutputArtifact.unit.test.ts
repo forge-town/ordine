@@ -48,7 +48,10 @@ describe("captureOutputArtifact", () => {
     const longAgo = new Date(Date.now() - 60_000);
     await utimes(join(ctx.dir, "stale.html"), longAgo, longAgo);
 
-    const sinceMs = Date.now();
+    // CI 文件系统 mtime 可能是秒级精度:刚写入的 fresh.html 的 mtime 会被截断到
+    // 整秒,反而早于 Date.now() 的毫秒值,导致窗口过滤误杀。给 sinceMs 留 1s 余量
+    // (stale.html 是 60s 前,语义断言不受影响)。
+    const sinceMs = Date.now() - 1_000;
     // New file written by this execution
     await writeFile(join(ctx.dir, "fresh.html"), "new");
 
