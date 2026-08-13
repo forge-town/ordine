@@ -36,9 +36,18 @@ export const createAgentRuntimesService = (db: DbConnection) => {
 
       await Promise.all([
         ...toCreate.map((r) => dao.create(r)),
-        ...toUpdate.map((r) =>
-          dao.update(r.id, { name: r.name, type: r.type, connection: r.connection }),
-        ),
+        ...toUpdate.map((r) => {
+          const existingRuntime = existing.find((runtime) => runtime.id === r.id);
+          const connection =
+            r.connection.mode === "local" &&
+            existingRuntime?.connection.mode === "local" &&
+            r.connection.models === undefined &&
+            existingRuntime.connection.models !== undefined
+              ? { ...r.connection, models: existingRuntime.connection.models }
+              : r.connection;
+
+          return dao.update(r.id, { name: r.name, type: r.type, connection });
+        }),
         ...toDelete.map((r) => dao.delete(r.id)),
       ]);
 

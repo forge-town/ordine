@@ -59,7 +59,7 @@ describe("runMigrations", () => {
     const result = await runMigrations(db, migrationsDir);
 
     expect(result.isOk()).toBe(true);
-    expect(result._unsafeUnwrap()).toBe(3);
+    expect(result._unsafeUnwrap()).toBe(4);
     const migrations = await db.query<{ name: string }>(
       `SELECT name FROM _ordine_migrations ORDER BY name`,
     );
@@ -68,6 +68,7 @@ describe("runMigrations", () => {
       "0001_add_ordine_domain_tables.sql",
       "0002_routines_claude_spec.sql",
       "0003_harvest_capabilities.sql",
+      "0004_add_agent_default_model.sql",
     ]);
     const projects = await db.query<{ table_name: string }>(
       `SELECT table_name FROM information_schema.tables WHERE table_name = 'projects'`,
@@ -84,7 +85,7 @@ describe("runMigrations", () => {
     const result = await runMigrations(db, migrationsDir);
 
     expect(result.isOk()).toBe(true);
-    expect(result._unsafeUnwrap()).toBe(3);
+    expect(result._unsafeUnwrap()).toBe(4);
 
     const migrations = await db.query<{ name: string }>(
       `SELECT name FROM _ordine_migrations ORDER BY name`,
@@ -94,6 +95,7 @@ describe("runMigrations", () => {
       "0001_add_ordine_domain_tables.sql",
       "0002_routines_claude_spec.sql",
       "0003_harvest_capabilities.sql",
+      "0004_add_agent_default_model.sql",
     ]);
 
     const columns = await db.query<{ column_name: string; table_name: string }>(

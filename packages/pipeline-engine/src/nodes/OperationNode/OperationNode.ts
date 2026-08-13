@@ -78,13 +78,16 @@ export const executeOperationNode = async (
     };
   }
 
-  const agentOverride = await (async () => {
+  const agentSelection = await (async () => {
     if (data.agentId) {
       const agent = await ctx.lookupAgent(data.agentId);
       if (agent?.defaultRuntime) {
         await trace(jobId, `Using agent "${agent.name}" with runtime "${agent.defaultRuntime}"`);
 
-        return agent.defaultRuntime as OperationExecutorConfig["agent"];
+        return {
+          agent: agent.defaultRuntime as OperationExecutorConfig["agent"],
+          model: agent.defaultModel ?? undefined,
+        };
       }
       await trace(
         jobId,
@@ -92,8 +95,12 @@ export const executeOperationNode = async (
       );
     }
 
-    return data.agentRuntime as OperationExecutorConfig["agent"] | undefined;
+    return {
+      agent: data.agentRuntime as OperationExecutorConfig["agent"] | undefined,
+      model: undefined,
+    };
   })();
+  const agentOverride = agentSelection.agent;
 
   const configResult = await safeParseConfig(operation.config, operation.name);
   if (configResult.isErr()) {
@@ -182,6 +189,7 @@ export const executeOperationNode = async (
         instruction: prompt,
       }),
       agent: agentOverride ?? executor.agent,
+      ...(agentSelection.model ? { model: agentSelection.model } : {}),
       onChunk: handleChunk,
       onProgress,
       allowedTools: executor.allowedTools,
@@ -238,6 +246,7 @@ export const executeOperationNode = async (
         instruction: skillDescription,
       }),
       agent,
+      ...(agentSelection.model ? { model: agentSelection.model } : {}),
       allowedTools: executor.allowedTools,
       onChunk: handleChunk,
       onProgress,

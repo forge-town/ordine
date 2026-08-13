@@ -19,6 +19,7 @@ export const AgentPatchSchema = z.object({
   name: AgentTextSchema.min(1).max(MAX_AGENT_NAME_LENGTH).optional(),
   description: AgentTextSchema.max(MAX_AGENT_DESCRIPTION_LENGTH).nullable().optional(),
   defaultRuntime: AgentRuntimeSchema.nullable().optional(),
+  defaultModel: AgentTextSchema.max(MAX_AGENT_NAME_LENGTH).nullable().optional(),
   systemPrompt: AgentTextSchema.max(MAX_AGENT_SYSTEM_PROMPT_LENGTH).nullable().optional(),
   capabilities: z.array(AgentCapabilitySchema).max(MAX_AGENT_CAPABILITIES).optional(),
   allowedTools: z

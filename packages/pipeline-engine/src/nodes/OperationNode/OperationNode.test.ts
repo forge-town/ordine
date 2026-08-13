@@ -504,6 +504,7 @@ describe("executeOperationNode — agent override", () => {
       id: "agent-1",
       name: "My Codex Agent",
       defaultRuntime: "codex",
+      defaultModel: "gpt-5.6-sol",
     });
     const ctx = makeCtx(deps, ops, { lookupAgent });
 
@@ -511,7 +512,9 @@ describe("executeOperationNode — agent override", () => {
 
     expect(result.outcome).toBe("completed");
     expect(lookupAgent).toHaveBeenCalledWith("agent-1");
-    expect(deps.runPrompt).toHaveBeenCalledWith(expect.objectContaining({ agent: "codex" }));
+    expect(deps.runPrompt).toHaveBeenCalledWith(
+      expect.objectContaining({ agent: "codex", model: "gpt-5.6-sol" }),
+    );
   });
 
   it("resolves agentId to agent runtime for skill mode", async () => {

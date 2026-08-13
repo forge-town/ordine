@@ -9,6 +9,7 @@ export const agentFormSchema = z.object({
   name: z.string().min(1, "Name is required"),
   description: z.string(),
   defaultRuntime: z.string(),
+  defaultModel: z.string(),
   systemPrompt: z.string(),
   tags: z.string(),
 });
@@ -18,6 +19,7 @@ export type AgentFormMutationValues = {
   name: string;
   description: string | null;
   defaultRuntime: string | null;
+  defaultModel: string | null;
   systemPrompt: string | null;
   tags: string[];
 };
@@ -28,6 +30,7 @@ const emptyAgentFormValues: AgentFormValues = {
   name: "",
   description: "",
   defaultRuntime: "",
+  defaultModel: "",
   systemPrompt: "",
   tags: "",
 };
@@ -36,6 +39,7 @@ export const toAgentFormMutationValues = (values: AgentFormValues): AgentFormMut
   name: values.name.trim(),
   description: values.description || null,
   defaultRuntime: values.defaultRuntime || null,
+  defaultModel: values.defaultModel || null,
   systemPrompt: values.systemPrompt || null,
   tags: values.tags
     .split(",")

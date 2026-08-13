@@ -58,6 +58,54 @@ describe("runtimesPageSlice", () => {
     expect(diff.unchanged).toEqual(existing);
   });
 
+  it("does not erase a saved catalog when probing models is unavailable", () => {
+    const existing: AgentRuntimeConfig[] = [
+      {
+        id: "local-codex",
+        name: "Codex",
+        type: "codex",
+        connection: {
+          mode: "local",
+          binaryName: "codex",
+          path: "C:\\tools\\codex.exe",
+          version: "codex-cli 1.2.3",
+          models: [{ id: "gpt-5", displayName: "GPT-5" }],
+        },
+      },
+    ];
+
+    const diff = computeDiff(existing, [detectedCodex]);
+
+    expect(diff.updated).toHaveLength(0);
+    expect(diff.unchanged).toEqual(existing);
+  });
+
+  it("marks a runtime updated when its model catalog changes", () => {
+    const existing: AgentRuntimeConfig[] = [
+      {
+        id: "local-codex",
+        name: "Codex",
+        type: "codex",
+        connection: {
+          mode: "local",
+          binaryName: "codex",
+          path: "C:\\tools\\codex.exe",
+          version: "codex-cli 1.2.3",
+          models: [{ id: "gpt-5", displayName: "GPT-5" }],
+        },
+      },
+    ];
+
+    const diff = computeDiff(existing, [
+      { ...detectedCodex, models: [{ id: "gpt-5.6", displayName: "GPT-5.6" }] },
+    ]);
+
+    expect(diff.updated).toHaveLength(1);
+    expect(diff.updated[0]?.connection).toMatchObject({
+      models: [{ id: "gpt-5.6", displayName: "GPT-5.6" }],
+    });
+  });
+
   it("syncs added, updated, and removed runtimes through explicit mutations", async () => {
     const store = createRuntimesPageStore();
     const createRuntime = vi.fn().mockResolvedValue(undefined);

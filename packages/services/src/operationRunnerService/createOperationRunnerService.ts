@@ -134,7 +134,12 @@ export const createOperationRunnerService = (db: DbConnection) => {
             const agent = await agentsDao.findById(agentId);
 
             return agent
-              ? { id: agent.id, name: agent.name, defaultRuntime: agent.defaultRuntime }
+              ? {
+                  id: agent.id,
+                  name: agent.name,
+                  defaultRuntime: agent.defaultRuntime,
+                  defaultModel: agent.defaultModel,
+                }
               : null;
           };
 

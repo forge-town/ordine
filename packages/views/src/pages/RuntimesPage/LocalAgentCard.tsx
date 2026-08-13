@@ -1,4 +1,4 @@
-import { ChevronRight, Clock, FileCode2, Sparkles } from "lucide-react";
+import { Boxes, ChevronRight, Clock, FileCode2, Sparkles } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { AgentRuntimeConfig } from "@repo/schemas";
 import { Button } from "@repo/ui/button";
@@ -68,6 +68,7 @@ export const LocalAgentCard = ({ runtime }: { runtime: AgentRuntimeConfig }) => 
   const executable = connection.mode === "local" ? connection.path : connection.host;
   const version = connection.mode === "local" ? connection.version : undefined;
   const detected = connection.mode === "local" && Boolean(connection.path);
+  const models = connection.mode === "local" ? (connection.models ?? []) : [];
 
   return (
     <article className={cn(surfaceCardVariants(), "flex min-h-[190px] flex-col p-4")}>
@@ -94,6 +95,26 @@ export const LocalAgentCard = ({ runtime }: { runtime: AgentRuntimeConfig }) => 
         {meta.capabilities.map((capability) => (
           <Tag key={capability}>{capability}</Tag>
         ))}
+      </div>
+
+      <div className="mt-3 rounded-lg bg-surface-2/70 px-3 py-2.5 ring-1 ring-border/70">
+        <div className="flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+          <Boxes className="size-3.5" />
+          <span>{t("localAgents.models")}</span>
+          <span className="ml-auto normal-case tracking-normal">{models.length}</span>
+        </div>
+        <div className="mt-1.5 flex flex-wrap gap-1.5">
+          {models.length > 0 ? (
+            models.slice(0, 5).map((model) => <Tag key={model.id}>{model.displayName}</Tag>)
+          ) : (
+            <span className="text-[10.5px] text-muted-foreground">
+              {t("localAgents.modelsNotDetected")}
+            </span>
+          )}
+          {models.length > 5 && (
+            <span className="text-[10.5px] text-muted-foreground">+{models.length - 5}</span>
+          )}
+        </div>
       </div>
 
       <div className="mt-3 space-y-2 rounded-lg bg-surface-2/70 px-3 py-2.5 ring-1 ring-border/70">

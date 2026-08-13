@@ -1,6 +1,6 @@
 import type { StateCreator } from "zustand";
 import { ResultAsync } from "neverthrow";
-import type { AgentRuntimeConfig } from "@repo/schemas";
+import type { AgentRuntimeConfig, DetectedRuntime as SchemaDetectedRuntime } from "@repo/schemas";
 
 export interface ScanDiff {
   added: AgentRuntimeConfig[];
@@ -9,12 +9,7 @@ export interface ScanDiff {
   unchanged: AgentRuntimeConfig[];
 }
 
-export interface DetectedRuntime {
-  type: string;
-  binaryName: string;
-  path: string;
-  version?: string;
-}
+export type DetectedRuntime = Omit<SchemaDetectedRuntime, "type"> & { type: string };
 
 const makeDetectedRuntimeConfig = (
   detected: DetectedRuntime,
@@ -28,6 +23,7 @@ const makeDetectedRuntimeConfig = (
     binaryName: detected.binaryName,
     path: detected.path,
     version: detected.version,
+    ...(detected.models === undefined ? {} : { models: detected.models }),
     detectedAt: new Date().toISOString(),
   },
 });
@@ -38,11 +34,17 @@ const hasDetectionChanged = (
 ): boolean => {
   if (existing.connection.mode !== "local" || detected.connection.mode !== "local") return true;
 
+  const modelsChanged =
+    detected.connection.models !== undefined &&
+    JSON.stringify(existing.connection.models ?? []) !==
+      JSON.stringify(detected.connection.models);
+
   return (
     existing.type !== detected.type ||
     existing.connection.binaryName !== detected.connection.binaryName ||
     existing.connection.path !== detected.connection.path ||
-    existing.connection.version !== detected.connection.version
+    existing.connection.version !== detected.connection.version ||
+    modelsChanged
   );
 };
 

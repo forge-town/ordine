@@ -218,6 +218,13 @@
       "when": 1786607703074,
       "tag": "0030_harvest_capabilities",
       "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1786607704000,
+      "tag": "0031_add_agent_default_model",
+      "breakpoints": true
     }
   ]
 }

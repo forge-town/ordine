@@ -13,6 +13,7 @@ export const agentsTable = pgTable(
     name: text("name").notNull(),
     description: text("description"),
     defaultRuntime: text("default_runtime").$type<AgentRuntime | null>(),
+    defaultModel: text("default_model"),
     systemPrompt: text("system_prompt"),
     capabilities: jsonb("capabilities")
       .$type<AgentCapability[]>()

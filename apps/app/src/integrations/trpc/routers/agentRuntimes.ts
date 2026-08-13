@@ -27,6 +27,7 @@ const toLocalRuntimeConfig = (runtime: Awaited<ReturnType<typeof scanRuntimes>>[
     binaryName: runtime.binaryName,
     path: runtime.path,
     version: runtime.version,
+    ...(runtime.models === undefined ? {} : { models: runtime.models }),
     detectedAt: new Date().toISOString(),
   },
 });
