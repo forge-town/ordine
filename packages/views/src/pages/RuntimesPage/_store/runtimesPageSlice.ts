@@ -36,8 +36,7 @@ const hasDetectionChanged = (
 
   const modelsChanged =
     detected.connection.models !== undefined &&
-    JSON.stringify(existing.connection.models ?? []) !==
-      JSON.stringify(detected.connection.models);
+    JSON.stringify(existing.connection.models ?? []) !== JSON.stringify(detected.connection.models);
 
   return (
     existing.type !== detected.type ||
