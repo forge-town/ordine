@@ -13,7 +13,12 @@ import {
  * across machines and platforms. Any wording change shows up in the snapshot diff.
  */
 const normalize = (prompt: string): string =>
-  prompt.split(homedir()).join("<HOME>").replaceAll("\\", "/");
+  prompt
+    .split(homedir())
+    .join("<HOME>")
+    .replaceAll("\\", "/")
+    // prompts.ts 按 process.platform 在 Windows/Unix 路径规则间二选一,快照必须平台无关
+    .replace(/^- On (Windows|Unix-like).*$/m, "- <PLATFORM_PATH_RULE>");
 
 describe("pipelines prompt snapshots", () => {
   it("generate prompt — with skill references", () => {
