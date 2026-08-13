@@ -211,6 +211,13 @@
       "when": 1784185200000,
       "tag": "0029_routines_claude_spec",
       "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "7",
+      "when": 1786607703074,
+      "tag": "0030_harvest_capabilities",
+      "breakpoints": true
     }
   ]
 }

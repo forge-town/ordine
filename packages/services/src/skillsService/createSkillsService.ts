@@ -274,7 +274,8 @@ export const createSkillsService = (db: DbConnection) => {
     getById: async (id: string) => withMeta(await dao.findById(id)),
     getByName: async (name: string) => withMeta(await dao.findByName(name)),
     create: async (...args: Parameters<typeof dao.create>) => withMeta(await dao.create(...args)),
-    update: async (...args: Parameters<typeof dao.update>) => withMeta(await dao.update(...args)),
+    update: async (id: string, patch: Parameters<typeof dao.update>[1]) =>
+      withMeta(await dao.update(id, { ...patch, origin: "manual" })),
     delete: (id: string) => dao.delete(id),
     seedIfEmpty: () => dao.seedIfEmpty(),
     buildDraftOperation: (skill: Skill) => buildDraftOperation(skill),
@@ -288,6 +289,7 @@ export const createSkillsService = (db: DbConnection) => {
             label: candidate.label,
             description: candidate.description,
             category: IMPORTED_CATEGORY,
+            origin: "manual",
             tags: existing.tags.includes(IMPORTED_TAG)
               ? existing.tags
               : [...existing.tags, IMPORTED_TAG],

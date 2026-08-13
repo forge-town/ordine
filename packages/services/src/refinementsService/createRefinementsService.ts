@@ -9,7 +9,10 @@ import {
 import { logger } from "@repo/logger";
 import type { RefinementRound } from "@repo/schemas";
 import { createPipelinesService } from "../pipelinesService";
-import { createPipelineRunnerService } from "../pipelineRunnerService";
+import {
+  createPipelineRunnerService,
+  type PipelineRunnerServiceOptions,
+} from "../pipelineRunnerService";
 import { createDistillationsService } from "../distillationsService";
 
 const POLL_INTERVAL_MS = 3000;
@@ -36,13 +39,16 @@ const sourceDistillationConfig = () => ({
   objective: "Distill insights from refinement round for next optimization.",
 });
 
-export const createRefinementsService = (db: DbConnection) => {
+export const createRefinementsService = (
+  db: DbConnection,
+  options: PipelineRunnerServiceOptions = {},
+) => {
   const dao = createRefinementsDao(db);
   const jobsDao = createJobsDao(db);
   const distillationsDao = createDistillationsDao(db);
   const pipelinesDao = createPipelinesDao(db);
   const pipelinesService = createPipelinesService(db);
-  const pipelineRunnerService = createPipelineRunnerService(db);
+  const pipelineRunnerService = createPipelineRunnerService(db, options);
   const distillationsService = createDistillationsService(db);
 
   const updateRound = async (

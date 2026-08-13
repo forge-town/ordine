@@ -45,7 +45,9 @@ describe("COD-244 migration", () => {
     const journal = JSON.parse(readFileSync(postgresJournal, "utf8")) as {
       entries: Array<{ idx: number; tag: string }>;
     };
-    expect(journal.entries.at(-1)).toMatchObject({
+    expect(
+      journal.entries.find((entry) => entry.tag === "0029_routines_claude_spec"),
+    ).toMatchObject({
       idx: 29,
       tag: "0029_routines_claude_spec",
     });

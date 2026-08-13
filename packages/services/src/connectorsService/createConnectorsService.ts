@@ -1,13 +1,27 @@
 import { listMcpToolsHttp, listMcpToolsStdio } from "@repo/agent";
 import { createConnectorsDao, type DbConnection } from "@repo/models";
-import { isMcpConnectorConfig, type ConnectorConfig } from "@repo/schemas";
+import { isMcpConnectorConfig, type CapabilitySourceId, type ConnectorConfig } from "@repo/schemas";
 import { ResultAsync, err, errAsync, ok, okAsync, type Result } from "neverthrow";
+import {
+  hydrateConnectorCredentials,
+  omitEncryptedConnectorCredentials,
+} from "../capabilityHarvestService";
 import { ConflictError, NotFoundError, toServiceError } from "../serviceErrors";
 
 type ConnectorsDao = ReturnType<typeof createConnectorsDao>;
 type ConnectorRow = Awaited<ReturnType<ConnectorsDao["findById"]>>;
 type Connector = NonNullable<ConnectorRow>;
 type UpdateConnectorPatch = Parameters<ConnectorsDao["update"]>[1];
+
+export interface ConnectorsServiceOptions {
+  encryptionSecret?: string;
+  env?: Readonly<Record<string, string | undefined>>;
+}
+
+export interface ConnectConnectorOptions {
+  preferredSource?: CapabilitySourceId;
+  sourceKey?: string;
+}
 
 /**
  * create/update must never set status to connected by hand — only a real
@@ -29,7 +43,7 @@ const sanitizeUpdatePatch = (
   const configChanged = sanitized.config !== undefined;
   const methodChanged = sanitized.method !== undefined && sanitized.method !== current.method;
 
-  if (!configChanged && !methodChanged) return sanitized;
+  if (!configChanged && !methodChanged) return { ...sanitized, origin: "manual" };
 
   const config = configChanged
     ? { ...(sanitized.config as Record<string, unknown>) }
@@ -37,7 +51,16 @@ const sanitizeUpdatePatch = (
   delete config.tools;
   delete config.lastError;
 
-  return { ...sanitized, config, status: "needs_setup", lastSyncAt: null };
+  return {
+    ...sanitized,
+    config,
+    status: "needs_setup",
+    origin: "manual",
+    signature: null,
+    sources: [],
+    encryptedCredentials: {},
+    lastSyncAt: null,
+  };
 };
 
 const withLastError = (config: ConnectorConfig, lastError: string): Record<string, unknown> => ({
@@ -73,7 +96,10 @@ const persistIfConfigUnchanged = async (
   return err(new ConflictError(conflictMessage));
 };
 
-export const createConnectorsService = (db: DbConnection) => {
+export const createConnectorsService = (
+  db: DbConnection,
+  options: ConnectorsServiceOptions = {},
+) => {
   const dao = createConnectorsDao(db);
 
   /**
@@ -84,7 +110,10 @@ export const createConnectorsService = (db: DbConnection) => {
    * Only a successful handshake sets connected and backfills tools + lastSyncAt.
    * A connector is **never** reported connected on failure or without a handshake.
    */
-  const connectImpl = async (id: string): Promise<Result<Connector, Error>> => {
+  const connectImpl = async (
+    id: string,
+    connectOptions: ConnectConnectorOptions,
+  ): Promise<Result<Connector, Error>> => {
     const row = await dao.findById(id);
     if (!row) return err(new NotFoundError("Connector", id));
 
@@ -107,7 +136,19 @@ export const createConnectorsService = (db: DbConnection) => {
       return failSetup(`method "${row.method}" does not support MCP handshake`);
     }
 
-    const config = row.config;
+    if (!isMcpConnectorConfig(row.config)) {
+      return failSetup("Connector is not configured (set transport + command/url first).");
+    }
+
+    const hydrated = hydrateConnectorCredentials(row, {
+      ...(options.encryptionSecret === undefined
+        ? {}
+        : { encryptionSecret: options.encryptionSecret }),
+      ...(options.env ? { env: options.env } : {}),
+      ...connectOptions,
+    });
+    if (hydrated.isErr()) return failSetup(hydrated.error.message);
+    const config = hydrated.value;
     if (!isMcpConnectorConfig(config)) {
       return failSetup("Connector is not configured (set transport + command/url first).");
     }
@@ -117,6 +158,7 @@ export const createConnectorsService = (db: DbConnection) => {
         ? await listMcpToolsStdio({
             command: config.command,
             args: config.args,
+            ...(config.cwd ? { cwd: config.cwd } : {}),
             env: config.env,
           })
         : await listMcpToolsHttp({
@@ -128,7 +170,7 @@ export const createConnectorsService = (db: DbConnection) => {
     // handshake was in flight; a stale result must never overwrite fresh config.
     const current = await dao.findById(id);
     if (!current) return err(new NotFoundError("Connector", id));
-    if (current.method !== row.method || !sameConfig(current.config, config)) {
+    if (current.method !== row.method || !sameConfig(current.config, row.config)) {
       // Discard the stale handshake. The concurrent update() already reset the
       // status to needs_setup (sanitizeUpdatePatch), so nothing is written here.
       // ConflictError keeps 409 semantics: state changed concurrently, retry.
@@ -199,29 +241,35 @@ export const createConnectorsService = (db: DbConnection) => {
 
   return {
     getAll: () =>
-      ResultAsync.fromPromise(dao.findMany(), (error) => toServiceError(error, "Get connectors")),
+      ResultAsync.fromPromise(dao.findMany(), (error) =>
+        toServiceError(error, "Get connectors"),
+      ).map((connectors) => connectors.map(omitEncryptedConnectorCredentials)),
     getById: (id: string) =>
-      ResultAsync.fromPromise(dao.findById(id), (error) =>
-        toServiceError(error, "Get connector"),
-      ).andThen((connector) =>
-        connector ? okAsync(connector) : errAsync(new NotFoundError("Connector", id)),
-      ),
+      ResultAsync.fromPromise(dao.findById(id), (error) => toServiceError(error, "Get connector"))
+        .andThen((connector) =>
+          connector ? okAsync(connector) : errAsync(new NotFoundError("Connector", id)),
+        )
+        .map(omitEncryptedConnectorCredentials),
     create: (data: Parameters<typeof dao.create>[0]) =>
       ResultAsync.fromPromise(dao.create(denyManualConnected(data)), (error) =>
         toServiceError(error, "Create connector"),
-      ),
+      ).map(omitEncryptedConnectorCredentials),
     update: (id: string, patch: UpdateConnectorPatch) =>
       ResultAsync.fromPromise(updateImpl(id, patch), (error) =>
         toServiceError(error, "Update connector"),
-      ).andThen((result) => result),
+      )
+        .andThen((result) => result)
+        .map(omitEncryptedConnectorCredentials),
     /**
      * DAO/handshake rejections are normalized like every other method: callers
      * always receive a Result (isErr), never a rejected promise.
      */
-    connect: (id: string): ResultAsync<Connector, Error> =>
-      ResultAsync.fromPromise(connectImpl(id), (error) =>
+    connect: (id: string, connectOptions: ConnectConnectorOptions = {}) =>
+      ResultAsync.fromPromise(connectImpl(id, connectOptions), (error) =>
         toServiceError(error, "Connect connector"),
-      ).andThen((result) => result),
+      )
+        .andThen((result) => result)
+        .map(omitEncryptedConnectorCredentials),
     delete: (id: string) =>
       ResultAsync.fromPromise(dao.delete(id), (error) => toServiceError(error, "Delete connector")),
   };

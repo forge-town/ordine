@@ -123,7 +123,7 @@ const execFileAsync = (bin: string, args: string[]): Promise<{ stdout: string; s
 
 /**
  * Directories where agent CLIs are commonly installed but which are often
- * missing from the PATH of a daemon / launchd / Finder-launched process.
+ * missing from the PATH of a daemon or desktop-launched process.
  * Probed only when `which` fails.
  */
 const FALLBACK_BINARY_DIRS = [
@@ -166,7 +166,7 @@ const resolveBinaryPath = async (binaryName: string): Promise<string | undefined
     () => undefined as never,
   );
   const whichPath = whichResult.isOk() ? firstPath(whichResult.value.stdout) : undefined;
-  if (whichPath || process.platform === "win32") return whichPath;
+  if (whichPath) return whichPath;
 
   return probeFallbackDirs(binaryName);
 };

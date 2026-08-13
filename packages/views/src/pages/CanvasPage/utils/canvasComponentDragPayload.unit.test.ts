@@ -22,6 +22,8 @@ const validSkill = {
   label: "Error Handling",
   description: "Use neverthrow",
   category: "code-quality",
+  origin: "manual",
+  sources: [],
   tags: ["neverthrow"],
 } as Skill;
 

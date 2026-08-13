@@ -42,6 +42,7 @@ describe("buildMcpConnectorInjection", () => {
         transport: "stdio",
         command: "npx",
         args: ["-y", "server-fs"],
+        cwd: "/workspace",
         env: { TOKEN: "x" },
         tools: [{ name: "read_file" }, { name: "write_file" }],
       }),
@@ -50,6 +51,7 @@ describe("buildMcpConnectorInjection", () => {
     expect(out!.mcpServers.fs).toEqual({
       command: "npx",
       args: ["-y", "server-fs"],
+      cwd: "/workspace",
       env: { TOKEN: "x" },
     });
     expect(out!.toolNames).toEqual(["mcp__fs__read_file", "mcp__fs__write_file"]);

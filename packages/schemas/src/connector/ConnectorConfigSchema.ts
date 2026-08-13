@@ -12,6 +12,7 @@ export const StdioConnectorConfigSchema = z.object({
   transport: z.literal("stdio"),
   command: z.string().min(1),
   args: z.array(z.string()).optional(),
+  cwd: z.string().min(1).optional(),
   env: z.record(z.string(), z.string()).optional(),
   tools: z.array(McpToolSummarySchema).optional(),
   lastError: z.string().optional(),

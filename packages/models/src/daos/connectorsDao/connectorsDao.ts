@@ -20,6 +20,16 @@ export class ConnectorsDao {
     return rows[0];
   }
 
+  async findBySignature(signature: string) {
+    const rows = await this.executor
+      .select()
+      .from(connectorsTable)
+      .where(eq(connectorsTable.signature, signature))
+      .limit(1);
+
+    return rows[0];
+  }
+
   async create(data: typeof connectorsTable.$inferInsert) {
     const now = new Date();
     const [inserted] = await this.executor
