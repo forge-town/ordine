@@ -7,9 +7,12 @@ describe("pendingPipelinePrompt", () => {
   });
 
   it("takes a saved prompt exactly once", () => {
-    savePendingPipelinePrompt("build a hackathon scout");
+    savePendingPipelinePrompt("build a hackathon scout", "runtime-codex");
 
-    expect(takePendingPipelinePrompt()).toBe("build a hackathon scout");
+    expect(takePendingPipelinePrompt()).toEqual({
+      prompt: "build a hackathon scout",
+      runtimeId: "runtime-codex",
+    });
     expect(takePendingPipelinePrompt()).toBeNull();
   });
 
@@ -21,7 +24,13 @@ describe("pendingPipelinePrompt", () => {
     savePendingPipelinePrompt("first");
     savePendingPipelinePrompt("second");
 
-    expect(takePendingPipelinePrompt()).toBe("second");
+    expect(takePendingPipelinePrompt()).toEqual({ prompt: "second" });
     expect(takePendingPipelinePrompt()).toBeNull();
+  });
+
+  it("reads the legacy plain-text prompt format", () => {
+    globalThis.sessionStorage.setItem("ordine.pendingPipelinePrompt", "legacy prompt");
+
+    expect(takePendingPipelinePrompt()).toEqual({ prompt: "legacy prompt" });
   });
 });

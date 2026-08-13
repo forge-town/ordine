@@ -7,6 +7,11 @@ import { pipelineAgentSessionsClient } from "@/lib/pipelineAgentSessionsClient";
 import { router } from "@/router";
 import { PipelineCreationWorkspace } from "./PipelineCreationWorkspace";
 
+const { mockCreatePipeline, mockCustomRequest } = vi.hoisted(() => ({
+  mockCreatePipeline: vi.fn(),
+  mockCustomRequest: vi.fn(),
+}));
+
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({
     t: (key: string) => key,
@@ -21,6 +26,14 @@ vi.mock("@tanstack/react-router", () => ({
 
 vi.mock("@/router", () => ({
   router: { navigate: vi.fn() },
+}));
+
+vi.mock("@/integrations/refine/dataProvider", () => ({
+  ResourceName: { pipelines: "pipelines" },
+  dataProvider: {
+    create: (...args: unknown[]) => mockCreatePipeline(...args),
+    custom: (...args: unknown[]) => mockCustomRequest(...args),
+  },
 }));
 
 const createClient = () => ({
@@ -41,6 +54,9 @@ describe("PipelineCreationWorkspace", () => {
     globalThis.localStorage.clear();
     globalThis.sessionStorage.clear();
     vi.clearAllMocks();
+    mockCreatePipeline.mockImplementation(async ({ variables }) => ({
+      data: { ...(variables as object), id: "draft-pipeline-1" },
+    }));
   });
 
   it("restores messages, attachments, and a pending proposal from the saved session", async () => {
@@ -337,7 +353,7 @@ describe("PipelineCreationWorkspace", () => {
     expect(await screen.findByText("pipelineAgentErrors.network")).toBeInTheDocument();
   });
 
-  it("stashes the first home message and jumps to the id-less canvas workspace", async () => {
+  it("creates a draft and transfers the first message and runtime to its canvas", async () => {
     const user = userEvent.setup();
     const client = createClient();
 
@@ -347,6 +363,7 @@ describe("PipelineCreationWorkspace", () => {
         runtimeConfigured
         client={client as typeof pipelineAgentSessionsClient}
         presentation="home"
+        runtimeId="runtime-codex"
       />,
     );
     await user.type(
@@ -355,12 +372,23 @@ describe("PipelineCreationWorkspace", () => {
     );
     await user.click(screen.getByRole("button", { name: "newPipelineDialog.send" }));
 
-    expect(globalThis.sessionStorage.getItem("ordine.pendingPipelinePrompt")).toBe(
-      "Scout hackathons for me",
+    expect(mockCreatePipeline).toHaveBeenCalledWith(
+      expect.objectContaining({
+        resource: "pipelines",
+        variables: expect.objectContaining({
+          description: "Scout hackathons for me",
+          nodes: [],
+          edges: [],
+        }),
+      }),
     );
+    expect(JSON.parse(globalThis.sessionStorage.getItem("ordine.pendingPipelinePrompt")!)).toEqual({
+      prompt: "Scout hackathons for me",
+      runtimeId: "runtime-codex",
+    });
     expect(router.navigate).toHaveBeenCalledWith({
       to: "/canvas",
-      search: { id: undefined },
+      search: { id: "draft-pipeline-1" },
     });
     expect(client.createSession).not.toHaveBeenCalled();
     expect(client.appendMessage).not.toHaveBeenCalled();
