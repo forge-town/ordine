@@ -93,7 +93,7 @@ Each edge: { "id": "<unique>", "source": "<nodeId>", "target": "<nodeId>" }
 
 === PATH RULES (CRITICAL) ===
 - All file/folder paths MUST be absolute for the current operating system. NEVER use ~ or ~/.
-- On Windows, use native drive paths such as D:/work/output. NEVER prefix a drive path with a slash (do not emit /D:/work/output).
+- <PLATFORM_PATH_RULE>
 - The current user's home directory is: <HOME>
 - 'Desktop' means: <HOME>/Desktop
 - 'Documents' means: <HOME>/Documents
@@ -151,7 +151,7 @@ Each edge: { "id": "<unique>", "source": "<nodeId>", "target": "<nodeId>" }
 
 === PATH RULES (CRITICAL) ===
 - All file/folder paths MUST be absolute for the current operating system. NEVER use ~ or ~/.
-- On Windows, use native drive paths such as D:/work/output. NEVER prefix a drive path with a slash (do not emit /D:/work/output).
+- <PLATFORM_PATH_RULE>
 - The current user's home directory is: <HOME>
 - 'Desktop' means: <HOME>/Desktop
 - 'Documents' means: <HOME>/Documents

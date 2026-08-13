@@ -35,7 +35,9 @@ export const expectNoJSErrors = (errors: string[]) => {
  */
 export const navigateAndWait = async (page: Page, path: string) => {
   await page.goto(path, { waitUntil: "domcontentloaded" });
-  await expect(page.locator("body")).toBeVisible();
+  // CI 上 vite dev 冷启动首次按需编译可能超过默认 5s 断言超时(首个测试必挂、
+  // 后续测试全过的典型 flake),这里单独放宽到 30s。
+  await expect(page.locator("body")).toBeVisible({ timeout: 30_000 });
 };
 
 /**

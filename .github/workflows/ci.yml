@@ -62,6 +62,10 @@ jobs:
         run: bun run build
 
       - name: Install Playwright Chromium
+        # 必须在 apps/app 下执行:bunx 在仓库根会下载最新版 playwright,装的浏览器
+        # 版本与 @playwright/test@1.58.0 期望的 chromium_headless_shell-1208 不匹配;
+        # 在 apps/app 内 bunx 优先解析本地依赖的 CLI,版本始终对齐。
+        working-directory: apps/app
         run: bunx playwright install --with-deps chromium
 
       - name: End-to-end test

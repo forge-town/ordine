@@ -98,10 +98,12 @@ export const createCapabilityHarvestService = (
         .map((result) => {
           automaticHarvestState.completed = result;
           automaticHarvestState.inFlight = undefined;
+
           return result;
         })
         .mapErr((error) => {
           automaticHarvestState.inFlight = undefined;
+
           return error;
         });
       automaticHarvestState.inFlight = inFlight;
