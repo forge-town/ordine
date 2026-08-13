@@ -3,12 +3,24 @@ import { isMcpConnectorConfig, type ConnectorConfig, type McpConnectorConfig } f
 
 export type ClaudeMcpInjection = McpConnectorInjection;
 
-type ConnectorLike = {
+export type ConnectorLike = {
   id: string;
   name: string;
   method: string;
   status: string;
   config: ConnectorConfig;
+};
+
+export type ResolvedMcpConnector = {
+  connector: ConnectorLike;
+  config: McpConnectorConfig;
+  serverKey: string;
+};
+
+export type ResolvedMcpTool = ResolvedMcpConnector & {
+  toolName: string;
+  description: string;
+  reference: string;
 };
 
 /**
@@ -22,6 +34,44 @@ export const sanitizeServerKey = (name: string): string =>
 const uniqueServerKey = (base: string, taken: Record<string, unknown>): string =>
   base in taken ? uniqueServerKey(`${base}_`, taken) : base;
 
+export const buildMcpToolReference = (serverKey: string, toolName: string): string =>
+  `mcp__${serverKey}__${toolName}`;
+
+/**
+ * Resolve every connected, structurally valid MCP connector in stable id
+ * order. Runtime injection and the capability catalog both consume this
+ * function so server-key disambiguation cannot drift between the two paths.
+ */
+export const resolveMcpConnectors = (connectors: ConnectorLike[]): ResolvedMcpConnector[] => {
+  const takenServerKeys: Record<string, unknown> = {};
+
+  return connectors
+    .filter(
+      (connector): connector is ConnectorLike & { config: McpConnectorConfig } =>
+        connector.method === "mcp" &&
+        connector.status === "connected" &&
+        isMcpConnectorConfig(connector.config),
+    )
+    .sort((a, b) => a.id.localeCompare(b.id))
+    .map((connector) => {
+      const serverKey = uniqueServerKey(sanitizeServerKey(connector.name), takenServerKeys);
+      takenServerKeys[serverKey] = true;
+
+      return { connector, config: connector.config, serverKey };
+    });
+};
+
+/** Only handshake-discovered concrete tools belong in the public catalog. */
+export const resolveMcpConnectorTools = (connectors: ConnectorLike[]): ResolvedMcpTool[] =>
+  resolveMcpConnectors(connectors).flatMap((resolved) =>
+    (resolved.config.tools ?? []).map((tool) => ({
+      ...resolved,
+      toolName: tool.name,
+      description: tool.description ?? "",
+      reference: buildMcpToolReference(resolved.serverKey, tool.name),
+    })),
+  );
+
 const selectedMcpToolNames = ({
   serverKey,
   config,
@@ -34,7 +84,7 @@ const selectedMcpToolNames = ({
   const serverToolPrefix = `mcp__${serverKey}`;
   const availableToolNames =
     config.tools && config.tools.length > 0
-      ? config.tools.map((tool) => `${serverToolPrefix}__${tool.name}`)
+      ? config.tools.map((tool) => buildMcpToolReference(serverKey, tool.name))
       : [serverToolPrefix];
 
   return selectedTools
@@ -58,26 +108,9 @@ export const buildMcpConnectorInjection = (
   const toolNames: string[] = [];
   const selectedTools = selectedToolNames ? new Set(selectedToolNames) : null;
   const selectedToolOwners = new Map<string, string>();
-  const takenServerKeys: Record<string, unknown> = {};
-  const eligibleConnectors = connectors
-    .map((connector) => ({ connector }))
-    .filter(({ connector }) => {
-      if (connector.method !== "mcp") return false;
-      if (connector.status !== "connected") return false;
+  const eligibleConnectors = resolveMcpConnectors(connectors);
 
-      return isMcpConnectorConfig(connector.config);
-    })
-    .sort((a, b) => a.connector.id.localeCompare(b.connector.id))
-    .map(({ connector }) => {
-      const key = uniqueServerKey(sanitizeServerKey(connector.name), takenServerKeys);
-      takenServerKeys[key] = true;
-
-      return { connector, key };
-    });
-
-  for (const { connector, key } of eligibleConnectors) {
-    const config = connector.config;
-    if (!isMcpConnectorConfig(config)) continue;
+  for (const { config, serverKey: key } of eligibleConnectors) {
 
     const selectedServerTools = selectedMcpToolNames({ serverKey: key, config, selectedTools });
     if (selectedServerTools.length === 0) continue;

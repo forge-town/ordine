@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { buildMcpConnectorInjection, sanitizeServerKey } from "./buildClaudeMcpInjection";
+import {
+  buildMcpConnectorInjection,
+  resolveMcpConnectorTools,
+  sanitizeServerKey,
+} from "./buildClaudeMcpInjection";
 
 const connected = (
   name: string,
@@ -140,5 +144,56 @@ describe("buildMcpConnectorInjection", () => {
         ["mcp__api_x___read"],
       ),
     ).toThrow("Ambiguous MCP tool selection mcp__api_x___read");
+  });
+});
+
+describe("resolveMcpConnectorTools", () => {
+  it("uses the exact runtime references and stable connector-name disambiguation", () => {
+    const connectors = [
+      connected(
+        "github",
+        {
+          transport: "stdio",
+          command: "github-second",
+          tools: [{ name: "create_issue", description: "Create an issue" }],
+        },
+        "connected",
+        "mcp",
+        "connector-b",
+      ),
+      connected(
+        "github",
+        {
+          transport: "stdio",
+          command: "github-first",
+          tools: [{ name: "read_issue" }],
+        },
+        "connected",
+        "mcp",
+        "connector-a",
+      ),
+    ];
+
+    const tools = resolveMcpConnectorTools(connectors);
+    expect(tools.map((tool) => tool.reference)).toEqual([
+      "mcp__github__read_issue",
+      "mcp__github___create_issue",
+    ]);
+    expect(
+      buildMcpConnectorInjection(
+        connectors,
+        tools.map((tool) => tool.reference),
+      )?.toolNames,
+    ).toEqual(tools.map((tool) => tool.reference));
+  });
+
+  it("excludes disconnected, invalid, and tool-less connectors", () => {
+    expect(
+      resolveMcpConnectorTools([
+        connected("pending", { transport: "stdio", command: "x", tools: [{ name: "read" }] }, "needs_setup"),
+        connected("invalid", {}),
+        connected("empty", { transport: "stdio", command: "x" }),
+      ]),
+    ).toEqual([]);
   });
 });

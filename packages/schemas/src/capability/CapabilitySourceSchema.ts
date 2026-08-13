@@ -7,7 +7,7 @@ export type CapabilitySourceId = z.infer<typeof CapabilitySourceIdSchema>;
 export const CapabilitySourceScopeSchema = z.enum(["global", "workspace"]);
 export type CapabilitySourceScope = z.infer<typeof CapabilitySourceScopeSchema>;
 
-export const CapabilityOriginSchema = z.enum(["manual", "harvested"]);
+export const CapabilityOriginSchema = z.enum(["manual", "harvested", "builtin"]);
 export type CapabilityOrigin = z.infer<typeof CapabilityOriginSchema>;
 
 export const CapabilityCredentialReferencesSchema = z.object({

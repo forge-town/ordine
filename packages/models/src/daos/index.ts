@@ -2,6 +2,7 @@ export * from "./agentsDao";
 export * from "./agentRawExportsDao";
 export * from "./agentRuntimesDao";
 export * from "./agentSpansDao";
+export * from "./capabilityRiskOverridesDao";
 export * from "./connectorsDao";
 export * from "./conversationMessagesDao";
 export * from "./distillationRunsDao";
