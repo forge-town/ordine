@@ -30,6 +30,8 @@ export const agentsService = createAgentsService(db);
 export const agentRuntimesService = createAgentRuntimesService(db);
 export const capabilityHarvestService = createCapabilityHarvestService(db, {
   encryptionSecret: BETTER_AUTH_SECRET,
+  // vite SSR 的 module runner 里 process.env 不是普通对象,zod record 校验会拒收;摊开成纯对象
+  env: { ...process.env },
 });
 export const connectorsService = createConnectorsService(db, capabilityExecutionOptions);
 export const conversationMessagesService = createConversationMessagesService(db);
