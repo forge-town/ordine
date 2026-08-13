@@ -6,6 +6,7 @@ vi.mock("../src/services.js", () => ({
     getAll: vi.fn(),
     getById: vi.fn(),
     create: vi.fn(),
+    createWithPendingOperations: vi.fn(),
     update: vi.fn(),
     delete: vi.fn(),
   },
@@ -103,6 +104,58 @@ describe("Pipelines API", () => {
     });
     expect(res.status).toBe(201);
     expect(mockPipelinesService.create).toHaveBeenCalledOnce();
+  });
+
+  it("POST /api/pipelines creates pending operations and pipeline atomically", async () => {
+    mockPipelinesService.createWithPendingOperations.mockResolvedValueOnce(
+      ok(mockPipeline) as never,
+    );
+    const res = await app.request("/api/pipelines", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: "Test",
+        nodes: [],
+        edges: [],
+        pendingOperations: [
+          {
+            id: "op-1",
+            name: "Read",
+            description: "Read input",
+            config: { executor: { type: "agent" } },
+            acceptedObjectTypes: ["file"],
+          },
+        ],
+      }),
+    });
+
+    expect(res.status).toBe(201);
+    expect(mockPipelinesService.createWithPendingOperations).toHaveBeenCalledOnce();
+    expect(mockPipelinesService.create).not.toHaveBeenCalled();
+  });
+
+  it("POST /api/pipelines rejects malformed pending operation configs", async () => {
+    const res = await app.request("/api/pipelines", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: "Test",
+        nodes: [],
+        edges: [],
+        pendingOperations: [
+          {
+            id: "op-1",
+            name: "Broken",
+            description: "Broken config",
+            config: { executor: { type: "agent", allowedTools: [42] } },
+            acceptedObjectTypes: ["file"],
+          },
+        ],
+      }),
+    });
+
+    expect(res.status).toBe(422);
+    expect(mockPipelinesService.createWithPendingOperations).not.toHaveBeenCalled();
   });
 
   it("GET /api/pipelines/:id returns pipeline", async () => {
@@ -250,7 +303,7 @@ describe("Operations API", () => {
   });
 
   it("POST /api/operations creates operation", async () => {
-    mockOperationsService.create.mockResolvedValueOnce(mockOp as never);
+    mockOperationsService.create.mockResolvedValueOnce(ok(mockOp) as never);
     const res = await app.request("/api/operations", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -261,7 +314,7 @@ describe("Operations API", () => {
 
   it("PUT /api/operations upserts - creates when new", async () => {
     mockOperationsService.getById.mockResolvedValueOnce(null as never);
-    mockOperationsService.create.mockResolvedValueOnce(mockOp as never);
+    mockOperationsService.create.mockResolvedValueOnce(ok(mockOp) as never);
     const res = await app.request("/api/operations", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -284,7 +337,7 @@ describe("Operations API", () => {
   });
 
   it("PATCH /api/operations/:id updates operation", async () => {
-    mockOperationsService.update.mockResolvedValueOnce({ ...mockOp, name: "Updated" } as never);
+    mockOperationsService.update.mockResolvedValueOnce(ok({ ...mockOp, name: "Updated" }) as never);
     const res = await app.request("/api/operations/op-1", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },

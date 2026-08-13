@@ -1,7 +1,12 @@
 import { z } from "zod/v4";
 import { publicProcedure, router } from "../init";
 import { operationsService, operationRunnerService } from "../services";
-import { AgentRuntimeSchema, ObjectNodeTypeSchema, OperationConfigSchema } from "@repo/schemas";
+import {
+  AgentRuntimeSchema,
+  ObjectNodeTypeSchema,
+  StrictOperationConfigSchema,
+} from "@repo/schemas";
+import { unwrapResult } from "./result";
 
 export const operationsRouter = router({
   getMany: publicProcedure.query(() => operationsService.getAll()),
@@ -16,14 +21,14 @@ export const operationsRouter = router({
         id: z.string(),
         name: z.string(),
         description: z.string().nullable().default(null),
-        config: OperationConfigSchema.optional(),
+        config: StrictOperationConfigSchema.optional(),
         acceptedObjectTypes: z
           .array(ObjectNodeTypeSchema)
           .default(["file", "folder", "github-project"]),
         sourceSkillId: z.string().optional(),
       }),
     )
-    .mutation(({ input }) => operationsService.create(input)),
+    .mutation(async ({ input }) => unwrapResult(await operationsService.create(input))),
 
   update: publicProcedure
     .input(
@@ -31,14 +36,15 @@ export const operationsRouter = router({
         id: z.string(),
         name: z.string().optional(),
         description: z.string().nullable().optional(),
-        config: OperationConfigSchema.optional(),
+        config: StrictOperationConfigSchema.optional(),
         acceptedObjectTypes: z.array(ObjectNodeTypeSchema).optional(),
+        sourceSkillId: z.string().nullable().optional(),
       }),
     )
-    .mutation(({ input }) => {
+    .mutation(async ({ input }) => {
       const { id, ...rest } = input;
 
-      return operationsService.update(id, rest);
+      return unwrapResult(await operationsService.update(id, rest));
     }),
 
   delete: publicProcedure

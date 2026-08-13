@@ -171,6 +171,7 @@ export class SkillsDao {
     const now = new Date();
     const rows = seedData.map((s) => ({
       ...s,
+      origin: "builtin" as const,
       createdAt: now,
       updatedAt: now,
     }));

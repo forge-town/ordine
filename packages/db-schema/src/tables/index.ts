@@ -3,6 +3,7 @@ export * from "./agents_table";
 export * from "./agent_raw_exports_table";
 export * from "./agent_runtimes_table";
 export * from "./agent_spans_table";
+export * from "./capability_risk_overrides_table";
 export * from "./connectors_table";
 export * from "./conversation_messages_table";
 export * from "./distillation_runs_table";

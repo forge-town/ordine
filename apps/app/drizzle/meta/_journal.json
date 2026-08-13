@@ -225,6 +225,13 @@
       "when": 1786607704000,
       "tag": "0031_add_agent_default_model",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1786613376495,
+      "tag": "0032_capability_risk_overrides",
+      "breakpoints": true
     }
   ]
 }

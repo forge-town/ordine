@@ -130,6 +130,7 @@ describe("skillsDao", () => {
         expect.objectContaining({
           name: "error-handling-best-practice",
           description: expect.stringContaining("neverthrow"),
+          origin: "builtin",
           tags: expect.arrayContaining(["Neverthrow"]),
         }),
       ]),

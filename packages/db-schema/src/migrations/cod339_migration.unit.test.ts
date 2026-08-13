@@ -35,10 +35,14 @@ describe("COD-339 migration", () => {
       entries: Array<{ idx: number; tag: string }>;
     };
 
-    expect(journal.entries.at(-1)).toMatchObject({
-      idx: 30,
-      tag: "0030_harvest_capabilities",
-    });
+    expect(journal.entries).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          idx: 30,
+          tag: "0030_harvest_capabilities",
+        }),
+      ]),
+    );
   });
 
   it("adds provenance and encrypted credential columns plus the signature index", async () => {

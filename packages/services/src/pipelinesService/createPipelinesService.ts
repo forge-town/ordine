@@ -14,8 +14,9 @@ import {
   createPipelineRunsDao,
   createPipelinesDao,
   createSettingsDao,
-  type DbConnection,
+  type DbExecutor,
 } from "@repo/models";
+import { ResultAsync } from "neverthrow";
 import { logger } from "@repo/logger";
 import {
   PipelineSchema,
@@ -26,6 +27,11 @@ import {
 import { isConnectionAllowed } from "@repo/pipeline-engine/schemas";
 import { runStructuredAgent } from "../pipelineRunnerService/agentRunner/runStructuredAgent";
 import { normalizeSettingsRecord } from "../settingsService/normalizeSettingsRecord";
+import {
+  createCapabilityCatalogService,
+  type CapabilityCatalogServiceOptions,
+} from "../capabilityCatalogService";
+import { toServiceError } from "../serviceErrors";
 import { MAX_SNAPSHOT_CHARS, truncate } from "./promptText";
 import { proposeActions, type ProposeActionsOptions } from "./proposeActions";
 import {
@@ -130,7 +136,21 @@ const sanitizeGeneratedGraph = (value: unknown): unknown => {
   };
 };
 
-export const createPipelinesService = (db: DbConnection) => {
+export interface PipelinesServiceOptions {
+  capabilityCatalog?: ReturnType<typeof createCapabilityCatalogService>;
+  capabilityCatalogOptions?: CapabilityCatalogServiceOptions;
+}
+
+export interface PendingOperationInput {
+  id: string;
+  name: string;
+  description: string;
+  config: Record<string, unknown>;
+  acceptedObjectTypes: ObjectNodeType[];
+  sourceSkillId?: string;
+}
+
+export const createPipelinesService = (db: DbExecutor, options: PipelinesServiceOptions = {}) => {
   const agentRuntimesDao = createAgentRuntimesDao(db);
   const conversationMessagesDao = createConversationMessagesDao(db);
   const dao = createPipelinesDao(db);
@@ -140,25 +160,48 @@ export const createPipelinesService = (db: DbConnection) => {
   const jobTracesDao = createJobTracesDao(db);
   const operationsDao = createOperationsDao(db);
   const settingsDao = createSettingsDao(db);
+  const getCapabilityCatalog = (executor: DbExecutor) =>
+    options.capabilityCatalog ??
+    createCapabilityCatalogService(executor, options.capabilityCatalogOptions);
+  const insertPendingOperations = async (
+    executor: DbExecutor,
+    pendingOperations: PendingOperationInput[],
+  ): Promise<void> => {
+    const validation =
+      await getCapabilityCatalog(executor).validateOperationInputs(pendingOperations);
+    if (validation.isErr()) throw validation.error;
+
+    const transactionalOperationsDao = createOperationsDao(executor);
+    for (const operation of pendingOperations) {
+      await transactionalOperationsDao.create(operation);
+    }
+  };
+
+  const createPendingOperations = (pendingOperations: PendingOperationInput[]) =>
+    ResultAsync.fromPromise(
+      db.transaction((transaction) => insertPendingOperations(transaction, pendingOperations)),
+      (error) => toServiceError(error, "Create pending operations"),
+    );
+
+  const createWithPendingOperations = (
+    pipeline: Parameters<typeof dao.create>[0],
+    pendingOperations: PendingOperationInput[],
+  ) =>
+    ResultAsync.fromPromise(
+      db.transaction(async (transaction) => {
+        await insertPendingOperations(transaction, pendingOperations);
+
+        return createPipelinesDao(transaction).create(pipeline);
+      }),
+      (error) => toServiceError(error, "Create pipeline with pending operations"),
+    );
 
   return {
     getAll: () => dao.findMany(),
     getById: (id: string) => dao.findById(id),
     create: (...args: Parameters<typeof dao.create>) => dao.create(...args),
-    createPendingOperations: async (
-      pendingOperations: Array<{
-        id: string;
-        name: string;
-        description: string;
-        config: Record<string, unknown>;
-        acceptedObjectTypes: ObjectNodeType[];
-        sourceSkillId?: string;
-      }>,
-    ) => {
-      for (const op of pendingOperations) {
-        await operationsDao.create(op);
-      }
-    },
+    createPendingOperations,
+    createWithPendingOperations,
     update: (...args: Parameters<typeof dao.update>) => dao.update(...args),
     delete: async (id: string) => {
       await pipelineRunsDao.deleteByPipelineId(id);

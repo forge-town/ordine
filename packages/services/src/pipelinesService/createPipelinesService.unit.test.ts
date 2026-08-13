@@ -1,4 +1,5 @@
 import { beforeEach, describe, it, expect, vi } from "vitest";
+import { ok } from "neverthrow";
 
 const mockDao = {
   findMany: vi.fn().mockResolvedValue([{ id: "p1" }]),
@@ -15,6 +16,7 @@ const mockSettingsDao = {
   }),
 };
 const mockOperationsDao = {
+  create: vi.fn(),
   findMany: vi.fn().mockResolvedValue([
     {
       id: "op-known",
@@ -51,8 +53,11 @@ const mockConversationMessagesDao = {
 
 vi.mock("@repo/models", () => ({
   createAgentRuntimesDao: () => mockAgentRuntimesDao,
+  createCapabilityRiskOverridesDao: () => ({ findMany: vi.fn().mockResolvedValue([]) }),
+  createConnectorsDao: () => ({ findMany: vi.fn().mockResolvedValue([]) }),
   createConversationMessagesDao: () => mockConversationMessagesDao,
-  createPipelinesDao: () => mockDao,
+  createPipelinesDao: (executor: { pipelinesDao?: typeof mockDao }) =>
+    executor?.pipelinesDao ?? mockDao,
   createDistillationsDao: () => mockDistillationsDao,
   createJobsDao: () => ({}),
   createPipelineRunsDao: () => ({
@@ -62,8 +67,13 @@ vi.mock("@repo/models", () => ({
   createJobTracesDao: () => ({}),
   createAgentRawExportsDao: () => ({}),
   createAgentSpansDao: () => ({}),
-  createOperationsDao: () => mockOperationsDao,
+  createOperationsDao: (executor: { operationsDao?: typeof mockOperationsDao }) =>
+    executor?.operationsDao ?? mockOperationsDao,
   createSettingsDao: () => mockSettingsDao,
+  createSkillsDao: () => ({
+    findMany: vi.fn().mockResolvedValue([]),
+    seedIfEmpty: vi.fn().mockResolvedValue(undefined),
+  }),
 }));
 vi.mock("@repo/agent", () => ({
   extractJsonFromText: (raw: string) => mockExtractJsonFromText(raw),
@@ -107,6 +117,7 @@ describe("createPipelinesService", () => {
     mockDao.delete.mockClear();
     mockSettingsDao.get.mockClear();
     mockOperationsDao.findMany.mockClear();
+    mockOperationsDao.create.mockClear();
     mockAgentRuntimesDao.findMany.mockClear();
     mockRunAgent.mockReset();
     mockExtractJsonFromText.mockReset();
@@ -166,6 +177,93 @@ describe("createPipelinesService", () => {
     const svc = createPipelinesService({} as never);
     await svc.delete("p1");
     expect(mockDao.delete).toHaveBeenCalledWith("p1");
+  });
+
+  it("rolls back the whole pending-operation batch when the second insert fails", async () => {
+    const persistedOperations: unknown[] = [];
+    const transaction = vi.fn(async (callback: (executor: unknown) => Promise<unknown>) => {
+      const stagedOperations: unknown[] = [];
+      const operationsDao = {
+        ...mockOperationsDao,
+        create: vi.fn(async (operation: { id: string }) => {
+          if (operation.id === "op-2") throw new Error("injected second insert failure");
+          stagedOperations.push(operation);
+        }),
+      };
+
+      const value = await callback({ operationsDao });
+      persistedOperations.push(...stagedOperations);
+
+      return value;
+    });
+    const service = createPipelinesService({ transaction } as never, {
+      capabilityCatalog: {
+        validateOperationInputs: vi.fn().mockResolvedValue(ok(undefined)),
+      } as never,
+    });
+
+    const result = await service.createPendingOperations([
+      {
+        id: "op-1",
+        name: "First",
+        description: "first",
+        config: {},
+        acceptedObjectTypes: ["file"],
+      },
+      {
+        id: "op-2",
+        name: "Second",
+        description: "second",
+        config: {},
+        acceptedObjectTypes: ["file"],
+      },
+    ]);
+
+    expect(result.isErr()).toBe(true);
+    expect(transaction).toHaveBeenCalledOnce();
+    expect(persistedOperations).toEqual([]);
+  });
+
+  it("rolls back pending operations when the related pipeline insert fails", async () => {
+    const persistedOperations: unknown[] = [];
+    const transaction = vi.fn(async (callback: (executor: unknown) => Promise<unknown>) => {
+      const stagedOperations: unknown[] = [];
+      const value = await callback({
+        operationsDao: {
+          ...mockOperationsDao,
+          create: vi.fn(async (operation: unknown) => stagedOperations.push(operation)),
+        },
+        pipelinesDao: {
+          ...mockDao,
+          create: vi.fn().mockRejectedValue(new Error("injected pipeline insert failure")),
+        },
+      });
+      persistedOperations.push(...stagedOperations);
+
+      return value;
+    });
+    const service = createPipelinesService({ transaction } as never, {
+      capabilityCatalog: {
+        validateOperationInputs: vi.fn().mockResolvedValue(ok(undefined)),
+      } as never,
+    });
+
+    const result = await service.createWithPendingOperations(
+      { id: "pipeline-1", name: "Pipeline" } as never,
+      [
+        {
+          id: "op-1",
+          name: "First",
+          description: "first",
+          config: {},
+          acceptedObjectTypes: ["file"],
+        },
+      ],
+    );
+
+    expect(result.isErr()).toBe(true);
+    expect(transaction).toHaveBeenCalledOnce();
+    expect(persistedOperations).toEqual([]);
   });
 
   it("proposeActions returns a parsed proposal and diagnostics", async () => {

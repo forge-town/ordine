@@ -10,3 +10,8 @@ export const OperationConfigSchema = z.object({
 });
 export type OperationConfig = z.infer<typeof OperationConfigSchema>;
 export type OperationConfigInput = z.input<typeof OperationConfigSchema>;
+
+/** User-save boundary: reject unknown root/executor fields instead of stripping them. */
+export const StrictOperationConfigSchema = OperationConfigSchema.extend({
+  executor: OperationExecutorConfigSchema.strict().optional(),
+}).strict();
