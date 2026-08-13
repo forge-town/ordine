@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Suspense, lazy } from "react";
 
 // Canvas is heavy (@xyflow/react); lazy-load it so it stays out of the initial bundle.
@@ -15,6 +15,9 @@ export const Route = createFileRoute("/canvas")({
 
 function RouteComponent() {
   const { id } = Route.useSearch();
+  const navigate = useNavigate();
+  const handleGeneratedPipeline = (pipelineId: string) =>
+    navigate({ to: "/canvas", search: { id: pipelineId } });
 
   return (
     <Suspense
@@ -24,7 +27,7 @@ function RouteComponent() {
         </div>
       }
     >
-      <CanvasPage id={id} />
+      <CanvasPage id={id} onGeneratedPipeline={handleGeneratedPipeline} />
     </Suspense>
   );
 }

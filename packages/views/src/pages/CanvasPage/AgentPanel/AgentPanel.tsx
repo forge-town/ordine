@@ -34,10 +34,14 @@ interface RuntimeState {
   suggestedRuntimeId: string | null;
 }
 
+interface AgentPanelProps {
+  onGeneratedPipeline?: (pipelineId: string) => Promise<void> | void;
+}
+
 const formatRuntimeLabel = (runtime: AgentRuntimeConfig): string =>
   runtime.name === runtime.type ? runtime.name : `${runtime.name} (${runtime.type})`;
 
-export const AgentPanel = () => {
+export const AgentPanel = ({ onGeneratedPipeline }: AgentPanelProps) => {
   const { t } = useTranslation();
   const platform = usePlatform();
   const pipelineAgentSessionsClient = useMemo(
@@ -59,6 +63,7 @@ export const AgentPanel = () => {
   const [runtimeOptions, setRuntimeOptions] = useState<AgentRuntimeConfig[]>([]);
   const [selectedRuntimeId, setSelectedRuntimeId] = useState<string | null>(null);
   const addMessage = useAgentBarStore((state) => state.addMessage);
+  const generateProposal = useAgentBarStore((state) => state.generateProposal);
   const {
     applyProposal,
     agentContext,
@@ -71,7 +76,7 @@ export const AgentPanel = () => {
     streamingAssistantText,
     streamingProgress,
     submitMessage,
-  } = useAgentConversation({ pipelineId });
+  } = useAgentConversation({ onGeneratedPipeline, pipelineId });
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const attachmentGraphSignatureRef = useRef<string | null>(null);
   const pendingPromptConsumedRef = useRef(false);
@@ -254,16 +259,6 @@ export const AgentPanel = () => {
       sendInFlightRef.current = true;
       setIsPreparingSend(true);
       try {
-        if (!pipelineId) {
-          toastStore.getState().addToast({
-            type: "error",
-            title: t("canvas.runFailed"),
-            description: t("canvas.noPipelineId"),
-          });
-
-          return false;
-        }
-
         const runtimeSetupResult = await fetchRuntimeState();
         if (runtimeSetupResult.isErr()) {
           addMessage({
@@ -326,7 +321,6 @@ export const AgentPanel = () => {
   useEffect(() => {
     if (
       pendingPromptConsumedRef.current ||
-      !pipelineId ||
       isHistoryLoading ||
       isLoadingRuntimes ||
       runtimeOptions.length === 0 ||
@@ -462,24 +456,52 @@ export const AgentPanel = () => {
 
   const hasBlockingDiagnostics =
     agentPanel.diagnostics?.some((diagnostic) => diagnostic.severity === "error") ?? false;
+  const generateProposalNeedsAnswer =
+    generateProposal !== null && generateProposal.readiness !== "ready_for_generation";
 
   const activeProposal = agentPanel.pendingProposal;
   const activeDiagnostics = agentPanel.diagnostics;
 
   const handleApply = useCallback(() => {
-    if (!activeProposal || hasBlockingDiagnostics) {
+    if (
+      (!activeProposal && !generateProposal) ||
+      hasBlockingDiagnostics ||
+      generateProposalNeedsAnswer
+    ) {
       return;
     }
-    void applyProposal();
-  }, [activeProposal, applyProposal, hasBlockingDiagnostics]);
+    void applyProposal(selectedRuntimeId);
+  }, [
+    activeProposal,
+    applyProposal,
+    generateProposal,
+    generateProposalNeedsAnswer,
+    hasBlockingDiagnostics,
+    selectedRuntimeId,
+  ]);
 
   const handleDiscard = useCallback(() => {
     void discardProposal();
   }, [discardProposal]);
 
   const proposal = activeProposal;
-  const hasProposal = proposal !== null;
-  const proposalItems = useMemo(() => buildProposalItems(proposal, [], t), [proposal, t]);
+  const hasProposal = proposal !== null || generateProposal !== null;
+  const proposalItems = useMemo(() => {
+    if (proposal) {
+      return buildProposalItems(proposal, [], t);
+    }
+
+    if (!generateProposal) {
+      return [];
+    }
+
+    return [
+      ...generateProposal.inputs.map((detail) => ({ detail, title: "Input" })),
+      ...generateProposal.outputs.map((detail) => ({ detail, title: "Output" })),
+      ...generateProposal.majorOperations.map((detail) => ({ detail, title: "Operation" })),
+      ...generateProposal.executionFlow.map((detail) => ({ detail, title: "Flow" })),
+    ];
+  }, [generateProposal, proposal, t]);
   const handleAskFix = useCallback(() => {
     if (selectedRuntimeId) {
       handleMessageSubmit({
@@ -639,7 +661,11 @@ export const AgentPanel = () => {
                 </span>
                 <ProposalCard
                   disabled={
-                    isSending || isPreparingUpload || isHistoryLoading || agentPanel.isLoading
+                    isSending ||
+                    isPreparingUpload ||
+                    isHistoryLoading ||
+                    agentPanel.isLoading ||
+                    generateProposalNeedsAnswer
                   }
                   items={proposalItems}
                   onApply={handleApply}
@@ -647,7 +673,7 @@ export const AgentPanel = () => {
                   onReject={handleDiscard}
                   onRevise={handleRevise}
                   subtitle={t("canvas.agentPanel.proposal.review")}
-                  title={proposal.summary}
+                  title={proposal?.summary ?? generateProposal?.purpose ?? ""}
                 />
               </div>
             </div>

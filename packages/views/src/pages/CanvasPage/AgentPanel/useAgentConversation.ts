@@ -11,7 +11,15 @@ import {
 import { usePlatform } from "../../../platform";
 import { useAgentBarStore, useAgentBarStoreApi } from "./_store";
 import { HISTORY_WINDOW_LIMIT, useAgentContext } from "./context";
-import { useAgentConversationPersistence } from "./useAgentConversationPersistence";
+import {
+  clearGenerateSessionId,
+  loadGenerateSessionId,
+  saveGenerateSessionId,
+} from "./generateSessionStorage";
+import {
+  useAgentConversationPersistence,
+  type SendAgentMessageInput,
+} from "./useAgentConversationPersistence";
 
 export type AgentConversationSubmitInput = {
   content: string;
@@ -19,7 +27,13 @@ export type AgentConversationSubmitInput = {
   runtimeId: string;
 };
 
-export const useAgentConversation = ({ pipelineId }: { pipelineId: string | null }) => {
+export const useAgentConversation = ({
+  onGeneratedPipeline,
+  pipelineId,
+}: {
+  onGeneratedPipeline?: (pipelineId: string) => Promise<void> | void;
+  pipelineId: string | null;
+}) => {
   const { t } = useTranslation();
   const platform = usePlatform();
   const client = useMemo(() => createPipelineAgentSessionsClient(platform), [platform]);
@@ -61,6 +75,54 @@ export const useAgentConversation = ({ pipelineId }: { pipelineId: string | null
       return existing;
     }
 
+    if (!pipelineId) {
+      const persistedSessionId = loadGenerateSessionId();
+      if (persistedSessionId) {
+        const persistedSession = await ResultAsync.fromPromise(
+          client.getSessionById(persistedSessionId),
+          (error) => (error instanceof Error ? error : new Error(String(error))),
+        );
+        if (
+          persistedSession.isOk() &&
+          persistedSession.value.mode === "generate" &&
+          !persistedSession.value.createdPipelineId &&
+          persistedSession.value.status !== "failed" &&
+          persistedSession.value.status !== "completed"
+        ) {
+          const restoredMessages = (persistedSession.value.messages ?? []).flatMap((message) =>
+            message.role === "system"
+              ? []
+              : [
+                  {
+                    content: message.content,
+                    id: message.id,
+                    role: message.role,
+                  },
+                ],
+          );
+          agentBarStore.getState().setMessages(restoredMessages);
+          agentBarStore.getState().setSession(persistedSessionId, graphSignature);
+
+          const latestProposal =
+            (persistedSession.value.proposals ?? []).find(
+              (proposal) => proposal.id === persistedSession.value.latestProposalId,
+            ) ?? persistedSession.value.proposals?.at(-1);
+          if (
+            latestProposal?.mode === "generate" &&
+            latestProposal.proposal.mode === "generate" &&
+            latestProposal.status === "proposal_ready"
+          ) {
+            agentBarStore.getState().setProposalId(latestProposal.id);
+            agentBarStore.getState().setGenerateProposal(latestProposal.proposal);
+          }
+
+          return persistedSessionId;
+        }
+
+        clearGenerateSessionId();
+      }
+    }
+
     while (sessionCreationRef.current) {
       const pending = sessionCreationRef.current;
       if (pending.graphSignature === graphSignature) {
@@ -87,11 +149,16 @@ export const useAgentConversation = ({ pipelineId }: { pipelineId: string | null
       }
 
       const session = await client.createSession({
+        // COD-346:无 pipelineId 的空画布走 generate 会话(不绑定 pipeline),
+        // 方案同意后由后端创建 pipeline 并回填 createdPipelineId。
         entrypoint: "canvas-agent-panel",
-        mode: "edit",
+        mode: pipelineId ? "edit" : "generate",
         ...(pipelineId ? { pipelineId } : {}),
         snapshot: { edges, nodes },
       });
+      if (!pipelineId) {
+        saveGenerateSessionId(session.id);
+      }
 
       const history = agentBarStore.getState().messages.slice(-HISTORY_WINDOW_LIMIT);
       for (const message of history) {
@@ -115,6 +182,32 @@ export const useAgentConversation = ({ pipelineId }: { pipelineId: string | null
     return creationPromise;
   }, [agentBarStore, client, edges, nodes, pipelineId]);
 
+  // COD-346:有 pipelineId 时消息同时落 conversationMessages(可跨刷新恢复);
+  // 空画布 generate 会话没有 pipeline 可挂靠,只写本地 store,服务端由 session 持久化。
+  const persistMessage = useCallback(
+    async ({
+      content,
+      metadata,
+      phase,
+      role = "user",
+    }: SendAgentMessageInput): Promise<boolean> => {
+      if (pipelineId) {
+        return Boolean(await sendMessage({ content, metadata, phase, role }));
+      }
+
+      agentBarStore.getState().addMessage({
+        content,
+        id: `${role}-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+        metadata,
+        phase,
+        role,
+      });
+
+      return true;
+    },
+    [agentBarStore, pipelineId, sendMessage],
+  );
+
   const finishWithAssistantMessage = useCallback(
     async (content: string) => {
       const state = agentBarStore.getState();
@@ -122,9 +215,9 @@ export const useAgentConversation = ({ pipelineId }: { pipelineId: string | null
       state.setStreamingProgress(null);
       state.setConversationState("done");
 
-      return Boolean(await sendMessage({ content, phase: "done", role: "assistant" }));
+      return persistMessage({ content, phase: "done", role: "assistant" });
     },
-    [agentBarStore, sendMessage],
+    [agentBarStore, persistMessage],
   );
 
   const handlePlanEvent = useCallback(
@@ -166,6 +259,12 @@ export const useAgentConversation = ({ pipelineId }: { pipelineId: string | null
         return finishWithAssistantMessage(event.proposal.summary);
       }
 
+      if (event.type === "proposal_ready" && event.proposal.mode === "generate") {
+        state.setProposalId(event.proposalId);
+        state.setGenerateProposal(event.proposal);
+        return finishWithAssistantMessage(event.proposal.purpose);
+      }
+
       if (event.type === "error") {
         return finishWithAssistantMessage(event.message);
       }
@@ -184,7 +283,6 @@ export const useAgentConversation = ({ pipelineId }: { pipelineId: string | null
     async ({ content, metadata, runtimeId }: AgentConversationSubmitInput) => {
       const trimmedContent = content.trim();
       if (
-        !pipelineId ||
         isLoading ||
         trimmedContent.length === 0 ||
         conversationState === "thinking" ||
@@ -193,8 +291,11 @@ export const useAgentConversation = ({ pipelineId }: { pipelineId: string | null
         return false;
       }
 
+      // COD-346:无 pipelineId 时是空画布 generate 会话
+      const mode = pipelineId ? "edit" : "generate";
       clearPendingProposal();
       const state = agentBarStore.getState();
+      state.setGenerateProposal(null);
       state.setConversationState("thinking");
       state.setStreamingAssistantText("");
       state.setStreamingProgress(null);
@@ -207,13 +308,13 @@ export const useAgentConversation = ({ pipelineId }: { pipelineId: string | null
             kind: "text",
             role: "system",
           });
-          const persistedMessage = await sendMessage({
+          const persisted = await persistMessage({
             content: trimmedContent,
             metadata,
             phase: "thinking",
             role: "user",
           });
-          if (!persistedMessage) {
+          if (!persisted) {
             throw new Error(t("canvas.agentPanel.error"));
           }
           await client.appendMessage(sessionId, {
@@ -232,7 +333,7 @@ export const useAgentConversation = ({ pipelineId }: { pipelineId: string | null
               if (
                 event.type === "question" ||
                 event.type === "error" ||
-                (event.type === "proposal_ready" && event.proposal.mode === "edit")
+                event.type === "proposal_ready"
               ) {
                 streamedTerminalEvent.current = true;
               }
@@ -247,24 +348,24 @@ export const useAgentConversation = ({ pipelineId }: { pipelineId: string | null
           });
 
           if (streamedTerminalEvent.current) {
-            const persisted = await Promise.all(terminalPersistences);
-            if (persisted.some((value) => !value)) {
+            const persistedTerminal = await Promise.all(terminalPersistences);
+            if (persistedTerminal.some((value) => !value)) {
               throw new Error(t("canvas.agentPanel.error"));
             }
 
             return !streamFailed;
           }
 
-          const latestProposal = await client.getLatestReadyProposal(sessionId, "edit", {
+          const latestProposal = await client.getLatestReadyProposal(sessionId, mode, {
             excludeProposalId: previousProposalId,
           });
-          if (latestProposal && latestProposal.proposal.mode === "edit") {
-            const persisted = await handlePlanEvent({
+          if (latestProposal && latestProposal.proposal.mode === mode) {
+            const persistedProposal = await handlePlanEvent({
               proposal: latestProposal.proposal,
               proposalId: latestProposal.proposalId,
               type: "proposal_ready",
             });
-            if (!persisted) {
+            if (!persistedProposal) {
               throw new Error(t("canvas.agentPanel.error"));
             }
 
@@ -273,11 +374,11 @@ export const useAgentConversation = ({ pipelineId }: { pipelineId: string | null
 
           const latestQuestion = await client.getLatestAssistantQuestion(sessionId);
           if (latestQuestion) {
-            const persisted = await handlePlanEvent({
+            const persistedQuestion = await handlePlanEvent({
               question: latestQuestion.question,
               type: "question",
             });
-            if (!persisted) {
+            if (!persistedQuestion) {
               throw new Error(t("canvas.agentPanel.error"));
             }
           }
@@ -322,51 +423,98 @@ export const useAgentConversation = ({ pipelineId }: { pipelineId: string | null
       handlePlanEvent,
       isLoading,
       pipelineId,
-      sendMessage,
+      persistMessage,
       t,
     ],
   );
 
-  const applyProposal = useCallback(async () => {
-    const proposal = agentPanel.pendingProposal;
-    const hasBlockingDiagnostics =
-      agentPanel.diagnostics?.some((diagnostic) => diagnostic.severity === "error") ?? false;
-    if (!proposal || hasBlockingDiagnostics) {
-      return false;
-    }
+  const applyProposal = useCallback(
+    async (runtimeId?: string | null) => {
+      const proposal = agentPanel.pendingProposal;
+      const state = agentBarStore.getState();
+      const { generateProposal, proposalId, sessionId } = state;
+      const hasBlockingDiagnostics =
+        agentPanel.diagnostics?.some((diagnostic) => diagnostic.severity === "error") ?? false;
+      if ((!proposal && !generateProposal) || hasBlockingDiagnostics) {
+        return false;
+      }
 
-    const { proposalId, sessionId } = agentBarStore.getState();
-    const approval = await ResultAsync.fromPromise(
-      sessionId && proposalId ? client.approveProposal(sessionId, proposalId) : Promise.resolve(),
-      (error) => (error instanceof Error ? error : new Error(String(error))),
-    );
-    if (approval.isErr()) {
-      await finishWithAssistantMessage(approval.error.message);
+      if (generateProposal) {
+        if (!sessionId || !proposalId) {
+          return false;
+        }
+        state.setConversationState("thinking");
+        const generation = await ResultAsync.fromPromise(
+          (async () => {
+            await client.approveProposal(sessionId, proposalId);
 
-      return false;
-    }
+            const generated = await ResultAsync.fromPromise(
+              client.generatePipelineFromApprovedProposal(sessionId, {
+                runtimeId: runtimeId ?? undefined,
+              }),
+              (error) => (error instanceof Error ? error : new Error(String(error))),
+            );
+            if (generated.isOk()) {
+              return generated.value;
+            }
 
-    if (!applyAgentProposal(proposal)) {
-      return false;
-    }
+            const status = (generated.error as Error & { status?: number }).status;
+            if (typeof status === "number") {
+              throw generated.error;
+            }
 
-    await sendMessage({
-      content: t("canvas.agentPanel.applied"),
-      phase: "done",
-      role: "assistant",
-    });
-    agentBarStore.getState().resetSession();
+            return client.waitForCreatedPipeline(sessionId);
+          })(),
+          (error) => (error instanceof Error ? error : new Error(String(error))),
+        );
+        if (generation.isErr()) {
+          await finishWithAssistantMessage(generation.error.message);
 
-    return true;
-  }, [
-    agentBarStore,
-    agentPanel,
-    applyAgentProposal,
-    client,
-    finishWithAssistantMessage,
-    sendMessage,
-    t,
-  ]);
+          return false;
+        }
+
+        clearGenerateSessionId();
+        state.setGenerateProposal(null);
+        state.setConversationState("done");
+        await onGeneratedPipeline?.(generation.value.pipelineId);
+
+        return true;
+      }
+
+      const approval = await ResultAsync.fromPromise(
+        sessionId && proposalId ? client.approveProposal(sessionId, proposalId) : Promise.resolve(),
+        (error) => (error instanceof Error ? error : new Error(String(error))),
+      );
+      if (approval.isErr()) {
+        await finishWithAssistantMessage(approval.error.message);
+
+        return false;
+      }
+
+      if (!proposal || !applyAgentProposal(proposal)) {
+        return false;
+      }
+
+      await persistMessage({
+        content: t("canvas.agentPanel.applied"),
+        phase: "done",
+        role: "assistant",
+      });
+      agentBarStore.getState().resetSession();
+
+      return true;
+    },
+    [
+      agentBarStore,
+      agentPanel,
+      applyAgentProposal,
+      client,
+      finishWithAssistantMessage,
+      onGeneratedPipeline,
+      persistMessage,
+      t,
+    ],
+  );
 
   const discardProposal = useCallback(async () => {
     const { proposalId, sessionId } = agentBarStore.getState();
@@ -381,15 +529,16 @@ export const useAgentConversation = ({ pipelineId }: { pipelineId: string | null
     }
 
     clearPendingProposal();
+    agentBarStore.getState().setGenerateProposal(null);
     agentBarStore.getState().setProposalId(null);
-    await sendMessage({
+    await persistMessage({
       content: t("canvas.agentPanel.discarded"),
       phase: "done",
       role: "assistant",
     });
 
     return true;
-  }, [agentBarStore, clearPendingProposal, client, finishWithAssistantMessage, sendMessage, t]);
+  }, [agentBarStore, clearPendingProposal, client, finishWithAssistantMessage, persistMessage, t]);
 
   return {
     agentContext,

@@ -30,7 +30,11 @@ import { getScreenViewportCenter, getViewportRectCenter } from "../utils/nodePos
 
 const AGENT_PANEL_COLLAPSE_AT = 248;
 
-export const CanvasInner = () => {
+export const CanvasInner = ({
+  onGeneratedPipeline,
+}: {
+  onGeneratedPipeline?: (pipelineId: string) => Promise<void> | void;
+}) => {
   const { t } = useTranslation();
   const store = useCanvasPageStore();
   const flowViewportRef = useRef<HTMLDivElement>(null);
@@ -210,7 +214,7 @@ export const CanvasInner = () => {
             data-testid="canvas-agent-panel-shell"
             style={{ width: `${agentPanelWidth}px`, maxWidth: "calc(100% - 1px)" }}
           >
-            <AgentPanel />
+            <AgentPanel onGeneratedPipeline={onGeneratedPipeline} />
           </div>
         </div>
       ) : (

@@ -10,9 +10,10 @@ interface CanvasPageProps {
   // Pipeline id to load, read from the route's search params by each app.
   id?: string;
   embedded?: boolean;
+  onGeneratedPipeline?: (pipelineId: string) => Promise<void> | void;
 }
 
-export const CanvasPage = ({ embedded = false, id }: CanvasPageProps) => {
+export const CanvasPage = ({ embedded = false, id, onGeneratedPipeline }: CanvasPageProps) => {
   const { result: pipelineResult, query: pipelineQuery } = useOne<PipelineData>({
     resource: ResourceName.pipelines,
     id: id ?? "",
@@ -31,7 +32,7 @@ export const CanvasPage = ({ embedded = false, id }: CanvasPageProps) => {
   return (
     <CanvasLayout embedded={embedded}>
       <CanvasPageStoreProvider pipeline={pipeline}>
-        <CanvasPageContent />
+        <CanvasPageContent onGeneratedPipeline={onGeneratedPipeline} />
       </CanvasPageStoreProvider>
     </CanvasLayout>
   );
