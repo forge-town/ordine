@@ -544,6 +544,30 @@ describe("createPipelineAgentSessionsService", () => {
     expect(session?.proposals).toHaveLength(1);
   });
 
+  it("recovers an analyzing session when its planning activity is no longer running", async () => {
+    mockSessionsDao.findById.mockResolvedValueOnce({
+      id: "session-1",
+      entrypoint: "new-pipeline-dialog",
+      mode: "generate",
+      status: "analyzing",
+      pipelineId: null,
+      snapshot: null,
+      latestProposalId: null,
+      approvedProposalId: null,
+      createdPipelineId: null,
+      createdAt: new Date("2026-06-03T12:00:00.000Z"),
+      updatedAt: new Date("2026-06-03T12:00:03.000Z"),
+    });
+    const service = createPipelineAgentSessionsService({} as never);
+
+    const session = await service.getSessionById("session-1");
+
+    expect(mockSessionsDao.update).toHaveBeenCalledWith("session-1", {
+      status: "awaiting_user",
+    });
+    expect(session?.status).toBe("awaiting_user");
+  });
+
   it("returns a follow-up question when planning needs clarification", async () => {
     mockSessionsDao.findById.mockResolvedValueOnce({
       id: "session-1",

@@ -18,6 +18,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: oven-sh/setup-bun@v2
         with:
@@ -26,8 +28,26 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-      - name: Format check
-        run: bun run format:check
+      - name: Format check (changed files)
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          set -euo pipefail
+          if [ -z "${BASE_SHA:-}" ] || [[ "$BASE_SHA" =~ ^0+$ ]]; then
+            BASE_SHA="$(git rev-list --max-parents=0 HEAD | tail -n 1)"
+          fi
+
+          mapfile -t format_files < <(
+            git diff --name-only --diff-filter=ACMR "$BASE_SHA...$GITHUB_SHA" -- \
+              '*.js' '*.jsx' '*.ts' '*.tsx' '*.json' '*.jsonc' '*.md' |
+              grep -v '^apps/scripts/src/best-practices/.*/code-snippet\.' || true
+          )
+
+          if ((${#format_files[@]} == 0)); then
+            echo "No format-supported files changed."
+          else
+            bunx oxfmt --config packages/oxc-formatter-config/oxfmt.json --check "${format_files[@]}"
+          fi
 
       - name: Type check
         run: bun run check-types

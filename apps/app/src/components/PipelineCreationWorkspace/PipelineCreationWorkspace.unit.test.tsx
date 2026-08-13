@@ -103,6 +103,43 @@ describe("PipelineCreationWorkspace", () => {
     expect(screen.getByRole("button", { name: "newPipelineDialog.approve" })).toBeEnabled();
   });
 
+  it("restores a stale analyzing session as an editable conversation", async () => {
+    globalThis.localStorage.setItem("ordine.pipeline-agent.current-session-id", "stale-session");
+    const client = createClient();
+    client.getSessionById.mockResolvedValue({
+      id: "stale-session",
+      entrypoint: "new-pipeline-dialog",
+      mode: "generate",
+      status: "awaiting_user",
+      latestProposalId: null,
+      createdPipelineId: null,
+      messages: [
+        {
+          id: "stale-message",
+          role: "user",
+          kind: "text",
+          content: "Build a review pipeline",
+        },
+      ],
+      attachments: [],
+      proposals: [],
+    });
+
+    render(
+      <PipelineCreationWorkspace
+        active
+        client={client as typeof pipelineAgentSessionsClient}
+        presentation="home"
+      />,
+    );
+
+    expect(await screen.findByText("Build a review pipeline")).toBeInTheDocument();
+    expect(
+      screen.getByRole("textbox", { name: "newPipelineDialog.messagePlaceholder" }),
+    ).toBeEnabled();
+    expect(screen.queryByText("newPipelineDialog.restoring")).not.toBeInTheDocument();
+  });
+
   it("cancels planning and returns the composer to an editable state", async () => {
     const user = userEvent.setup();
     const client = createClient();
