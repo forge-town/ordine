@@ -25,6 +25,36 @@ const proposeActionsBodySchema = z.object({
   runtimeId: z.string().optional(),
 });
 
+const generateStructureBodySchema = z
+  .object({
+    name: z.string(),
+    description: z.string(),
+    matchedOperations: z
+      .array(
+        z
+          .object({
+            operationId: z.string().min(1),
+            operationName: z.string().min(1),
+            reason: z.string(),
+          })
+          .strict(),
+      )
+      .optional(),
+    unmatchedSteps: z
+      .array(
+        z
+          .object({
+            step: z.string().min(1),
+            reason: z.string(),
+          })
+          .strict(),
+      )
+      .optional(),
+    runtimeId: z.string().min(1).optional(),
+    model: z.string().min(1).optional(),
+  })
+  .strict();
+
 pipelinesRoutes.get("/", async (c) => {
   const pipelines = await pipelinesService.getAll();
 
@@ -169,17 +199,22 @@ pipelinesRoutes.post("/:id/run", async (c) => {
 });
 
 pipelinesRoutes.post("/generate-structure", async (c) => {
-  const body = (await c.req.json()) as {
-    name: string;
-    description: string;
-    matchedOperations?: Array<{ operationId: string; operationName: string; reason: string }>;
-    unmatchedSteps?: Array<{ step: string; reason: string }>;
-  };
+  const bodyResult = await ResultAsync.fromPromise(
+    c.req.json() as Promise<unknown>,
+    () => undefined,
+  );
+  const parsed = generateStructureBodySchema.safeParse(bodyResult.unwrapOr(undefined));
+  if (!parsed.success) {
+    return c.json({ error: "Invalid request body", issues: parsed.error.issues }, 400);
+  }
+
   const result = await pipelinesService.generateStructure({
-    name: body.name ?? "",
-    description: body.description ?? "",
-    matchedOperations: body.matchedOperations,
-    unmatchedSteps: body.unmatchedSteps,
+    name: parsed.data.name,
+    description: parsed.data.description,
+    matchedOperations: parsed.data.matchedOperations,
+    unmatchedSteps: parsed.data.unmatchedSteps,
+    runtimeId: parsed.data.runtimeId,
+    model: parsed.data.model,
   });
 
   if ("error" in result) {

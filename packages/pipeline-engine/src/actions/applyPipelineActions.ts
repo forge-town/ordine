@@ -297,6 +297,26 @@ const applyAction = (
 
       return [];
     }
+
+    case "updateOperation": {
+      // The action updates the shared Operation entity during proposal approval;
+      // its graph representation is only the stable operationId reference.
+      const operationNode = draft.nodes.find(
+        (node) =>
+          node.data.nodeType === "operation" && node.data.operationId === action.operationId,
+      );
+      if (!operationNode) {
+        return [
+          makeDiagnostic(
+            "OPERATION_NOT_FOUND",
+            `Operation "${action.operationId}" is not used by the current pipeline.`,
+            actionIndex,
+          ),
+        ];
+      }
+
+      return [];
+    }
   }
 };
 

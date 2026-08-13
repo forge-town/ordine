@@ -912,7 +912,8 @@
           "addEdge": "添加连线",
           "removeEdge": "删除连线",
           "reconnectEdge": "重连连线",
-          "replaceNodeData": "替换节点数据"
+          "replaceNodeData": "替换节点数据",
+          "updateOperation": "更新 Operation 执行器"
         }
       },
       "checkpoint": {
@@ -1990,7 +1991,8 @@
         "reconnectEdge": "重连连线",
         "removeEdge": "删除连线",
         "removeNode": "删除节点",
-        "replaceNodeData": "更新节点"
+        "replaceNodeData": "更新节点",
+        "updateOperation": "更新 Operation 执行器"
       },
       "applied": {
         "hint": "已应用 — 节点已在画布上，随时可编辑。点选任意节点即可在这里引用它，或直接点 Run。"

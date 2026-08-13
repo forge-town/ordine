@@ -1,6 +1,8 @@
 import type {
+  AgentRuntime,
   AgentContextPayload,
   ArtifactAnalysis,
+  CapabilityCatalogEntry,
   PipelineGraphSnapshot,
   ProposeAttachment,
 } from "@repo/schemas";
@@ -8,6 +10,36 @@ import { MAX_SNAPSHOT_CHARS, truncate } from "../promptText";
 import { buildHistoryBlock, type ProposeHistoryMessage } from "./conversationHistory";
 
 const MAX_SELECTION_CHARS = 6000;
+
+const buildCapabilityBlocks = (
+  agentTargets: Array<{ agent: AgentRuntime; models: string[] }>,
+  capabilityCatalog: CapabilityCatalogEntry[],
+): string[] => {
+  if (agentTargets.length === 0 && capabilityCatalog.length === 0) return [];
+
+  return [
+    "=== ASSIGNABLE AGENT / MODEL TARGETS ===",
+    JSON.stringify(agentTargets, null, 2),
+    "",
+    "=== CAPABILITY CATALOG (use reference values in updateOperation) ===",
+    truncate(
+      JSON.stringify(
+        capabilityCatalog.map((entry) => ({
+          reference: entry.reference,
+          displayName: entry.displayName,
+          description: entry.description,
+          kind: entry.kind,
+          supportedRuntimes: entry.supportedRuntimes,
+          riskTier: entry.riskTier,
+        })),
+        null,
+        2,
+      ),
+      MAX_SNAPSHOT_CHARS,
+    ),
+    "",
+  ];
+};
 
 export const PROPOSE_AGENT_ID = "pipeline-propose-actions";
 
@@ -34,6 +66,13 @@ export const PROPOSE_SYSTEM_PROMPT = [
   "",
   "6. replaceNodeData — replaces the data payload of a node (must keep the same nodeType):",
   '   { "type": "replaceNodeData", "nodeId": "<nodeId>", "data": { "nodeType": "<sameNodeType>", ... } }',
+  "",
+  "7. updateOperation — replaces the executor on a shared Operation entity used by this pipeline:",
+  '   { "type": "updateOperation", "operationId": "<existing operationId>", "executor": { "type": "script|agent", ... } }',
+  '   Script executor: { "type": "script", "language": "bash|python|javascript", "command": "...", "assignmentReason": "one line" }',
+  '   Prompt agent: { "type": "agent", "agentMode": "prompt", "agent": "...", "model": "...", "prompt": "...", "allowedTools": [], "assignmentReason": "one line" }',
+  '   Skill agent: { "type": "agent", "agentMode": "skill", "agent": "...", "model": "...", "skillId": "...", "allowedTools": [], "assignmentReason": "one line" }',
+  "   Use exactly one complete executor shape. Choose agent/model/skillId/allowedTools only from the provided catalogs.",
   "",
   "=== NODE TYPES & REQUIRED DATA FIELDS ===",
   "Every node's data payload MUST contain 'label' plus the required fields for its nodeType.",
@@ -76,6 +115,8 @@ export const PROPOSE_SYSTEM_PROMPT = [
   "- When adding a node, the node 'type' MUST match the 'nodeType' inside its data payload.",
   "- When adding edges, both source and target nodes must already exist in the graph (or be added in a previous operation).",
   "- When replacing node data, the 'nodeType' inside 'data' MUST match the node's existing type.",
+  "- updateOperation changes the shared Operation entity in place; use it only for an existing operation referenced by the current graph, never to clone an Operation.",
+  "- For updateOperation, choose the smallest capability set. If any selected capability is irreversible, explain why it is necessary in assignmentReason.",
   "- When adding or replacing operation nodes, prefer operationId values from the provided available operations list.",
   "- If NO existing operation matches a required step, define a new one in 'newOperations' (unique id starting with op_new_, clear name, and a thorough 'prompt' describing exactly what the step must do with its input). Reference that id from addNode operation nodes.",
   "- Do NOT refuse a request merely because no matching operation exists — define newOperations instead. Only refuse when the request itself is unsafe or impossible.",
@@ -94,6 +135,7 @@ export type ProposeOperationCatalogItem = {
   name: string;
   description: string | null;
   acceptedObjectTypes: unknown;
+  executor?: unknown;
 };
 
 /**
@@ -131,6 +173,7 @@ const buildActiveRunBlock = (activeRun?: ProposeActiveRun): string[] => {
 };
 
 export type BuildProposeUserPromptInput = {
+  agentTargets?: Array<{ agent: AgentRuntime; models: string[] }>;
   /**
    * Run-time context, filled by the server only when the message carries a
    * runState and the job exists.
@@ -142,6 +185,7 @@ export type BuildProposeUserPromptInput = {
    */
   artifactAnalysis?: ArtifactAnalysis;
   attachments: ProposeAttachment[];
+  capabilityCatalog?: CapabilityCatalogEntry[];
   /**
    * Frontend buildAgentContext output. Items not provided are neither
    * injected nor claimed.
@@ -334,8 +378,10 @@ const buildArtifactsBlock = (attachments: ProposeAttachment[]): string[] => {
 
 export const buildProposeUserPrompt = ({
   activeRun,
+  agentTargets = [],
   artifactAnalysis,
   attachments,
+  capabilityCatalog = [],
   context,
   diagnostics = [],
   failedProposal,
@@ -360,6 +406,7 @@ export const buildProposeUserPrompt = ({
     `=== AVAILABLE OPERATIONS (${operationCatalog.length}) ===`,
     truncate(JSON.stringify(operationCatalog, null, 2), MAX_SNAPSHOT_CHARS),
     "",
+    ...buildCapabilityBlocks(agentTargets, capabilityCatalog),
     ...buildHistoryBlock(history),
     ...buildSelectionBlock(referencedNodeIds, snapshot),
     ...buildAnnotationsBlock(context),

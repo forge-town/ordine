@@ -24,26 +24,32 @@ export const pipelineRunnerEngineDeps = {
     ssh?: SshConnection;
     getMcpConnectorInjection?: McpConnectorInjectionProvider;
   }): PipelineEngineDeps => ({
-    runPrompt: (o) =>
-      promptExecutor.run({
+    runPrompt: (o) => {
+      const agent = o.agent ?? defaultAgent;
+
+      return promptExecutor.run({
         ...o,
-        agent: o.agent ?? defaultAgent,
+        agent,
         jobId,
         apiKey,
-        model: o.model ?? model,
-        ssh,
+        model: o.model ?? (agent === defaultAgent ? model : undefined),
+        ...(agent === defaultAgent && ssh ? { ssh } : {}),
         getMcpConnectorInjection,
-      }),
-    runSkill: (o) =>
-      skillExecutor.run({
+      });
+    },
+    runSkill: (o) => {
+      const agent = o.agent ?? defaultAgent;
+
+      return skillExecutor.run({
         ...o,
-        agent: o.agent ?? defaultAgent,
+        agent,
         jobId,
         apiKey,
-        model: o.model ?? model,
-        ssh,
+        model: o.model ?? (agent === defaultAgent ? model : undefined),
+        ...(agent === defaultAgent && ssh ? { ssh } : {}),
         getMcpConnectorInjection,
-      }),
+      });
+    },
     structuredJsonToMarkdown: (content) => structuredOutput.toMarkdown({ content }),
     evaluateLoopCondition,
   }),

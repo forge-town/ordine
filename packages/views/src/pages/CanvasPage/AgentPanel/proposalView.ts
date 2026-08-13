@@ -17,6 +17,7 @@ const ACTION_TITLE_KEYS: Record<PipelineAction["type"], string> = {
   removeEdge: "canvas.agentPanel.proposalDetails.actionTitles.removeEdge",
   reconnectEdge: "canvas.agentPanel.proposalDetails.actionTitles.reconnectEdge",
   replaceNodeData: "canvas.agentPanel.proposalDetails.actionTitles.replaceNodeData",
+  updateOperation: "canvas.agentPanel.proposalDetails.actionTitles.updateOperation",
 };
 
 const actionDetail = (action: PipelineAction): string => {
@@ -38,6 +39,9 @@ const actionDetail = (action: PipelineAction): string => {
     }
     case "replaceNodeData": {
       return action.nodeId;
+    }
+    case "updateOperation": {
+      return action.operationId;
     }
     default: {
       return "";

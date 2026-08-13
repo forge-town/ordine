@@ -25,6 +25,7 @@ import { useAgentBarStore } from "./_store";
 import { Assistant, MessageTurn, ProposalCard } from "./messages";
 import type { MessageTurnSubmitInput } from "./messages/MessageTurn";
 import { Composer, type ComposerSubmitInput } from "./Composer";
+import { takePendingPipelinePrompt } from "./pendingPipelinePrompt";
 import { buildProposalItems } from "./proposalView";
 import { useAgentConversation } from "./useAgentConversation";
 
@@ -73,6 +74,7 @@ export const AgentPanel = () => {
   } = useAgentConversation({ pipelineId });
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const attachmentGraphSignatureRef = useRef<string | null>(null);
+  const pendingPromptConsumedRef = useRef(false);
   const sendInFlightRef = useRef(false);
   const isSending = isPreparingSend || isConversationSending;
   const isUploadBlocked = isHistoryLoading || isPreparingUpload || isSending;
@@ -320,6 +322,52 @@ export const AgentPanel = () => {
       t,
     ],
   );
+
+  useEffect(() => {
+    if (
+      pendingPromptConsumedRef.current ||
+      !pipelineId ||
+      isHistoryLoading ||
+      isLoadingRuntimes ||
+      runtimeOptions.length === 0 ||
+      isSending ||
+      agentPanel.isLoading ||
+      sendInFlightRef.current
+    ) {
+      return;
+    }
+
+    pendingPromptConsumedRef.current = true;
+    const pending = takePendingPipelinePrompt();
+    if (!pending) {
+      return;
+    }
+
+    const effectiveRuntimeId =
+      runtimeOptions.find((runtime) => runtime.id === pending.runtimeId)?.id ?? selectedRuntimeId;
+    if (!effectiveRuntimeId) {
+      setComposerDraft(pending.prompt);
+
+      return;
+    }
+
+    setSelectedRuntimeId(effectiveRuntimeId);
+    sendInFlightRef.current = true;
+    setIsPreparingSend(true);
+    void submitMessage({ content: pending.prompt, runtimeId: effectiveRuntimeId }).finally(() => {
+      sendInFlightRef.current = false;
+      setIsPreparingSend(false);
+    });
+  }, [
+    agentPanel.isLoading,
+    isHistoryLoading,
+    isLoadingRuntimes,
+    isSending,
+    pipelineId,
+    runtimeOptions,
+    selectedRuntimeId,
+    submitMessage,
+  ]);
 
   const handleComposerAttach = useCallback(
     async (files: File[]): Promise<ProposeAttachment[]> => {

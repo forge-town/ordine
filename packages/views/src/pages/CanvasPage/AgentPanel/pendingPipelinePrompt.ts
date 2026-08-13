@@ -5,22 +5,6 @@ export interface PendingPipelinePrompt {
   runtimeId?: string;
 }
 
-/**
- * 首页首条消息跳转画布前，把 prompt/runtime 暂存到 sessionStorage；
- * AgentPanel 在已保存的 Pipeline 画布挂载后取出并自动首发。
- * 一次性语义:take 即删。key 与 packages/views 侧消费方保持同名,勿单边改。
- */
-export const savePendingPipelinePrompt = (prompt: string, runtimeId?: string) => {
-  if (globalThis.sessionStorage === undefined) {
-    return;
-  }
-
-  globalThis.sessionStorage.setItem(
-    PENDING_PIPELINE_PROMPT_KEY,
-    JSON.stringify({ prompt, ...(runtimeId ? { runtimeId } : {}) } satisfies PendingPipelinePrompt),
-  );
-};
-
 export const takePendingPipelinePrompt = (): PendingPipelinePrompt | null => {
   if (globalThis.sessionStorage === undefined) {
     return null;
@@ -28,7 +12,6 @@ export const takePendingPipelinePrompt = (): PendingPipelinePrompt | null => {
 
   const stored = globalThis.sessionStorage.getItem(PENDING_PIPELINE_PROMPT_KEY);
   globalThis.sessionStorage.removeItem(PENDING_PIPELINE_PROMPT_KEY);
-
   if (!stored) {
     return null;
   }
@@ -44,7 +27,6 @@ export const takePendingPipelinePrompt = (): PendingPipelinePrompt | null => {
       };
     }
   } catch {
-    // Backward compatibility for prompts saved by COD-345 before the runtime was included.
     return { prompt: stored };
   }
 

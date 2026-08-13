@@ -62,6 +62,7 @@ const mockPipelinesService = {
   delete: vi.fn(),
   generateStructure: vi.fn(),
   proposeActions: vi.fn(),
+  updateOperationExecutors: vi.fn(),
 };
 
 const mockRunAgent = vi.fn();
@@ -226,6 +227,7 @@ describe("createPipelineAgentSessionsService", () => {
       edges: [],
     });
     mockPipelinesService.createPendingOperations.mockResolvedValue(ok(undefined));
+    mockPipelinesService.updateOperationExecutors.mockResolvedValue(ok(undefined));
     mockPipelinesService.delete.mockResolvedValue(undefined);
     mockPipelinesService.create.mockImplementation(async (data) => ({
       id: data.id ?? "pipeline-1",
@@ -475,6 +477,7 @@ describe("createPipelineAgentSessionsService", () => {
   it("rolls back approval state and pending operations when the final session update fails", async () => {
     const committed = {
       operations: [] as string[],
+      updatedOperations: [] as string[],
       proposalStatus: "proposal_ready",
       sessionStatus: "proposal_ready",
     };
@@ -482,6 +485,23 @@ describe("createPipelineAgentSessionsService", () => {
       id: "session-1",
       mode: "edit",
       status: "proposal_ready",
+      snapshot: {
+        nodes: [
+          {
+            id: "existing-node",
+            type: "operation",
+            position: { x: 0, y: 0 },
+            data: {
+              nodeType: "operation",
+              label: "Existing",
+              operationId: "op-existing",
+              operationName: "Existing",
+              status: "idle",
+            },
+          },
+        ],
+        edges: [],
+      },
     };
     const proposal = {
       id: "proposal-edit-1",
@@ -491,6 +511,18 @@ describe("createPipelineAgentSessionsService", () => {
       proposal: {
         mode: "edit",
         readiness: "ready_for_generation",
+        actions: [
+          {
+            type: "updateOperation",
+            operationId: "op-existing",
+            executor: {
+              type: "script",
+              language: "bash",
+              command: "echo updated",
+              assignmentReason: "This deterministic command needs no Agent capability.",
+            },
+          },
+        ],
         pendingOperations: [
           {
             id: "op-new",
@@ -505,6 +537,7 @@ describe("createPipelineAgentSessionsService", () => {
     mockDb.transaction.mockImplementationOnce(async (callback) => {
       const staged = {
         operations: [...committed.operations],
+        updatedOperations: [...committed.updatedOperations],
         proposalStatus: committed.proposalStatus,
         sessionStatus: committed.sessionStatus,
       };
@@ -513,6 +546,11 @@ describe("createPipelineAgentSessionsService", () => {
           ...mockPipelinesService,
           createPendingOperations: vi.fn(async (operations: Array<{ id: string }>) => {
             staged.operations.push(...operations.map((operation) => operation.id));
+
+            return ok(undefined);
+          }),
+          updateOperationExecutors: vi.fn(async (updates: Array<{ operationId: string }>) => {
+            staged.updatedOperations.push(...updates.map((update) => update.operationId));
 
             return ok(undefined);
           }),
@@ -541,6 +579,7 @@ describe("createPipelineAgentSessionsService", () => {
     );
     expect(committed).toEqual({
       operations: [],
+      updatedOperations: [],
       proposalStatus: "proposal_ready",
       sessionStatus: "proposal_ready",
     });
@@ -552,6 +591,135 @@ describe("createPipelineAgentSessionsService", () => {
     await service.approveProposal("session-1", "proposal-1");
 
     expect(mockPipelinesService.createPendingOperations).not.toHaveBeenCalled();
+  });
+
+  it("updates a shared Operation executor while approving an edit proposal", async () => {
+    mockSessionsDao.findById.mockResolvedValueOnce({
+      id: "session-1",
+      entrypoint: "canvas-agent-panel",
+      mode: "edit",
+      status: "proposal_ready",
+      pipelineId: "pipe-1",
+      snapshot: {
+        nodes: [
+          {
+            id: "review-node",
+            type: "operation",
+            position: { x: 0, y: 0 },
+            data: {
+              nodeType: "operation",
+              label: "Review Code",
+              operationId: "review-code",
+              operationName: "Review Code",
+              status: "idle",
+            },
+          },
+        ],
+        edges: [],
+      },
+      latestProposalId: "proposal-edit-1",
+      approvedProposalId: null,
+      createdPipelineId: null,
+      createdAt: new Date("2026-06-03T12:00:00.000Z"),
+      updatedAt: new Date("2026-06-03T12:00:00.000Z"),
+    });
+    const executor = {
+      type: "agent" as const,
+      agentMode: "prompt" as const,
+      agent: "codex" as const,
+      model: "gpt-review",
+      prompt: "Review the supplied diff.",
+      allowedTools: ["Read"],
+      assignmentReason: "Read-only access is sufficient for semantic review.",
+    };
+    mockProposalsDao.findById.mockResolvedValueOnce({
+      id: "proposal-edit-1",
+      sessionId: "session-1",
+      mode: "edit",
+      status: "proposal_ready",
+      proposal: {
+        mode: "edit",
+        summary: "Change the review executor",
+        targetGraphIntent: "Use the selected review model",
+        majorChanges: [],
+        assumptions: [],
+        openQuestions: [],
+        actions: [{ type: "updateOperation", operationId: "review-code", executor }],
+        diagnosticsPreview: [],
+        readiness: "ready_for_generation",
+        pendingOperations: [],
+      },
+      createdAt: new Date("2026-06-03T12:00:02.000Z"),
+      updatedAt: new Date("2026-06-03T12:00:02.000Z"),
+      approvedAt: null,
+    });
+
+    await createPipelineAgentSessionsService({} as never).approveProposal(
+      "session-1",
+      "proposal-edit-1",
+    );
+
+    expect(mockPipelinesService.updateOperationExecutors).toHaveBeenCalledWith([
+      { operationId: "review-code", executor },
+    ]);
+    expect(mockDb.transaction).toHaveBeenCalledOnce();
+  });
+
+  it("rejects approval when updateOperation targets an Operation outside the edit snapshot", async () => {
+    mockSessionsDao.findById.mockResolvedValueOnce({
+      id: "session-1",
+      entrypoint: "canvas-agent-panel",
+      mode: "edit",
+      status: "proposal_ready",
+      pipelineId: "pipe-1",
+      snapshot: { nodes: [], edges: [] },
+      latestProposalId: "proposal-edit-1",
+      approvedProposalId: null,
+      createdPipelineId: null,
+      createdAt: new Date("2026-06-03T12:00:00.000Z"),
+      updatedAt: new Date("2026-06-03T12:00:00.000Z"),
+    });
+    mockProposalsDao.findById.mockResolvedValueOnce({
+      id: "proposal-edit-1",
+      sessionId: "session-1",
+      mode: "edit",
+      status: "proposal_ready",
+      proposal: {
+        mode: "edit",
+        summary: "Change an unrelated executor",
+        targetGraphIntent: "Change an unrelated executor",
+        majorChanges: [],
+        assumptions: [],
+        openQuestions: [],
+        actions: [
+          {
+            type: "updateOperation",
+            operationId: "not-on-this-canvas",
+            executor: {
+              type: "script",
+              language: "bash",
+              command: "echo no",
+              assignmentReason: "This is a deterministic command.",
+            },
+          },
+        ],
+        diagnosticsPreview: [],
+        readiness: "ready_for_generation",
+        pendingOperations: [],
+      },
+      createdAt: new Date("2026-06-03T12:00:02.000Z"),
+      updatedAt: new Date("2026-06-03T12:00:02.000Z"),
+      approvedAt: null,
+    });
+
+    await expect(
+      createPipelineAgentSessionsService({} as never).approveProposal(
+        "session-1",
+        "proposal-edit-1",
+      ),
+    ).rejects.toThrow("not used by edit session");
+    expect(mockPipelinesService.updateOperationExecutors).not.toHaveBeenCalled();
+    expect(mockProposalsDao.update).not.toHaveBeenCalled();
   });
 
   it("rejects approval when a proposal still needs user input", async () => {
