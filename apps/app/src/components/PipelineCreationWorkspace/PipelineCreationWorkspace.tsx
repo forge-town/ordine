@@ -24,6 +24,7 @@ import {
   type PipelineAgentSessionClientDetail,
 } from "@/lib/pipelineAgentSessionsClient";
 import { router } from "@/router";
+import { savePendingPipelinePrompt } from "@/lib/pendingPipelinePrompt";
 import {
   HOME_PIPELINE_AGENT_SESSION_KEY,
   usePipelineCreationSessionRecovery,
@@ -304,6 +305,16 @@ export const PipelineCreationWorkspace = ({
       if (runtimeConfigured === false) {
         setErrorMessage(t("pipelineAgentErrors.runtimeNotFound"));
       }
+
+      return;
+    }
+
+    // COD-345:首页首条消息不就地开聊,暂存 prompt 并跳转无 id 的 /canvas 三栏工作区,
+    // 对话由右侧 AgentPanel 接管(COD-346)。已有会话/附件时保持原流程,避免中断进行中的 session。
+    if (isHome && !sessionIdRef.current && messages.length === 0 && attachments.length === 0) {
+      savePendingPipelinePrompt(text);
+      setInputValue("");
+      void router.navigate({ to: "/canvas", search: { id: undefined } });
 
       return;
     }
