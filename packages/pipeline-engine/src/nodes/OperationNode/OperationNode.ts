@@ -279,7 +279,11 @@ export const processOperationNode = async (
   // Record the execution start time and a success flag: artifact capture only runs on real
   // success, and only picks up files written during this execution window (mtime >= startedAt),
   // so leftovers from other nodes or earlier runs in the shared outputDir aren't misattributed.
-  const exec = { startedAt: Date.now(), succeeded: false };
+  // The window start is floored back by 1s: on filesystems with second-granularity mtime
+  // (some CI/container mounts), a file written during the run can get an mtime truncated
+  // below the millisecond-precision startedAt and be missed entirely. The slack is far
+  // smaller than the stale-residue horizon (60s in practice), so attribution is unaffected.
+  const exec = { startedAt: Date.now() - 1_000, succeeded: false };
 
   if (loopEnabled && conditionPrompt) {
     const loopState = { currentInput: input };
