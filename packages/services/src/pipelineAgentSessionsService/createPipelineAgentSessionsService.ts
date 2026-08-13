@@ -863,10 +863,19 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
     },
 
     getSessionById: async (sessionId: string) => {
-      const session = await sessionsDao.findById(sessionId);
-      if (!session) {
+      const storedSession = await sessionsDao.findById(sessionId);
+      if (!storedSession) {
         return null;
       }
+
+      const session =
+        storedSession.status === "analyzing" && !activeActivities.has(sessionId)
+          ? {
+              ...storedSession,
+              ...(await sessionsDao.update(sessionId, { status: "awaiting_user" })),
+              status: "awaiting_user" as const,
+            }
+          : storedSession;
 
       const [messages, attachments, contextArtifacts, proposals] = await Promise.all([
         messagesDao.findManyBySessionId(sessionId),
