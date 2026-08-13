@@ -1,7 +1,10 @@
 import { execFile } from "node:child_process";
+import { constants } from "node:fs";
 import { access } from "node:fs/promises";
-import { isAbsolute } from "node:path";
+import { homedir } from "node:os";
+import { isAbsolute, join } from "node:path";
 import { logger } from "@repo/logger";
+import { AgentRuntimeSchema } from "@repo/schemas";
 import { ResultAsync } from "neverthrow";
 
 export interface DetectedRuntime {
@@ -17,6 +20,9 @@ const BUILTIN_RUNTIME_BINARIES: Record<string, string> = {
   hermes: "hermes",
   mastra: "mastra",
   openclaw: "openclaw",
+  "pi-agent": "pi",
+  opencode: "opencode",
+  "kimi-code": "kimi",
 };
 
 /**
@@ -43,24 +49,25 @@ export const parseExtraRuntimes = (raw: string | undefined): Record<string, stri
 };
 
 /**
- * Scan catalog = builtin runtimes, with `ORDINE_EXTRA_RUNTIMES` allowed only to
- * OVERRIDE the binary name of an already-known runtime (e.g. a renamed CLI).
- * Unknown names are ignored: introducing a brand-new runtime type would also
- * require `AgentRuntimeSchema`, persistence, and driver dispatch to support it,
- * so accepting one here would only produce a runtime the rest of the stack
- * rejects as unsupported (and `scanAndSync` could persist).
+ * Scan catalog = builtin runtimes, with `ORDINE_EXTRA_RUNTIMES` allowed to
+ * OVERRIDE the binary name of a known runtime or REGISTER a binary for any
+ * type in `AgentRuntimeSchema` that is not in the builtin list (e.g. a renamed
+ * CLI, or a type whose binary lives outside PATH conventions). Names outside
+ * the schema enum are still ignored: persistence, driver dispatch, and UI all
+ * key off the enum, so a truly unknown type would only produce a runtime the
+ * rest of the stack rejects as unsupported.
  */
 export const getRuntimeBinaries = (
   env: NodeJS.ProcessEnv = process.env,
 ): Record<string, string> => {
   const binaries: Record<string, string> = { ...BUILTIN_RUNTIME_BINARIES };
   for (const [name, bin] of Object.entries(parseExtraRuntimes(env["ORDINE_EXTRA_RUNTIMES"]))) {
-    if (name in BUILTIN_RUNTIME_BINARIES) {
+    if (AgentRuntimeSchema.safeParse(name).success) {
       binaries[name] = bin;
     } else {
       logger.warn(
         { runtime: name },
-        "ORDINE_EXTRA_RUNTIMES: ignoring unknown runtime; only binary overrides for known runtimes are supported",
+        "ORDINE_EXTRA_RUNTIMES: ignoring unknown runtime; only types in AgentRuntimeSchema are supported",
       );
     }
   }
@@ -104,7 +111,7 @@ export const versionCommand = (
 
 const execFileAsync = (bin: string, args: string[]): Promise<{ stdout: string; stderr: string }> =>
   new Promise((resolve, reject) => {
-    execFile(bin, args, {}, (error, stdout, stderr) => {
+    execFile(bin, args, { timeout: 10_000 }, (error, stdout, stderr) => {
       if (error) {
         reject(error);
 
@@ -114,21 +121,61 @@ const execFileAsync = (bin: string, args: string[]): Promise<{ stdout: string; s
     });
   });
 
+/**
+ * Directories where agent CLIs are commonly installed but which are often
+ * missing from the PATH of a daemon / launchd / Finder-launched process.
+ * Probed only when `which` fails.
+ */
+const FALLBACK_BINARY_DIRS = [
+  "/opt/homebrew/bin",
+  "/usr/local/bin",
+  "~/.local/bin",
+  "~/.npm-global/bin",
+  "~/.bun/bin",
+];
+
+const isExecutable = (path: string): Promise<boolean> =>
+  access(path, constants.X_OK).then(
+    () => true,
+    () => false,
+  );
+
+const probeFallbackDirs = async (binaryName: string): Promise<string | undefined> => {
+  const candidates = FALLBACK_BINARY_DIRS.map((dir) =>
+    join(dir.replace(/^~/, homedir()), binaryName),
+  );
+  const hits = await Promise.all(
+    candidates.map(async (candidate) => ({ candidate, ok: await isExecutable(candidate) })),
+  );
+
+  return hits.find((hit) => hit.ok)?.candidate;
+};
+
+const resolveBinaryPath = async (binaryName: string): Promise<string | undefined> => {
+  // Absolute paths (e.g. ORDINE_EXTRA_RUNTIMES=hermes:C:/tools/hermes.exe)
+  // skip PATH lookup entirely.
+  if (isAbsolute(binaryName)) {
+    return access(binaryName).then(
+      () => binaryName,
+      () => undefined,
+    );
+  }
+
+  const whichResult = await ResultAsync.fromPromise(
+    execFileAsync(locateBinaryCommand(), [binaryName]),
+    () => undefined as never,
+  );
+  const whichPath = whichResult.isOk() ? firstPath(whichResult.value.stdout) : undefined;
+  if (whichPath || process.platform === "win32") return whichPath;
+
+  return probeFallbackDirs(binaryName);
+};
+
 const detectBinary = async (
   type: string,
   binaryName: string,
 ): Promise<DetectedRuntime | undefined> => {
-  const path = isAbsolute(binaryName)
-    ? await ResultAsync.fromPromise(
-        access(binaryName).then(() => binaryName),
-        () => undefined,
-      ).unwrapOr(undefined)
-    : await ResultAsync.fromPromise(
-        execFileAsync(locateBinaryCommand(), [binaryName]).then((result) =>
-          firstPath(result.stdout),
-        ),
-        () => undefined,
-      ).unwrapOr(undefined);
+  const path = await resolveBinaryPath(binaryName);
   if (!path) {
     return undefined;
   }

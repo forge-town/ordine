@@ -35,6 +35,21 @@ const RUNTIME_META: Record<string, { label: string; icon: React.ReactNode; descr
       icon: <Cog className="h-4 w-4" />,
       description: "OpenClaw runtime",
     },
+    [AGENT_RUNTIME_ENUM.PI_AGENT]: {
+      label: "Pi Agent",
+      icon: <Terminal className="h-4 w-4" />,
+      description: "Pi coding assistant CLI",
+    },
+    [AGENT_RUNTIME_ENUM.OPENCODE]: {
+      label: "OpenCode",
+      icon: <Cpu className="h-4 w-4" />,
+      description: "OpenCode CLI agent",
+    },
+    [AGENT_RUNTIME_ENUM.KIMI_CODE]: {
+      label: "Kimi Code",
+      icon: <Zap className="h-4 w-4" />,
+      description: "Moonshot Kimi CLI",
+    },
   };
 
 export const AgentFormDialog = () => {

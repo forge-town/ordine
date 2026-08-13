@@ -23,6 +23,7 @@
     "@mastra/observability": "^1.10.0",
     "@mastra/pg": "1.9.3",
     "@repo/logger": "workspace:*",
+    "@repo/schemas": "workspace:*",
     "neverthrow": "^8.2.0",
     "zod": "^4.3.6"
   },

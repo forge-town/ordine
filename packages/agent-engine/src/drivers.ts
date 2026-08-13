@@ -6,8 +6,11 @@ import {
   runClaude,
   runCodex,
   runHermes,
+  runKimiCode,
   runMastra,
   runOpenclaw,
+  runOpencode,
+  runPiAgent,
   type McpConnectorInjection,
   type ToolName,
 } from "@repo/agent";
@@ -228,10 +231,79 @@ const runOpenclawDirect = async (opts: AgentRunOptions): Promise<DriverResult> =
   return { text: result.text, events: [] };
 };
 
+const runPiAgentDirect = async (opts: AgentRunOptions): Promise<DriverResult> => {
+  await reportConnectorInjectionSkipped(
+    opts,
+    "runtime adapter does not yet support run-level MCP injection",
+  );
+
+  const result = await runPiAgent({
+    systemPrompt: opts.systemPrompt,
+    userPrompt: opts.userPrompt,
+    cwd: opts.cwd,
+    model: opts.model,
+    onProgress: toAsyncProgress(opts.onProgress),
+  });
+
+  if (result.isErr()) {
+    // Unified error channel: throw like every other driver instead of returning a rejected promise.
+    throw result.error;
+  }
+
+  return { text: result.value, events: [] };
+};
+
+const runOpencodeDirect = async (opts: AgentRunOptions): Promise<DriverResult> => {
+  await reportConnectorInjectionSkipped(
+    opts,
+    "runtime adapter does not yet support run-level MCP injection",
+  );
+
+  const result = await runOpencode({
+    systemPrompt: opts.systemPrompt,
+    userPrompt: opts.userPrompt,
+    cwd: opts.cwd,
+    model: opts.model,
+    onProgress: toAsyncProgress(opts.onProgress),
+  });
+
+  if (result.isErr()) {
+    // Unified error channel: throw like every other driver instead of returning a rejected promise.
+    throw result.error;
+  }
+
+  return { text: result.value, events: [] };
+};
+
+const runKimiCodeDirect = async (opts: AgentRunOptions): Promise<DriverResult> => {
+  await reportConnectorInjectionSkipped(
+    opts,
+    "runtime adapter does not yet support run-level MCP injection",
+  );
+
+  const result = await runKimiCode({
+    systemPrompt: opts.systemPrompt,
+    userPrompt: opts.userPrompt,
+    cwd: opts.cwd,
+    model: opts.model,
+    onProgress: toAsyncProgress(opts.onProgress),
+  });
+
+  if (result.isErr()) {
+    // Unified error channel: throw like every other driver instead of returning a rejected promise.
+    throw result.error;
+  }
+
+  return { text: result.value, events: [] };
+};
+
 export const DRIVERS: Record<AgentRuntime, DriverFn> = {
   "claude-code": runLocalClaudeDirect,
   codex: runCodexDirect,
   hermes: runHermesDirect,
   mastra: runMastraDirect,
   openclaw: runOpenclawDirect,
+  "pi-agent": runPiAgentDirect,
+  opencode: runOpencodeDirect,
+  "kimi-code": runKimiCodeDirect,
 };

@@ -319,8 +319,10 @@ describe("runCodex", () => {
     expect(config).toContain('Path = "ATTACK"');
     expect(spawnOpts.env.CODEX_HOME).not.toBe("/tmp/x");
     expect(spawnOpts.env.NODE_OPTIONS).toBe(process.env.NODE_OPTIONS);
+    // The path env var is `Path` on Windows but `PATH` on POSIX; expecting
+    // `process.env.Path` literally makes this assertion fail off Windows.
     expect(Object.entries(spawnOpts.env).find(([name]) => name.toLowerCase() === "path")?.[1]).toBe(
-      process.env.Path,
+      process.env.Path ?? process.env.PATH,
     );
 
     testState.mockProc.stdout.push("ok");
