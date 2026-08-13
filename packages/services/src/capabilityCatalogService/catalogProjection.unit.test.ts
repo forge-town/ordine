@@ -55,11 +55,7 @@ describe("projectCapabilityCatalog", () => {
         ),
         connector("connector-d", "empty", { transport: "stdio", command: "empty" }),
       ],
-      skills: [
-        skill("manual", "manual"),
-        skill("scanned", "harvested"),
-        skill("seed", "builtin"),
-      ],
+      skills: [skill("manual", "manual"), skill("scanned", "harvested"), skill("seed", "builtin")],
       overrides: [],
     });
 

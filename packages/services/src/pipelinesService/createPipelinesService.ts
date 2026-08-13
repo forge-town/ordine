@@ -16,6 +16,7 @@ import {
   createSettingsDao,
   type DbConnection,
 } from "@repo/models";
+import { ResultAsync } from "neverthrow";
 import { logger } from "@repo/logger";
 import {
   PipelineSchema,
@@ -26,6 +27,11 @@ import {
 import { isConnectionAllowed } from "@repo/pipeline-engine/schemas";
 import { runStructuredAgent } from "../pipelineRunnerService/agentRunner/runStructuredAgent";
 import { normalizeSettingsRecord } from "../settingsService/normalizeSettingsRecord";
+import {
+  createCapabilityCatalogService,
+  type CapabilityCatalogServiceOptions,
+} from "../capabilityCatalogService";
+import { toServiceError } from "../serviceErrors";
 import { MAX_SNAPSHOT_CHARS, truncate } from "./promptText";
 import { proposeActions, type ProposeActionsOptions } from "./proposeActions";
 import {
@@ -130,7 +136,12 @@ const sanitizeGeneratedGraph = (value: unknown): unknown => {
   };
 };
 
-export const createPipelinesService = (db: DbConnection) => {
+export interface PipelinesServiceOptions {
+  capabilityCatalog?: ReturnType<typeof createCapabilityCatalogService>;
+  capabilityCatalogOptions?: CapabilityCatalogServiceOptions;
+}
+
+export const createPipelinesService = (db: DbConnection, options: PipelinesServiceOptions = {}) => {
   const agentRuntimesDao = createAgentRuntimesDao(db);
   const conversationMessagesDao = createConversationMessagesDao(db);
   const dao = createPipelinesDao(db);
@@ -140,12 +151,21 @@ export const createPipelinesService = (db: DbConnection) => {
   const jobTracesDao = createJobTracesDao(db);
   const operationsDao = createOperationsDao(db);
   const settingsDao = createSettingsDao(db);
+  const capabilityCatalogRef = { current: options.capabilityCatalog };
+  const getCapabilityCatalog = () => {
+    capabilityCatalogRef.current ??= createCapabilityCatalogService(
+      db,
+      options.capabilityCatalogOptions,
+    );
+
+    return capabilityCatalogRef.current;
+  };
 
   return {
     getAll: () => dao.findMany(),
     getById: (id: string) => dao.findById(id),
     create: (...args: Parameters<typeof dao.create>) => dao.create(...args),
-    createPendingOperations: async (
+    createPendingOperations: (
       pendingOperations: Array<{
         id: string;
         name: string;
@@ -154,11 +174,19 @@ export const createPipelinesService = (db: DbConnection) => {
         acceptedObjectTypes: ObjectNodeType[];
         sourceSkillId?: string;
       }>,
-    ) => {
-      for (const op of pendingOperations) {
-        await operationsDao.create(op);
-      }
-    },
+    ) =>
+      getCapabilityCatalog()
+        .validateOperationConfigs(pendingOperations.map((operation) => operation.config))
+        .andThen(() =>
+          ResultAsync.fromPromise(
+            (async () => {
+              for (const operation of pendingOperations) {
+                await operationsDao.create(operation);
+              }
+            })(),
+            (error) => toServiceError(error, "Create pending operations"),
+          ),
+        ),
     update: (...args: Parameters<typeof dao.update>) => dao.update(...args),
     delete: async (id: string) => {
       await pipelineRunsDao.deleteByPipelineId(id);

@@ -44,7 +44,6 @@ const MCP_SUPPORTED_RUNTIMES = ["claude-code", "codex"] as const satisfies reado
 const SKILL_SUPPORTED_RUNTIMES = [
   "claude-code",
   "codex",
-  "hermes",
   "mastra",
   "openclaw",
   "pi-agent",

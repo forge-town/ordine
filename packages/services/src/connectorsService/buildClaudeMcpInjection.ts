@@ -1,5 +1,9 @@
 import type { McpConnectorInjection, McpServerEntry } from "@repo/agent";
-import { isMcpConnectorConfig, type ConnectorConfig, type McpConnectorConfig } from "@repo/schemas";
+import {
+  McpConnectorConfigSchema,
+  type ConnectorConfig,
+  type McpConnectorConfig,
+} from "@repo/schemas";
 
 export type ClaudeMcpInjection = McpConnectorInjection;
 
@@ -46,18 +50,18 @@ export const resolveMcpConnectors = (connectors: ConnectorLike[]): ResolvedMcpCo
   const takenServerKeys: Record<string, unknown> = {};
 
   return connectors
-    .filter(
-      (connector): connector is ConnectorLike & { config: McpConnectorConfig } =>
-        connector.method === "mcp" &&
-        connector.status === "connected" &&
-        isMcpConnectorConfig(connector.config),
-    )
-    .sort((a, b) => a.id.localeCompare(b.id))
-    .map((connector) => {
+    .flatMap((connector) => {
+      if (connector.method !== "mcp" || connector.status !== "connected") return [];
+      const parsed = McpConnectorConfigSchema.safeParse(connector.config);
+
+      return parsed.success ? [{ connector, config: parsed.data }] : [];
+    })
+    .sort((a, b) => a.connector.id.localeCompare(b.connector.id))
+    .map(({ connector, config }) => {
       const serverKey = uniqueServerKey(sanitizeServerKey(connector.name), takenServerKeys);
       takenServerKeys[serverKey] = true;
 
-      return { connector, config: connector.config, serverKey };
+      return { connector, config, serverKey };
     });
 };
 
@@ -111,7 +115,6 @@ export const buildMcpConnectorInjection = (
   const eligibleConnectors = resolveMcpConnectors(connectors);
 
   for (const { config, serverKey: key } of eligibleConnectors) {
-
     const selectedServerTools = selectedMcpToolNames({ serverKey: key, config, selectedTools });
     if (selectedServerTools.length === 0) continue;
 

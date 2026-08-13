@@ -49,6 +49,12 @@ describe("createCapabilityCatalogService", () => {
     expect(result._unsafeUnwrap()).toEqual([
       expect.objectContaining({ id: "skill:skill-1", kind: "skill", reference: "skill-1" }),
     ]);
+
+    const hermesResult = await createService().getMany({
+      runtime: "hermes",
+      kinds: ["skill"],
+    });
+    expect(hermesResult._unsafeUnwrap()).toEqual([]);
   });
 
   it("sets and clears a risk override", async () => {
@@ -118,6 +124,24 @@ describe("createCapabilityCatalogService", () => {
           path: "config.executor.allowedTools[0]",
           reference: "unknown-tool",
           expectedKinds: ["builtin-tool", "mcp-tool"],
+        },
+      ],
+    });
+
+    const incompatibleRuntime = await service.validateOperationConfig({
+      executor: {
+        type: "agent",
+        agent: "hermes",
+        skillId: "skill-1",
+      },
+    });
+    expect(incompatibleRuntime._unsafeUnwrapErr()).toMatchObject({
+      issues: [
+        {
+          path: "config.executor.skillId",
+          reference: "skill-1",
+          expectedKinds: ["skill"],
+          runtime: "hermes",
         },
       ],
     });

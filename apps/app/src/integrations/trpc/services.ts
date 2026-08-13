@@ -3,6 +3,7 @@ import {
   createAgentsService,
   createAgentRuntimesService,
   createCapabilityHarvestService,
+  createCapabilityCatalogService,
   createConnectorsService,
   createConversationMessagesService,
   createDistillationsService,
@@ -31,6 +32,7 @@ export const agentRuntimesService = createAgentRuntimesService(db);
 export const capabilityHarvestService = createCapabilityHarvestService(db, {
   encryptionSecret: BETTER_AUTH_SECRET,
 });
+export const capabilityCatalogService = createCapabilityCatalogService(db);
 export const connectorsService = createConnectorsService(db, capabilityExecutionOptions);
 export const conversationMessagesService = createConversationMessagesService(db);
 export const distillationsService = createDistillationsService(db);

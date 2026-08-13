@@ -3,6 +3,7 @@ import { TRPCError } from "@trpc/server";
 import { authedProcedure, publicProcedure, router } from "../init";
 import { pipelinesService, pipelineRunnerService } from "../services";
 import { getProposeProgress, setProposeProgress } from "@repo/services";
+import { unwrapResult } from "./result";
 import {
   AgentContextPayloadSchema,
   PipelineGraphSnapshotSchema,
@@ -38,8 +39,12 @@ export const pipelinesRouter = router({
     )
     .mutation(async ({ input }) => {
       if (input.pendingOperations && input.pendingOperations.length > 0) {
-        await pipelinesService.createPendingOperations(
-          input.pendingOperations as Parameters<typeof pipelinesService.createPendingOperations>[0],
+        unwrapResult(
+          await pipelinesService.createPendingOperations(
+            input.pendingOperations as Parameters<
+              typeof pipelinesService.createPendingOperations
+            >[0],
+          ),
         );
       }
 
@@ -144,8 +149,10 @@ export const pipelinesRouter = router({
   createPendingOperations: publicProcedure
     .input(z.object({ operations: z.array(ProposePendingOperationSchema) }))
     .mutation(async ({ input }) => {
-      await pipelinesService.createPendingOperations(
-        input.operations as Parameters<typeof pipelinesService.createPendingOperations>[0],
+      unwrapResult(
+        await pipelinesService.createPendingOperations(
+          input.operations as Parameters<typeof pipelinesService.createPendingOperations>[0],
+        ),
       );
 
       return { created: input.operations.length };

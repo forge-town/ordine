@@ -1,9 +1,14 @@
 import { Hono } from "hono";
 import { ResultAsync } from "neverthrow";
-import type { AgentRuntime } from "@repo/schemas";
+import type { AgentRuntime, CapabilityCatalogValidationIssue } from "@repo/schemas";
 import { operationsService, operationRunnerService } from "../services.js";
 
 export const operationsRoutes = new Hono();
+
+const isCapabilityCatalogValidationError = (
+  error: Error,
+): error is Error & { issues: CapabilityCatalogValidationIssue[] } =>
+  error.name === "CapabilityCatalogValidationError";
 
 operationsRoutes.get("/", async (c) => {
   const operations = await operationsService.getAll();
@@ -13,9 +18,14 @@ operationsRoutes.get("/", async (c) => {
 
 operationsRoutes.post("/", async (c) => {
   const body = await c.req.json();
-  const operation = await operationsService.create(body);
+  const result = await operationsService.create(body);
+  if (result.isErr()) {
+    return isCapabilityCatalogValidationError(result.error)
+      ? c.json({ error: result.error.message, issues: result.error.issues }, 422)
+      : c.json({ error: "Failed to create operation" }, 500);
+  }
 
-  return c.json(operation, 201);
+  return c.json(result.value, 201);
 });
 
 operationsRoutes.put("/", async (c) => {
@@ -23,13 +33,23 @@ operationsRoutes.put("/", async (c) => {
   const existing = await operationsService.getById(body.id);
   if (existing) {
     const { id: _, ...patch } = body;
-    const updated = await operationsService.update(body.id, patch);
+    const result = await operationsService.update(body.id, patch);
+    if (result.isErr()) {
+      return isCapabilityCatalogValidationError(result.error)
+        ? c.json({ error: result.error.message, issues: result.error.issues }, 422)
+        : c.json({ error: "Failed to update operation" }, 500);
+    }
 
-    return c.json(updated);
+    return c.json(result.value);
   }
-  const operation = await operationsService.create(body);
+  const result = await operationsService.create(body);
+  if (result.isErr()) {
+    return isCapabilityCatalogValidationError(result.error)
+      ? c.json({ error: result.error.message, issues: result.error.issues }, 422)
+      : c.json({ error: "Failed to create operation" }, 500);
+  }
 
-  return c.json(operation, 201);
+  return c.json(result.value, 201);
 });
 
 operationsRoutes.get("/:id", async (c) => {
@@ -43,9 +63,14 @@ operationsRoutes.get("/:id", async (c) => {
 operationsRoutes.patch("/:id", async (c) => {
   const id = c.req.param("id");
   const body = await c.req.json();
-  const operation = await operationsService.update(id, body);
+  const result = await operationsService.update(id, body);
+  if (result.isErr()) {
+    return isCapabilityCatalogValidationError(result.error)
+      ? c.json({ error: result.error.message, issues: result.error.issues }, 422)
+      : c.json({ error: "Failed to update operation" }, 500);
+  }
 
-  return c.json(operation);
+  return c.json(result.value);
 });
 
 operationsRoutes.delete("/:id", async (c) => {

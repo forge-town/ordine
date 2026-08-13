@@ -2,6 +2,7 @@ import { z } from "zod/v4";
 import { publicProcedure, router } from "../init";
 import { operationsService, operationRunnerService } from "../services";
 import { AgentRuntimeSchema, ObjectNodeTypeSchema, OperationConfigSchema } from "@repo/schemas";
+import { unwrapResult } from "./result";
 
 export const operationsRouter = router({
   getMany: publicProcedure.query(() => operationsService.getAll()),
@@ -23,7 +24,7 @@ export const operationsRouter = router({
         sourceSkillId: z.string().optional(),
       }),
     )
-    .mutation(({ input }) => operationsService.create(input)),
+    .mutation(async ({ input }) => unwrapResult(await operationsService.create(input))),
 
   update: publicProcedure
     .input(
@@ -35,10 +36,10 @@ export const operationsRouter = router({
         acceptedObjectTypes: z.array(ObjectNodeTypeSchema).optional(),
       }),
     )
-    .mutation(({ input }) => {
+    .mutation(async ({ input }) => {
       const { id, ...rest } = input;
 
-      return operationsService.update(id, rest);
+      return unwrapResult(await operationsService.update(id, rest));
     }),
 
   delete: publicProcedure

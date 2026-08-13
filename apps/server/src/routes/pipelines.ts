@@ -1,10 +1,19 @@
 import { Hono } from "hono";
 import { ResultAsync } from "neverthrow";
 import { z } from "zod/v4";
-import { PipelineGraphSnapshotSchema, ProposeAttachmentSchema } from "@repo/schemas";
+import {
+  PipelineGraphSnapshotSchema,
+  ProposeAttachmentSchema,
+  type CapabilityCatalogValidationIssue,
+} from "@repo/schemas";
 import { pipelinesService, pipelineRunnerService } from "../services.js";
 
 export const pipelinesRoutes = new Hono();
+
+const isCapabilityCatalogValidationError = (
+  error: Error,
+): error is Error & { issues: CapabilityCatalogValidationIssue[] } =>
+  error.name === "CapabilityCatalogValidationError";
 
 const proposeActionsBodySchema = z.object({
   attachments: z.array(ProposeAttachmentSchema).optional(),
@@ -27,7 +36,12 @@ pipelinesRoutes.post("/", async (c) => {
   const body = await c.req.json();
   const { pendingOperations, ...pipelineData } = body;
   if (Array.isArray(pendingOperations) && pendingOperations.length > 0) {
-    await pipelinesService.createPendingOperations(pendingOperations);
+    const result = await pipelinesService.createPendingOperations(pendingOperations);
+    if (result.isErr()) {
+      return isCapabilityCatalogValidationError(result.error)
+        ? c.json({ error: result.error.message, issues: result.error.issues }, 422)
+        : c.json({ error: "Failed to create pending operations" }, 500);
+    }
   }
   const pipeline = await pipelinesService.create(pipelineData);
 

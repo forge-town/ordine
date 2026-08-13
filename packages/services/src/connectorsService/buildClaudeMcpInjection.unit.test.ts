@@ -190,8 +190,12 @@ describe("resolveMcpConnectorTools", () => {
   it("excludes disconnected, invalid, and tool-less connectors", () => {
     expect(
       resolveMcpConnectorTools([
-        connected("pending", { transport: "stdio", command: "x", tools: [{ name: "read" }] }, "needs_setup"),
-        connected("invalid", {}),
+        connected(
+          "pending",
+          { transport: "stdio", command: "x", tools: [{ name: "read" }] },
+          "needs_setup",
+        ),
+        connected("invalid", { transport: "stdio", tools: [{ name: "read" }] }),
         connected("empty", { transport: "stdio", command: "x" }),
       ]),
     ).toEqual([]);

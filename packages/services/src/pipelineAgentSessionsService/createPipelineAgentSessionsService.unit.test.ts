@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import JSZip from "jszip";
+import { ok } from "neverthrow";
 
 const mockSessionsDao = {
   create: vi.fn(),
@@ -220,7 +221,7 @@ describe("createPipelineAgentSessionsService", () => {
       nodes: [],
       edges: [],
     });
-    mockPipelinesService.createPendingOperations.mockResolvedValue(undefined);
+    mockPipelinesService.createPendingOperations.mockResolvedValue(ok(undefined));
     mockPipelinesService.delete.mockResolvedValue(undefined);
     mockPipelinesService.create.mockImplementation(async (data) => ({
       id: data.id ?? "pipeline-1",

@@ -51,6 +51,8 @@ const mockConversationMessagesDao = {
 
 vi.mock("@repo/models", () => ({
   createAgentRuntimesDao: () => mockAgentRuntimesDao,
+  createCapabilityRiskOverridesDao: () => ({ findMany: vi.fn().mockResolvedValue([]) }),
+  createConnectorsDao: () => ({ findMany: vi.fn().mockResolvedValue([]) }),
   createConversationMessagesDao: () => mockConversationMessagesDao,
   createPipelinesDao: () => mockDao,
   createDistillationsDao: () => mockDistillationsDao,
@@ -64,6 +66,10 @@ vi.mock("@repo/models", () => ({
   createAgentSpansDao: () => ({}),
   createOperationsDao: () => mockOperationsDao,
   createSettingsDao: () => mockSettingsDao,
+  createSkillsDao: () => ({
+    findMany: vi.fn().mockResolvedValue([]),
+    seedIfEmpty: vi.fn().mockResolvedValue(undefined),
+  }),
 }));
 vi.mock("@repo/agent", () => ({
   extractJsonFromText: (raw: string) => mockExtractJsonFromText(raw),

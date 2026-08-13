@@ -4,13 +4,13 @@ import {
   createSkillsDao,
   type DbConnection,
 } from "@repo/models";
-import type {
-  AgentRuntime,
-  CapabilityCatalogEntry,
-  CapabilityCatalogKind,
-  CapabilityCatalogValidationIssue,
-  CapabilityRiskTier,
-  OperationConfigInput,
+import {
+  AgentRuntimeSchema,
+  type CapabilityCatalogEntry,
+  type CapabilityCatalogValidationIssue,
+  type GetCapabilityCatalogInput,
+  type OperationConfigInput,
+  type SetCapabilityRiskTierOverrideInput,
 } from "@repo/schemas";
 import { errAsync, okAsync, ResultAsync } from "neverthrow";
 import { NotFoundError, ServiceError, toServiceError } from "../serviceErrors";
@@ -30,18 +30,23 @@ export interface CapabilityCatalogServiceOptions {
   dependencies?: CapabilityCatalogServiceDependencies;
 }
 
-export interface GetCapabilityCatalogInput {
-  runtime?: AgentRuntime;
-  kinds?: CapabilityCatalogKind[];
-}
+const capabilityValidationMessage = (issues: CapabilityCatalogValidationIssue[]): string => {
+  const summaries = issues
+    .slice(0, 3)
+    .map((issue) =>
+      issue.runtime
+        ? `${issue.path}: ${issue.reference} is not available for ${issue.runtime}`
+        : `${issue.path}: ${issue.reference}`,
+    );
+  const remainder =
+    issues.length > summaries.length ? `; +${issues.length - summaries.length} more` : "";
+
+  return `Invalid capability reference${issues.length === 1 ? "" : "s"}: ${summaries.join("; ")}${remainder}`;
+};
 
 export class CapabilityCatalogValidationError extends ServiceError {
   constructor(readonly issues: CapabilityCatalogValidationIssue[]) {
-    super(
-      issues.length === 1
-        ? `Invalid capability reference at ${issues[0]!.path}: ${issues[0]!.reference}`
-        : `Invalid capability references (${issues.length})`,
-    );
+    super(capabilityValidationMessage(issues));
     this.name = "CapabilityCatalogValidationError";
   }
 }
@@ -69,15 +74,23 @@ const extractValidationIssues = (
 
   const executorConfig = executor as Record<string, unknown>;
   const issues: CapabilityCatalogValidationIssue[] = [];
+  const runtimeResult = AgentRuntimeSchema.safeParse(executorConfig.agent);
+  const runtime = runtimeResult.success ? runtimeResult.data : undefined;
   const skillId = executorConfig.skillId;
   if (
     typeof skillId === "string" &&
-    !entries.some((entry) => entry.kind === "skill" && entry.reference === skillId)
+    !entries.some(
+      (entry) =>
+        entry.kind === "skill" &&
+        entry.reference === skillId &&
+        (!runtime || entry.supportedRuntimes.includes(runtime)),
+    )
   ) {
     issues.push({
       path: `${pathPrefix}.executor.skillId`,
       reference: skillId,
       expectedKinds: ["skill"],
+      ...(runtime ? { runtime } : {}),
     });
   }
 
@@ -89,7 +102,8 @@ const extractValidationIssues = (
         entries.some(
           (entry) =>
             (entry.kind === "builtin-tool" || entry.kind === "mcp-tool") &&
-            entry.reference === reference,
+            entry.reference === reference &&
+            (!runtime || entry.supportedRuntimes.includes(runtime)),
         )
       ) {
         return;
@@ -99,6 +113,7 @@ const extractValidationIssues = (
         path: `${pathPrefix}.executor.allowedTools[${index}]`,
         reference,
         expectedKinds: ["builtin-tool", "mcp-tool"],
+        ...(runtime ? { runtime } : {}),
       });
     });
   }
@@ -163,10 +178,7 @@ export const createCapabilityCatalogService = (
   const setRiskTierOverride = ({
     id,
     riskTier,
-  }: {
-    id: string;
-    riskTier: CapabilityRiskTier | null;
-  }): ResultAsync<CapabilityCatalogEntry, Error> =>
+  }: SetCapabilityRiskTierOverrideInput): ResultAsync<CapabilityCatalogEntry, Error> =>
     loadEntries().andThen((entries) => {
       const entry = entries.find((candidate) => candidate.id === id);
       if (!entry) return errAsync(new NotFoundError("Capability", id));

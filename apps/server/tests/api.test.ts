@@ -250,7 +250,7 @@ describe("Operations API", () => {
   });
 
   it("POST /api/operations creates operation", async () => {
-    mockOperationsService.create.mockResolvedValueOnce(mockOp as never);
+    mockOperationsService.create.mockResolvedValueOnce(ok(mockOp) as never);
     const res = await app.request("/api/operations", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -261,7 +261,7 @@ describe("Operations API", () => {
 
   it("PUT /api/operations upserts - creates when new", async () => {
     mockOperationsService.getById.mockResolvedValueOnce(null as never);
-    mockOperationsService.create.mockResolvedValueOnce(mockOp as never);
+    mockOperationsService.create.mockResolvedValueOnce(ok(mockOp) as never);
     const res = await app.request("/api/operations", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -284,7 +284,7 @@ describe("Operations API", () => {
   });
 
   it("PATCH /api/operations/:id updates operation", async () => {
-    mockOperationsService.update.mockResolvedValueOnce({ ...mockOp, name: "Updated" } as never);
+    mockOperationsService.update.mockResolvedValueOnce(ok({ ...mockOp, name: "Updated" }) as never);
     const res = await app.request("/api/operations/op-1", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },

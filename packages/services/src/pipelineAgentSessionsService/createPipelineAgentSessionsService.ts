@@ -826,12 +826,13 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
       }
 
       if (proposal.proposal.mode === "edit" && proposal.proposal.pendingOperations?.length > 0) {
-        await pipelinesService.createPendingOperations(
+        const createPendingResult = await pipelinesService.createPendingOperations(
           proposal.proposal.pendingOperations.map((op) => ({
             ...op,
             acceptedObjectTypes: op.acceptedObjectTypes as ObjectNodeType[],
           })),
         );
+        if (createPendingResult.isErr()) throw createPendingResult.error;
       }
 
       await proposalsDao.update(proposalId, {
@@ -1276,9 +1277,11 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
             const transactionalSessionsDao = createPipelineAgentSessionsDao(tx);
             assertActivityActive(sessionId, activity);
             if (generated.pendingOperations && generated.pendingOperations.length > 0) {
-              await transactionalPipelinesService.createPendingOperations(
-                generated.pendingOperations,
-              );
+              const createPendingResult =
+                await transactionalPipelinesService.createPendingOperations(
+                  generated.pendingOperations,
+                );
+              if (createPendingResult.isErr()) throw createPendingResult.error;
               assertActivityActive(sessionId, activity);
             }
 

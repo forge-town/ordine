@@ -58,6 +58,7 @@ export const CapabilityCatalogValidationIssueSchema = z.object({
   path: z.string().min(1),
   reference: z.string().min(1),
   expectedKinds: z.array(CapabilityCatalogKindSchema).min(1),
+  runtime: AgentRuntimeSchema.optional(),
 });
 export type CapabilityCatalogValidationIssue = z.infer<
   typeof CapabilityCatalogValidationIssueSchema

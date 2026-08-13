@@ -2,6 +2,7 @@ import { router } from "./init";
 import { agentsRouter } from "./routers/agents";
 import { agentRuntimesRouter } from "./routers/agentRuntimes";
 import { connectorsRouter } from "./routers/connectors";
+import { capabilityCatalogRouter } from "./routers/capabilityCatalog";
 import { conversationsRouter } from "./routers/conversations";
 import { distillationsRouter } from "./routers/distillations";
 import { filesystemRouter } from "./routers/filesystem";
@@ -21,6 +22,7 @@ import { usageRouter } from "./routers/usage";
 export const appRouter = router({
   agents: agentsRouter,
   agentRuntimes: agentRuntimesRouter,
+  capabilityCatalog: capabilityCatalogRouter,
   connectors: connectorsRouter,
   conversations: conversationsRouter,
   filesystem: filesystemRouter,
