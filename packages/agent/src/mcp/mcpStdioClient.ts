@@ -12,6 +12,7 @@ export type McpToolSummary = { name: string; description?: string };
 export type ListMcpToolsOptions = {
   command: string;
   args?: string[];
+  cwd?: string;
   env?: Record<string, string>;
   timeoutMs?: number;
 };
@@ -66,6 +67,7 @@ export const listMcpToolsStdio = (
     const state = { settled: false };
     const child = spawnCommand(opts.command, opts.args ?? [], {
       stdio: ["pipe", "pipe", "pipe"],
+      ...(opts.cwd ? { cwd: opts.cwd } : {}),
       env: { ...process.env, ...opts.env },
     });
 

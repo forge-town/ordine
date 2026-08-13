@@ -94,6 +94,7 @@ export const buildMcpConnectorInjection = (
       mcpServers[key] = {
         command: config.command,
         ...(config.args ? { args: config.args } : {}),
+        ...(config.cwd ? { cwd: config.cwd } : {}),
         ...(config.env ? { env: config.env } : {}),
       };
     } else {

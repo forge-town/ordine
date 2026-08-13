@@ -66,8 +66,11 @@ export const canvasStoryAgentRuntimes: AgentRuntimeConfig[] = [
 ];
 
 const connectorDate = new Date("2026-08-06T08:00:00.000Z");
+const manualCapabilityMetadata = { origin: "manual" as const, sources: [] };
+const manualConnectorMetadata = { ...manualCapabilityMetadata, signature: null };
 export const canvasStoryConnectors: Connector[] = [
   {
+    ...manualConnectorMetadata,
     id: "connector-github",
     name: "GitHub",
     method: "mcp",
@@ -79,6 +82,7 @@ export const canvasStoryConnectors: Connector[] = [
     updatedAt: connectorDate,
   },
   {
+    ...manualConnectorMetadata,
     id: "connector-notion",
     name: "Notion",
     method: "mcp",
@@ -90,6 +94,7 @@ export const canvasStoryConnectors: Connector[] = [
     updatedAt: connectorDate,
   },
   {
+    ...manualConnectorMetadata,
     id: "connector-feishu",
     name: "Feishu",
     method: "direct-api",
@@ -101,6 +106,7 @@ export const canvasStoryConnectors: Connector[] = [
     updatedAt: connectorDate,
   },
   {
+    ...manualConnectorMetadata,
     id: "connector-folder",
     name: "Local Folder",
     method: "built-in",
@@ -112,6 +118,7 @@ export const canvasStoryConnectors: Connector[] = [
     updatedAt: connectorDate,
   },
   {
+    ...manualConnectorMetadata,
     id: "connector-postgres",
     name: "Postgres",
     method: "mcp",
@@ -123,6 +130,7 @@ export const canvasStoryConnectors: Connector[] = [
     updatedAt: connectorDate,
   },
   {
+    ...manualConnectorMetadata,
     id: "connector-slack",
     name: "Slack",
     method: "direct-api",
@@ -137,6 +145,7 @@ export const canvasStoryConnectors: Connector[] = [
 
 export const canvasStorySkills: Skill[] = [
   {
+    ...manualCapabilityMetadata,
     id: "skill-page",
     name: "page-structure",
     label: "Page Structure",
@@ -146,6 +155,7 @@ export const canvasStorySkills: Skill[] = [
     tags: ["react", "page", "built-in"],
   },
   {
+    ...manualCapabilityMetadata,
     id: "skill-codex-review",
     name: "codex-review",
     label: "Codex Review",
@@ -154,6 +164,7 @@ export const canvasStorySkills: Skill[] = [
     tags: ["codex", "review"],
   },
   {
+    ...manualCapabilityMetadata,
     id: "skill-claude-refactor",
     name: "claude-code-refactor",
     label: "Refactor Assistant",
@@ -162,6 +173,7 @@ export const canvasStorySkills: Skill[] = [
     tags: ["claude-code", "refactor"],
   },
   {
+    ...manualCapabilityMetadata,
     id: "skill-hermes-classify",
     name: "hermes-classify",
     label: "Artifact Classifier",
@@ -170,6 +182,7 @@ export const canvasStorySkills: Skill[] = [
     tags: ["hermes", "classification"],
   },
   {
+    ...manualCapabilityMetadata,
     id: "skill-custom-release",
     name: "release-brief",
     label: "Release Brief",

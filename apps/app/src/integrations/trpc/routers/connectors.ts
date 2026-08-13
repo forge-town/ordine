@@ -27,8 +27,15 @@ export const connectorsRouter = router({
     ),
 
   connect: authedProcedure
-    .input(z.object({ id: z.string() }))
-    .mutation(async ({ input }) => unwrapResult(await connectorsService.connect(input.id))),
+    .input(z.object({ id: z.string(), sourceKey: z.string().min(1).optional() }))
+    .mutation(async ({ input }) =>
+      unwrapResult(
+        await connectorsService.connect(
+          input.id,
+          input.sourceKey ? { sourceKey: input.sourceKey } : {},
+        ),
+      ),
+    ),
 
   delete: authedProcedure
     .input(z.object({ id: z.string() }))

@@ -23,7 +23,13 @@ import {
   type DbConnection,
 } from "@repo/models";
 import { buildMcpConnectorInjection } from "../../connectorsService";
+import { hydrateConnectorCredentials } from "../../capabilityHarvestService";
 import type { McpConnectorInjectionProvider } from "@repo/agent-engine";
+
+export interface PipelineRunnerServiceOptions {
+  encryptionSecret?: string;
+  env?: Readonly<Record<string, string | undefined>>;
+}
 
 export class PipelineNotFoundError extends Error {
   constructor(pipelineId: string) {
@@ -57,7 +63,10 @@ export class InvalidJobStatusError extends Error {
   }
 }
 
-export const createPipelineRunnerService = (db: DbConnection) => {
+export const createPipelineRunnerService = (
+  db: DbConnection,
+  options: PipelineRunnerServiceOptions = {},
+) => {
   const agentsDao = createAgentsDao(db);
   const operationsDao = createOperationsDao(db);
   const pipelinesDao = createPipelinesDao(db);
@@ -129,11 +138,24 @@ export const createPipelineRunnerService = (db: DbConnection) => {
       getMcpConnectorInjection,
     });
 
-  const buildMcpConnectorInjectionProvider = () => {
+  const buildMcpConnectorInjectionProvider = (preferredSource: AgentRuntime) => {
     return async (selectedToolNames: readonly string[]) => {
       const connectors = await connectorsDao.findMany();
+      const hydratedConnectors = connectors.map((connector) => {
+        if (connector.method !== "mcp" || connector.status !== "connected") return connector;
+        const hydrated = hydrateConnectorCredentials(connector, {
+          ...(options.encryptionSecret === undefined
+            ? {}
+            : { encryptionSecret: options.encryptionSecret }),
+          ...(options.env ? { env: options.env } : {}),
+          preferredSource,
+        });
+        if (hydrated.isErr()) throw hydrated.error;
 
-      return buildMcpConnectorInjection(connectors, selectedToolNames);
+        return { ...connector, config: hydrated.value };
+      });
+
+      return buildMcpConnectorInjection(hydratedConnectors, selectedToolNames);
     };
   };
 
@@ -212,7 +234,7 @@ export const createPipelineRunnerService = (db: DbConnection) => {
             model: settings.defaultModel,
             defaultAgent: runtimeConfig.type,
             ssh,
-            getMcpConnectorInjection: buildMcpConnectorInjectionProvider(),
+            getMcpConnectorInjection: buildMcpConnectorInjectionProvider(runtimeConfig.type),
           }),
           runControl: pipelineRunControl.buildForJob(jobId),
           onRunSettled: () => pipelineRunControl.clear(jobId),

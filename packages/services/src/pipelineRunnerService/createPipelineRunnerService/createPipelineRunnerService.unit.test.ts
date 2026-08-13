@@ -18,8 +18,10 @@ const {
   mockConnectorsDao,
   mockPipelinesDao,
   mockAgentRuntimesDao,
+  mockMcpInjections,
   mockPipelineRunExecutorRun,
 } = vi.hoisted(() => ({
+  mockMcpInjections: [] as unknown[],
   mockJobsDao: {
     findById: vi.fn(),
     updateStatus: vi.fn().mockResolvedValue(undefined),
@@ -77,7 +79,7 @@ vi.mock("../engineDeps", () => ({
     build: vi.fn((opts: EngineDepsBuildOptionsMock) => ({
       runPrompt: vi.fn(),
       runSkill: vi.fn(async () => {
-        await opts.getMcpConnectorInjection?.(["mcp__github__read_issue"]);
+        mockMcpInjections.push(await opts.getMcpConnectorInjection?.(["mcp__github__read_issue"]));
       }),
       structuredJsonToMarkdown: vi.fn(),
       evaluateLoopCondition: vi.fn(),
@@ -92,6 +94,7 @@ vi.mock("../runPipeline", () => ({
 }));
 
 import type { DbConnection } from "@repo/models";
+import { createCredentialCipher } from "../../capabilityHarvestService";
 import {
   AgentRuntimeNotFoundError,
   createPipelineRunnerService,
@@ -105,6 +108,7 @@ describe("createPipelineRunnerService run controls", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockJobsDao.updateStatus.mockResolvedValue(undefined);
+    mockMcpInjections.length = 0;
     mockConnectorsDao.findMany.mockResolvedValue([]);
     mockPipelinesDao.findById.mockResolvedValue({
       id: "pipe-1",
@@ -242,6 +246,69 @@ describe("createPipelineRunnerService run controls", () => {
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect(mockConnectorsDao.findMany).toHaveBeenCalledOnce();
+  });
+
+  it("decrypts the active runtime source only while building execution injection", async () => {
+    const sourceKey = "codex-source";
+    const cipher = createCredentialCipher("unit-test-encryption-key");
+    expect(cipher.isOk()).toBe(true);
+    if (cipher.isErr()) throw cipher.error;
+    const envelope = cipher.value.encrypt(sourceKey, {
+      headers: { Authorization: "Bearer pipeline-runtime-value" },
+    });
+    expect(envelope.isOk()).toBe(true);
+    if (envelope.isErr()) throw envelope.error;
+    mockConnectorsDao.findMany.mockResolvedValueOnce([
+      {
+        id: "connector-github",
+        name: "github",
+        method: "mcp",
+        status: "connected",
+        scopes: null,
+        config: {
+          transport: "http",
+          url: "https://example.test/mcp",
+          tools: [{ name: "read_issue" }],
+        },
+        origin: "harvested",
+        signature: "signature",
+        sources: [
+          {
+            sourceKey,
+            source: "codex",
+            scope: "global",
+            path: "/home/test/.codex/config.toml",
+            nativeName: "github",
+            enabled: true,
+            lastSeenAt: "2026-08-13T00:00:00.000Z",
+          },
+        ],
+        encryptedCredentials: { [sourceKey]: envelope.value },
+        lastSyncAt: new Date(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+    ]);
+    const service = createPipelineRunnerService({} as DbConnection, {
+      encryptionSecret: "unit-test-encryption-key",
+    });
+
+    const result = await service.startRun({ pipelineId: "pipe-1" });
+    expect(result.isOk()).toBe(true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(mockMcpInjections).toEqual([
+      {
+        mcpServers: {
+          github: {
+            type: "http",
+            url: "https://example.test/mcp",
+            headers: { Authorization: "Bearer pipeline-runtime-value" },
+          },
+        },
+        toolNames: ["mcp__github__read_issue"],
+      },
+    ]);
   });
 
   it("rejects a run before creating a job when no Agent runtime is configured", async () => {

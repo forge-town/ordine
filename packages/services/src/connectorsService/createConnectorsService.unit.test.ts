@@ -8,7 +8,8 @@ const update = vi.fn();
 const updateIfConfigUnchanged = vi.fn();
 const create = vi.fn();
 
-vi.mock("@repo/agent", () => ({
+vi.mock("@repo/agent", async (importOriginal) => ({
+  ...((await importOriginal()) as object),
   listMcpToolsStdio: (...a: unknown[]) => listMcpToolsStdio(...a),
   listMcpToolsHttp: (...a: unknown[]) => listMcpToolsHttp(...a),
 }));
@@ -23,9 +24,11 @@ vi.mock("@repo/models", () => ({
   }),
 }));
 
-import { createConnectorsService } from "./createConnectorsService";
+import { createCredentialCipher } from "../capabilityHarvestService";
+import { createConnectorsService, type ConnectorsServiceOptions } from "./createConnectorsService";
 
-const svc = () => createConnectorsService({} as never);
+const svc = (options: ConnectorsServiceOptions = {}) =>
+  createConnectorsService({} as never, options);
 
 const stdioRow = (overrides = {}) => ({
   id: "c1",
@@ -34,6 +37,10 @@ const stdioRow = (overrides = {}) => ({
   status: "needs_setup",
   scopes: null,
   config: { transport: "stdio", command: "npx", args: ["x"] },
+  origin: "manual",
+  signature: null,
+  sources: [],
+  encryptedCredentials: {},
   lastSyncAt: null,
   createdAt: new Date(),
   updatedAt: new Date(),
@@ -98,6 +105,53 @@ describe("connectorsService.connect", () => {
     expect(patch.status).toBe("connected");
     expect(patch.config.tools).toEqual([{ name: "create_issue" }]);
     expect(patch.lastSyncAt).toBeInstanceOf(Date);
+  });
+
+  it("uses harvested credentials for the handshake without persisting or returning plaintext", async () => {
+    const sourceKey = "codex-source";
+    const cipher = createCredentialCipher("unit-test-encryption-key");
+    expect(cipher.isOk()).toBe(true);
+    if (cipher.isErr()) throw cipher.error;
+    const envelope = cipher.value.encrypt(sourceKey, {
+      headers: { Authorization: "Bearer runtime-only-value" },
+    });
+    expect(envelope.isOk()).toBe(true);
+    if (envelope.isErr()) throw envelope.error;
+    const row = stdioRow({
+      origin: "harvested",
+      config: { transport: "http", url: "https://x/mcp" },
+      sources: [
+        {
+          sourceKey,
+          source: "codex",
+          scope: "global",
+          path: "/home/test/.codex/config.toml",
+          nativeName: "github",
+          enabled: true,
+          lastSeenAt: "2026-08-13T00:00:00.000Z",
+        },
+      ],
+      encryptedCredentials: { [sourceKey]: envelope.value },
+    });
+    findById.mockResolvedValue(row);
+    listMcpToolsHttp.mockResolvedValue(ok([{ name: "read_issue" }]));
+    updateIfConfigUnchanged.mockImplementation((_id, patch) =>
+      Promise.resolve({ ...row, ...patch }),
+    );
+
+    const result = await svc({ encryptionSecret: "unit-test-encryption-key" }).connect("c1", {
+      preferredSource: "codex",
+    });
+
+    expect(result.isOk()).toBe(true);
+    expect(listMcpToolsHttp).toHaveBeenCalledWith({
+      url: "https://x/mcp",
+      headers: { Authorization: "Bearer runtime-only-value" },
+    });
+    const persistedPatch = updateIfConfigUnchanged.mock.calls[0]![1];
+    expect(JSON.stringify(persistedPatch)).not.toContain("runtime-only-value");
+    expect(result._unsafeUnwrap()).not.toHaveProperty("encryptedCredentials");
+    expect(JSON.stringify(result._unsafeUnwrap())).not.toContain("runtime-only-value");
   });
 
   it("on stdio handshake failure with valid config: sets error + lastError, never connected", async () => {
@@ -312,6 +366,29 @@ describe("connectorsService manual-status guard", () => {
     } as never);
 
     expect(updateIfConfigUnchanged.mock.calls[0]![1].status).toBe("needs_setup");
+  });
+
+  it("turns an edited harvested connector into a manual connector and detaches source secrets", async () => {
+    findById.mockResolvedValue(
+      stdioRow({
+        origin: "harvested",
+        signature: "harvest-signature",
+        sources: [{ sourceKey: "source-a" }],
+        encryptedCredentials: { "source-a": { ciphertext: "opaque" } },
+      }),
+    );
+    updateIfConfigUnchanged.mockResolvedValue(stdioRow());
+
+    await svc().update("c1", {
+      config: { transport: "stdio", command: "my-custom-command" },
+    } as never);
+
+    expect(updateIfConfigUnchanged.mock.calls[0]![1]).toMatchObject({
+      origin: "manual",
+      signature: null,
+      sources: [],
+      encryptedCredentials: {},
+    });
   });
 
   it("update returns Conflict when a method/config snapshot is stale", async () => {

@@ -2,7 +2,7 @@ import { useCreate, useDataProvider, useDelete, useList, useUpdate } from "@refi
 import { useStore } from "zustand";
 import { CircleAlert, Cpu, Loader2, Radar, RefreshCw, TerminalSquare } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import type { AgentRuntimeConfig } from "@repo/schemas";
+import { AGENT_RUNTIME_ENUM, type AgentRuntimeConfig } from "@repo/schemas";
 import { Button } from "@repo/ui/button";
 import { Skeleton } from "@repo/ui/skeleton";
 import { PageHeader } from "../../../components/PageHeader";
@@ -11,7 +11,7 @@ import { LocalAgentCard } from "../LocalAgentCard";
 import { ScanDiffModal } from "../ScanDiffModal";
 import { type DetectedRuntime, useRuntimesPageStore } from "../_store";
 
-const SUPPORTED_RUNTIME_COUNT = 5;
+const SUPPORTED_RUNTIME_COUNT = Object.keys(AGENT_RUNTIME_ENUM).length;
 
 export const RuntimesPageContent = () => {
   const { t } = useTranslation();

@@ -109,7 +109,7 @@ describe("scanRuntimes", () => {
       cb({ message: "not found", code: 1 }, "", "");
     });
     accessMock.mockImplementation(async (path) => {
-      if (path.endsWith("/.local/bin/kimi")) return;
+      if (/[\\/]\.local[\\/]bin[\\/]kimi$/.test(path)) return;
       throw new Error("ENOENT");
     });
 
@@ -117,7 +117,7 @@ describe("scanRuntimes", () => {
     const kimi = results.find((r) => r.type === "kimi-code");
 
     expect(kimi).toBeDefined();
-    expect(kimi!.path).toMatch(/\.local\/bin\/kimi$/);
+    expect(kimi!.path).toMatch(/\.local[\\/]bin[\\/]kimi$/);
     expect(kimi!.version).toBe("kimi 1.0.0");
   });
 

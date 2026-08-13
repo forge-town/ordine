@@ -1,5 +1,5 @@
 export type McpServerEntry =
-  | { command: string; args?: string[]; env?: Record<string, string> }
+  | { command: string; args?: string[]; cwd?: string; env?: Record<string, string> }
   | { type: "http"; url: string; headers?: Record<string, string> };
 
 export type McpConnectorInjection = {

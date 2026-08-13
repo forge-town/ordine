@@ -2,7 +2,7 @@ import { z } from "zod/v4";
 import { TRPCError } from "@trpc/server";
 import { publicProcedure, router } from "../init";
 import { skillsService } from "../services";
-import { SkillSchema } from "@repo/schemas";
+import { CreateSkillSchema, UpdateSkillSchema } from "@repo/schemas";
 
 const SkillImportCandidateSchema = z.object({
   id: z.string(),
@@ -23,7 +23,9 @@ export const skillsRouter = router({
     .input(z.object({ id: z.string() }))
     .query(({ input }) => skillsService.getById(input.id)),
 
-  create: publicProcedure.input(SkillSchema).mutation(({ input }) => skillsService.create(input)),
+  create: publicProcedure
+    .input(CreateSkillSchema)
+    .mutation(({ input }) => skillsService.create(input)),
 
   previewImport: publicProcedure
     .input(z.object({ rootPath: z.string().min(1) }))
@@ -37,7 +39,7 @@ export const skillsRouter = router({
     .input(
       z.object({
         id: z.string(),
-        patch: SkillSchema.partial(),
+        patch: UpdateSkillSchema,
       }),
     )
     .mutation(({ input }) => skillsService.update(input.id, input.patch)),

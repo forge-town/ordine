@@ -1,14 +1,22 @@
 import { z } from "zod/v4";
-import { publicProcedure, router } from "../init";
-import { agentRuntimesService } from "../services";
+import { TRPCError } from "@trpc/server";
+import { authedProcedure, publicProcedure, router } from "../init";
+import { agentRuntimesService, capabilityHarvestService } from "../services";
 import { AgentRuntimeConfigSchema, getLocalAgentRuntimeId, type AgentRuntime } from "@repo/schemas";
 import { scanRuntimes } from "@repo/agent";
 import { getServerEnv } from "@/integrations/server-env";
+import { unwrapResult } from "./result";
 
 const UpdatePatchSchema = AgentRuntimeConfigSchema.omit({ id: true }).partial();
 
 const { ORDINE_LOCAL_MODE, RUNTIME_SCAN_MODE } = getServerEnv();
 const localRuntimeScanEnabled = RUNTIME_SCAN_MODE === "local" || ORDINE_LOCAL_MODE;
+
+const harvestGlobalCapabilitiesOnce = async () =>
+  unwrapResult(await capabilityHarvestService.harvestOnce({}));
+
+const refreshGlobalCapabilities = async () =>
+  unwrapResult(await capabilityHarvestService.harvest({}));
 
 const toLocalRuntimeConfig = (runtime: Awaited<ReturnType<typeof scanRuntimes>>[number]) => ({
   id: getLocalAgentRuntimeId(runtime.type as AgentRuntime),
@@ -25,7 +33,10 @@ const toLocalRuntimeConfig = (runtime: Awaited<ReturnType<typeof scanRuntimes>>[
 
 export const agentRuntimesRouter = router({
   getMany: publicProcedure.query(async () => {
-    const runtimes = await agentRuntimesService.getAll();
+    const [runtimes] = await Promise.all([
+      agentRuntimesService.getAll(),
+      ...(localRuntimeScanEnabled ? [harvestGlobalCapabilitiesOnce()] : []),
+    ]);
     if (runtimes.length > 0 || !localRuntimeScanEnabled) {
       return runtimes;
     }
@@ -60,11 +71,24 @@ export const agentRuntimesRouter = router({
 
   scanAndSync: publicProcedure.mutation(async () => {
     if (!localRuntimeScanEnabled) return [];
-    const detected = await scanRuntimes();
+    const [detected] = await Promise.all([scanRuntimes(), refreshGlobalCapabilities()]);
     const runtimes = detected.map(toLocalRuntimeConfig);
 
     return agentRuntimesService.syncAll(runtimes);
   }),
 
   scanRuntimes: publicProcedure.query(() => (localRuntimeScanEnabled ? scanRuntimes() : [])),
+
+  harvestCapabilities: authedProcedure
+    .input(z.object({ workspacePath: z.string().min(1).optional() }))
+    .mutation(async ({ input }) => {
+      if (!localRuntimeScanEnabled) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Capability harvesting is only available in local runtime scan mode",
+        });
+      }
+
+      return unwrapResult(await capabilityHarvestService.harvest(input));
+    }),
 });

@@ -22,6 +22,8 @@ const validSkill = {
   id: "skill-error-handling",
   label: "Error Handling",
   name: "error-handling",
+  origin: "manual",
+  sources: [],
   tags: ["neverthrow"],
 } as Skill;
 

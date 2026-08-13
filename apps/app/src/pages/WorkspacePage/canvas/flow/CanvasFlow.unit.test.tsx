@@ -74,6 +74,8 @@ const skill = {
   id: "review",
   label: "Review",
   name: "review",
+  origin: "manual",
+  sources: [],
   tags: [],
 } satisfies Skill;
 
