@@ -1,16 +1,21 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useOne } from "@refinedev/core";
+import { AlertTriangle, RefreshCw, SearchX } from "lucide-react";
 import { z } from "zod/v4";
+import { Button } from "@repo/ui/button";
 import type { PipelineData } from "@repo/schemas";
 import { CanvasPage } from "@repo/views/CanvasPage";
 import { PageLoadingState } from "@repo/views/PageLoadingState";
+import { PageState } from "@repo/views/PageState";
 import { AppLayout } from "@/components/AppLayout";
 import { ResourceName } from "@/integrations/refine/dataProvider";
 import { useSession } from "@/integrations/better-auth-client";
 import { requireAuthenticatedSession } from "./-requireAuthenticatedSession";
 
 const CanvasRouteComponent = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { id } = Route.useSearch();
   const { data: session, isPending } = useSession();
@@ -20,6 +25,7 @@ const CanvasRouteComponent = () => {
     queryOptions: { enabled: !!id && !!session },
   });
   const pipeline = id ? (pipelineResult ?? null) : null;
+  const handlePipelineRetry = () => void pipelineQuery?.refetch();
 
   useEffect(() => {
     if (!isPending && !session) {
@@ -30,7 +36,7 @@ const CanvasRouteComponent = () => {
   if (isPending) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <p className="text-muted-foreground">Loading...</p>
+        <p className="text-muted-foreground">{t("common.loading")}</p>
       </div>
     );
   }
@@ -55,11 +61,43 @@ const CanvasRouteComponent = () => {
     );
   }
 
+  if (pipelineQuery?.isError) {
+    return (
+      <AppLayout canvasMode>
+        <div className="grid h-full w-full place-items-center bg-background p-6">
+          <PageState
+            action={
+              <Button size="sm" variant="outline" onClick={handlePipelineRetry}>
+                <RefreshCw className="size-3.5" />
+                {t("common.retry")}
+              </Button>
+            }
+            className="w-full max-w-lg"
+            description={t("canvas.pipelineLoadFailedDescription")}
+            icon={<AlertTriangle />}
+            title={t("canvas.pipelineLoadFailed")}
+          />
+        </div>
+      </AppLayout>
+    );
+  }
+
   if (!pipeline) {
     return (
       <AppLayout canvasMode>
-        <div className="flex h-full w-full items-center justify-center bg-background">
-          <p className="text-sm text-muted-foreground">Pipeline not found</p>
+        <div className="grid h-full w-full place-items-center bg-background p-6">
+          <PageState
+            action={
+              <Button size="sm" variant="outline" onClick={handlePipelineRetry}>
+                <RefreshCw className="size-3.5" />
+                {t("common.retry")}
+              </Button>
+            }
+            className="w-full max-w-lg"
+            description={t("canvas.pipelineNotFoundDescription")}
+            icon={<SearchX />}
+            title={t("canvas.pipelineNotFound")}
+          />
         </div>
       </AppLayout>
     );

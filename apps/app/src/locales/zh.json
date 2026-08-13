@@ -37,7 +37,9 @@
     "updatedAt": "更新时间",
     "generating": "生成中...",
     "clearSearch": "清除搜索",
-    "retry": "重试"
+    "retry": "重试",
+    "loadFailed": "页面加载失败",
+    "loadFailedDescription": "请检查网络连接后重试。"
   },
   "auth": {
     "workspace": "可组合的 AI 工作区",
@@ -138,9 +140,18 @@
     "scanning": "扫描中...",
     "configure": "配置",
     "assembled": "按操作组装",
+    "howItWorks": "本地 Agent 不需要常驻连接：Ordine 会在运行时直接调用这台电脑上的 CLI。",
+    "stepScan": "1. 先在终端登录各 Agent CLI，再扫描本机安装项。",
+    "stepSync": "2. 核对可执行文件路径和版本，然后同步。",
+    "stepRun": "3. 首页默认使用 Codex；Canvas 可在 Agent Bar 切换运行时。",
+    "detectedStatus": "已检测",
+    "configuredStatus": "仅已配置",
+    "executable": "本地可执行文件",
+    "notDetectedPath": "尚未记录路径，请重新扫描",
+    "scanFailed": "扫描失败。请确认应用以本地模式运行，并重试。",
     "empty": "未检测到本地 Agent",
     "emptyHint": "重新扫描此设备，以同步可用的 Agent 运行时。",
-    "detected": "已在 localhost 自动检测 {{count}} / {{total}} 个 Agent 运行时。"
+    "detected": "已同步 {{count}} / {{total}} 个受支持的本地 Agent。"
   },
   "usage": {
     "title": "用量",
@@ -227,11 +238,17 @@
     "heading": "今天想让 Ordine 自动化什么？",
     "description": "描述目标、输入和期望产物。本地 Agent 会先与你确认方案，再直接生成可运行的 Pipeline。",
     "agentReady": "本地 Agent 已就绪",
+    "agentConfigured": "本地 Agent 已配置",
+    "selectLocalAgent": "选择本地 Agent",
+    "manageLocalAgents": "管理本地 Agent",
+    "agentQueryFailed": "Agent 状态不可用",
+    "runtimeLoadFailed": "无法加载已配置的本地 Agent。",
     "connectLocalAgent": "连接本地 Agent",
     "checkingAgent": "正在检查本地 Agent…",
     "localAgentCount": "{{name}} +{{count}}",
     "sendHint": "Ctrl ↵ 发送",
     "proposalHint": "确认这份方案后，Agent 会创建 Pipeline 并接入现有 Canvas。",
+    "proposalSchedule": "定时：{{cronExpression}}",
     "suggestions": {
       "build": "创建一个 Pipeline",
       "buildDescription": "从目标和输入开始搭建完整流程",
@@ -651,6 +668,23 @@
       "condition": "条件"
     }
   },
+  "pipelineAgentErrors": {
+    "agentFailed": "所选本地 Agent 未能完成请求，请检查其登录、额度或模型配置后重试。",
+    "attachmentTooLarge": "附件过大，请选择 10 MB 以内的文件。",
+    "invalidAttachment": "附件上传失败，请更换文件后重试。",
+    "invalidRequest": "请求内容不完整，请检查后重试。",
+    "attachmentNotFound": "该附件已不存在。",
+    "attachmentConflict": "附件只能在规划开始前移除。",
+    "attachmentUploadFailed": "附件上传失败，请检查存储访问后重试。",
+    "cancelled": "请求已取消。",
+    "invalidStructure": "Agent 未能生成有效的 Pipeline，请修改方案后重试。",
+    "runtimeNotFound": "请先连接并选择本地 Agent，再规划或运行这个 Pipeline。",
+    "proposalConflict": "方案状态已变化，请刷新对话后重试。",
+    "sessionNotFound": "该对话已不存在，请开始新对话。",
+    "stateConflict": "对话状态已变化，请刷新后重试。",
+    "network": "无法连接 Pipeline Agent，请检查网络后重试。",
+    "generic": "Pipeline Agent 未能完成请求，请重试。"
+  },
   "newPipelineDialog": {
     "descriptionPlaceholder": "描述这个流水线要做什么...",
     "messagePlaceholder": "描述你的目标，并补充任何有帮助的上下文...",
@@ -663,7 +697,12 @@
     "welcome": "你好！告诉我你想创建什么样的 Pipeline，我会先帮你规划，再进行生成。",
     "send": "发送",
     "upload": "上传上下文",
+    "attachmentReady": "已就绪",
+    "attachmentFailed": "读取失败",
+    "removeAttachment": "移除 {{name}}",
     "approve": "同意方案",
+    "cancel": "取消",
+    "restoring": "正在恢复对话...",
     "revise": "继续修改",
     "reject": "拒绝",
     "rejected": "已拒绝当前方案，你可以继续补充和修改需求。",
@@ -678,6 +717,10 @@
   },
   "canvas": {
     "title": "画布",
+    "pipelineLoadFailed": "Pipeline 加载失败",
+    "pipelineLoadFailedDescription": "Pipeline 请求失败，请检查网络后重试。",
+    "pipelineNotFound": "未找到 Pipeline",
+    "pipelineNotFoundDescription": "该 Pipeline 可能已删除，或当前链接无效。",
     "menu": "菜单",
     "backToWorkspace": "回到工作区",
     "pipelineTitle": "Pipeline 标题",
@@ -1050,6 +1093,7 @@
       "addNode": "添加节点 {{label}}",
       "addNodeWithEdge": "添加 {{label}} 并连接",
       "removeNode": "删除节点 {{label}}",
+      "moveNode": "移动节点 {{label}}",
       "updateNode": "编辑 {{label}}",
       "duplicateNode": "复制节点 {{label}}",
       "clearCanvas": "清空画布",
@@ -1521,6 +1565,10 @@
     "confirmDelete": "确认删除",
     "confirmSync": "同步变更",
     "noChanges": "未检测到运行时变更。",
+    "scanAdded": "新增",
+    "scanUpdated": "更新",
+    "scanRemoved": "移除",
+    "scanUnchanged": "无变化",
     "scanResults": "运行时扫描结果",
     "scanResultsDescription": "同步前请检查检测到的运行时变更。"
   },
@@ -2115,6 +2163,7 @@
   },
   "agents": {
     "title": "智能体",
+    "notFoundDescription": "该 Agent 可能已删除，或当前链接无效。",
     "subtitle": "配置在当前工作区中规划并协调任务的智能体。",
     "noAgents": "暂无智能体",
     "searchPlaceholder": "搜索智能体...",

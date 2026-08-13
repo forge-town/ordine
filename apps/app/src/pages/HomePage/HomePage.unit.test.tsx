@@ -1,4 +1,5 @@
 import { act, render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createStore } from "zustand/vanilla";
 import type { AgentRuntimeConfig } from "@repo/schemas";
@@ -40,17 +41,20 @@ vi.mock("@tanstack/react-router", () => ({
 vi.mock("@/components/PipelineCreationWorkspace", () => ({
   PipelineCreationWorkspace: ({
     presentation,
-    runtimeConnected,
+    runtimeConfigured,
+    runtimeId,
     runtimeLabel,
   }: {
     presentation: string;
-    runtimeConnected: boolean;
+    runtimeConfigured: boolean;
+    runtimeId?: string;
     runtimeLabel?: string;
   }) => (
     <div
-      data-connected={runtimeConnected}
+      data-connected={runtimeConfigured}
       data-presentation={presentation}
       data-runtime={runtimeLabel}
+      data-runtime-id={runtimeId}
       data-testid="pipeline-creation-workspace"
     />
   ),
@@ -60,6 +64,13 @@ const localRuntime: AgentRuntimeConfig = {
   id: "runtime-codex",
   name: "Codex",
   type: "codex",
+  connection: { mode: "local" },
+};
+
+const hermesRuntime: AgentRuntimeConfig = {
+  id: "local-hermes",
+  name: "Hermes",
+  type: "hermes",
   connection: { mode: "local" },
 };
 
@@ -94,7 +105,9 @@ describe("HomePage", () => {
     renderHomePage();
 
     expect(screen.getByText("home.heading")).toBeInTheDocument();
-    expect(screen.getByText("home.agentReady")).toBeInTheDocument();
+    expect(screen.getByRole("combobox", { name: "home.selectLocalAgent" })).toHaveTextContent(
+      "Codex",
+    );
     expect(screen.getByTestId("pipeline-creation-workspace")).toHaveAttribute(
       "data-presentation",
       "home",
@@ -124,6 +137,27 @@ describe("HomePage", () => {
     );
   });
 
+  it("allows the selected local Agent to be changed before planning", async () => {
+    mockUseList.mockReturnValue({
+      result: { data: [localRuntime, hermesRuntime] },
+      query: { isLoading: false },
+    });
+
+    renderHomePage();
+    const user = userEvent.setup();
+    await user.click(screen.getByRole("combobox", { name: "home.selectLocalAgent" }));
+    await user.click(await screen.findByRole("option", { name: "Hermes" }));
+
+    expect(screen.getByTestId("pipeline-creation-workspace")).toHaveAttribute(
+      "data-runtime-id",
+      "local-hermes",
+    );
+    expect(screen.getByTestId("pipeline-creation-workspace")).toHaveAttribute(
+      "data-runtime",
+      "Hermes +1",
+    );
+  });
+
   it("starts a fresh workspace when the new-Pipeline action is triggered again", () => {
     mockUseList.mockReturnValue({
       result: { data: [localRuntime] },
@@ -135,5 +169,19 @@ describe("HomePage", () => {
     act(() => store.getState().handleNewPipelineWorkspaceReset());
 
     expect(screen.getByTestId("pipeline-creation-workspace")).not.toBe(firstWorkspace);
+  });
+
+  it("shows a retryable error when runtime discovery fails", () => {
+    const refetch = vi.fn();
+    mockUseList.mockReturnValue({
+      result: { data: [] },
+      query: { isError: true, isLoading: false, refetch },
+    });
+
+    renderHomePage();
+
+    expect(screen.getByRole("alert")).toHaveTextContent("home.runtimeLoadFailed");
+    screen.getByRole("button", { name: "common.retry" }).click();
+    expect(refetch).toHaveBeenCalledOnce();
   });
 });

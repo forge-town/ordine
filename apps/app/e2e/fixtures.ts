@@ -7,6 +7,13 @@ import { type Page, test as base, expect } from "@playwright/test";
 export const test = base.extend<{ pageErrors: string[] }>({
   pageErrors: async ({ page }, use) => {
     const errors: string[] = [];
+    await page.addInitScript(() => {
+      globalThis.localStorage.setItem("i18nextLng", "en");
+      globalThis.localStorage.setItem(
+        "ordine.theme",
+        JSON.stringify({ state: { preference: "light" }, version: 0 }),
+      );
+    });
     page.on("pageerror", (err) => errors.push(err.message));
     await use(errors);
   },
@@ -20,11 +27,15 @@ export const expectNoJSErrors = (errors: string[]) => {
 };
 
 /**
- * Navigate to a page and wait for it to be ready (network idle).
+ * Navigate to a page and wait for the document to be ready.
+ *
+ * The application keeps background queries alive, so `networkidle` is not a
+ * reliable readiness signal. Individual tests should wait for the UI state
+ * they need after this helper returns.
  */
 export const navigateAndWait = async (page: Page, path: string) => {
-  await page.goto(path);
-  await page.waitForLoadState("networkidle");
+  await page.goto(path, { waitUntil: "domcontentloaded" });
+  await expect(page.locator("body")).toBeVisible();
 };
 
 /**
@@ -33,6 +44,27 @@ export const navigateAndWait = async (page: Page, path: string) => {
 export const expectNoErrorOverlay = async (page: Page) => {
   const errorOverlay = page.locator("vite-error-overlay");
   await expect(errorOverlay).toHaveCount(0);
+};
+
+export const getCanvasTitleInput = (page: Page) =>
+  page.getByRole("textbox", { name: "Pipeline title" });
+
+export const expectCanvasTitle = async (page: Page, title: string) => {
+  await expect(getCanvasTitleInput(page)).toHaveValue(title);
+};
+
+export const saveCanvas = async (page: Page) => {
+  await page.getByRole("button", { name: "Workspace", exact: true }).click();
+  const workspace = page.getByTestId("canvas-workspace-sidebar-overlay");
+  await expect(workspace).toBeVisible();
+  await workspace.getByRole("button", { name: "Save", exact: true }).click();
+  await expect(page.getByText("Pipeline saved", { exact: true })).toBeVisible();
+};
+
+export const renameCanvasPipeline = async (page: Page, title: string) => {
+  await getCanvasTitleInput(page).fill(title);
+  await saveCanvas(page);
+  await expectCanvasTitle(page, title);
 };
 
 /**

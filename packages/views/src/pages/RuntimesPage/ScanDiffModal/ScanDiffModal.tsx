@@ -1,4 +1,4 @@
-import { CirclePlus, CircleMinus, CircleCheck } from "lucide-react";
+import { CirclePlus, CircleMinus, CircleCheck, RefreshCw } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
 import {
@@ -23,7 +23,16 @@ export const ScanDiffModal = ({ onConfirm }: ScanDiffModalProps) => {
   const handleScanDiffModalOpenChange = useStore(store, (s) => s.handleScanDiffModalOpenChange);
 
   const open = diff !== null;
-  const hasChanges = (diff?.added.length ?? 0) + (diff?.removed.length ?? 0) > 0;
+  const hasChanges =
+    (diff?.added.length ?? 0) + (diff?.updated.length ?? 0) + (diff?.removed.length ?? 0) > 0;
+  const rows = diff
+    ? [
+        ...diff.added.map((runtime) => ({ kind: "added" as const, runtime })),
+        ...diff.updated.map((runtime) => ({ kind: "updated" as const, runtime })),
+        ...diff.removed.map((runtime) => ({ kind: "removed" as const, runtime })),
+        ...diff.unchanged.map((runtime) => ({ kind: "unchanged" as const, runtime })),
+      ]
+    : [];
 
   const handleCancelButtonClick = () => handleScanDiffModalOpenChange(false);
   const handleConfirmButtonClick = () => onConfirm();
@@ -36,28 +45,61 @@ export const ScanDiffModal = ({ onConfirm }: ScanDiffModalProps) => {
           <DialogDescription>{t("runtimes.scanResultsDescription")}</DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-3 py-2">
-          {diff?.added.map((r) => (
-            <div key={r.id} className="flex items-center gap-2 text-sm text-green-600">
-              <CirclePlus className="h-4 w-4" />
-              <span>{r.name}</span>
-              <span className="text-xs text-muted-foreground">({r.type})</span>
-            </div>
-          ))}
-          {diff?.removed.map((r) => (
-            <div key={r.id} className="flex items-center gap-2 text-sm text-red-600">
-              <CircleMinus className="h-4 w-4" />
-              <span>{r.name}</span>
-              <span className="text-xs text-muted-foreground">({r.type})</span>
-            </div>
-          ))}
-          {diff?.unchanged.map((r) => (
-            <div key={r.id} className="flex items-center gap-2 text-sm text-muted-foreground">
-              <CircleCheck className="h-4 w-4" />
-              <span>{r.name}</span>
-              <span className="text-xs text-muted-foreground">({r.type})</span>
-            </div>
-          ))}
+        <div className="max-h-[min(60vh,520px)] space-y-2 overflow-y-auto py-2 pr-1">
+          {rows.map(({ kind, runtime }) => {
+            const connection = runtime.connection;
+            const path = connection.mode === "local" ? connection.path : connection.host;
+            const version = connection.mode === "local" ? connection.version : undefined;
+            const Icon =
+              kind === "added"
+                ? CirclePlus
+                : kind === "updated"
+                  ? RefreshCw
+                  : kind === "removed"
+                    ? CircleMinus
+                    : CircleCheck;
+            const statusLabel = {
+              added: t("runtimes.scanAdded"),
+              updated: t("runtimes.scanUpdated"),
+              removed: t("runtimes.scanRemoved"),
+              unchanged: t("runtimes.scanUnchanged"),
+            }[kind];
+
+            return (
+              <div key={runtime.id} className="rounded-lg border border-border/70 px-3 py-2.5">
+                <div className="flex min-w-0 items-center gap-2 text-sm">
+                  <Icon
+                    className={
+                      kind === "added"
+                        ? "size-4 shrink-0 text-green-600"
+                        : kind === "updated"
+                          ? "size-4 shrink-0 text-blue-600"
+                          : kind === "removed"
+                            ? "size-4 shrink-0 text-red-600"
+                            : "size-4 shrink-0 text-muted-foreground"
+                    }
+                  />
+                  <span className="truncate font-medium">{runtime.name}</span>
+                  {runtime.name !== runtime.type && (
+                    <span className="shrink-0 text-xs text-muted-foreground">{runtime.type}</span>
+                  )}
+                  <span className="ml-auto shrink-0 text-[10px] uppercase tracking-wide text-muted-foreground">
+                    {statusLabel}
+                  </span>
+                </div>
+                {path && (
+                  <div className="mt-1.5 break-all font-mono text-[10.5px] leading-4 text-muted-foreground">
+                    {path}
+                  </div>
+                )}
+                {version && (
+                  <div className="mt-1 line-clamp-2 whitespace-pre-line text-[10.5px] leading-4 text-muted-foreground">
+                    {version}
+                  </div>
+                )}
+              </div>
+            );
+          })}
           {!hasChanges && (
             <p className="text-sm text-muted-foreground">{t("runtimes.noChanges")}</p>
           )}

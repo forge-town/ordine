@@ -1,17 +1,28 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+import {
+  createNotificationStore,
+  NotificationStoreContext,
+} from "../../../store/notificationStore";
 import { CanvasPageStoreContext, createCanvasPageStore } from "../_store";
 import { CanvasMiniSidebar } from "./CanvasMiniSidebar";
 import "../../../test/use-test-language";
 
+vi.mock("@tanstack/react-router", () => ({
+  useNavigate: () => vi.fn(),
+}));
+
 const renderMiniSidebar = () => {
   const store = createCanvasPageStore();
+  const notificationStore = createNotificationStore();
 
   render(
-    <CanvasPageStoreContext.Provider value={store}>
-      <CanvasMiniSidebar />
-    </CanvasPageStoreContext.Provider>,
+    <NotificationStoreContext.Provider value={notificationStore}>
+      <CanvasPageStoreContext.Provider value={store}>
+        <CanvasMiniSidebar />
+      </CanvasPageStoreContext.Provider>
+    </NotificationStoreContext.Provider>,
   );
 
   return store;
@@ -21,6 +32,8 @@ describe("CanvasMiniSidebar", () => {
   it("opens workspace, toggles node cards, and opens settings", async () => {
     const user = userEvent.setup();
     const store = renderMiniSidebar();
+
+    expect(screen.getByRole("button", { name: /Notifications|通知/i })).toBeInTheDocument();
 
     const workspaceButton = screen.getByRole("button", { name: /Workspace/i });
     expect(workspaceButton).toHaveAttribute("aria-expanded", "false");

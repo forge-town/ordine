@@ -1,7 +1,9 @@
 import { Hono } from "hono";
+import { err } from "neverthrow";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
+  getById: vi.fn(),
   proposeActions: vi.fn(),
   startRun: vi.fn(),
 }));
@@ -9,7 +11,7 @@ const mocks = vi.hoisted(() => ({
 vi.mock("../../src/services.js", () => ({
   pipelinesService: {
     getAll: vi.fn(),
-    getById: vi.fn(),
+    getById: mocks.getById,
     create: vi.fn(),
     update: vi.fn(),
     delete: vi.fn(),
@@ -29,10 +31,11 @@ const makeApp = () => {
   return app;
 };
 
-describe("pipelinesRoutes propose-actions", () => {
+describe("pipelinesRoutes", () => {
   beforeEach(() => {
     mocks.proposeActions.mockReset();
     mocks.startRun.mockReset();
+    mocks.getById.mockReset();
   });
 
   it("returns 400 when propose-actions receives invalid JSON", async () => {
@@ -122,6 +125,27 @@ describe("pipelinesRoutes propose-actions", () => {
       attachments: [attachment],
       snapshot: { nodes: [], edges: [] },
       message: "use this context",
+    });
+  });
+
+  it("returns a stable conflict when a Pipeline run has no configured runtime", async () => {
+    const runtimeError = Object.assign(
+      new Error("No configured Agent runtime is available for this Pipeline run"),
+      { code: "AGENT_RUNTIME_NOT_FOUND" },
+    );
+    mocks.getById.mockResolvedValue({ id: "p1" });
+    mocks.startRun.mockResolvedValue(err(runtimeError));
+
+    const response = await makeApp().request("/pipelines/p1/run", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({}),
+    });
+
+    expect(response.status).toBe(409);
+    expect(await response.json()).toEqual({
+      code: "AGENT_RUNTIME_NOT_FOUND",
+      error: "No configured Agent runtime is available for this Pipeline run",
     });
   });
 });

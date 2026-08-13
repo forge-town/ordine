@@ -25,7 +25,6 @@
     "build:app": "rm -rf app && cp -r ../app/.output app && bun run copy-pglite-assets",
     "copy-pglite-assets": "bun scripts/copy-pglite-assets.ts",
     "build": "bun run build:cli && bun run build:app",
-    "dev": "bun src/index.ts",
     "check-types": "tsc --noEmit",
     "lint": "oxlint --config ./.oxlintrc.json src/",
     "quality": "bun run check-types && bun run lint && bun run test",

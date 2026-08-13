@@ -84,7 +84,7 @@ const PipelineAgentPlanEventSchema = z.discriminatedUnion("type", [
     proposalId: z.string().min(1),
   }),
   z.object({ type: z.literal("done"), status: z.string().min(1) }),
-  z.object({ type: z.literal("error"), message: z.string() }),
+  z.object({ type: z.literal("error"), code: z.string().optional(), message: z.string() }),
 ]);
 export type PipelineAgentPlanEvent = z.infer<typeof PipelineAgentPlanEventSchema>;
 
@@ -115,7 +115,10 @@ const readResponseError = async (response: Response) => {
       ? parsed.error
       : body || `Request failed with status ${response.status}`;
 
-  const error = new Error(message) as Error & { status: number };
+  const error = new Error(message) as Error & { code?: string; status: number };
+  if (isRecord(parsed) && typeof parsed.code === "string") {
+    error.code = parsed.code;
+  }
   error.status = response.status;
 
   return error;
@@ -189,6 +192,7 @@ const parseSseMessage = (message: string): PipelineAgentPlanEvent | null => {
     case "error": {
       return parsePlanEvent({
         type: "error",
+        code: parsed.code,
         message: parsed.message,
       });
     }

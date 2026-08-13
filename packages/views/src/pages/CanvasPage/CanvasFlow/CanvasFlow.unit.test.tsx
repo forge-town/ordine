@@ -46,11 +46,13 @@ vi.mock("@xyflow/react", async (importOriginal) => {
       onEdgeClick,
       onNodeClick,
       onNodeContextMenu,
+      onNodeDragStart,
       onNodeDrag,
       onNodeDragStop,
       onPaneClick,
       onPaneContextMenu,
       onNodesChange,
+      minZoom,
       snapToGrid,
     }: React.PropsWithChildren<{
       defaultViewport?: { zoom: number };
@@ -72,11 +74,13 @@ vi.mock("@xyflow/react", async (importOriginal) => {
       onEdgeClick?: unknown;
       onNodeClick?: unknown;
       onNodeContextMenu?: unknown;
+      onNodeDragStart?: unknown;
       onNodeDrag?: unknown;
       onNodeDragStop?: unknown;
       onPaneClick?: unknown;
       onPaneContextMenu?: unknown;
       onNodesChange?: unknown;
+      minZoom?: number;
       snapToGrid?: boolean;
     }>) => {
       xyflowMocks.onNodesChange = onNodesChange as ((changes: unknown[]) => void) | undefined;
@@ -93,12 +97,14 @@ vi.mock("@xyflow/react", async (importOriginal) => {
           data-has-on-edge-click={String(typeof onEdgeClick === "function")}
           data-has-on-node-click={String(typeof onNodeClick === "function")}
           data-has-on-node-context-menu={String(typeof onNodeContextMenu === "function")}
+          data-has-on-node-drag-start={String(typeof onNodeDragStart === "function")}
           data-has-on-node-drag={String(typeof onNodeDrag === "function")}
           data-has-on-node-drag-stop={String(typeof onNodeDragStop === "function")}
           data-has-on-pane-click={String(typeof onPaneClick === "function")}
           data-has-on-pane-context-menu={String(typeof onPaneContextMenu === "function")}
           data-nodes-connectable={String(nodesConnectable ?? true)}
           data-nodes-draggable={String(nodesDraggable ?? true)}
+          data-min-zoom={String(minZoom)}
           data-pan-on-drag={JSON.stringify(panOnDrag ?? true)}
           data-pan-on-scroll={String(panOnScroll ?? true)}
           data-selection-on-drag={String(selectionOnDrag ?? false)}
@@ -182,6 +188,8 @@ describe("CanvasFlow", () => {
     const { container } = render(<CanvasFlow />, { wrapper });
     expect(container.firstChild).toBeTruthy();
     expect(screen.getByTestId("react-flow")).toHaveAttribute("data-zoom", "1.25");
+    expect(screen.getByTestId("react-flow")).toHaveAttribute("data-min-zoom", "0.1");
+    expect(screen.getByTestId("react-flow")).toHaveAttribute("data-has-on-node-drag-start", "true");
     expect(screen.queryByTestId("flow-controls")).not.toBeInTheDocument();
   });
 

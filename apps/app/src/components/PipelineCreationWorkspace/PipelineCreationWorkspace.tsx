@@ -1,56 +1,45 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Link } from "@tanstack/react-router";
+import {
+  type ChangeEvent,
+  type KeyboardEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useTranslation } from "react-i18next";
 import { ResultAsync } from "neverthrow";
-import {
-  AlertCircle,
-  ArrowUp,
-  CheckCircle2,
-  ExternalLink,
-  FileText,
-  Loader2,
-  Paperclip,
-  Play,
-  Plus,
-  Sparkles,
-  Upload,
-  WandSparkles,
-  Workflow,
-} from "lucide-react";
+import { AlertCircle, CheckCircle2, ExternalLink, Loader2, Play, Plus } from "lucide-react";
 import { Badge } from "@repo/ui/badge";
 import { Button } from "@repo/ui/button";
 import { cn } from "@repo/ui/lib/utils";
-import { Textarea } from "@repo/ui/textarea";
 import type { PipelineAgentProposal } from "@repo/schemas";
 import { sidebarStore as sharedSidebarStore } from "@repo/views/store/sidebarStore";
 import { dataProvider } from "@/integrations/refine/dataProvider";
 import { materializeGeneratedPipeline } from "@/lib/materializeGeneratedPipeline";
+import { getPipelineAgentErrorMessage } from "@/lib/pipelineAgentErrorMessage";
 import {
   pipelineAgentSessionsClient,
   type PipelineAgentPlanEvent,
+  type PipelineAgentSessionClientDetail,
 } from "@/lib/pipelineAgentSessionsClient";
 import { router } from "@/router";
+import {
+  HOME_PIPELINE_AGENT_SESSION_KEY,
+  usePipelineCreationSessionRecovery,
+} from "./usePipelineCreationSessionRecovery";
+import { type PipelineCreationAttachment } from "./PipelineCreationAttachments";
+import { PipelineCreationMessages, type PipelineCreationMessage } from "./PipelineCreationMessages";
+import { PipelineCreationComposer } from "./PipelineCreationComposer";
 
 type WorkspacePresentation = "dialog" | "home";
-
-interface ConversationMessage {
-  id: string;
-  role: "user" | "assistant" | "system";
-  content: string;
-}
-
-interface AttachmentItem {
-  id: string;
-  filename: string;
-  parseStatus: string;
-}
 
 export interface PipelineCreationWorkspaceProps {
   active: boolean;
   client?: typeof pipelineAgentSessionsClient;
   materializePipeline?: typeof materializeGeneratedPipeline;
   presentation?: WorkspacePresentation;
-  runtimeConnected?: boolean;
+  runtimeConfigured?: boolean;
   runtimeId?: string;
   runtimeLabel?: string;
   onClose?: () => void;
@@ -61,17 +50,20 @@ export const PipelineCreationWorkspace = ({
   client = pipelineAgentSessionsClient,
   materializePipeline = materializeGeneratedPipeline,
   presentation = "dialog",
-  runtimeConnected = false,
+  runtimeConfigured,
   runtimeId,
   runtimeLabel,
   onClose: handleClose,
 }: PipelineCreationWorkspaceProps) => {
   const { t } = useTranslation();
-  const [attachments, setAttachments] = useState<AttachmentItem[]>([]);
+  const [attachments, setAttachments] = useState<PipelineCreationAttachment[]>([]);
+  const [isCancelling, setIsCancelling] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [removingAttachmentId, setRemovingAttachmentId] = useState<string | null>(null);
   const [createdPipelineId, setCreatedPipelineId] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [inputValue, setInputValue] = useState("");
-  const [messages, setMessages] = useState<ConversationMessage[]>([]);
+  const [messages, setMessages] = useState<PipelineCreationMessage[]>([]);
   const [phase, setPhase] = useState<
     "conversation" | "planning" | "proposal_ready" | "generating" | "success"
   >("conversation");
@@ -79,22 +71,56 @@ export const PipelineCreationWorkspace = ({
   const [proposalId, setProposalId] = useState<string | null>(null);
   const [streamingAssistantText, setStreamingAssistantText] = useState("");
   const sessionIdRef = useRef<string | null>(null);
+  const activeRequestRef = useRef<AbortController | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const translationRef = useRef(t);
+  translationRef.current = t;
   const isHome = presentation === "home";
   const welcomeMessage = t("newPipelineDialog.welcome");
+  const handlePipelineAgentError = useCallback(
+    (error: Error) => setErrorMessage(getPipelineAgentErrorMessage(error, translationRef.current)),
+    [],
+  );
 
-  const resetWorkspace = useCallback(() => {
-    sessionIdRef.current = null;
-    setAttachments([]);
-    setCreatedPipelineId(null);
-    setErrorMessage(null);
-    setInputValue("");
-    setMessages([]);
-    setPhase("conversation");
-    setProposal(null);
-    setProposalId(null);
-    setStreamingAssistantText("");
-  }, []);
+  const rememberSessionId = useCallback(
+    (sessionId: string | null) => {
+      sessionIdRef.current = sessionId;
+      if (!isHome || globalThis.window === undefined) {
+        return;
+      }
+
+      if (sessionId) {
+        globalThis.window.localStorage.setItem(HOME_PIPELINE_AGENT_SESSION_KEY, sessionId);
+      } else {
+        globalThis.window.localStorage.removeItem(HOME_PIPELINE_AGENT_SESSION_KEY);
+      }
+    },
+    [isHome],
+  );
+
+  const resetWorkspace = useCallback(
+    (forgetPersistedSession = true) => {
+      activeRequestRef.current?.abort();
+      activeRequestRef.current = null;
+      sessionIdRef.current = null;
+      if (isHome && forgetPersistedSession && globalThis.window !== undefined) {
+        globalThis.window.localStorage.removeItem(HOME_PIPELINE_AGENT_SESSION_KEY);
+      }
+      setAttachments([]);
+      setIsCancelling(false);
+      setIsUploading(false);
+      setRemovingAttachmentId(null);
+      setCreatedPipelineId(null);
+      setErrorMessage(null);
+      setInputValue("");
+      setMessages([]);
+      setPhase("conversation");
+      setProposal(null);
+      setProposalId(null);
+      setStreamingAssistantText("");
+    },
+    [isHome],
+  );
 
   const displayName = useMemo(() => {
     if (proposal?.mode === "generate") {
@@ -113,7 +139,7 @@ export const PipelineCreationWorkspace = ({
 
   useEffect(() => {
     if (!active) {
-      resetWorkspace();
+      resetWorkspace(!isHome);
 
       return;
     }
@@ -133,20 +159,92 @@ export const PipelineCreationWorkspace = ({
     }
   }, [active, isHome, resetWorkspace, welcomeMessage]);
 
-  const handleMessageInputChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+  const applySessionDetail = useCallback((session: PipelineAgentSessionClientDetail) => {
+    setMessages(
+      (session.messages ?? []).map((message) => ({
+        id: message.id,
+        role: message.role,
+        content: message.content,
+      })),
+    );
+    setAttachments(
+      (session.attachments ?? []).map((attachment) => ({
+        id: attachment.id,
+        filename: attachment.filename,
+        parseError: attachment.parseError,
+        parseStatus: attachment.parseStatus ?? "pending",
+      })),
+    );
+
+    const proposals = session.proposals ?? [];
+    const latestProposal =
+      proposals.find((candidate) => candidate.id === session.latestProposalId) ??
+      [...proposals].reverse().find((candidate) => candidate.status !== "superseded") ??
+      null;
+    if (latestProposal?.proposal.mode === "generate") {
+      setProposal(latestProposal.proposal);
+      setProposalId(latestProposal.id);
+    } else {
+      setProposal(null);
+      setProposalId(null);
+    }
+
+    setCreatedPipelineId(session.createdPipelineId ?? null);
+    if (session.status === "completed" && session.createdPipelineId) {
+      setPhase("success");
+    } else if (session.status === "generating" || session.status === "approved") {
+      setPhase("generating");
+    } else if (session.status === "proposal_ready" && latestProposal) {
+      setPhase("proposal_ready");
+    } else if (session.status === "analyzing") {
+      setPhase("planning");
+    } else {
+      setPhase("conversation");
+    }
+  }, []);
+
+  const handleRestoredPipeline = useCallback((pipelineId: string) => {
+    setCreatedPipelineId(pipelineId);
+    setPhase("success");
+  }, []);
+  const handleRestoreError = useCallback(
+    (error: Error) => {
+      handlePipelineAgentError(error);
+      setPhase("conversation");
+    },
+    [handlePipelineAgentError],
+  );
+  const handleMissingSession = useCallback(() => resetWorkspace(true), [resetWorkspace]);
+  const isRestoring = usePipelineCreationSessionRecovery({
+    active,
+    activeRequestRef,
+    client,
+    isHome,
+    materializePipeline,
+    sessionIdRef,
+    onCompleted: handleRestoredPipeline,
+    onError: handleRestoreError,
+    onMissing: handleMissingSession,
+    onSessionDetail: applySessionDetail,
+  });
+
+  const handleMessageInputChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
     setInputValue(event.target.value);
   };
 
-  const ensureSession = async () => {
+  const ensureSession = async (signal?: AbortSignal) => {
     if (sessionIdRef.current) {
       return sessionIdRef.current;
     }
 
-    const session = await client.createSession({
-      entrypoint: "new-pipeline-dialog",
-      mode: "generate",
-    });
-    sessionIdRef.current = session.id;
+    const session = await client.createSession(
+      {
+        entrypoint: "new-pipeline-dialog",
+        mode: "generate",
+      },
+      { signal },
+    );
+    rememberSessionId(session.id);
 
     return session.id;
   };
@@ -190,7 +288,9 @@ export const PipelineCreationWorkspace = ({
 
     if (event.type === "error") {
       setStreamingAssistantText("");
-      setErrorMessage(event.message);
+      handlePipelineAgentError(
+        Object.assign(new Error(event.message), event.code ? { code: event.code } : {}),
+      );
       setPhase("conversation");
     }
   };
@@ -198,6 +298,13 @@ export const PipelineCreationWorkspace = ({
   const handleSend = async () => {
     const text = inputValue.trim();
     if (!text) {
+      return;
+    }
+    if (isHome && runtimeConfigured !== true) {
+      if (runtimeConfigured === false) {
+        setErrorMessage(t("pipelineAgentErrors.runtimeNotFound"));
+      }
+
       return;
     }
 
@@ -212,18 +319,26 @@ export const PipelineCreationWorkspace = ({
     setProposalId(null);
     setStreamingAssistantText("");
     setPhase("planning");
+    const controller = new AbortController();
+    activeRequestRef.current?.abort();
+    activeRequestRef.current = controller;
 
     const sendResult = await ResultAsync.fromPromise(
       (async () => {
-        const sessionId = await ensureSession();
-        await client.appendMessage(sessionId, {
-          role: "user",
-          kind: "text",
-          content: text,
-        });
+        const sessionId = await ensureSession(controller.signal);
+        await client.appendMessage(
+          sessionId,
+          {
+            role: "user",
+            kind: "text",
+            content: text,
+          },
+          { signal: controller.signal },
+        );
         const streamedTerminalEvent = { current: false };
         await client.planSessionStream(sessionId, {
           runtimeId,
+          signal: controller.signal,
           onEvent: (event) => {
             if (
               event.type === "question" ||
@@ -238,6 +353,7 @@ export const PipelineCreationWorkspace = ({
         if (!streamedTerminalEvent.current) {
           const latestProposal = await client.getLatestReadyProposal(sessionId, "generate", {
             excludeProposalId: previousProposalId,
+            signal: controller.signal,
           });
           if (latestProposal && latestProposal.proposal.mode === "generate") {
             handleEvent({
@@ -249,7 +365,9 @@ export const PipelineCreationWorkspace = ({
             return;
           }
 
-          const latestQuestion = await client.getLatestAssistantQuestion(sessionId);
+          const latestQuestion = await client.getLatestAssistantQuestion(sessionId, {
+            signal: controller.signal,
+          });
           if (latestQuestion) {
             handleEvent({
               type: "question",
@@ -260,9 +378,15 @@ export const PipelineCreationWorkspace = ({
       })(),
       (error) => (error instanceof Error ? error : new Error(String(error))),
     );
+    if (activeRequestRef.current === controller) {
+      activeRequestRef.current = null;
+    }
+    if (controller.signal.aborted) {
+      return;
+    }
     if (sendResult.isErr()) {
       setStreamingAssistantText("");
-      setErrorMessage(sendResult.error.message);
+      handlePipelineAgentError(sendResult.error);
       setPhase("conversation");
     }
   };
@@ -274,12 +398,18 @@ export const PipelineCreationWorkspace = ({
 
     setErrorMessage(null);
     setPhase("generating");
+    const controller = new AbortController();
+    activeRequestRef.current?.abort();
+    activeRequestRef.current = controller;
     const generationResult = await ResultAsync.fromPromise(
       (async () => {
         const sessionId = sessionIdRef.current!;
-        await client.approveProposal(sessionId, proposalId);
+        await client.approveProposal(sessionId, proposalId, { signal: controller.signal });
         const generated = await ResultAsync.fromPromise(
-          client.generatePipelineFromApprovedProposal(sessionId),
+          client.generatePipelineFromApprovedProposal(sessionId, {
+            runtimeId,
+            signal: controller.signal,
+          }),
           (error) => (error instanceof Error ? error : new Error(String(error))),
         );
         if (generated.isOk()) {
@@ -289,14 +419,12 @@ export const PipelineCreationWorkspace = ({
           throw generated.error;
         }
 
-        const abortController = new AbortController();
         const polled = await ResultAsync.fromPromise(
           client.waitForCreatedPipeline(sessionId, {
-            signal: abortController.signal,
+            signal: controller.signal,
           }),
           (error) => (error instanceof Error ? error : new Error(String(error))),
         );
-        abortController.abort();
         if (polled.isOk()) {
           return polled.value;
         }
@@ -305,8 +433,14 @@ export const PipelineCreationWorkspace = ({
       })(),
       (error) => (error instanceof Error ? error : new Error(String(error))),
     );
+    if (controller.signal.aborted) {
+      return;
+    }
     if (generationResult.isErr()) {
-      setErrorMessage(generationResult.error.message);
+      if (activeRequestRef.current === controller) {
+        activeRequestRef.current = null;
+      }
+      handlePipelineAgentError(generationResult.error);
       setPhase("proposal_ready");
 
       return;
@@ -319,8 +453,14 @@ export const PipelineCreationWorkspace = ({
       ),
       (error) => (error instanceof Error ? error : new Error(String(error))),
     );
+    if (activeRequestRef.current === controller) {
+      activeRequestRef.current = null;
+    }
+    if (controller.signal.aborted) {
+      return;
+    }
     if (materializationResult.isErr()) {
-      setErrorMessage(materializationResult.error.message);
+      handlePipelineAgentError(materializationResult.error);
       setPhase("proposal_ready");
 
       return;
@@ -328,6 +468,33 @@ export const PipelineCreationWorkspace = ({
 
     setCreatedPipelineId(materializationResult.value);
     setPhase("success");
+  };
+
+  const handleCancel = async () => {
+    const sessionId = sessionIdRef.current;
+    const cancelledPhase = phase;
+    activeRequestRef.current?.abort();
+    activeRequestRef.current = null;
+    setErrorMessage(null);
+    if (!sessionId) {
+      setPhase(cancelledPhase === "generating" ? "proposal_ready" : "conversation");
+
+      return;
+    }
+
+    setIsCancelling(true);
+    const cancelResult = await ResultAsync.fromPromise(client.cancelSession(sessionId), (error) =>
+      error instanceof Error ? error : new Error(String(error)),
+    );
+    setIsCancelling(false);
+    if (cancelResult.isErr()) {
+      handlePipelineAgentError(cancelResult.error);
+
+      return;
+    }
+
+    setStreamingAssistantText("");
+    setPhase(cancelledPhase === "generating" ? "proposal_ready" : "conversation");
   };
 
   const supersedeActiveProposal = async () => {
@@ -340,7 +507,7 @@ export const PipelineCreationWorkspace = ({
       (error) => (error instanceof Error ? error : new Error(String(error))),
     );
     if (supersedeResult.isErr()) {
-      setErrorMessage(supersedeResult.error.message);
+      handlePipelineAgentError(supersedeResult.error);
 
       return false;
     }
@@ -385,6 +552,7 @@ export const PipelineCreationWorkspace = ({
       return;
     }
 
+    rememberSessionId(null);
     handleClose?.();
     void router.navigate({ to: "/canvas", search: { id: createdPipelineId } });
   };
@@ -403,35 +571,52 @@ export const PipelineCreationWorkspace = ({
       (error) => (error instanceof Error ? error : new Error(String(error))),
     );
     if (runNowResult.isErr()) {
-      setErrorMessage(runNowResult.error.message);
+      handlePipelineAgentError(runNowResult.error);
 
       return;
     }
 
+    rememberSessionId(null);
     handleClose?.();
     void router.navigate({ to: "/canvas", search: { id: createdPipelineId } });
   };
 
-  const handleUploadClick = () => {
-    void ensureSession().then(() => fileInputRef.current?.click());
+  const handleUploadClick = async () => {
+    setErrorMessage(null);
+    const sessionResult = await ResultAsync.fromPromise(ensureSession(), (error) =>
+      error instanceof Error ? error : new Error(String(error)),
+    );
+    if (sessionResult.isErr()) {
+      handlePipelineAgentError(sessionResult.error);
+
+      return;
+    }
+
+    fileInputRef.current?.click();
   };
 
-  const handleUploadChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleUploadChange = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) {
       return;
     }
     event.target.value = "";
 
-    const sessionId = await ensureSession();
+    setErrorMessage(null);
+    setIsUploading(true);
     const uploadResult = await ResultAsync.fromPromise(
-      runtimeId
-        ? client.uploadAttachment(sessionId, file, { runtimeId })
-        : client.uploadAttachment(sessionId, file),
+      (async () => {
+        const sessionId = await ensureSession();
+
+        return runtimeId
+          ? client.uploadAttachment(sessionId, file, { runtimeId })
+          : client.uploadAttachment(sessionId, file);
+      })(),
       (error) => (error instanceof Error ? error : new Error(String(error))),
     );
+    setIsUploading(false);
     if (uploadResult.isErr()) {
-      setErrorMessage(uploadResult.error.message);
+      handlePipelineAgentError(uploadResult.error);
 
       return;
     }
@@ -443,13 +628,42 @@ export const PipelineCreationWorkspace = ({
         {
           id: attachment.id,
           filename: attachment.filename,
+          parseError: attachment.parseError,
           parseStatus: attachment.parseStatus ?? "parsed",
         },
       ]);
     }
   };
 
-  const handleInputKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+  const handleAttachmentRemove = async (attachmentId: string) => {
+    const sessionId = sessionIdRef.current;
+    if (!sessionId || phase !== "conversation") {
+      return;
+    }
+
+    setErrorMessage(null);
+    setRemovingAttachmentId(attachmentId);
+    const removeResult = await ResultAsync.fromPromise(
+      client.removeAttachment(sessionId, attachmentId),
+      (error) => (error instanceof Error ? error : new Error(String(error))),
+    );
+    setRemovingAttachmentId(null);
+    if (removeResult.isErr()) {
+      handlePipelineAgentError(removeResult.error);
+
+      return;
+    }
+
+    setAttachments((currentAttachments) =>
+      currentAttachments.filter((attachment) => attachment.id !== attachmentId),
+    );
+  };
+
+  const handleAttachmentRemoveRequest = (attachmentId: string) => {
+    void handleAttachmentRemove(attachmentId);
+  };
+
+  const handleInputKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
     if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) {
       event.preventDefault();
       void handleSend();
@@ -463,6 +677,15 @@ export const PipelineCreationWorkspace = ({
   const handleCreateAnotherButtonClick = () => {
     resetWorkspace();
   };
+
+  if (isRestoring) {
+    return (
+      <div className="flex min-h-48 w-full flex-col items-center justify-center gap-3 text-sm text-muted-foreground">
+        <Loader2 className="size-5 animate-spin" />
+        <span>{t("newPipelineDialog.restoring")}</span>
+      </div>
+    );
+  }
 
   if (phase === "success") {
     return (
@@ -490,7 +713,7 @@ export const PipelineCreationWorkspace = ({
         {errorMessage && (
           <div className="flex w-full items-center gap-2 rounded-lg border border-destructive/40 bg-destructive/8 px-3 py-2 text-left text-sm text-destructive">
             <AlertCircle className="size-4 shrink-0" />
-            <span>{errorMessage}</span>
+            <span className="min-w-0 break-words [overflow-wrap:anywhere]">{errorMessage}</span>
           </div>
         )}
         <div className="flex w-full flex-col gap-2 sm:flex-row">
@@ -516,228 +739,47 @@ export const PipelineCreationWorkspace = ({
       {errorMessage && (
         <div className="flex items-center gap-2 rounded-lg border border-destructive/40 bg-destructive/8 px-3 py-2 text-sm text-destructive">
           <AlertCircle className="size-4 shrink-0" />
-          <span>{errorMessage}</span>
+          <span className="min-w-0 break-words [overflow-wrap:anywhere]">{errorMessage}</span>
         </div>
       )}
 
       {hasConversation && (
-        <div
-          className={cn(
-            "min-h-0 space-y-3 overflow-y-auto pr-1",
-            isHome ? "max-h-[min(40vh,360px)]" : "max-h-[38vh]",
-          )}
-        >
-          {messages.map((message) => (
-            <div
-              key={message.id}
-              className={cn(
-                "max-w-[88%] rounded-xl px-3.5 py-2.5 text-sm leading-6",
-                message.role === "user"
-                  ? "ml-auto bg-foreground text-background"
-                  : message.role === "system"
-                    ? "border border-dashed border-border bg-surface-2 text-muted-foreground"
-                    : "border border-border bg-card text-foreground",
-              )}
-            >
-              {message.content}
-            </div>
-          ))}
-          {streamingAssistantText && (
-            <div className="max-w-[88%] whitespace-pre-wrap rounded-xl border border-dashed border-border bg-card px-3.5 py-2.5 text-sm leading-6 text-muted-foreground">
-              {streamingAssistantText}
-            </div>
-          )}
-          {attachments.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {attachments.map((attachment) => (
-                <Badge key={attachment.id} className="gap-1.5" variant="secondary">
-                  {isHome && <FileText className="size-3" />}
-                  {attachment.filename}
-                </Badge>
-              ))}
-            </div>
-          )}
-          {proposal?.mode === "generate" && (
-            <div className="rounded-xl border border-border bg-card p-4 text-sm shadow-sm">
-              <div className="flex items-start gap-3">
-                {isHome && (
-                  <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                    <WandSparkles className="size-4" />
-                  </span>
-                )}
-                <div className="min-w-0 space-y-3">
-                  <div>
-                    <p className="font-semibold text-foreground">{proposal.purpose}</p>
-                    <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                      {t("home.proposalHint")}
-                    </p>
-                  </div>
-                  <div className="flex flex-wrap gap-1.5">
-                    {proposal.inputs.map((input) => (
-                      <Badge key={`input-${input}`} variant="outline">
-                        {input}
-                      </Badge>
-                    ))}
-                    {proposal.outputs.map((output) => (
-                      <Badge key={`output-${output}`} variant="secondary">
-                        {output}
-                      </Badge>
-                    ))}
-                  </div>
-                  <p className="text-xs leading-5 text-muted-foreground">
-                    {proposal.majorOperations.join(" · ")}
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      <input
-        ref={fileInputRef}
-        aria-label={t("newPipelineDialog.upload")}
-        className="hidden"
-        type="file"
-        onChange={handleUploadChange}
-      />
-
-      <div
-        className={cn(
-          "border border-border bg-card shadow-sm transition-colors focus-within:border-foreground/25",
-          isHome ? "rounded-2xl p-3" : "rounded-xl p-2.5",
-        )}
-      >
-        <Textarea
-          aria-label={t("newPipelineDialog.messagePlaceholder")}
-          className={cn(
-            "resize-none border-0 bg-transparent px-2 py-1.5 shadow-none focus-visible:ring-0",
-            isHome ? "min-h-24 text-[15px] leading-6" : "min-h-20 text-sm",
-          )}
-          placeholder={t("newPipelineDialog.messagePlaceholder")}
-          rows={isHome ? 4 : 3}
-          value={inputValue}
-          onChange={handleMessageInputChange}
-          onKeyDown={handleInputKeyDown}
+        <PipelineCreationMessages
+          attachments={attachments}
+          canRemoveAttachments={phase === "conversation"}
+          isHome={isHome}
+          messages={messages}
+          proposal={proposal}
+          removingAttachmentId={removingAttachmentId}
+          streamingAssistantText={streamingAssistantText}
+          onRemoveAttachment={handleAttachmentRemoveRequest}
         />
-        <div className="mt-2 flex items-center gap-2">
-          <Button
-            aria-label={t("newPipelineDialog.upload")}
-            className={cn("shrink-0", !isHome && "px-2.5")}
-            size={isHome ? "icon" : "sm"}
-            type="button"
-            variant="ghost"
-            onClick={handleUploadClick}
-          >
-            {isHome ? <Paperclip className="size-4" /> : <Upload className="size-4" />}
-            {!isHome && <span>{t("newPipelineDialog.upload")}</span>}
-          </Button>
-
-          {isHome && (
-            <Link
-              className="inline-flex min-w-0 items-center gap-2 rounded-lg px-2 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-surface-2 hover:text-foreground"
-              to="/local-agents"
-            >
-              <span
-                className={cn(
-                  "size-1.5 shrink-0 rounded-full",
-                  runtimeConnected ? "bg-success" : "bg-muted-foreground/45",
-                )}
-              />
-              <span className="truncate">{runtimeLabel ?? t("home.connectLocalAgent")}</span>
-            </Link>
-          )}
-
-          <span className="ml-auto hidden text-[11px] text-muted-foreground sm:inline">
-            {t("home.sendHint")}
-          </span>
-          {!proposal && (
-            <Button
-              aria-label={t("newPipelineDialog.send")}
-              className={cn("shrink-0", isHome && "rounded-full")}
-              disabled={phase === "planning" || inputValue.trim().length === 0}
-              size={isHome ? "icon" : "sm"}
-              onClick={handleSend}
-            >
-              {phase === "planning" ? (
-                <Loader2 className="size-4 animate-spin" />
-              ) : isHome ? (
-                <ArrowUp className="size-4" />
-              ) : (
-                t("newPipelineDialog.send")
-              )}
-            </Button>
-          )}
-        </div>
-      </div>
-
-      {proposal ? (
-        <div className="flex flex-wrap justify-end gap-2">
-          <Button size="sm" variant="ghost" onClick={handleReject}>
-            {t("newPipelineDialog.reject")}
-          </Button>
-          <Button size="sm" variant="outline" onClick={handleRevise}>
-            {t("newPipelineDialog.revise")}
-          </Button>
-          <Button
-            disabled={phase === "generating" || !isProposalReadyForApproval}
-            size="sm"
-            onClick={handleApprove}
-          >
-            {phase === "generating" && <Loader2 className="size-4 animate-spin" />}
-            {phase === "generating" ? t("common.generating") : t("newPipelineDialog.approve")}
-          </Button>
-        </div>
-      ) : isHome && !hasConversation ? (
-        <div className="divide-y divide-border/70">
-          {[
-            {
-              icon: Workflow,
-              label: t("home.suggestions.build"),
-              description: t("home.suggestions.buildDescription"),
-              prompt: t("home.suggestions.buildPrompt"),
-            },
-            {
-              icon: Sparkles,
-              label: t("home.suggestions.organize"),
-              description: t("home.suggestions.organizeDescription"),
-              prompt: t("home.suggestions.organizePrompt"),
-            },
-            {
-              icon: WandSparkles,
-              label: t("home.suggestions.distill"),
-              description: t("home.suggestions.distillDescription"),
-              prompt: t("home.suggestions.distillPrompt"),
-            },
-          ].map((suggestion) => {
-            const Icon = suggestion.icon;
-
-            return (
-              <button
-                key={suggestion.label}
-                className="group flex w-full items-center gap-3 px-2 py-3 text-left text-sm transition-colors hover:bg-surface-2"
-                type="button"
-                onClick={() => handleSuggestionClick(suggestion.prompt)}
-              >
-                <Icon className="size-4 shrink-0 text-muted-foreground" />
-                <span className="font-medium text-foreground">{suggestion.label}</span>
-                <span className="hidden truncate text-muted-foreground sm:inline">
-                  {suggestion.description}
-                </span>
-                <ArrowUp className="ml-auto size-3.5 rotate-45 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
-              </button>
-            );
-          })}
-        </div>
-      ) : null}
-
-      {!isHome && (
-        <div className="flex justify-end">
-          <Button variant="ghost" onClick={handleClose}>
-            {t("common.cancel")}
-          </Button>
-        </div>
       )}
+
+      <PipelineCreationComposer
+        fileInputRef={fileInputRef}
+        hasConversation={hasConversation}
+        inputValue={inputValue}
+        isCancelling={isCancelling}
+        isHome={isHome}
+        isProposalReadyForApproval={isProposalReadyForApproval}
+        isUploading={isUploading}
+        phase={phase}
+        proposalVisible={proposal !== null}
+        runtimeConfigured={runtimeConfigured}
+        runtimeLabel={runtimeLabel}
+        onApprove={handleApprove}
+        onCancel={handleCancel}
+        onClose={handleClose}
+        onInputChange={handleMessageInputChange}
+        onInputKeyDown={handleInputKeyDown}
+        onReject={handleReject}
+        onRevise={handleRevise}
+        onSend={handleSend}
+        onSuggestion={handleSuggestionClick}
+        onUploadChange={handleUploadChange}
+        onUploadClick={handleUploadClick}
+      />
     </div>
   );
 };

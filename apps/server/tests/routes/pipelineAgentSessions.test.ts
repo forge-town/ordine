@@ -4,11 +4,13 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({
   approveProposal: vi.fn(),
   appendMessage: vi.fn(),
+  cancelSession: vi.fn(),
   createSession: vi.fn(),
   generatePipelineFromApprovedProposal: vi.fn(),
   getSessionById: vi.fn(),
   ingestAttachment: vi.fn(),
   planSession: vi.fn(),
+  removeAttachment: vi.fn(),
   supersedeProposal: vi.fn(),
 }));
 
@@ -16,11 +18,13 @@ vi.mock("../../src/services.js", () => ({
   pipelineAgentSessionsService: {
     approveProposal: mocks.approveProposal,
     appendMessage: mocks.appendMessage,
+    cancelSession: mocks.cancelSession,
     createSession: mocks.createSession,
     generatePipelineFromApprovedProposal: mocks.generatePipelineFromApprovedProposal,
     getSessionById: mocks.getSessionById,
     ingestAttachment: mocks.ingestAttachment,
     planSession: mocks.planSession,
+    removeAttachment: mocks.removeAttachment,
     supersedeProposal: mocks.supersedeProposal,
   },
 }));
@@ -175,6 +179,7 @@ describe("pipelineAgentSessionsRoutes", () => {
 
     expect(response.status).toBe(409);
     expect(await response.json()).toEqual({
+      code: "PIPELINE_AGENT_PROPOSAL_STATE_CONFLICT",
       error: "Pipeline agent proposal proposal-1 cannot be approved from status approved",
     });
   });
@@ -247,6 +252,52 @@ describe("pipelineAgentSessionsRoutes", () => {
     expect(mocks.ingestAttachment).not.toHaveBeenCalled();
   });
 
+  it("returns a stable attachment code when ingestion fails", async () => {
+    mocks.ingestAttachment.mockRejectedValue(new Error("Storage unavailable"));
+    const formData = new FormData();
+    formData.append("file", new File(["hello"], "brief.txt", { type: "text/plain" }));
+
+    const response = await makeApp().request("/pipeline-agent-sessions/session-1/attachments", {
+      method: "POST",
+      body: formData,
+    });
+
+    expect(response.status).toBe(500);
+    expect(await response.json()).toEqual({
+      code: "PIPELINE_AGENT_ATTACHMENT_UPLOAD_FAILED",
+      error: "Storage unavailable",
+    });
+  });
+
+  it("removes an attachment and returns no content", async () => {
+    mocks.removeAttachment.mockResolvedValue({ id: "attachment-1" });
+
+    const response = await makeApp().request(
+      "/pipeline-agent-sessions/session-1/attachments/attachment-1",
+      { method: "DELETE" },
+    );
+
+    expect(response.status).toBe(204);
+    expect(mocks.removeAttachment).toHaveBeenCalledWith("session-1", "attachment-1");
+  });
+
+  it("returns a conflict when an attachment can no longer be removed", async () => {
+    mocks.removeAttachment.mockRejectedValue(
+      new Error("Pipeline agent attachment cannot be removed while session session-1 is analyzing"),
+    );
+
+    const response = await makeApp().request(
+      "/pipeline-agent-sessions/session-1/attachments/attachment-1",
+      { method: "DELETE" },
+    );
+
+    expect(response.status).toBe(409);
+    expect(await response.json()).toEqual({
+      code: "PIPELINE_AGENT_ATTACHMENT_STATE_CONFLICT",
+      error: "Pipeline agent attachment cannot be removed while session session-1 is analyzing",
+    });
+  });
+
   it("streams planning events for a session", async () => {
     mocks.planSession.mockImplementation(async (_sessionId, input) => {
       await input.onProgress?.("planner: started");
@@ -268,6 +319,7 @@ describe("pipelineAgentSessionsRoutes", () => {
     const body = await response.text();
     expect(body).toContain("event: phase");
     expect(body).toContain("event: progress");
+    expect(body).not.toContain("event: assistant_chunk");
     expect(body).toContain("event: question");
     expect(body).toContain("What output format do you want?");
     expect(mocks.planSession).toHaveBeenCalledWith(
@@ -279,6 +331,24 @@ describe("pipelineAgentSessionsRoutes", () => {
     );
   });
 
+  it("streams a stable runtime error when planning has no configured runtime", async () => {
+    const runtimeError = Object.assign(new Error("No Agent runtime is configured"), {
+      code: "PIPELINE_AGENT_RUNTIME_NOT_FOUND",
+    });
+    mocks.planSession.mockRejectedValue(runtimeError);
+
+    const response = await makeApp().request("/pipeline-agent-sessions/session-1/plan", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({}),
+    });
+
+    expect(response.status).toBe(200);
+    const body = await response.text();
+    expect(body).toContain("event: error");
+    expect(body).toContain("PIPELINE_AGENT_RUNTIME_NOT_FOUND");
+  });
+
   it("returns 400 for malformed planning JSON without invoking the planner", async () => {
     const response = await makeApp().request("/pipeline-agent-sessions/session-1/plan", {
       method: "POST",
@@ -287,7 +357,10 @@ describe("pipelineAgentSessionsRoutes", () => {
     });
 
     expect(response.status).toBe(400);
-    expect(await response.json()).toEqual({ error: "Invalid request body" });
+    expect(await response.json()).toEqual({
+      code: "INVALID_REQUEST",
+      error: "Invalid request body",
+    });
     expect(mocks.planSession).not.toHaveBeenCalled();
   });
 
@@ -298,11 +371,26 @@ describe("pipelineAgentSessionsRoutes", () => {
 
     const response = await makeApp().request("/pipeline-agent-sessions/session-1/generate", {
       method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ runtimeId: "local-codex" }),
     });
 
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({ pipelineId: "pipeline-1" });
-    expect(mocks.generatePipelineFromApprovedProposal).toHaveBeenCalledWith("session-1");
+    expect(mocks.generatePipelineFromApprovedProposal).toHaveBeenCalledWith("session-1", {
+      runtimeId: "local-codex",
+    });
+  });
+
+  it("cancels the active session task", async () => {
+    mocks.cancelSession.mockResolvedValue({ status: "awaiting_user" });
+
+    const response = await makeApp().request("/pipeline-agent-sessions/session-1/cancel", {
+      method: "POST",
+    });
+
+    expect(response.status).toBe(204);
+    expect(mocks.cancelSession).toHaveBeenCalledWith("session-1");
   });
 
   it("returns 404 when generation targets a missing session", async () => {
@@ -316,6 +404,7 @@ describe("pipelineAgentSessionsRoutes", () => {
 
     expect(response.status).toBe(404);
     expect(await response.json()).toEqual({
+      code: "PIPELINE_AGENT_SESSION_NOT_FOUND",
       error: "Pipeline agent session not found: missing",
     });
   });
@@ -331,6 +420,7 @@ describe("pipelineAgentSessionsRoutes", () => {
 
     expect(response.status).toBe(409);
     expect(await response.json()).toEqual({
+      code: "PIPELINE_AGENT_PROPOSAL_STATE_CONFLICT",
       error: "Pipeline agent session session-1 does not have an approved proposal",
     });
   });
@@ -346,6 +436,7 @@ describe("pipelineAgentSessionsRoutes", () => {
 
     expect(response.status).toBe(500);
     expect(await response.json()).toEqual({
+      code: "PIPELINE_AGENT_INVALID_STRUCTURE",
       error: "Agent returned invalid pipeline structure",
     });
   });

@@ -1,5 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+const accessMock = vi.fn<(path: string) => Promise<void>>();
+
+vi.mock("node:fs/promises", () => ({
+  access: (path: string) => accessMock(path),
+}));
+
 vi.mock("@repo/logger", () => ({
   logger: { info: vi.fn(), error: vi.fn(), warn: vi.fn(), debug: vi.fn() },
 }));
@@ -27,6 +33,7 @@ import {
   parseExtraRuntimes,
   scanRuntimes,
   type DetectedRuntime,
+  versionCommand,
 } from "./scanRuntimes";
 
 const LOCATE_BIN = locateBinaryCommand();
@@ -34,9 +41,13 @@ const LOCATE_BIN = locateBinaryCommand();
 describe("scanRuntimes", () => {
   beforeEach(() => {
     execFileMock.mockClear();
+    accessMock.mockReset();
+    accessMock.mockResolvedValue(undefined);
+    vi.stubEnv("ORDINE_EXTRA_RUNTIMES", "");
   });
 
   afterEach(() => {
+    vi.unstubAllEnvs();
     vi.restoreAllMocks();
   });
 
@@ -141,10 +152,56 @@ describe("scanRuntimes", () => {
     expect(path).toBe("C:\\bin\\hermes.exe");
   });
 
+  it("prefers Windows command shims over extensionless shell scripts", () => {
+    const path = firstPath("C:\\bin\\claude\r\nC:\\bin\\claude.cmd\r\n", "win32");
+
+    expect(path).toBe("C:\\bin\\claude.cmd");
+  });
+
+  it("runs Windows command shim version checks through cmd.exe", () => {
+    expect(versionCommand("C:\\bin\\claude.cmd", "win32")).toEqual({
+      bin: "cmd.exe",
+      args: ["/d", "/s", "/c", "C:\\bin\\claude.cmd", "--version"],
+    });
+    expect(versionCommand("/usr/local/bin/claude", "linux")).toEqual({
+      bin: "/usr/local/bin/claude",
+      args: ["--version"],
+    });
+  });
+
   it("uses the first locate result on non-Windows platforms", () => {
     const path = firstPath("C:\\bin\\hermes.cmd\r\nC:\\bin\\hermes.exe\r\n", "linux");
 
     expect(path).toBe("C:\\bin\\hermes.cmd");
+  });
+
+  it("accepts an existing absolute binary override without passing it to where", async () => {
+    const absoluteBinary =
+      process.platform === "win32" ? "C:\\tools\\hermes.exe" : "/opt/hermes/bin/hermes";
+    execFileMock.mockImplementation((bin, args, _opts, cb) => {
+      if (bin === absoluteBinary && args[0] === "--version") {
+        cb(null, "hermes 0.16.0\n", "");
+
+        return;
+      }
+      cb({ message: "not found", code: 1 }, "", "");
+    });
+    vi.stubEnv("ORDINE_EXTRA_RUNTIMES", `hermes:${absoluteBinary}`);
+
+    const results = await scanRuntimes();
+
+    expect(results).toContainEqual({
+      type: "hermes",
+      binaryName: absoluteBinary,
+      path: absoluteBinary,
+      version: "hermes 0.16.0",
+    });
+    expect(execFileMock).not.toHaveBeenCalledWith(
+      LOCATE_BIN,
+      [absoluteBinary],
+      expect.anything(),
+      expect.anything(),
+    );
   });
 
   it("parses ORDINE_EXTRA_RUNTIMES and merges into the catalog", () => {

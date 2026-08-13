@@ -200,6 +200,7 @@ export const runCodex = async ({
 
       const stdoutChunks: Buffer[] = [];
       const stderrChunks: Buffer[] = [];
+      const completion = { settled: false };
 
       child.stdout.on("data", (chunk: Buffer) => stdoutChunks.push(chunk));
       child.stderr.on("data", (chunk: Buffer) => stderrChunks.push(chunk));
@@ -209,18 +210,24 @@ export const runCodex = async ({
       child.stdin.end();
 
       const timer = setTimeout(() => {
+        if (completion.settled) return;
+        completion.settled = true;
         child.kill("SIGTERM");
         reject(new Error(`codex timed out after ${timeoutMs / 1000}s`));
       }, timeoutMs);
 
       child.on("error", (error) => {
+        if (completion.settled) return;
+        completion.settled = true;
         clearTimeout(timer);
         logger.error({ err: error.message }, "runCodex: spawn error");
         void onProgress?.(`[Codex] Spawn error: ${error.message}`);
         reject(error);
       });
 
-      child.on("close", (code) => {
+      const handleCompletion = (code: number | null) => {
+        if (completion.settled) return;
+        completion.settled = true;
         clearTimeout(timer);
         const stdout = Buffer.concat(stdoutChunks).toString("utf8");
         const stderr = Buffer.concat(stderrChunks).toString("utf8");
@@ -256,7 +263,14 @@ export const runCodex = async ({
           void onProgress?.(`[Codex] Complete (${output.length} chars)`);
           resolve(output);
         })();
-      });
+      };
+
+      // Codex may launch long-lived MCP descendants that inherit its stdio handles. In that
+      // situation Node/Bun emits `exit` for the Codex process but can delay `close` indefinitely
+      // while those descendant pipes remain open. The output file is finalized before `exit`, so
+      // settle there and retain `close` as a compatibility fallback for mocked/older runtimes.
+      child.on("exit", handleCompletion);
+      child.on("close", handleCompletion);
     });
   };
 

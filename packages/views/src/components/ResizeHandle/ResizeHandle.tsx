@@ -84,7 +84,7 @@ export const ResizeHandle = ({
       onKeyDown={handleKeyDown}
       onPointerDown={handlePointerDown}
     >
-      <div className="absolute inset-y-0 -left-1.5 -right-1.5" />
+      <div className="absolute inset-y-0 -left-3 -right-3" />
       {line ? (
         <div className="absolute inset-y-0 left-1/2 w-px -translate-x-1/2 bg-border transition-colors group-hover:bg-border-strong" />
       ) : null}

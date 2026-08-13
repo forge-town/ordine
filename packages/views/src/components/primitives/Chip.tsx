@@ -11,6 +11,8 @@ export type ChipProps = {
 
 export const Chip = ({ active = false, children, className, count, onClick }: ChipProps) => {
   const handleClick = () => onClick?.();
+  const accessibleLabel =
+    typeof children === "string" && count !== undefined ? `${children} (${count})` : undefined;
   const content = (
     <>
       {children}
@@ -36,7 +38,13 @@ export const Chip = ({ active = false, children, className, count, onClick }: Ch
 
   if (onClick) {
     return (
-      <button aria-pressed={active} className={classes} type="button" onClick={handleClick}>
+      <button
+        aria-label={accessibleLabel}
+        aria-pressed={active}
+        className={classes}
+        type="button"
+        onClick={handleClick}
+      >
         {content}
       </button>
     );

@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { SidebarProvider } from "@repo/ui/sidebar";
+import { createNotificationStore, NotificationStoreContext } from "../store/notificationStore";
 import { createSidebarStore, SidebarStoreContext } from "../store/sidebarStore";
 import { AppSidebar } from "./AppSidebar";
 
@@ -8,6 +9,7 @@ vi.mock("@tanstack/react-router", () => ({
   Link: ({ children, to }: { children: React.ReactNode; to: string }) => (
     <a href={to}>{children}</a>
   ),
+  useNavigate: () => vi.fn(),
   useRouterState: () => ({ location: { pathname: "/pipelines" } }),
 }));
 
@@ -38,12 +40,15 @@ describe("AppSidebar", () => {
 
   it("renders three navigation groups and valid routes", () => {
     const store = createSidebarStore();
+    const notificationStore = createNotificationStore();
     render(
-      <SidebarStoreContext.Provider value={store}>
-        <SidebarProvider>
-          <AppSidebar />
-        </SidebarProvider>
-      </SidebarStoreContext.Provider>,
+      <NotificationStoreContext.Provider value={notificationStore}>
+        <SidebarStoreContext.Provider value={store}>
+          <SidebarProvider>
+            <AppSidebar />
+          </SidebarProvider>
+        </SidebarStoreContext.Provider>
+      </NotificationStoreContext.Provider>,
     );
 
     expect(screen.getByText("装配")).toBeInTheDocument();
@@ -61,12 +66,15 @@ describe("AppSidebar", () => {
 
   it("persists the capabilities expanded state", () => {
     const store = createSidebarStore();
+    const notificationStore = createNotificationStore();
     render(
-      <SidebarStoreContext.Provider value={store}>
-        <SidebarProvider>
-          <AppSidebar />
-        </SidebarProvider>
-      </SidebarStoreContext.Provider>,
+      <NotificationStoreContext.Provider value={notificationStore}>
+        <SidebarStoreContext.Provider value={store}>
+          <SidebarProvider>
+            <AppSidebar />
+          </SidebarProvider>
+        </SidebarStoreContext.Provider>
+      </NotificationStoreContext.Provider>,
     );
 
     fireEvent.click(screen.getByRole("button", { name: "能力" }));
@@ -79,12 +87,15 @@ describe("AppSidebar", () => {
 
   it("centers the only visible header control when collapsed", () => {
     const store = createSidebarStore();
+    const notificationStore = createNotificationStore();
     render(
-      <SidebarStoreContext.Provider value={store}>
-        <SidebarProvider>
-          <AppSidebar />
-        </SidebarProvider>
-      </SidebarStoreContext.Provider>,
+      <NotificationStoreContext.Provider value={notificationStore}>
+        <SidebarStoreContext.Provider value={store}>
+          <SidebarProvider>
+            <AppSidebar />
+          </SidebarProvider>
+        </SidebarStoreContext.Provider>
+      </NotificationStoreContext.Provider>,
     );
 
     const brand = screen.getByText("Ordine Studio").parentElement?.parentElement;

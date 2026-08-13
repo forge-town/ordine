@@ -1,6 +1,6 @@
-import { useCreate, useDataProvider, useDelete, useList } from "@refinedev/core";
+import { useCreate, useDataProvider, useDelete, useList, useUpdate } from "@refinedev/core";
 import { useStore } from "zustand";
-import { Cpu, Loader2, Radar, RefreshCw } from "lucide-react";
+import { CircleAlert, Cpu, Loader2, Radar, RefreshCw, TerminalSquare } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { AgentRuntimeConfig } from "@repo/schemas";
 import { Button } from "@repo/ui/button";
@@ -17,10 +17,12 @@ export const RuntimesPageContent = () => {
   const { t } = useTranslation();
   const store = useRuntimesPageStore();
   const isScanning = useStore(store, (s) => s.isScanning);
+  const scanFailed = useStore(store, (s) => s.scanFailed);
   const handleScanButtonClick = useStore(store, (s) => s.handleScanButtonClick);
   const handleConfirmSyncButtonClick = useStore(store, (s) => s.handleConfirmSyncButtonClick);
   const getDataProvider = useDataProvider();
   const { mutateAsync: createRuntime } = useCreate();
+  const { mutateAsync: updateRuntime } = useUpdate();
   const { mutateAsync: deleteRuntime } = useDelete();
 
   const { result: runtimesResult, query: runtimesQuery } = useList<AgentRuntimeConfig>({
@@ -46,6 +48,12 @@ export const RuntimesPageContent = () => {
       createRuntime: (values) =>
         createRuntime({
           resource: "agentRuntimes",
+          values,
+        }),
+      updateRuntime: (values) =>
+        updateRuntime({
+          resource: "agentRuntimes",
+          id: values.id,
           values,
         }),
       deleteRuntime: (id) =>
@@ -78,6 +86,31 @@ export const RuntimesPageContent = () => {
       />
 
       <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-8 pt-4 sm:px-7">
+        <div className="mb-3 rounded-lg border border-border/80 bg-surface px-3.5 py-3">
+          <div className="flex items-start gap-3">
+            <div className="grid size-8 shrink-0 place-items-center rounded-md bg-surface-2 ring-1 ring-border">
+              <TerminalSquare className="size-4 text-muted-foreground" />
+            </div>
+            <div className="min-w-0">
+              <div className="text-xs font-semibold text-foreground">
+                {t("localAgents.howItWorks")}
+              </div>
+              <ol className="mt-1.5 grid gap-1 text-[11.5px] leading-5 text-muted-foreground lg:grid-cols-3 lg:gap-4">
+                <li>{t("localAgents.stepScan")}</li>
+                <li>{t("localAgents.stepSync")}</li>
+                <li>{t("localAgents.stepRun")}</li>
+              </ol>
+            </div>
+          </div>
+        </div>
+
+        {scanFailed && (
+          <div className="mb-3 flex items-center gap-2 rounded-lg bg-destructive/10 px-3.5 py-2.5 text-[11.5px] text-destructive">
+            <CircleAlert className="size-3.5 shrink-0" />
+            <span>{t("localAgents.scanFailed")}</span>
+          </div>
+        )}
+
         {runtimesQuery.isLoading ? (
           <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
             {Array.from({ length: 4 }).map((_, i) => (

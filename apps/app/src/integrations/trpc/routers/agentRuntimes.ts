@@ -1,16 +1,42 @@
 import { z } from "zod/v4";
 import { publicProcedure, router } from "../init";
 import { agentRuntimesService } from "../services";
-import { AgentRuntimeConfigSchema, type AgentRuntime } from "@repo/schemas";
+import { AgentRuntimeConfigSchema, getLocalAgentRuntimeId, type AgentRuntime } from "@repo/schemas";
 import { scanRuntimes } from "@repo/agent";
 import { getServerEnv } from "@/integrations/server-env";
 
 const UpdatePatchSchema = AgentRuntimeConfigSchema.omit({ id: true }).partial();
 
-const { RUNTIME_SCAN_MODE } = getServerEnv();
+const { ORDINE_LOCAL_MODE, RUNTIME_SCAN_MODE } = getServerEnv();
+const localRuntimeScanEnabled = RUNTIME_SCAN_MODE === "local" || ORDINE_LOCAL_MODE;
+
+const toLocalRuntimeConfig = (runtime: Awaited<ReturnType<typeof scanRuntimes>>[number]) => ({
+  id: getLocalAgentRuntimeId(runtime.type as AgentRuntime),
+  name: runtime.type,
+  type: runtime.type as AgentRuntime,
+  connection: {
+    mode: "local" as const,
+    binaryName: runtime.binaryName,
+    path: runtime.path,
+    version: runtime.version,
+    detectedAt: new Date().toISOString(),
+  },
+});
 
 export const agentRuntimesRouter = router({
-  getMany: publicProcedure.query(() => agentRuntimesService.getAll()),
+  getMany: publicProcedure.query(async () => {
+    const runtimes = await agentRuntimesService.getAll();
+    if (runtimes.length > 0 || !localRuntimeScanEnabled) {
+      return runtimes;
+    }
+
+    const detected = await scanRuntimes();
+    if (detected.length === 0) {
+      return runtimes;
+    }
+
+    return agentRuntimesService.syncAll(detected.map(toLocalRuntimeConfig));
+  }),
 
   getById: publicProcedure
     .input(z.object({ id: z.string() }))
@@ -33,17 +59,12 @@ export const agentRuntimesRouter = router({
     .mutation(({ input }) => agentRuntimesService.syncAll(input.runtimes)),
 
   scanAndSync: publicProcedure.mutation(async () => {
-    if (RUNTIME_SCAN_MODE !== "local") return [];
+    if (!localRuntimeScanEnabled) return [];
     const detected = await scanRuntimes();
-    const runtimes = detected.map((r) => ({
-      id: `local-${r.type}`,
-      name: r.type,
-      type: r.type as AgentRuntime,
-      connection: { mode: "local" as const },
-    }));
+    const runtimes = detected.map(toLocalRuntimeConfig);
 
     return agentRuntimesService.syncAll(runtimes);
   }),
 
-  scanRuntimes: publicProcedure.query(() => (RUNTIME_SCAN_MODE === "local" ? scanRuntimes() : [])),
+  scanRuntimes: publicProcedure.query(() => (localRuntimeScanEnabled ? scanRuntimes() : [])),
 });

@@ -1,4 +1,4 @@
-import { SidebarInset, SidebarProvider } from "@repo/ui/sidebar";
+import { SidebarInset, SidebarProvider, SidebarTrigger } from "@repo/ui/sidebar";
 import { AppSidebar } from "./AppSidebar";
 import { ToastContainer } from "./ToastContainer";
 import { toastStore, ToastStoreProvider } from "@/store/toastStore";
@@ -6,7 +6,6 @@ import { SidebarStoreProvider } from "@/store/sidebarStore";
 import { SidebarStoreProvider as SharedSidebarStoreProvider } from "@repo/views/store/sidebarStore";
 import { ToastStoreProvider as SharedToastStoreProvider } from "@repo/views/store/toastStore";
 import { ToastContainer as SharedToastContainer } from "@repo/views/ToastContainer";
-import { NotificationCenter } from "@repo/views/NotificationCenter";
 import { SearchPipelineDialog } from "@repo/views/SearchPipelineDialog";
 import { NewPipelineDialog } from "./NewPipelineDialog";
 import { AutonomyStoreProvider } from "@repo/views/store/autonomyStore";
@@ -37,7 +36,7 @@ export const AppLayout = ({
                   <SidebarProvider
                     className={cn(
                       canvasMode &&
-                        "max-[1361px]:[&_[data-slot=sidebar-container]]:hidden max-[1361px]:[&_[data-slot=sidebar-gap]]:w-0",
+                        "[&_[data-slot=sidebar-container]]:hidden [&_[data-slot=sidebar-gap]]:w-0",
                     )}
                     defaultWidth={236}
                     maxWidth={320}
@@ -46,13 +45,17 @@ export const AppLayout = ({
                   >
                     <AppSidebar />
                     <SidebarInset className={cn(canvasMode && "h-svh min-h-0 overflow-hidden")}>
+                      {!canvasMode && (
+                        <div className="hidden h-12 shrink-0 items-center border-b border-border px-3 min-[701px]:flex md:hidden">
+                          <SidebarTrigger />
+                        </div>
+                      )}
                       {children}
                     </SidebarInset>
                     <ToastContainer />
                     <SharedToastContainer />
                     <SearchPipelineDialog />
                     <NewPipelineDialog />
-                    <NotificationCenter />
                   </SidebarProvider>
                 </SharedSidebarStoreProvider>
               </SharedToastStoreProvider>

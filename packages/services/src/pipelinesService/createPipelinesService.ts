@@ -1,7 +1,7 @@
 import "../text-imports.d.ts";
 
 import { homedir } from "node:os";
-import { join } from "node:path";
+import { join, win32 } from "node:path";
 import nodeTypesRef from "../../../../skills/ordine-create-pipeline/references/node-types.md" with { type: "text" };
 import pipelineAnatomyRef from "../../../../skills/ordine-create-pipeline/references/pipeline-anatomy.md" with { type: "text" };
 import {
@@ -23,6 +23,7 @@ import {
   type ObjectNodeType,
   type PipelineData,
 } from "@repo/schemas";
+import { isConnectionAllowed } from "@repo/pipeline-engine/schemas";
 import { runStructuredAgent } from "../pipelineRunnerService/agentRunner/runStructuredAgent";
 import { normalizeSettingsRecord } from "../settingsService/normalizeSettingsRecord";
 import { MAX_SNAPSHOT_CHARS, truncate } from "./promptText";
@@ -39,20 +40,95 @@ import {
 const expandTilde = (p: string): string =>
   p.startsWith("~/") ? join(homedir(), p.slice(2)) : p === "~" ? homedir() : p;
 
+const normalizeGeneratedPath = (path: string): string => {
+  const expanded = expandTilde(path);
+  if (process.platform !== "win32") {
+    return expanded;
+  }
+
+  const withoutPosixDrivePrefix = /^\/[a-zA-Z]:[\\/]/.test(expanded) ? expanded.slice(1) : expanded;
+
+  return /^[a-zA-Z]:[\\/]/.test(withoutPosixDrivePrefix)
+    ? win32.normalize(withoutPosixDrivePrefix)
+    : withoutPosixDrivePrefix;
+};
+
 const expandTildeInNodes = (nodes: PipelineData["nodes"]): PipelineData["nodes"] =>
   nodes.map((node) => {
     const { data } = node;
     if (data.nodeType === "folder" && data.folderPath) {
-      return { ...node, data: { ...data, folderPath: expandTilde(data.folderPath) } };
+      return { ...node, data: { ...data, folderPath: normalizeGeneratedPath(data.folderPath) } };
     }
     if (data.nodeType === "output-local-path" && data.localPath) {
-      return { ...node, data: { ...data, localPath: expandTilde(data.localPath) } };
+      return { ...node, data: { ...data, localPath: normalizeGeneratedPath(data.localPath) } };
     }
 
     return node;
   });
 
 const SKILL_REFERENCES = [nodeTypesRef, pipelineAnatomyRef].filter(Boolean).join("\n\n---\n\n");
+const MAX_STRUCTURE_DIAGNOSTIC_ISSUES = 8;
+const MAX_STRUCTURE_SCHEMA_RETRIES = 1;
+
+const sanitizeGeneratedGraph = (value: unknown): unknown => {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return value;
+  }
+
+  const graph = value as Record<string, unknown>;
+  if (!Array.isArray(graph.nodes)) {
+    return value;
+  }
+
+  return {
+    ...graph,
+    nodes: graph.nodes.map((nodeValue) => {
+      if (!nodeValue || typeof nodeValue !== "object" || Array.isArray(nodeValue)) {
+        return nodeValue;
+      }
+
+      const node = nodeValue as Record<string, unknown>;
+      const dataValue = node.data;
+      if (!dataValue || typeof dataValue !== "object" || Array.isArray(dataValue)) {
+        return nodeValue;
+      }
+
+      const data = { ...(dataValue as Record<string, unknown>) };
+      const normalizedType =
+        node.type === "github-projects" || data.nodeType === "github-projects"
+          ? "github-project"
+          : node.type;
+      if (data.nodeType === "github-projects") {
+        data.nodeType = "github-project";
+      }
+      if (
+        data.nodeType === "github-project" &&
+        typeof data.owner !== "string" &&
+        typeof data.repo === "string" &&
+        data.repo.includes("/")
+      ) {
+        const [owner, ...repoParts] = data.repo.split("/");
+        if (owner && repoParts.length > 0) {
+          data.owner = owner;
+          data.repo = repoParts.join("/");
+        }
+      }
+      if (
+        data.nodeType === "prompt" &&
+        (typeof data.prompt !== "string" || data.prompt.trim().length === 0)
+      ) {
+        data.prompt =
+          typeof data.description === "string" && data.description.trim().length > 0
+            ? data.description
+            : typeof data.label === "string"
+              ? data.label
+              : "Provide the Pipeline input.";
+      }
+
+      return { ...node, type: normalizedType, data };
+    }),
+  };
+};
 
 export const createPipelinesService = (db: DbConnection) => {
   const agentRuntimesDao = createAgentRuntimesDao(db);
@@ -380,9 +456,9 @@ export const createPipelinesService = (db: DbConnection) => {
       if (opts.unmatchedSteps && opts.unmatchedSteps.length > 0) {
         for (const step of opts.unmatchedSteps) {
           const opId = `op_auto_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+          const operationDescription = `Execute this Pipeline step: ${step.step}`;
           const systemPrompt = [
             `You are an automation agent executing the task: "${step.step}".`,
-            step.reason ? `Context: ${step.reason}` : "",
             "",
             "You will receive input data from the previous pipeline step.",
             "Analyze the input thoroughly and execute the task described above.",
@@ -410,11 +486,11 @@ export const createPipelinesService = (db: DbConnection) => {
           pendingOperations.push({
             id: opId,
             name: step.step,
-            description: step.reason,
+            description: operationDescription,
             config,
             acceptedObjectTypes: ["file", "folder", "github-project", "prompt"] as ObjectNodeType[],
           });
-          newOperations.push({ id: opId, name: step.step, description: step.reason });
+          newOperations.push({ id: opId, name: step.step, description: operationDescription });
           logger.info(
             { opId, name: step.step },
             "generateStructure: prepared pending operation for unmatched step",
@@ -422,8 +498,16 @@ export const createPipelinesService = (db: DbConnection) => {
         }
       }
 
+      const hasAnalyzedIntent =
+        opts.matchedOperations !== undefined || opts.unmatchedSteps !== undefined;
+      const matchedOperationIds = new Set(
+        opts.matchedOperations?.map((operation) => operation.operationId) ?? [],
+      );
+      const relevantExistingOperations = hasAnalyzedIntent
+        ? operations.filter((operation) => matchedOperationIds.has(operation.id))
+        : operations;
       const allOperations = [
-        ...operations.map((op) => ({
+        ...relevantExistingOperations.map((op) => ({
           id: op.id,
           name: op.name,
           description: op.description,
@@ -476,45 +560,152 @@ export const createPipelinesService = (db: DbConnection) => {
 
       const systemPrompt = buildGenerateSystemPrompt(SKILL_REFERENCES);
 
-      const structured = await runStructuredAgent({
-        agent: opts.runtimeType ?? settings.defaultAgentRuntime,
-        systemPrompt,
-        userPrompt: userPromptText,
-        agentId: GENERATE_AGENT_ID,
-        logPrefix: "generateStructure",
-        apiKey: settings.defaultApiKey,
-        model: settings.defaultModel,
-      });
+      const NodesEdgesSchema = PipelineSchema.pick({ nodes: true, edges: true }).superRefine(
+        ({ edges, nodes }, ctx) => {
+          const nodeById = new Map(nodes.map((node) => [node.id, node]));
+          const seenNodeIds = new Set<string>();
 
-      if (!structured.ok) {
-        if (structured.code === "AGENT_FAILED") {
+          nodes.forEach((node, index) => {
+            if (seenNodeIds.has(node.id)) {
+              ctx.addIssue({
+                code: "custom",
+                message: `Duplicate node id: ${node.id}`,
+                path: ["nodes", index, "id"],
+              });
+            }
+            seenNodeIds.add(node.id);
+
+            if (node.type !== node.data.nodeType) {
+              ctx.addIssue({
+                code: "custom",
+                message: `Node type ${node.type} does not match data.nodeType ${node.data.nodeType}`,
+                path: ["nodes", index, "data", "nodeType"],
+              });
+            }
+          });
+
+          edges.forEach((edge, index) => {
+            const source = nodeById.get(edge.source);
+            const target = nodeById.get(edge.target);
+            if (!source) {
+              ctx.addIssue({
+                code: "custom",
+                message: `Unknown edge source: ${edge.source}`,
+                path: ["edges", index, "source"],
+              });
+            }
+            if (!target) {
+              ctx.addIssue({
+                code: "custom",
+                message: `Unknown edge target: ${edge.target}`,
+                path: ["edges", index, "target"],
+              });
+            }
+            if (source && target && !isConnectionAllowed(source.type, target.type)) {
+              ctx.addIssue({
+                code: "custom",
+                message: `Connection ${source.type} -> ${target.type} is not allowed`,
+                path: ["edges", index],
+              });
+            }
+          });
+        },
+      );
+      const runGenerationAttempt = async (
+        prompt: string,
+        semanticRetry: number,
+      ): Promise<
+        { ok: true; data: Pick<PipelineData, "edges" | "nodes"> } | { ok: false; error: string }
+      > => {
+        const structured = await runStructuredAgent({
+          agent: opts.runtimeType ?? settings.defaultAgentRuntime,
+          systemPrompt,
+          userPrompt: prompt,
+          agentId: GENERATE_AGENT_ID,
+          logPrefix: "generateStructure",
+          apiKey: settings.defaultApiKey,
+          model: settings.defaultModel,
+        });
+
+        if (!structured.ok) {
+          if (structured.code === "AGENT_FAILED") {
+            logger.error(
+              { detail: structured.detail },
+              "generateStructure: agent failed after retries",
+            );
+
+            return {
+              ok: false,
+              error: "Agent failed to generate pipeline structure after retries",
+            };
+          }
           logger.error(
             { detail: structured.detail },
-            "generateStructure: agent failed after retries",
+            "generateStructure: failed to parse agent output as JSON",
           );
 
-          return { error: "Agent failed to generate pipeline structure after retries" };
+          return { ok: false, error: "Agent returned invalid JSON" };
         }
+
+        const sanitizedGraph = sanitizeGeneratedGraph(structured.json);
+        const validated = NodesEdgesSchema.safeParse(sanitizedGraph);
+        if (validated.success) {
+          return { ok: true, data: validated.data };
+        }
+
+        const issueSummaries = validated.error.issues
+          .slice(0, MAX_STRUCTURE_DIAGNOSTIC_ISSUES)
+          .map((issue) => `${issue.path.join(".") || "(root)"}: ${issue.message}`);
         logger.error(
-          { detail: structured.detail },
-          "generateStructure: failed to parse agent output as JSON",
+          { error: validated.error, semanticRetry },
+          "generateStructure: invalid structure from agent",
         );
 
-        return { error: "Agent returned invalid JSON" };
+        if (semanticRetry >= MAX_STRUCTURE_SCHEMA_RETRIES) {
+          return { ok: false, error: "Agent returned invalid pipeline structure" };
+        }
+
+        logger.warn(
+          { issues: issueSummaries },
+          "generateStructure: retrying once with schema diagnostics",
+        );
+        const repairPrompt = [
+          "Repair the following pipeline structure so it passes the reported validation issues.",
+          "Preserve the existing intent, node IDs, and valid fields. Do not add commentary.",
+          "=== PREVIOUS INVALID STRUCTURE ===",
+          JSON.stringify(sanitizedGraph),
+          "",
+          "=== VALIDATION ISSUES TO FIX ===",
+          ...issueSummaries.map((issue) => `- ${issue}`),
+          "",
+          "Return a corrected complete pipeline structure. Return ONLY the JSON with nodes and edges.",
+        ].join("\n");
+
+        return runGenerationAttempt(repairPrompt, semanticRetry + 1);
+      };
+
+      const generationResult = await runGenerationAttempt(userPromptText, 0);
+      if (!generationResult.ok) {
+        return { error: generationResult.error };
       }
 
-      const NodesEdgesSchema = PipelineSchema.pick({ nodes: true, edges: true });
-      const validated = NodesEdgesSchema.safeParse(structured.json);
+      const generatedNodes = generationResult.data.nodes.map((node) => {
+        if (node.data.nodeType !== "operation" || !opts.runtimeType) {
+          return node;
+        }
 
-      if (!validated.success) {
-        logger.error({ error: validated.error }, "generateStructure: invalid structure from agent");
-
-        return { error: "Agent returned invalid pipeline structure" };
-      }
+        return {
+          ...node,
+          data: {
+            ...node.data,
+            agentRuntime: opts.runtimeType,
+          },
+        };
+      });
 
       return {
-        nodes: expandTildeInNodes(validated.data.nodes),
-        edges: validated.data.edges,
+        nodes: expandTildeInNodes(generatedNodes),
+        edges: generationResult.data.edges,
         ...(pendingOperations.length > 0 ? { pendingOperations } : {}),
       };
     },

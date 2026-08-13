@@ -55,6 +55,33 @@ const makeOutputLocalPathNode = (id: string): PipelineNode =>
   }) as PipelineNode;
 
 describe("canvas connection actions", () => {
+  it("records a completed node drag as one undoable move", () => {
+    const node = makeNode("movable", "file");
+    const store = createCanvasPageStore([node], [], null, "");
+
+    store.getState().handleFlowNodeDragStart({} as React.MouseEvent, node, [node]);
+    store.getState().handleNodesChange([
+      {
+        id: node.id,
+        type: "position",
+        position: { x: 240, y: 96 },
+        dragging: true,
+      },
+    ]);
+    const movedNode = store.getState().nodes[0]!;
+    store.getState().handleFlowNodeDragStop({} as React.MouseEvent, movedNode, [movedNode]);
+
+    expect(store.getState().nodes[0]?.position).toEqual({ x: 240, y: 96 });
+    expect(store.getState()._history).toHaveLength(1);
+    expect(store.getState()._history[0]?.command.type).toBe("MOVE_NODE");
+
+    store.getState().handleUndo();
+    expect(store.getState().nodes[0]?.position).toEqual({ x: 0, y: 0 });
+
+    store.getState().handleRedo();
+    expect(store.getState().nodes[0]?.position).toEqual({ x: 240, y: 96 });
+  });
+
   it("keeps the dragged source handle when creating a connected node", () => {
     const source = makeNode("source", "operation");
     const target = makeNode("target", "output-local-path");

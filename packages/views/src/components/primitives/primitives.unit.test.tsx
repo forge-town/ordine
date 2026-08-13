@@ -39,12 +39,12 @@ describe("app chrome primitives", () => {
       </div>,
     );
 
-    await user.click(screen.getByRole("button", { name: /All3/ }));
+    await user.click(screen.getByRole("button", { name: "All (3)" }));
     await user.type(screen.getByPlaceholderText("Search components"), "b");
     await user.click(screen.getByRole("button", { name: "Clear search" }));
 
     expect(handleChipClick).toHaveBeenCalledTimes(1);
-    expect(screen.getByRole("button", { name: /All3/ })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: "All (3)" })).toHaveAttribute("aria-pressed", "true");
     expect(screen.getByRole("textbox", { name: "Search components" })).toBeInTheDocument();
     expect(handleChange).toHaveBeenCalledWith("ab");
     expect(handleClear).toHaveBeenCalledTimes(1);

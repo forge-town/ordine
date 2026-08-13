@@ -92,6 +92,7 @@ export const CanvasFlow = ({ viewportRef }: CanvasFlowProps) => {
   const handleCreateObjectNode = useStore(store, (s) => s.handleCreateObjectNode);
   const handleCreateOperationNode = useStore(store, (s) => s.handleCreateOperationNode);
   const handleCreateSkillOperationNode = useStore(store, (s) => s.handleCreateSkillOperationNode);
+  const handleFlowNodeDragStart = useStore(store, (s) => s.handleFlowNodeDragStart);
   const handleFlowNodeDrag = useStore(store, (s) => s.handleFlowNodeDrag);
   const handleFlowNodeDragStop = useStore(store, (s) => s.handleFlowNodeDragStop);
   const handleFlowMove = useStore(store, (s) => s.handleFlowMove);
@@ -182,6 +183,7 @@ export const CanvasFlow = ({ viewportRef }: CanvasFlowProps) => {
         onEdgeClick: handleFlowEdgeClick,
         onNodeClick: handleFlowNodeClick,
         onNodeContextMenu: handleFlowNodeContextMenu,
+        onNodeDragStart: handleFlowNodeDragStart,
         onNodeDrag: handleFlowNodeDrag,
         onNodeDragStop: handleFlowNodeDragStop,
         onPaneClick: handleFlowPaneClick,
@@ -256,6 +258,7 @@ export const CanvasFlow = ({ viewportRef }: CanvasFlowProps) => {
         nodesConnectable={isCanvasInteractive}
         nodesDraggable={isCanvasInteractive}
         nodeTypes={nodeTypes}
+        minZoom={0.1}
         panOnDrag={!isCanvasInteractive ? false : canvasTool === "hand" ? true : [1, 2]}
         panOnScroll={false}
         proOptions={proOpts}

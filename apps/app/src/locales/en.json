@@ -37,7 +37,9 @@
     "createdAt": "Created",
     "updatedAt": "Updated",
     "clearSearch": "Clear search",
-    "retry": "Retry"
+    "retry": "Retry",
+    "loadFailed": "Couldn't load this page",
+    "loadFailedDescription": "Check your connection and try again."
   },
   "auth": {
     "workspace": "Composable AI workspace",
@@ -143,9 +145,18 @@
     "scanning": "Scanning...",
     "configure": "Configure",
     "assembled": "assembled per operation",
+    "howItWorks": "Local Agents do not keep a daemon connection: Ordine invokes installed CLIs on this machine when a run starts.",
+    "stepScan": "1. Sign in to each Agent CLI in a terminal, then scan installed CLIs.",
+    "stepSync": "2. Review the executable path and version, then sync.",
+    "stepRun": "3. Home defaults to Codex; switch runtimes from the Canvas Agent Bar.",
+    "detectedStatus": "Detected",
+    "configuredStatus": "Configured only",
+    "executable": "Local executable",
+    "notDetectedPath": "Path not recorded yet; re-scan",
+    "scanFailed": "Scan failed. Make sure the app is running in local mode, then retry.",
     "empty": "No local agents detected",
     "emptyHint": "Re-scan this machine to sync available agent runtimes.",
-    "detected": "Auto-detected {{count}} of {{total}} agent runtimes on localhost."
+    "detected": "{{count}} of {{total}} supported Local Agents are synced."
   },
   "usage": {
     "title": "Usage",
@@ -232,11 +243,17 @@
     "heading": "What should Ordine automate today?",
     "description": "Describe the goal, inputs, and expected output. Your local Agent will confirm a plan, then create a runnable Pipeline in the existing Canvas.",
     "agentReady": "Local Agent ready",
+    "agentConfigured": "Local Agent configured",
+    "selectLocalAgent": "Select local Agent",
+    "manageLocalAgents": "Manage local Agents",
+    "agentQueryFailed": "Agent status unavailable",
+    "runtimeLoadFailed": "Could not load configured local Agents.",
     "connectLocalAgent": "Connect local Agent",
     "checkingAgent": "Checking local Agent…",
     "localAgentCount": "{{name}} +{{count}}",
     "sendHint": "Ctrl ↵ to send",
     "proposalHint": "Approve this plan and the Agent will create the Pipeline in the existing Canvas.",
+    "proposalSchedule": "Schedule: {{cronExpression}}",
     "suggestions": {
       "build": "Create a Pipeline",
       "buildDescription": "Turn a goal and its inputs into a complete flow",
@@ -657,6 +674,23 @@
       "condition": "Condition"
     }
   },
+  "pipelineAgentErrors": {
+    "agentFailed": "The selected local Agent could not complete the request. Check its sign-in, quota, or model configuration and try again.",
+    "attachmentTooLarge": "This attachment is too large. Choose a file under 10 MB.",
+    "invalidAttachment": "This attachment could not be uploaded. Try a different file.",
+    "invalidRequest": "The request was incomplete. Review it and try again.",
+    "attachmentNotFound": "This attachment is no longer available.",
+    "attachmentConflict": "This attachment can only be removed before planning starts.",
+    "attachmentUploadFailed": "This attachment could not be uploaded. Check storage access and retry.",
+    "cancelled": "The request was cancelled.",
+    "invalidStructure": "The Agent could not build a valid Pipeline. Revise the plan and retry.",
+    "runtimeNotFound": "Connect and select a local Agent before planning or running this Pipeline.",
+    "proposalConflict": "This proposal changed. Refresh the conversation and try again.",
+    "sessionNotFound": "This conversation is no longer available. Start a new one.",
+    "stateConflict": "The conversation changed. Refresh it and try again.",
+    "network": "Couldn't reach the Pipeline Agent. Check your connection and retry.",
+    "generic": "The Pipeline Agent couldn't complete the request. Please retry."
+  },
   "newPipelineDialog": {
     "descriptionPlaceholder": "Describe what this pipeline should do...",
     "messagePlaceholder": "Describe your goal and add any useful context...",
@@ -669,7 +703,12 @@
     "welcome": "Hi! Tell me what kind of pipeline you want to create, and I can help you plan it before generating anything.",
     "send": "Send",
     "upload": "Upload context",
+    "attachmentReady": "Ready",
+    "attachmentFailed": "Couldn't read",
+    "removeAttachment": "Remove {{name}}",
     "approve": "Approve plan",
+    "cancel": "Cancel",
+    "restoring": "Restoring your conversation...",
     "revise": "Revise",
     "reject": "Reject",
     "rejected": "Proposal rejected. You can keep refining your goal.",
@@ -684,6 +723,10 @@
   },
   "canvas": {
     "title": "Canvas",
+    "pipelineLoadFailed": "Couldn't load this Pipeline",
+    "pipelineLoadFailedDescription": "The Pipeline request failed. Check your connection and retry.",
+    "pipelineNotFound": "Pipeline not found",
+    "pipelineNotFoundDescription": "This Pipeline may have been deleted or the link may be invalid.",
     "menu": "Menu",
     "backToWorkspace": "Back to workspace",
     "pipelineTitle": "Pipeline title",
@@ -1056,6 +1099,7 @@
       "addNode": "Add node {{label}}",
       "addNodeWithEdge": "Add {{label}} and connect",
       "removeNode": "Delete node {{label}}",
+      "moveNode": "Move node {{label}}",
       "updateNode": "Edit {{label}}",
       "duplicateNode": "Duplicate node {{label}}",
       "clearCanvas": "Clear canvas",
@@ -1527,6 +1571,10 @@
     "confirmDelete": "Confirm Delete",
     "confirmSync": "Sync changes",
     "noChanges": "No runtime changes detected.",
+    "scanAdded": "Added",
+    "scanUpdated": "Updated",
+    "scanRemoved": "Removed",
+    "scanUnchanged": "Unchanged",
     "scanResults": "Runtime scan results",
     "scanResultsDescription": "Review detected runtime changes before syncing."
   },
@@ -2126,6 +2174,7 @@
   },
   "agents": {
     "title": "Agents",
+    "notFoundDescription": "This Agent may have been deleted or the link may be invalid.",
     "subtitle": "Configure the agents that plan and coordinate work across this workspace.",
     "noAgents": "No agents found",
     "searchPlaceholder": "Search agents...",
