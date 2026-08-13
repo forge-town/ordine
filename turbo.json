@@ -5,7 +5,14 @@
     "build": {
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
-      "outputs": [".next/**", "!.next/cache/**", "dist/**", ".vitepress/dist/**", ".output/**", "app/**"]
+      "outputs": [
+        ".next/**",
+        "!.next/cache/**",
+        "dist/**",
+        ".vitepress/dist/**",
+        ".output/**",
+        "app/**"
+      ]
     },
     "test": {
       "dependsOn": ["^test"],
@@ -22,6 +29,7 @@
     },
     "dev": {
       "cache": false,
+      "env": ["HERMES_BIN", "ORDINE_EXTRA_RUNTIMES", "ORDINE_LOCAL_MODE", "RUNTIME_SCAN_MODE"],
       "persistent": true
     },
     "storybook": {

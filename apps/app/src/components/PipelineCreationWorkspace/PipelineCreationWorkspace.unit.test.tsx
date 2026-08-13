@@ -25,8 +25,12 @@ vi.mock("@/router", () => ({
 const createClient = () => ({
   ...pipelineAgentSessionsClient,
   appendMessage: vi.fn(),
+  approveProposal: vi.fn().mockResolvedValue(undefined),
   cancelSession: vi.fn().mockResolvedValue(undefined),
   createSession: vi.fn(),
+  generatePipelineFromApprovedProposal: vi.fn().mockResolvedValue({ pipelineId: "pipeline-1" }),
+  getLatestAssistantQuestion: vi.fn().mockResolvedValue(null),
+  getLatestReadyProposal: vi.fn().mockResolvedValue(null),
   getSessionById: vi.fn(),
   planSessionStream: vi.fn(),
 });
@@ -128,6 +132,7 @@ describe("PipelineCreationWorkspace", () => {
     render(
       <PipelineCreationWorkspace
         active
+        runtimeConfigured
         client={client as typeof pipelineAgentSessionsClient}
         presentation="home"
       />,
@@ -144,6 +149,71 @@ describe("PipelineCreationWorkspace", () => {
       screen.queryByRole("button", { name: "newPipelineDialog.cancel" }),
     ).not.toBeInTheDocument();
     expect(composer).toBeEnabled();
+  });
+
+  it("keeps the selected local runtime through planning and generation", async () => {
+    const user = userEvent.setup();
+    const client = createClient();
+    const materializePipeline = vi.fn().mockResolvedValue("pipeline-1");
+    client.createSession.mockResolvedValue({
+      id: "session-1",
+      entrypoint: "new-pipeline-dialog",
+      mode: "generate",
+      status: "draft",
+    });
+    client.appendMessage.mockResolvedValue({
+      id: "message-1",
+      role: "user",
+      kind: "text",
+      content: "Build an exam pipeline",
+    });
+    client.planSessionStream.mockImplementation(async (_sessionId, input) => {
+      input.onEvent({
+        type: "proposal_ready",
+        proposal: {
+          mode: "generate",
+          purpose: "Generate an English exam",
+          inputs: ["exam requirements"],
+          outputs: ["exam paper"],
+          majorOperations: ["draft questions"],
+          executionFlow: ["requirements -> questions -> exam"],
+          assumptions: [],
+          openQuestions: [],
+          readiness: "ready_for_generation",
+        },
+        proposalId: "proposal-1",
+      });
+    });
+
+    render(
+      <PipelineCreationWorkspace
+        active
+        runtimeConfigured
+        client={client as typeof pipelineAgentSessionsClient}
+        materializePipeline={materializePipeline}
+        presentation="home"
+        runtimeId="local-codex"
+      />,
+    );
+    await user.type(
+      screen.getByRole("textbox", { name: "newPipelineDialog.messagePlaceholder" }),
+      "Build an exam pipeline",
+    );
+    await user.click(screen.getByRole("button", { name: "newPipelineDialog.send" }));
+
+    expect(await screen.findByText("Generate an English exam")).toBeInTheDocument();
+    expect(client.planSessionStream).toHaveBeenCalledWith(
+      "session-1",
+      expect.objectContaining({ runtimeId: "local-codex" }),
+    );
+    await user.click(screen.getByRole("button", { name: "newPipelineDialog.approve" }));
+
+    await waitFor(() =>
+      expect(client.generatePipelineFromApprovedProposal).toHaveBeenCalledWith("session-1", {
+        runtimeId: "local-codex",
+        signal: expect.any(AbortSignal),
+      }),
+    );
   });
 
   it("clears a saved session id when the server no longer has the session", async () => {
@@ -165,6 +235,50 @@ describe("PipelineCreationWorkspace", () => {
         globalThis.localStorage.getItem("ordine.pipeline-agent.current-session-id"),
       ).toBeNull(),
     );
+  });
+
+  it("starts fresh instead of restoring a terminal failed session", async () => {
+    globalThis.localStorage.setItem("ordine.pipeline-agent.current-session-id", "failed-session");
+    const client = createClient();
+    client.getSessionById.mockResolvedValue({
+      id: "failed-session",
+      entrypoint: "new-pipeline-dialog",
+      mode: "generate",
+      status: "failed",
+      latestProposalId: null,
+      createdPipelineId: null,
+      messages: [
+        {
+          id: "message-failed",
+          role: "user",
+          kind: "text",
+          content: "This message should not remain on the home page",
+        },
+      ],
+      attachments: [],
+      proposals: [],
+    });
+
+    render(
+      <PipelineCreationWorkspace
+        active
+        client={client as typeof pipelineAgentSessionsClient}
+        presentation="home"
+      />,
+    );
+
+    await waitFor(() =>
+      expect(
+        globalThis.localStorage.getItem("ordine.pipeline-agent.current-session-id"),
+      ).toBeNull(),
+    );
+    expect(
+      screen.queryByText("This message should not remain on the home page"),
+    ).not.toBeInTheDocument();
+    expect(
+      await screen.findByRole("textbox", { name: "newPipelineDialog.messagePlaceholder" }),
+    ).toBeInTheDocument();
+    expect(screen.queryByText("newPipelineDialog.restoring")).not.toBeInTheDocument();
   });
 
   it("shows a recoverable error when session creation fails before upload", async () => {

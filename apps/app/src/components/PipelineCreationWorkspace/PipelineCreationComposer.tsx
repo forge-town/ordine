@@ -32,7 +32,7 @@ interface PipelineCreationComposerProps {
   isUploading: boolean;
   phase: PipelineCreationPhase;
   proposalVisible: boolean;
-  runtimeConfigured: boolean;
+  runtimeConfigured?: boolean;
   runtimeLabel?: string;
   onApprove: () => void;
   onCancel: () => void;
@@ -72,6 +72,7 @@ export const PipelineCreationComposer = ({
   onUploadClick: handleUploadClick,
 }: PipelineCreationComposerProps) => {
   const { t } = useTranslation();
+  const runtimeMissing = isHome && runtimeConfigured !== true;
   const suggestions = [
     {
       icon: Workflow,
@@ -188,7 +189,7 @@ export const PipelineCreationComposer = ({
             <Button
               aria-label={t("newPipelineDialog.send")}
               className={cn("shrink-0", isHome && "rounded-full")}
-              disabled={inputValue.trim().length === 0}
+              disabled={inputValue.trim().length === 0 || runtimeMissing}
               size={isHome ? "icon" : "sm"}
               onClick={handleSend}
             >

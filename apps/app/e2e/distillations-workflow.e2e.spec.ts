@@ -2,7 +2,10 @@ import { expect } from "@playwright/test";
 import { test, navigateAndWait, expectNoJSErrors } from "./fixtures";
 
 test.describe("Distillation workflow", () => {
-  test("creates, reopens, edits, reloads, and deletes a draft", async ({ page, pageErrors }, testInfo) => {
+  test("creates, reopens, edits, reloads, and deletes a draft", async ({
+    page,
+    pageErrors,
+  }, testInfo) => {
     const runId = `${Date.now()}-${testInfo.workerIndex}-${testInfo.repeatEachIndex}`;
     const title = `Distillation E2E ${runId}`;
     const updatedTitle = `Updated Distillation ${runId}`;
@@ -10,8 +13,16 @@ test.describe("Distillation workflow", () => {
 
     await navigateAndWait(page, "/distillation-studio");
     await page.getByText("Title", { exact: true }).locator("..").getByRole("textbox").fill(title);
-    await page.getByText("Source ID", { exact: true }).locator("..").getByRole("textbox").fill(`source-${runId}`);
-    await page.getByText("Source Label", { exact: true }).locator("..").getByRole("textbox").fill("E2E source");
+    await page
+      .getByText("Source ID", { exact: true })
+      .locator("..")
+      .getByRole("textbox")
+      .fill(`source-${runId}`);
+    await page
+      .getByText("Source Label", { exact: true })
+      .locator("..")
+      .getByRole("textbox")
+      .fill("E2E source");
     await page
       .getByText("Summary", { exact: true })
       .locator("..")
@@ -27,17 +38,27 @@ test.describe("Distillation workflow", () => {
     await draftCard.getByRole("link", { name: "Open In Studio" }).click();
     await expect(page).toHaveURL(/distillationId=/);
 
-    await page.getByText("Title", { exact: true }).locator("..").getByRole("textbox").fill(updatedTitle);
-    await page.getByText("Summary", { exact: true }).locator("..").getByRole("textbox").fill(updatedSummary);
+    await page
+      .getByText("Title", { exact: true })
+      .locator("..")
+      .getByRole("textbox")
+      .fill(updatedTitle);
+    await page
+      .getByText("Summary", { exact: true })
+      .locator("..")
+      .getByRole("textbox")
+      .fill(updatedSummary);
     await page.getByRole("button", { name: "Save Changes" }).click();
     await expect(page.getByText("Successfully updated distillation")).toBeVisible();
 
     await page.reload();
     await page.waitForLoadState("networkidle");
-    await expect(page.getByText("Title", { exact: true }).locator("..").getByRole("textbox")).toHaveValue(updatedTitle);
-    await expect(page.getByText("Summary", { exact: true }).locator("..").getByRole("textbox")).toHaveValue(
-      updatedSummary,
-    );
+    await expect(
+      page.getByText("Title", { exact: true }).locator("..").getByRole("textbox"),
+    ).toHaveValue(updatedTitle);
+    await expect(
+      page.getByText("Summary", { exact: true }).locator("..").getByRole("textbox"),
+    ).toHaveValue(updatedSummary);
 
     await navigateAndWait(page, "/distillations");
     const updatedCard = page.locator(".group").filter({ hasText: updatedTitle });

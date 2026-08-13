@@ -110,6 +110,20 @@ describe("CanvasToolbar - Run Test button", () => {
     mockTrpcRun.mockResolvedValue({ data: { jobId: "job-123" } });
     canvasTestDataProvider.update = mockTrpcUpdate;
     canvasTestDataProvider.custom = mockTrpcRun;
+    canvasTestDataProvider.getList = vi.fn(async ({ resource }) => ({
+      data:
+        resource === "agentRuntimes"
+          ? [
+              {
+                id: "runtime-codex",
+                name: "Codex Local",
+                type: "codex",
+                connection: { mode: "local" },
+              },
+            ]
+          : [],
+      total: resource === "agentRuntimes" ? 1 : 0,
+    })) as never;
     toastStore.setState({ toasts: [] });
   });
 
@@ -123,15 +137,28 @@ describe("CanvasToolbar - Run Test button", () => {
     expect(screen.getByRole("button", { name: i18n.t("canvas.runTest") })).toBeDisabled();
   });
 
-  it("Run Test button is enabled when pipelineId exists", () => {
+  it("Run Test button is enabled when pipelineId and runtime exist", async () => {
     render(<CanvasToolbar />, { wrapper: wrapperWithPipeline });
-    expect(screen.getByRole("button", { name: i18n.t("canvas.runTest") })).not.toBeDisabled();
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: i18n.t("canvas.runTest") })).not.toBeDisabled(),
+    );
+  });
+
+  it("Run Test button stays disabled when no runtime is configured", async () => {
+    canvasTestDataProvider.getList = vi.fn(async () => ({ data: [], total: 0 })) as never;
+    render(<CanvasToolbar />, { wrapper: wrapperWithPipeline });
+
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: i18n.t("canvas.runTest") })).toBeDisabled(),
+    );
   });
 
   it("clicking Run saves pipeline then calls run API", async () => {
     const user = userEvent.setup();
     render(<CanvasToolbar />, { wrapper: wrapperWithPipeline });
-    await user.click(screen.getByRole("button", { name: i18n.t("canvas.runTest") }));
+    const runButton = screen.getByRole("button", { name: i18n.t("canvas.runTest") });
+    await waitFor(() => expect(runButton).not.toBeDisabled());
+    await user.click(runButton);
 
     await waitFor(() => {
       expect(mockTrpcUpdate).toHaveBeenCalledWith(
@@ -151,7 +178,9 @@ describe("CanvasToolbar - Run Test button", () => {
   it("shows success toast after successful run", async () => {
     const user = userEvent.setup();
     render(<CanvasToolbar />, { wrapper: wrapperWithPipeline });
-    await user.click(screen.getByRole("button", { name: i18n.t("canvas.runTest") }));
+    const runButton = screen.getByRole("button", { name: i18n.t("canvas.runTest") });
+    await waitFor(() => expect(runButton).not.toBeDisabled());
+    await user.click(runButton);
     await waitFor(() => {
       expect(toastStore.getState().toasts).toEqual(
         expect.arrayContaining([expect.objectContaining({ type: "success" })]),
@@ -163,7 +192,9 @@ describe("CanvasToolbar - Run Test button", () => {
     mockTrpcUpdate.mockRejectedValue(new Error("save failed"));
     const user = userEvent.setup();
     render(<CanvasToolbar />, { wrapper: wrapperWithPipeline });
-    await user.click(screen.getByRole("button", { name: i18n.t("canvas.runTest") }));
+    const runButton = screen.getByRole("button", { name: i18n.t("canvas.runTest") });
+    await waitFor(() => expect(runButton).not.toBeDisabled());
+    await user.click(runButton);
     await waitFor(() => {
       expect(toastStore.getState().toasts).toEqual(
         expect.arrayContaining([expect.objectContaining({ type: "error" })]),
@@ -176,7 +207,9 @@ describe("CanvasToolbar - Run Test button", () => {
     mockTrpcRun.mockRejectedValue(new Error("Internal Server Error"));
     const user = userEvent.setup();
     render(<CanvasToolbar />, { wrapper: wrapperWithPipeline });
-    await user.click(screen.getByRole("button", { name: i18n.t("canvas.runTest") }));
+    const runButton = screen.getByRole("button", { name: i18n.t("canvas.runTest") });
+    await waitFor(() => expect(runButton).not.toBeDisabled());
+    await user.click(runButton);
     await waitFor(() => {
       expect(toastStore.getState().toasts).toEqual(
         expect.arrayContaining([expect.objectContaining({ type: "error" })]),

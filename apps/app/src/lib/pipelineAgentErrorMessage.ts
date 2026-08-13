@@ -11,8 +11,11 @@ const ERROR_MESSAGE_KEYS: Record<string, string> = {
   INVALID_REQUEST: "pipelineAgentErrors.invalidRequest",
   PIPELINE_AGENT_ATTACHMENT_NOT_FOUND: "pipelineAgentErrors.attachmentNotFound",
   PIPELINE_AGENT_ATTACHMENT_STATE_CONFLICT: "pipelineAgentErrors.attachmentConflict",
+  PIPELINE_AGENT_ATTACHMENT_UPLOAD_FAILED: "pipelineAgentErrors.attachmentUploadFailed",
   PIPELINE_AGENT_CANCELLED: "pipelineAgentErrors.cancelled",
   PIPELINE_AGENT_INVALID_STRUCTURE: "pipelineAgentErrors.invalidStructure",
+  PIPELINE_AGENT_REQUEST_FAILED: "pipelineAgentErrors.agentFailed",
+  PIPELINE_AGENT_RUNTIME_NOT_FOUND: "pipelineAgentErrors.runtimeNotFound",
   PIPELINE_AGENT_PROPOSAL_STATE_CONFLICT: "pipelineAgentErrors.proposalConflict",
   PIPELINE_AGENT_SESSION_NOT_FOUND: "pipelineAgentErrors.sessionNotFound",
 };

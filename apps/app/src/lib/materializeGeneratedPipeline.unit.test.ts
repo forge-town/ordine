@@ -70,7 +70,9 @@ describe("materializeGeneratedPipeline", () => {
   });
 
   it("keeps an existing local operation and only creates the pipeline", async () => {
-    mockGetOne.mockResolvedValueOnce({ data: { id: "operation-1" } });
+    mockGetOne
+      .mockResolvedValueOnce({ data: null })
+      .mockResolvedValueOnce({ data: { id: "operation-1" } });
     mockCreate.mockReset();
     mockCreate.mockResolvedValueOnce({ data: { id: "pipeline-1" } });
 
@@ -93,5 +95,14 @@ describe("materializeGeneratedPipeline", () => {
         projectId: "project-1",
       }),
     });
+  });
+
+  it("returns an already materialized pipeline without creating a duplicate", async () => {
+    mockGetOne.mockResolvedValueOnce({ data: { id: "pipeline-1" } });
+    mockCreate.mockReset();
+
+    await expect(materializeGeneratedPipeline("pipeline-1")).resolves.toBe("pipeline-1");
+
+    expect(mockCreate).not.toHaveBeenCalled();
   });
 });

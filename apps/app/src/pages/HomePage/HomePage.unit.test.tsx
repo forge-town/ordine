@@ -1,4 +1,5 @@
 import { act, render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createStore } from "zustand/vanilla";
 import type { AgentRuntimeConfig } from "@repo/schemas";
@@ -41,16 +42,19 @@ vi.mock("@/components/PipelineCreationWorkspace", () => ({
   PipelineCreationWorkspace: ({
     presentation,
     runtimeConfigured,
+    runtimeId,
     runtimeLabel,
   }: {
     presentation: string;
     runtimeConfigured: boolean;
+    runtimeId?: string;
     runtimeLabel?: string;
   }) => (
     <div
       data-connected={runtimeConfigured}
       data-presentation={presentation}
       data-runtime={runtimeLabel}
+      data-runtime-id={runtimeId}
       data-testid="pipeline-creation-workspace"
     />
   ),
@@ -60,6 +64,13 @@ const localRuntime: AgentRuntimeConfig = {
   id: "runtime-codex",
   name: "Codex",
   type: "codex",
+  connection: { mode: "local" },
+};
+
+const hermesRuntime: AgentRuntimeConfig = {
+  id: "local-hermes",
+  name: "Hermes",
+  type: "hermes",
   connection: { mode: "local" },
 };
 
@@ -94,7 +105,9 @@ describe("HomePage", () => {
     renderHomePage();
 
     expect(screen.getByText("home.heading")).toBeInTheDocument();
-    expect(screen.getByText("home.agentConfigured")).toBeInTheDocument();
+    expect(screen.getByRole("combobox", { name: "home.selectLocalAgent" })).toHaveTextContent(
+      "Codex",
+    );
     expect(screen.getByTestId("pipeline-creation-workspace")).toHaveAttribute(
       "data-presentation",
       "home",
@@ -121,6 +134,27 @@ describe("HomePage", () => {
     expect(screen.getByTestId("pipeline-creation-workspace")).toHaveAttribute(
       "data-connected",
       "false",
+    );
+  });
+
+  it("allows the selected local Agent to be changed before planning", async () => {
+    mockUseList.mockReturnValue({
+      result: { data: [localRuntime, hermesRuntime] },
+      query: { isLoading: false },
+    });
+
+    renderHomePage();
+    const user = userEvent.setup();
+    await user.click(screen.getByRole("combobox", { name: "home.selectLocalAgent" }));
+    await user.click(await screen.findByRole("option", { name: "Hermes" }));
+
+    expect(screen.getByTestId("pipeline-creation-workspace")).toHaveAttribute(
+      "data-runtime-id",
+      "local-hermes",
+    );
+    expect(screen.getByTestId("pipeline-creation-workspace")).toHaveAttribute(
+      "data-runtime",
+      "Hermes +1",
     );
   });
 

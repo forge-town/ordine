@@ -1,4 +1,6 @@
 import { useStore } from "zustand";
+import { useList } from "@refinedev/core";
+import type { AgentRuntimeConfig } from "@repo/schemas";
 import { useCanvasPageStore } from "../_store";
 import {
   ZoomIn,
@@ -21,6 +23,7 @@ import { Button } from "@repo/ui/button";
 import { Separator } from "@repo/ui/separator";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@repo/ui/tooltip";
 import { cn } from "@repo/ui/lib/utils";
+import { ResourceName } from "../../../constants";
 
 export const CanvasToolbar = () => {
   const { t } = useTranslation();
@@ -49,6 +52,11 @@ export const CanvasToolbar = () => {
   const handleRunTest = useStore(store, (state) => state.handleRunTest);
   const handleToggleAgentPanel = useStore(store, (state) => state.toggleAgentPanel);
   const agentPanelIsOpen = useStore(store, (state) => state.agentPanel.isOpen);
+  const { result: runtimesResult, query: runtimesQuery } = useList<AgentRuntimeConfig>({
+    resource: ResourceName.agentRuntimes,
+  });
+  const runtimeConfigured =
+    !(runtimesQuery?.isLoading ?? false) && (runtimesResult?.data.length ?? 0) > 0;
   const interactivityActionLabel = isCanvasInteractive
     ? t("canvas.disableInteractivity")
     : t("canvas.enableInteractivity");
@@ -104,40 +112,42 @@ export const CanvasToolbar = () => {
         <Separator className="mx-1 h-7" orientation="vertical" />
 
         {/* Zoom controls */}
-        <Tooltip>
-          <TooltipTrigger
-            render={
-              <Button
-                aria-label={t("canvas.zoomOut")}
-                className="h-7 w-7"
-                size="icon"
-                title={t("canvas.zoomOut")}
-                variant="ghost"
-                onClick={handleZoomOut}
-              />
-            }
-          >
-            <ZoomOut className="h-4 w-4" />
-          </TooltipTrigger>
-          <TooltipContent>{t("canvas.zoomOut")}</TooltipContent>
-        </Tooltip>
-        <Tooltip>
-          <TooltipTrigger
-            render={
-              <Button
-                aria-label={t("canvas.zoomIn")}
-                className="h-7 w-7"
-                size="icon"
-                title={t("canvas.zoomIn")}
-                variant="ghost"
-                onClick={handleZoomIn}
-              />
-            }
-          >
-            <ZoomIn className="h-4 w-4" />
-          </TooltipTrigger>
-          <TooltipContent>{t("canvas.zoomIn")}</TooltipContent>
-        </Tooltip>
+        <div className="contents max-[1180px]:hidden">
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <Button
+                  aria-label={t("canvas.zoomOut")}
+                  className="h-7 w-7"
+                  size="icon"
+                  title={t("canvas.zoomOut")}
+                  variant="ghost"
+                  onClick={handleZoomOut}
+                />
+              }
+            >
+              <ZoomOut className="h-4 w-4" />
+            </TooltipTrigger>
+            <TooltipContent>{t("canvas.zoomOut")}</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <Button
+                  aria-label={t("canvas.zoomIn")}
+                  className="h-7 w-7"
+                  size="icon"
+                  title={t("canvas.zoomIn")}
+                  variant="ghost"
+                  onClick={handleZoomIn}
+                />
+              }
+            >
+              <ZoomIn className="h-4 w-4" />
+            </TooltipTrigger>
+            <TooltipContent>{t("canvas.zoomIn")}</TooltipContent>
+          </Tooltip>
+        </div>
         <Tooltip>
           <TooltipTrigger
             render={
@@ -155,41 +165,43 @@ export const CanvasToolbar = () => {
           </TooltipTrigger>
           <TooltipContent>{t("canvas.fitView")}</TooltipContent>
         </Tooltip>
-        <Tooltip>
-          <TooltipTrigger
-            render={
-              <Button
-                aria-label={interactivityActionLabel}
-                aria-pressed={isCanvasInteractive}
-                className="h-7 w-7"
-                size="icon"
-                title={interactivityActionLabel}
-                variant="ghost"
-                onClick={handleToggleCanvasInteractive}
-              />
-            }
-          >
-            <InteractivityIcon className="h-4 w-4" />
-          </TooltipTrigger>
-          <TooltipContent>{interactivityActionLabel}</TooltipContent>
-        </Tooltip>
-        <Tooltip>
-          <TooltipTrigger
-            render={
-              <Button
-                aria-label={t("canvas.formatLayout")}
-                className="h-7 w-7"
-                size="icon"
-                title={t("canvas.formatLayout")}
-                variant="ghost"
-                onClick={handleFormatLayout}
-              />
-            }
-          >
-            <AlignLeft className="h-4 w-4" />
-          </TooltipTrigger>
-          <TooltipContent>{t("canvas.formatLayout")}</TooltipContent>
-        </Tooltip>
+        <div className="contents max-[1180px]:hidden">
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <Button
+                  aria-label={interactivityActionLabel}
+                  aria-pressed={isCanvasInteractive}
+                  className="h-7 w-7"
+                  size="icon"
+                  title={interactivityActionLabel}
+                  variant="ghost"
+                  onClick={handleToggleCanvasInteractive}
+                />
+              }
+            >
+              <InteractivityIcon className="h-4 w-4" />
+            </TooltipTrigger>
+            <TooltipContent>{interactivityActionLabel}</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <Button
+                  aria-label={t("canvas.formatLayout")}
+                  className="h-7 w-7"
+                  size="icon"
+                  title={t("canvas.formatLayout")}
+                  variant="ghost"
+                  onClick={handleFormatLayout}
+                />
+              }
+            >
+              <AlignLeft className="h-4 w-4" />
+            </TooltipTrigger>
+            <TooltipContent>{t("canvas.formatLayout")}</TooltipContent>
+          </Tooltip>
+        </div>
 
         <Separator className="mx-1 h-7" orientation="vertical" />
 
@@ -288,9 +300,11 @@ export const CanvasToolbar = () => {
               <Button
                 aria-label={t("canvas.runTest")}
                 className="h-7 gap-1.5 px-2 text-xs text-emerald-600 hover:bg-emerald-500/10 hover:text-emerald-700 disabled:text-muted-foreground/30 dark:text-emerald-400 dark:hover:text-emerald-300 max-[420px]:w-7 max-[420px]:gap-0 max-[420px]:px-0"
-                disabled={isRunning || !pipelineId}
+                disabled={isRunning || !pipelineId || !runtimeConfigured}
                 size="sm"
-                title={t("canvas.runTest")}
+                title={
+                  runtimeConfigured ? t("canvas.runTest") : t("pipelineAgentErrors.runtimeNotFound")
+                }
                 variant="ghost"
                 onClick={handleRunTest}
               />

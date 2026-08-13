@@ -28,7 +28,20 @@ describe("runHermes", () => {
   });
 
   afterEach(() => {
+    vi.unstubAllEnvs();
     vi.restoreAllMocks();
+  });
+
+  it("uses an explicit Hermes executable override", async () => {
+    execFileMock.mockImplementation((_bin, _args, _opts, cb) => {
+      cb(null, "Hermes output", "");
+    });
+    vi.stubEnv("HERMES_BIN", "C:\\tools\\hermes.exe");
+
+    const result = await runHermes({ systemPrompt: "sys", userPrompt: "user", cwd: "/tmp" });
+
+    expect(result.isOk()).toBe(true);
+    expect(execFileMock.mock.calls[0]?.[0]).toBe("C:\\tools\\hermes.exe");
   });
 
   it("calls hermes -z with combined prompt, cwd, timeout, and model", async () => {

@@ -179,17 +179,17 @@ export const ScheduleEditor = ({
   return (
     <Dialog open onOpenChange={handleDialogOpenChange}>
       <DialogContent
-        className="max-h-[min(42rem,calc(100vh-2rem))] gap-0 overflow-hidden p-0 sm:max-w-lg"
+        className="max-h-[min(42rem,calc(100vh-2rem))] w-[min(32rem,calc(100vw-2rem))] min-w-0 max-w-[calc(100vw-2rem)] gap-0 overflow-hidden p-0 sm:max-w-lg"
         data-testid="schedule-editor"
         showCloseButton={false}
       >
-        <form onSubmit={handleSave}>
-          <DialogHeader className="flex-row items-center gap-3 border-b px-4 py-3">
+        <form className="min-w-0" onSubmit={handleSave}>
+          <DialogHeader className="min-w-0 flex-row items-center gap-3 border-b px-4 py-3">
             <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-surface-2">
               <CalendarClock className="size-4 text-foreground/75" />
             </span>
             <div className="min-w-0 flex-1">
-              <DialogTitle>{t("jobs.scheduleEditor.title")}</DialogTitle>
+              <DialogTitle className="truncate">{t("jobs.scheduleEditor.title")}</DialogTitle>
               <DialogDescription className="truncate text-xs">{pipelineName}</DialogDescription>
             </div>
             <button
@@ -222,12 +222,12 @@ export const ScheduleEditor = ({
             </Button>
           </DialogHeader>
 
-          <div className="space-y-5 overflow-y-auto px-4 py-4">
+          <div className="min-w-0 space-y-5 overflow-y-auto px-4 py-4">
             {availableRoutines.length > 0 ? (
               <label className="block text-xs font-semibold text-muted-foreground">
                 {t("jobs.scheduleEditor.routineLabel")}
                 <select
-                  className="mt-2 h-8 w-full rounded-md border border-input bg-background px-2 text-sm font-normal text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  className="mt-2 h-8 w-full min-w-0 max-w-full rounded-md border border-input bg-background px-2 text-sm font-normal text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   data-testid="schedule-routine-select"
                   value={selectedRoutine?.id ?? "__new__"}
                   onChange={(event) => handleRoutineChange(event.target.value)}

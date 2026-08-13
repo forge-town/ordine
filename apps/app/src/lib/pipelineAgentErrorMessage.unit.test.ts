@@ -15,6 +15,36 @@ describe("getPipelineAgentErrorMessage", () => {
     );
   });
 
+  it("maps a missing runtime to the localized setup guidance", () => {
+    const error = Object.assign(new Error("No Agent runtime is configured"), {
+      code: "PIPELINE_AGENT_RUNTIME_NOT_FOUND",
+      status: 409,
+    });
+
+    expect(getPipelineAgentErrorMessage(error, t, vi.fn())).toBe(
+      "pipelineAgentErrors.runtimeNotFound",
+    );
+  });
+
+  it("does not misreport a local Agent failure as a network outage", () => {
+    const error = Object.assign(new Error("Pipeline agent request failed"), {
+      code: "PIPELINE_AGENT_REQUEST_FAILED",
+    });
+
+    expect(getPipelineAgentErrorMessage(error, t, vi.fn())).toBe("pipelineAgentErrors.agentFailed");
+  });
+
+  it("does not misreport attachment storage failures as Agent failures", () => {
+    const error = Object.assign(new Error("Storage unavailable"), {
+      code: "PIPELINE_AGENT_ATTACHMENT_UPLOAD_FAILED",
+      status: 500,
+    });
+
+    expect(getPipelineAgentErrorMessage(error, t, vi.fn())).toBe(
+      "pipelineAgentErrors.attachmentUploadFailed",
+    );
+  });
+
   it("maps network failures and logs the original error", () => {
     const error = new TypeError("fetch failed");
     const logError = vi.fn();

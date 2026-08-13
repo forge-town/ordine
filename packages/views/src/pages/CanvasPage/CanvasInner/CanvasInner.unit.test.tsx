@@ -202,11 +202,12 @@ describe("CanvasInner", () => {
 
     expect(screen.getByTestId("canvas-agent-panel-region")).toHaveClass(
       "absolute",
-      "min-[701px]:static",
+      "top-14",
+      "min-[1181px]:static",
     );
     expect(screen.getByTestId("canvas-work-panel").parentElement).toHaveClass(
-      "max-[981px]:absolute",
-      "max-[981px]:left-0",
+      "max-[1180px]:absolute",
+      "max-[1180px]:left-0",
     );
   });
 

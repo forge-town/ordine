@@ -350,6 +350,7 @@ export const CanvasComponentPanel = ({
                   "h-10 w-full cursor-grab justify-start gap-2 rounded-md px-2 text-left transition-[opacity,transform,background-color] active:cursor-grabbing",
                   draggingComponentId === operation.id && "scale-[0.98] opacity-60",
                 )}
+                data-testid={`canvas-operation-${operation.id}`}
                 type="button"
                 variant="ghost"
                 onClick={handleOperationItemClick(operation)}

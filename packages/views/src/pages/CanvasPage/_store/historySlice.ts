@@ -91,6 +91,9 @@ export interface HistorySlice {
    */
   recordCommand: (command: CommandMeta, mutate: (draft: CanvasHistoryState) => void) => void;
 
+  /** Record a mutation that React Flow already applied to the live canvas state. */
+  recordStateTransition: (command: CommandMeta, previous: CanvasHistoryState) => void;
+
   handleUndo: () => void;
   handleRedo: () => void;
   clearHistory: () => void;
@@ -146,6 +149,38 @@ export const createHistorySlice = (
         _history: history,
         _future: [], // clear redo stack on new action
         canUndo: history.length > 0,
+        canRedo: false,
+      };
+    });
+  },
+
+  recordStateTransition(command, previous) {
+    const state = get();
+    const current: CanvasHistoryState = {
+      nodes: state.nodes,
+      edges: state.edges,
+    };
+    const [, patches, inversePatches] = produceWithPatches(previous, (draft) => {
+      draft.nodes = current.nodes;
+      draft.edges = current.edges;
+    });
+
+    if (patches.length === 0) return;
+
+    const entry: HistoryEntry = {
+      id: `hist-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      command,
+      patches,
+      inversePatches,
+    };
+
+    set((s) => {
+      const history = [...s._history.slice(-(s._maxHistory - 1)), entry];
+
+      return {
+        _history: history,
+        _future: [],
+        canUndo: true,
         canRedo: false,
       };
     });

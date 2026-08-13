@@ -95,7 +95,13 @@ export const pipelinesRouter = router({
       });
 
       if (result.isErr()) {
-        throw new TRPCError({ code: "NOT_FOUND", message: result.error.message });
+        throw new TRPCError({
+          code:
+            (result.error as Error & { code?: string }).code === "AGENT_RUNTIME_NOT_FOUND"
+              ? "CONFLICT"
+              : "NOT_FOUND",
+          message: result.error.message,
+        });
       }
 
       return result.value;

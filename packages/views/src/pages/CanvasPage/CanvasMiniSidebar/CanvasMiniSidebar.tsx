@@ -133,7 +133,7 @@ export const CanvasMiniSidebar = () => {
         </Tooltip>
       </div>
 
-      <NotificationCenter className="hidden max-[1361px]:block" variant="rail" />
+      <NotificationCenter variant="rail" />
     </aside>
   );
 };

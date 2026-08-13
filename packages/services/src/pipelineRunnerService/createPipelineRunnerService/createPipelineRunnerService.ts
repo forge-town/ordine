@@ -32,6 +32,15 @@ export class PipelineNotFoundError extends Error {
   }
 }
 
+export class AgentRuntimeNotFoundError extends Error {
+  readonly code = "AGENT_RUNTIME_NOT_FOUND";
+
+  constructor() {
+    super("No configured Agent runtime is available for this Pipeline run");
+    this.name = "AgentRuntimeNotFoundError";
+  }
+}
+
 export class JobNotFoundError extends Error {
   constructor(jobId: string) {
     super(`Job ${jobId} not found`);
@@ -137,10 +146,22 @@ export const createPipelineRunnerService = (db: DbConnection) => {
       /** Per-device autonomy preference sent with the request (0 = no self-heal retries). */
       selfHealRetries?: number;
       triggeredBy?: JobTriggeredBy;
-    }): Promise<Result<{ jobId: string }, PipelineNotFoundError>> => {
+    }): Promise<Result<{ jobId: string }, PipelineNotFoundError | AgentRuntimeNotFoundError>> => {
       const pipeline = await pipelinesDao.findById(opts.pipelineId);
       if (!pipeline) {
         return err(new PipelineNotFoundError(opts.pipelineId));
+      }
+
+      const [settingsRecord, allRuntimes] = await Promise.all([
+        settingsDao.get(),
+        agentRuntimesDao.findMany(),
+      ]);
+      const settings = normalizeSettingsRecord(settingsRecord);
+      const runtimeConfig =
+        allRuntimes.find((runtime) => runtime.type === settings.defaultAgentRuntime) ??
+        allRuntimes[0];
+      if (!runtimeConfig) {
+        return err(new AgentRuntimeNotFoundError());
       }
 
       const jobId = crypto.randomUUID();
@@ -166,14 +187,8 @@ export const createPipelineRunnerService = (db: DbConnection) => {
         result: null,
       });
 
-      const settings = normalizeSettingsRecord(await settingsDao.get());
-
       // Resolve SSH connection from agent runtimes config
-      const allRuntimes = await agentRuntimesDao.findMany();
-      const runtimeConfig = allRuntimes.find(
-        (r) => r.type === settings.defaultAgentRuntime && r.connection.mode === "ssh",
-      );
-      const ssh = runtimeConfig?.connection.mode === "ssh" ? runtimeConfig.connection : undefined;
+      const ssh = runtimeConfig.connection.mode === "ssh" ? runtimeConfig.connection : undefined;
 
       void ResultAsync.fromPromise(
         pipelineRunExecutor.run({
@@ -195,7 +210,7 @@ export const createPipelineRunnerService = (db: DbConnection) => {
             jobId,
             apiKey: settings.defaultApiKey,
             model: settings.defaultModel,
-            defaultAgent: settings.defaultAgentRuntime,
+            defaultAgent: runtimeConfig.type,
             ssh,
             getMcpConnectorInjection: buildMcpConnectorInjectionProvider(),
           }),

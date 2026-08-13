@@ -12,9 +12,9 @@ describe("resolveApiBaseUrl", () => {
   );
 
   it("keeps an IPv6 development origin intact", () => {
-    expect(
-      resolveApiBaseUrl({ origin: "http://[::1]:9430" }, { isDevelopment: true }),
-    ).toBe("http://[::1]:9430/api");
+    expect(resolveApiBaseUrl({ origin: "http://[::1]:9430" }, { isDevelopment: true })).toBe(
+      "http://[::1]:9430/api",
+    );
   });
 
   it("prefers an explicit API base URL and removes trailing slashes", () => {
@@ -28,10 +28,7 @@ describe("resolveApiBaseUrl", () => {
 
   it("uses the current origin behind a production reverse proxy", () => {
     expect(
-      resolveApiBaseUrl(
-        { origin: "https://ordine.example.com" },
-        { isDevelopment: false },
-      ),
+      resolveApiBaseUrl({ origin: "https://ordine.example.com" }, { isDevelopment: false }),
     ).toBe("https://ordine.example.com/api");
   });
 

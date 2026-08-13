@@ -133,9 +133,9 @@ export const CanvasInner = () => {
 
         <div className="relative flex min-h-0 flex-1 overflow-hidden">
           {isSidebarOpen && (
-            <div className="relative shrink-0 max-[981px]:pointer-events-auto max-[981px]:absolute max-[981px]:inset-y-0 max-[981px]:left-0 max-[981px]:z-30">
+            <div className="relative shrink-0 max-[1180px]:pointer-events-auto max-[1180px]:absolute max-[1180px]:inset-y-0 max-[1180px]:left-0 max-[1180px]:z-30">
               <aside
-                className="h-full shrink-0 border-r bg-background shadow-none max-[981px]:max-w-[calc(100vw-4rem)] max-[981px]:shadow-float"
+                className="h-full shrink-0 border-r bg-background shadow-none max-[1180px]:max-w-[calc(100vw-4rem)] max-[1180px]:shadow-float"
                 data-testid="canvas-work-panel"
                 style={{ width: `${workspacePanelWidth}px` }}
               >
@@ -149,7 +149,7 @@ export const CanvasInner = () => {
                 aria-label={t("canvas.operationsPanel.resize", {
                   defaultValue: "Resize operations panel",
                 })}
-                className="absolute inset-y-0 -right-3 z-10 h-full w-6 cursor-col-resize touch-none rounded-none px-0 max-[981px]:hidden"
+                className="absolute inset-y-0 -right-3 z-10 h-full w-6 cursor-col-resize touch-none rounded-none px-0 max-[1180px]:hidden"
                 data-testid="canvas-work-panel-resizer"
                 size="icon"
                 variant="ghost"
@@ -188,7 +188,7 @@ export const CanvasInner = () => {
 
       {agentPanelIsOpen ? (
         <div
-          className="pointer-events-none absolute inset-y-0 right-0 z-40 flex w-[calc(100%_-_3.5rem)] justify-end min-[701px]:static min-[701px]:z-auto min-[701px]:w-auto min-[701px]:shrink-0 min-[701px]:self-stretch"
+          className="pointer-events-none absolute bottom-0 right-0 top-14 z-40 flex w-[calc(100%_-_3.5rem)] justify-end min-[1181px]:static min-[1181px]:inset-y-0 min-[1181px]:z-auto min-[1181px]:w-auto min-[1181px]:shrink-0 min-[1181px]:self-stretch"
           data-testid="canvas-agent-panel-region"
         >
           <ResizeHandle
@@ -216,7 +216,7 @@ export const CanvasInner = () => {
       ) : (
         <button
           aria-label={t("canvas.agentPanel.reopen")}
-          className="flex w-12 shrink-0 items-center justify-center border-l border-border bg-surface text-muted-foreground hover:bg-accent hover:text-foreground max-[700px]:absolute max-[700px]:inset-y-0 max-[700px]:right-0 max-[700px]:z-30"
+          className="absolute bottom-0 right-0 top-14 z-30 flex w-12 shrink-0 items-center justify-center border-l border-border bg-surface text-muted-foreground hover:bg-accent hover:text-foreground min-[1181px]:static min-[1181px]:inset-y-0 min-[1181px]:z-auto"
           data-testid="canvas-agent-panel-reopen"
           title={t("canvas.agentPanel.reopen")}
           type="button"

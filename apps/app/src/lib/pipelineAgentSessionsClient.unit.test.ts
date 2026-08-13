@@ -129,6 +129,26 @@ describe("pipelineAgentSessionsClient.planSessionStream", () => {
       expect.objectContaining({ method: "POST" }),
     );
   });
+
+  it("keeps the selected local runtime when generation starts", async () => {
+    globalThis.fetch = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ pipelineId: "pipeline-1" }), {
+        headers: { "content-type": "application/json" },
+      }),
+    ) as typeof fetch;
+
+    await pipelineAgentSessionsClient.generatePipelineFromApprovedProposal("session-1", {
+      runtimeId: "local-codex",
+    });
+
+    expect(globalThis.fetch).toHaveBeenCalledWith(
+      "http://localhost:3000/api/pipeline-agent-sessions/session-1/generate",
+      expect.objectContaining({
+        body: JSON.stringify({ runtimeId: "local-codex" }),
+        method: "POST",
+      }),
+    );
+  });
 });
 
 describe("pipelineAgentSessionsClient.waitForCreatedPipeline", () => {

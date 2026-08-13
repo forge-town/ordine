@@ -126,6 +126,20 @@ describe("runCodex", () => {
     expect(result).toBe("result text");
   });
 
+  it("settles on process exit when an inherited stdio pipe never closes", async () => {
+    const promise = runCodex({
+      systemPrompt: "sys",
+      userPrompt: "user",
+      cwd: "/tmp",
+    });
+
+    await waitForSpawn();
+    testState.mockProc.stdout.push("result before descendant pipe closes");
+    testState.mockProc.emit("exit", 0);
+
+    await expect(promise).resolves.toBe("result before descendant pipe closes");
+  });
+
   it("rejects on non-zero exit code", async () => {
     const promise = runCodex({
       systemPrompt: "sys",
@@ -305,7 +319,9 @@ describe("runCodex", () => {
     expect(config).toContain('Path = "ATTACK"');
     expect(spawnOpts.env.CODEX_HOME).not.toBe("/tmp/x");
     expect(spawnOpts.env.NODE_OPTIONS).toBe(process.env.NODE_OPTIONS);
-    expect(spawnOpts.env.Path).toBe(process.env.Path);
+    expect(Object.entries(spawnOpts.env).find(([name]) => name.toLowerCase() === "path")?.[1]).toBe(
+      process.env.Path,
+    );
 
     testState.mockProc.stdout.push("ok");
     testState.mockProc.stdout.push(null);

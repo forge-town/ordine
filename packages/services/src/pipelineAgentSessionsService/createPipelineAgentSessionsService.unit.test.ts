@@ -51,6 +51,9 @@ const mockAgentRuntimesDao = {
 const mockPipelinesDao = {
   create: vi.fn(),
 };
+const mockRoutinesDao = {
+  create: vi.fn(),
+};
 const mockPipelinesService = {
   analyzeIntent: vi.fn(),
   create: vi.fn(),
@@ -83,6 +86,7 @@ vi.mock("@repo/models", () => ({
   createPipelineAgentAttachmentsRepository: () => mockAttachmentsRepository,
   createPipelineAgentContextArtifactsDao: () => mockContextArtifactsDao,
   createPipelineAgentProposalsDao: () => mockProposalsDao,
+  createRoutinesDao: () => mockRoutinesDao,
   createSettingsDao: () => mockSettingsDao,
 }));
 
@@ -200,6 +204,11 @@ describe("createPipelineAgentSessionsService", () => {
       ...data,
       createdAt: data.createdAt ?? new Date("2026-06-03T12:00:05.000Z"),
       updatedAt: data.updatedAt ?? new Date("2026-06-03T12:00:05.000Z"),
+    }));
+    mockRoutinesDao.create.mockImplementation(async (data) => ({
+      ...data,
+      createdAt: new Date("2026-06-03T12:00:05.000Z"),
+      updatedAt: new Date("2026-06-03T12:00:05.000Z"),
     }));
     mockPipelinesService.analyzeIntent.mockResolvedValue({
       matchedOperations: [
@@ -587,6 +596,66 @@ describe("createPipelineAgentSessionsService", () => {
     );
   });
 
+  it("fails planning with a stable error before invoking an unconfigured runtime", async () => {
+    mockAgentRuntimesDao.findMany.mockResolvedValueOnce([]);
+    const service = createPipelineAgentSessionsService({} as never);
+
+    await expect(service.planSession("session-1")).rejects.toMatchObject({
+      code: "PIPELINE_AGENT_RUNTIME_NOT_FOUND",
+    });
+
+    expect(mockRunAgent).not.toHaveBeenCalled();
+    expect(mockSessionsDao.update).toHaveBeenLastCalledWith("session-1", {
+      status: "failed",
+    });
+  });
+
+  it("uses a deterministic local runtime id when the server database has no matching row", async () => {
+    mockAgentRuntimesDao.findMany.mockResolvedValueOnce([]);
+    mockRunAgent.mockResolvedValueOnce(
+      JSON.stringify({ type: "question", question: "Which output format do you want?" }),
+    );
+
+    const result = await createPipelineAgentSessionsService({} as never).planSession("session-1", {
+      runtimeId: "local-codex",
+    });
+
+    expect(result).toEqual({
+      type: "question",
+      question: "Which output format do you want?",
+    });
+    expect(mockRunAgent).toHaveBeenCalledWith(expect.objectContaining({ agent: "codex" }));
+  });
+
+  it("uses the configured default runtime instead of preferring Codex implicitly", async () => {
+    mockSettingsDao.get.mockResolvedValueOnce({
+      defaultAgentRuntime: "mastra",
+      defaultApiKey: "test-key",
+      defaultModel: "test-model",
+    });
+    mockAgentRuntimesDao.findMany.mockResolvedValueOnce([
+      {
+        id: "runtime-codex",
+        name: "Codex Local",
+        type: "codex",
+        connection: { mode: "local" },
+      },
+      {
+        id: "runtime-mastra",
+        name: "Mastra",
+        type: "mastra",
+        connection: { mode: "local" },
+      },
+    ]);
+    mockRunAgent.mockResolvedValueOnce(
+      JSON.stringify({ type: "question", question: "Which output do you want?" }),
+    );
+
+    await createPipelineAgentSessionsService({} as never).planSession("session-1");
+
+    expect(mockRunAgent).toHaveBeenCalledWith(expect.objectContaining({ agent: "mastra" }));
+  });
+
   it("saves a generate proposal when planning returns a ready plan", async () => {
     mockSessionsDao.findById.mockResolvedValueOnce({
       id: "session-1",
@@ -649,6 +718,57 @@ describe("createPipelineAgentSessionsService", () => {
     expect(mockSessionsDao.update).toHaveBeenLastCalledWith(
       "session-1",
       expect.objectContaining({ status: "proposal_ready" }),
+    );
+  });
+
+  it("keeps an explicitly requested schedule as proposal metadata", async () => {
+    mockRunAgent.mockResolvedValue(
+      JSON.stringify({
+        type: "proposal",
+        proposal: {
+          mode: "generate",
+          purpose: "Weekday repository review",
+          inputs: ["repository"],
+          outputs: ["report"],
+          majorOperations: ["review-code"],
+          executionFlow: ["repository -> review-code -> report"],
+          assumptions: [],
+          openQuestions: [],
+          schedule: { name: "Weekday review", cronExpression: "0 9 * * 1-5", enabled: true },
+          readiness: "ready_for_generation",
+        },
+      }),
+    );
+
+    const result = await createPipelineAgentSessionsService({} as never).planSession("session-1");
+
+    expect(result).toMatchObject({
+      type: "proposal",
+      proposal: {
+        schedule: { cronExpression: "0 9 * * 1-5", enabled: true },
+      },
+    });
+    const plannerCall = mockRunAgent.mock.calls[0]![0] as { userPrompt: string };
+    expect(plannerCall.userPrompt).toContain("A schedule is Pipeline metadata");
+  });
+
+  it("tells generation planning that missing Operations can be created automatically", async () => {
+    mockRunAgent.mockResolvedValue(
+      JSON.stringify({
+        type: "question",
+        question: "Which exam sections should be included?",
+      }),
+    );
+
+    await createPipelineAgentSessionsService({} as never).planSession("session-1");
+
+    const plannerCall = mockRunAgent.mock.calls[0]![0] as { userPrompt: string };
+    expect(plannerCall.userPrompt).toContain(
+      "AVAILABLE OPERATIONS ARE REUSABLE EXAMPLES, NOT A CAPABILITY LIMIT",
+    );
+    expect(plannerCall.userPrompt).toContain("can create missing Operations automatically");
+    expect(plannerCall.userPrompt).toContain(
+      "Do not ask the user to choose a placeholder Pipeline",
     );
   });
 
@@ -830,7 +950,7 @@ describe("createPipelineAgentSessionsService", () => {
     );
   });
 
-  it("generates a new pipeline draft from an approved generate proposal", async () => {
+  it("generates with a selected local runtime that is absent from the server runtime database", async () => {
     mockSessionsDao.findById.mockResolvedValueOnce({
       id: "session-1",
       entrypoint: "new-pipeline-dialog",
@@ -855,6 +975,7 @@ describe("createPipelineAgentSessionsService", () => {
       },
     ]);
     mockContextArtifactsDao.findManyBySessionId.mockResolvedValueOnce([]);
+    mockAgentRuntimesDao.findMany.mockResolvedValueOnce([]);
     mockRunAgent.mockResolvedValue(
       JSON.stringify({
         nodes: [],
@@ -863,7 +984,9 @@ describe("createPipelineAgentSessionsService", () => {
     );
 
     const service = createPipelineAgentSessionsService({} as never);
-    const result = await service.generatePipelineFromApprovedProposal("session-1");
+    const result = await service.generatePipelineFromApprovedProposal("session-1", {
+      runtimeId: "local-codex",
+    });
 
     expect(mockPipelinesService.analyzeIntent).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -893,6 +1016,64 @@ describe("createPipelineAgentSessionsService", () => {
       expect.objectContaining({
         status: "completed",
         createdPipelineId: result.pipeline.id,
+      }),
+    );
+  });
+
+  it("creates a real routine with an Agent-generated scheduled pipeline", async () => {
+    mockSessionsDao.findById.mockResolvedValueOnce({
+      id: "session-1",
+      entrypoint: "home",
+      mode: "generate",
+      status: "approved",
+      pipelineId: null,
+      snapshot: null,
+      latestProposalId: "proposal-1",
+      approvedProposalId: "proposal-1",
+      createdPipelineId: null,
+      createdAt: new Date("2026-06-03T12:00:00.000Z"),
+      updatedAt: new Date("2026-06-03T12:00:00.000Z"),
+    });
+    mockProposalsDao.findById.mockResolvedValueOnce({
+      id: "proposal-1",
+      sessionId: "session-1",
+      mode: "generate",
+      status: "approved",
+      proposal: {
+        mode: "generate",
+        purpose: "Weekday repository review",
+        inputs: ["repository"],
+        outputs: ["report"],
+        majorOperations: ["review-code"],
+        executionFlow: ["repository -> review-code -> report"],
+        assumptions: [],
+        openQuestions: [],
+        schedule: { name: "Weekday review", cronExpression: "0 9 * * 1-5", enabled: true },
+        readiness: "ready_for_generation",
+      },
+      createdAt: new Date("2026-06-03T12:00:02.000Z"),
+      updatedAt: new Date("2026-06-03T12:00:02.000Z"),
+      approvedAt: new Date("2026-06-03T12:00:03.000Z"),
+    });
+
+    const result = await createPipelineAgentSessionsService(
+      {} as never,
+    ).generatePipelineFromApprovedProposal("session-1");
+
+    expect(mockPipelinesService.generateStructure).toHaveBeenCalledWith(
+      expect.objectContaining({
+        description: expect.stringContaining(
+          "Schedule metadata (do not create an Operation): 0 9 * * 1-5",
+        ),
+      }),
+    );
+    expect(mockRoutinesDao.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        pipelineId: result.pipeline.id,
+        name: "Weekday review",
+        cronExpression: "0 9 * * 1-5",
+        enabled: true,
+        nextRunAt: expect.any(Date),
       }),
     );
   });

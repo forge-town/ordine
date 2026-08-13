@@ -1,4 +1,6 @@
 import { execFile } from "node:child_process";
+import { access } from "node:fs/promises";
+import { isAbsolute } from "node:path";
 import { logger } from "@repo/logger";
 import { ResultAsync } from "neverthrow";
 
@@ -81,11 +83,24 @@ export const firstPath = (
     .filter((line) => line.length > 0);
 
   if (platform === "win32") {
-    return paths.find((line) => line.toLowerCase().endsWith(".exe")) ?? paths[0];
+    return (
+      paths.find((line) => line.toLowerCase().endsWith(".exe")) ??
+      paths.find((line) => line.toLowerCase().endsWith(".cmd")) ??
+      paths.find((line) => line.toLowerCase().endsWith(".bat")) ??
+      paths[0]
+    );
   }
 
   return paths[0];
 };
+
+export const versionCommand = (
+  path: string,
+  platform: RuntimeScanPlatform = process.platform,
+): { bin: string; args: string[] } =>
+  platform === "win32" && /\.(?:cmd|bat)$/i.test(path)
+    ? { bin: "cmd.exe", args: ["/d", "/s", "/c", path, "--version"] }
+    : { bin: path, args: ["--version"] };
 
 const execFileAsync = (bin: string, args: string[]): Promise<{ stdout: string; stderr: string }> =>
   new Promise((resolve, reject) => {
@@ -103,24 +118,26 @@ const detectBinary = async (
   type: string,
   binaryName: string,
 ): Promise<DetectedRuntime | undefined> => {
-  const whichResult = await ResultAsync.fromPromise(
-    execFileAsync(locateBinaryCommand(), [binaryName]),
-    () => undefined as never,
-  );
-
-  if (whichResult.isErr()) {
-    return undefined;
-  }
-
-  const path = firstPath(whichResult.value.stdout);
+  const path = isAbsolute(binaryName)
+    ? await ResultAsync.fromPromise(
+        access(binaryName).then(() => binaryName),
+        () => undefined,
+      ).unwrapOr(undefined)
+    : await ResultAsync.fromPromise(
+        execFileAsync(locateBinaryCommand(), [binaryName]).then((result) =>
+          firstPath(result.stdout),
+        ),
+        () => undefined,
+      ).unwrapOr(undefined);
   if (!path) {
     return undefined;
   }
 
   logger.info(`Found runtime ${type} at ${path}`);
 
+  const command = versionCommand(path);
   const versionResult = await ResultAsync.fromPromise(
-    execFileAsync(path, ["--version"]),
+    execFileAsync(command.bin, command.args),
     () => undefined as never,
   );
   const version = versionResult.isOk() ? versionResult.value.stdout.trim() || undefined : undefined;

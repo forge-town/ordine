@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { WandSparkles } from "lucide-react";
+import { CalendarClock, WandSparkles } from "lucide-react";
 import { Badge } from "@repo/ui/badge";
 import { cn } from "@repo/ui/lib/utils";
 import type { PipelineAgentProposal } from "@repo/schemas";
@@ -107,6 +107,14 @@ export const PipelineCreationMessages = ({
                     {output}
                   </Badge>
                 ))}
+                {proposal.schedule && (
+                  <Badge className="max-w-full break-words" variant="outline">
+                    <CalendarClock className="size-3" />
+                    {t("home.proposalSchedule", {
+                      cronExpression: proposal.schedule.cronExpression,
+                    })}
+                  </Badge>
+                )}
               </div>
               <p className="break-words text-xs leading-5 text-muted-foreground [overflow-wrap:anywhere]">
                 {proposal.majorOperations.join(" · ")}

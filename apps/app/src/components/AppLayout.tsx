@@ -1,4 +1,4 @@
-import { SidebarInset, SidebarProvider } from "@repo/ui/sidebar";
+import { SidebarInset, SidebarProvider, SidebarTrigger } from "@repo/ui/sidebar";
 import { AppSidebar } from "./AppSidebar";
 import { ToastContainer } from "./ToastContainer";
 import { toastStore, ToastStoreProvider } from "@/store/toastStore";
@@ -36,7 +36,7 @@ export const AppLayout = ({
                   <SidebarProvider
                     className={cn(
                       canvasMode &&
-                        "max-[1361px]:[&_[data-slot=sidebar-container]]:hidden max-[1361px]:[&_[data-slot=sidebar-gap]]:w-0",
+                        "[&_[data-slot=sidebar-container]]:hidden [&_[data-slot=sidebar-gap]]:w-0",
                     )}
                     defaultWidth={236}
                     maxWidth={320}
@@ -45,6 +45,11 @@ export const AppLayout = ({
                   >
                     <AppSidebar />
                     <SidebarInset className={cn(canvasMode && "h-svh min-h-0 overflow-hidden")}>
+                      {!canvasMode && (
+                        <div className="hidden h-12 shrink-0 items-center border-b border-border px-3 min-[701px]:flex md:hidden">
+                          <SidebarTrigger />
+                        </div>
+                      )}
                       {children}
                     </SidebarInset>
                     <ToastContainer />

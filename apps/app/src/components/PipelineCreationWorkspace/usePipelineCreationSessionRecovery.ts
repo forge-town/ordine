@@ -88,6 +88,12 @@ export const usePipelineCreationSessionRecovery = ({
         });
         const session = await waitForPlanningToSettle(initialSession);
 
+        if (session.status === "failed") {
+          throw Object.assign(new Error("Pipeline Agent session ended in a failed state"), {
+            code: "PIPELINE_AGENT_SESSION_TERMINAL",
+          });
+        }
+
         onSessionDetail(session);
         const generatedPipeline =
           session.status === "approved"
@@ -123,7 +129,8 @@ export const usePipelineCreationSessionRecovery = ({
       }
       if (result.isErr()) {
         const status = (result.error as Error & { status?: number }).status;
-        if (status === 404) {
+        const code = (result.error as Error & { code?: string }).code;
+        if (status === 404 || code === "PIPELINE_AGENT_SESSION_TERMINAL") {
           onMissing();
         } else {
           onError(result.error);

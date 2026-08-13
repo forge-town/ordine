@@ -19,7 +19,6 @@
   },
   "scripts": {
     "build": "bun build ./src/index.ts --target=node --format=esm --outfile=./dist/index.js",
-    "dev": "bun src/index.ts",
     "check-types": "tsc --noEmit",
     "lint": "oxlint --config ./.oxlintrc.json src/",
     "quality": "bun run check-types && bun run lint && bun run test",

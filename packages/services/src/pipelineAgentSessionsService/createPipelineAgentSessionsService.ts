@@ -14,6 +14,7 @@ import {
   createPipelineAgentMessagesDao,
   createPipelineAgentProposalsDao,
   createPipelineAgentSessionsDao,
+  createRoutinesDao,
   createSettingsDao,
   type DbConnection,
 } from "@repo/models";
@@ -35,7 +36,9 @@ import {
   type PipelineAgentProposalStatus,
   type PipelineAgentSessionStatus,
   type PipelineGraphSnapshot,
+  parseLocalAgentRuntimeId,
 } from "@repo/schemas";
+import { getNextCronRunAt } from "@repo/utils";
 import { runAgent } from "../pipelineRunnerService/agentRunner/agentRunner";
 import { createPipelinesService } from "../pipelinesService/createPipelinesService";
 
@@ -92,6 +95,17 @@ const createCancellationError = (sessionId: string) => {
     code: string;
   };
   error.code = "PIPELINE_AGENT_CANCELLED";
+
+  return error;
+};
+
+const createRuntimeNotFoundError = (runtimeId?: string) => {
+  const error = new Error(
+    runtimeId
+      ? `Configured Agent runtime not found: ${runtimeId}`
+      : "No Agent runtime is configured",
+  ) as Error & { code: string };
+  error.code = "PIPELINE_AGENT_RUNTIME_NOT_FOUND";
 
   return error;
 };
@@ -157,17 +171,11 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
     requestedRuntimeId?: string;
     runtimes: Array<{ id: string; type: AgentRuntime } & Record<string, unknown>>;
     defaultRuntime?: string | null;
-  }): AgentRuntime => {
+  }): AgentRuntime | null => {
     if (input.requestedRuntimeId) {
       const requested = input.runtimes.find((runtime) => runtime.id === input.requestedRuntimeId);
-      if (requested) {
-        return requested.type;
-      }
-    }
 
-    const codexRuntime = input.runtimes.find((runtime) => runtime.type === "codex");
-    if (codexRuntime) {
-      return "codex";
+      return requested?.type ?? parseLocalAgentRuntimeId(input.requestedRuntimeId);
     }
 
     const defaultRuntime =
@@ -177,7 +185,7 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
       return defaultRuntime.type;
     }
 
-    return input.runtimes[0]?.type ?? "codex";
+    return input.runtimes[0]?.type ?? null;
   };
 
   const buildPlanningPrompt = (input: {
@@ -211,7 +219,13 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
       "=== OUTPUT FORMAT ===",
       input.mode === "edit"
         ? '{"type":"question","question":"..."} OR {"type":"proposal","proposal":{"mode":"edit","summary":"...","targetGraphIntent":"...","majorChanges":["..."],"assumptions":[],"openQuestions":[],"actions":[],"diagnosticsPreview":[],"readiness":"needs_user_answer|ready_for_generation"}}'
-        : '{"type":"question","question":"..."} OR {"type":"proposal","proposal":{"mode":"generate","purpose":"...","inputs":["..."],"outputs":["..."],"majorOperations":["..."],"executionFlow":["..."],"assumptions":[],"openQuestions":[],"readiness":"needs_user_answer|ready_for_generation"}}',
+        : '{"type":"question","question":"..."} OR {"type":"proposal","proposal":{"mode":"generate","purpose":"...","inputs":["..."],"outputs":["..."],"majorOperations":["..."],"executionFlow":["..."],"assumptions":[],"openQuestions":[],"schedule":null|{"name":"...","cronExpression":"0 9 * * 1-5","enabled":true},"readiness":"needs_user_answer|ready_for_generation"}}',
+      input.mode === "generate"
+        ? "Only include schedule when the user explicitly requests recurring execution. A schedule is Pipeline metadata, never a majorOperation. Use a valid 5-field cron expression in the server's local timezone; ask a follow-up question when the requested time is ambiguous."
+        : "",
+      input.mode === "generate"
+        ? "AVAILABLE OPERATIONS ARE REUSABLE EXAMPLES, NOT A CAPABILITY LIMIT. The generation phase can create missing Operations automatically. When the user's goal, inputs, and outputs are sufficiently clear, propose every required majorOperation (including new ones) and set readiness to ready_for_generation. Do not ask the user to choose a placeholder Pipeline or manually extend Operations first."
+        : "",
       "",
       `Pipeline ID: ${input.pipelineId ?? "(new pipeline)"}`,
       input.snapshot
@@ -253,6 +267,9 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
       proposal.openQuestions.length > 0
         ? `Open questions: ${proposal.openQuestions.join("; ")}`
         : "Open questions: (none)",
+      proposal.schedule
+        ? `Schedule metadata (do not create an Operation): ${proposal.schedule.cronExpression}`
+        : "Schedule metadata: (none)",
     ].join("\n");
 
   const buildArtifactSummary = (
@@ -445,28 +462,7 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
     requestedRuntimeId?: string;
     runtimes: Array<{ id: string; type: AgentRuntime } & Record<string, unknown>>;
     defaultRuntime?: string | null;
-  }): AgentRuntime => {
-    if (input.requestedRuntimeId) {
-      const requested = input.runtimes.find((runtime) => runtime.id === input.requestedRuntimeId);
-      if (requested) {
-        return requested.type;
-      }
-    }
-
-    const configuredDefault =
-      input.defaultRuntime &&
-      input.runtimes.find((runtime) => runtime.type === input.defaultRuntime);
-    if (configuredDefault) {
-      return configuredDefault.type;
-    }
-
-    const mastraRuntime = input.runtimes.find((runtime) => runtime.type === "mastra");
-    if (mastraRuntime) {
-      return "mastra";
-    }
-
-    return input.runtimes[0]?.type ?? "codex";
-  };
+  }): AgentRuntime | null => resolveEffectiveRuntime(input);
 
   const createImageSummaryArtifact = async (input: {
     bytes: Uint8Array;
@@ -536,6 +532,9 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
         runtimes,
         defaultRuntime: settings.defaultAgentRuntime ?? null,
       });
+      if (!runtime) {
+        throw createRuntimeNotFoundError(input.runtimeId);
+      }
 
       return createImageSummaryArtifact({
         bytes: input.bytes,
@@ -962,6 +961,9 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
             runtimes,
             defaultRuntime: settings.defaultAgentRuntime ?? null,
           });
+          if (!effectiveRuntime) {
+            throw createRuntimeNotFoundError(input?.runtimeId);
+          }
 
           const raw = await runAbortable(
             runAgent({
@@ -1144,7 +1146,7 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
 
     generatePipelineFromApprovedProposal: async (
       sessionId: string,
-      input?: { signal?: AbortSignal },
+      input?: { runtimeId?: string; signal?: AbortSignal },
     ) => {
       const session = await sessionsDao.findById(sessionId);
       if (!session) {
@@ -1181,9 +1183,13 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
           ]);
           assertActivityActive(sessionId, activity);
           const effectiveRuntime = resolveEffectiveRuntime({
+            requestedRuntimeId: input?.runtimeId,
             runtimes,
             defaultRuntime: settings.defaultAgentRuntime ?? null,
           });
+          if (!effectiveRuntime) {
+            throw createRuntimeNotFoundError(input?.runtimeId);
+          }
           const pipelineName = generateProposal.purpose;
           const pipelineDescription = [
             buildGenerationDescription(generateProposal),
@@ -1257,6 +1263,7 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
             const transactionalPipelinesService = createPipelinesService(
               tx as unknown as DbConnection,
             );
+            const transactionalRoutinesDao = createRoutinesDao(tx as unknown as DbConnection);
             const transactionalSessionsDao = createPipelineAgentSessionsDao(tx);
             assertActivityActive(sessionId, activity);
             if (generated.pendingOperations && generated.pendingOperations.length > 0) {
@@ -1276,6 +1283,27 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
               edges: generated.edges,
             });
             assertActivityActive(sessionId, activity);
+            if (generateProposal.schedule) {
+              const enabled = generateProposal.schedule.enabled;
+              const nextRunAt = enabled
+                ? getNextCronRunAt(generateProposal.schedule.cronExpression, new Date())
+                : null;
+              if (enabled && !nextRunAt) {
+                throw new Error("Agent returned an invalid Pipeline schedule");
+              }
+              await transactionalRoutinesDao.create({
+                id: crypto.randomUUID(),
+                pipelineId: createdPipeline.id,
+                name: generateProposal.schedule.name ?? `${pipelineName} schedule`,
+                description: `Agent-created schedule for ${pipelineName}`,
+                cronExpression: generateProposal.schedule.cronExpression,
+                inputConfig: null,
+                enabled,
+                lastRunAt: null,
+                nextRunAt,
+              });
+              assertActivityActive(sessionId, activity);
+            }
             await transactionalSessionsDao.update(sessionId, {
               status: "completed",
               createdPipelineId: createdPipeline.id,

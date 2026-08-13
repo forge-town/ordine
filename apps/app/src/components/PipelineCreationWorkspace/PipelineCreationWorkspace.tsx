@@ -50,7 +50,7 @@ export const PipelineCreationWorkspace = ({
   client = pipelineAgentSessionsClient,
   materializePipeline = materializeGeneratedPipeline,
   presentation = "dialog",
-  runtimeConfigured = false,
+  runtimeConfigured,
   runtimeId,
   runtimeLabel,
   onClose: handleClose,
@@ -300,6 +300,13 @@ export const PipelineCreationWorkspace = ({
     if (!text) {
       return;
     }
+    if (isHome && runtimeConfigured !== true) {
+      if (runtimeConfigured === false) {
+        setErrorMessage(t("pipelineAgentErrors.runtimeNotFound"));
+      }
+
+      return;
+    }
 
     setErrorMessage(null);
     setMessages((currentMessages) => [
@@ -399,7 +406,10 @@ export const PipelineCreationWorkspace = ({
         const sessionId = sessionIdRef.current!;
         await client.approveProposal(sessionId, proposalId, { signal: controller.signal });
         const generated = await ResultAsync.fromPromise(
-          client.generatePipelineFromApprovedProposal(sessionId, { signal: controller.signal }),
+          client.generatePipelineFromApprovedProposal(sessionId, {
+            runtimeId,
+            signal: controller.signal,
+          }),
           (error) => (error instanceof Error ? error : new Error(String(error))),
         );
         if (generated.isOk()) {

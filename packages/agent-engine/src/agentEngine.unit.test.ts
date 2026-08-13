@@ -250,7 +250,7 @@ describe("agentEngine", () => {
     expect(onProgress).toHaveBeenCalledWith(expect.stringContaining("mastra skipped"));
   });
 
-  it("dispatches to runHermes for hermes", async () => {
+  it("dispatches to runHermes without overriding its locally configured model", async () => {
     const result = await agentEngine.run({
       agent: "hermes",
       mode: "direct",
@@ -266,11 +266,13 @@ describe("agentEngine", () => {
     expect(runHermes).toHaveBeenCalledWith(
       expect.objectContaining({
         cwd: "/tmp/test",
-        model: "nous-hermes-4",
         allowedTools: ["WebSearch"],
         systemPrompt: "Analyze this",
         userPrompt: "Hello",
       }),
+    );
+    expect(runHermes).not.toHaveBeenCalledWith(
+      expect.objectContaining({ model: expect.anything() }),
     );
   });
 

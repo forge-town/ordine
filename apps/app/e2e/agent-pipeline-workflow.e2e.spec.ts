@@ -154,7 +154,10 @@ test.describe("Agent-first Pipeline workflow", () => {
         if (uploadState.attempt === 1) {
           await json(
             route,
-            { code: "PIPELINE_AGENT_REQUEST_FAILED", error: "Storage unavailable" },
+            {
+              code: "PIPELINE_AGENT_ATTACHMENT_UPLOAD_FAILED",
+              error: "Storage unavailable",
+            },
             500,
           );
 
@@ -183,7 +186,7 @@ test.describe("Agent-first Pipeline workflow", () => {
       name: "failed.txt",
     });
     await expect(
-      page.getByText("The Pipeline Agent couldn't complete the request. Please retry."),
+      page.getByText("This attachment could not be uploaded. Check storage access and retry."),
     ).toBeVisible();
 
     await upload.setInputFiles({
@@ -194,7 +197,7 @@ test.describe("Agent-first Pipeline workflow", () => {
     await expect(page.getByText("retry.txt", { exact: true })).toBeVisible();
     await expect(page.getByText("Ready", { exact: true })).toBeVisible();
     await expect(
-      page.getByText("The Pipeline Agent couldn't complete the request. Please retry."),
+      page.getByText("This attachment could not be uploaded. Check storage access and retry."),
     ).toHaveCount(0);
     expectNoJSErrors(pageErrors);
   });
