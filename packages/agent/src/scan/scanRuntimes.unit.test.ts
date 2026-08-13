@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const accessMock = vi.fn<(path: string, mode?: number) => Promise<void>>();
+const probeRuntimeModelsMock = vi.fn();
 
 vi.mock("node:fs/promises", () => ({
   access: (path: string, mode?: number) => accessMock(path, mode),
@@ -8,6 +9,10 @@ vi.mock("node:fs/promises", () => ({
 
 vi.mock("@repo/logger", () => ({
   logger: { info: vi.fn(), error: vi.fn(), warn: vi.fn(), debug: vi.fn() },
+}));
+
+vi.mock("./probeRuntimeModels", () => ({
+  probeRuntimeModels: (...args: unknown[]) => probeRuntimeModelsMock(...args),
 }));
 
 type ExecFileCallback = (
@@ -32,15 +37,17 @@ import {
   locateBinaryCommand,
   parseExtraRuntimes,
   scanRuntimes,
-  type DetectedRuntime,
   versionCommand,
 } from "./scanRuntimes";
+import type { DetectedRuntime } from "@repo/schemas";
 
 const LOCATE_BIN = locateBinaryCommand();
 
 describe("scanRuntimes", () => {
   beforeEach(() => {
     execFileMock.mockClear();
+    probeRuntimeModelsMock.mockReset();
+    probeRuntimeModelsMock.mockResolvedValue(undefined);
     accessMock.mockReset();
     vi.stubEnv("ORDINE_EXTRA_RUNTIMES", "");
     // Default: filesystem probing finds nothing (keeps tests hermetic —
@@ -87,6 +94,27 @@ describe("scanRuntimes", () => {
     expect(codex).toBeDefined();
     expect(codex!.path).toBe("/usr/local/bin/codex");
     expect(codex!.version).toBeUndefined();
+  });
+
+  it("attaches the probed model catalog to a detected runtime", async () => {
+    execFileMock.mockImplementation((bin, args, _opts, cb) => {
+      if (bin === LOCATE_BIN) {
+        cb(null, `/usr/local/bin/${args[0]}\n`, "");
+      } else {
+        cb(null, "v1.0.0\n", "");
+      }
+    });
+    probeRuntimeModelsMock.mockImplementation(async (runtime: { type: string }) =>
+      runtime.type === "codex"
+        ? [{ id: "gpt-5.6-sol", displayName: "GPT-5.6-Sol", supportsImageInput: true }]
+        : undefined,
+    );
+
+    const results = await scanRuntimes();
+
+    expect(results.find((runtime) => runtime.type === "codex")?.models).toEqual([
+      { id: "gpt-5.6-sol", displayName: "GPT-5.6-Sol", supportsImageInput: true },
+    ]);
   });
 
   it("does not include a runtime when which fails and fallback dirs miss", async () => {

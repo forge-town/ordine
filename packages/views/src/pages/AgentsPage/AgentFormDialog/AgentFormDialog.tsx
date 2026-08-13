@@ -1,5 +1,5 @@
 import { useForm } from "react-hook-form";
-import { useCreate, useUpdate } from "@refinedev/core";
+import { useCreate, useList, useUpdate } from "@refinedev/core";
 import { Terminal, Cpu, Zap, Cog } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
@@ -8,9 +8,10 @@ import { Input } from "@repo/ui/input";
 import { Textarea } from "@repo/ui/textarea";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@repo/ui/dialog";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@repo/ui/form";
-import { AGENT_RUNTIME_ENUM } from "@repo/schemas";
+import { AGENT_RUNTIME_ENUM, type AgentRuntimeConfig } from "@repo/schemas";
 import { cn } from "@repo/ui/lib/utils";
 import { ResourceName } from "../../../constants";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@repo/ui/select";
 import { type AgentFormValues, toAgentFormMutationValues, useAgentsPageStore } from "../_store";
 
 const RUNTIME_META: Record<string, { label: string; icon: React.ReactNode; description: string }> =
@@ -67,6 +68,14 @@ export const AgentFormDialog = () => {
   });
 
   const runtimeOptions = Object.values(AGENT_RUNTIME_ENUM);
+  const { result: runtimesResult } = useList<AgentRuntimeConfig>({
+    resource: ResourceName.agentRuntimes,
+  });
+  const selectedRuntime = runtimesResult.data.find(
+    (runtime) => runtime.type === form.watch("defaultRuntime"),
+  );
+  const modelOptions =
+    selectedRuntime?.connection.mode === "local" ? (selectedRuntime.connection.models ?? []) : [];
   const handleFormSubmit = async (values: AgentFormValues) => {
     const mutationValues = toAgentFormMutationValues(values);
     if (editing) {
@@ -216,6 +225,47 @@ export const AgentFormDialog = () => {
                         {...field}
                       />
                     </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="defaultModel"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-xs font-medium text-muted-foreground">
+                      {t("agents.form.defaultModel")}
+                    </FormLabel>
+                    <Select
+                      value={field.value || "__default__"}
+                      onValueChange={(value) =>
+                        field.onChange(value === "__default__" ? "" : value)
+                      }
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue
+                            placeholder={
+                              modelOptions.length > 0
+                                ? t("agents.form.defaultModelPlaceholder")
+                                : t("localAgents.modelsNotDetected")
+                            }
+                          />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="__default__">
+                          {t("agents.form.runtimeDefaultModel")}
+                        </SelectItem>
+                        {modelOptions.map((model) => (
+                          <SelectItem key={model.id} value={model.id}>
+                            {model.displayName}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}

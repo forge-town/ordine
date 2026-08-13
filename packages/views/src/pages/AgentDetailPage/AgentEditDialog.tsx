@@ -1,15 +1,16 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useInvalidate, useUpdate } from "@refinedev/core";
+import { useInvalidate, useList, useUpdate } from "@refinedev/core";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import type { Agent } from "@repo/schemas";
-import { AGENT_RUNTIME_ENUM } from "@repo/schemas";
+import { AGENT_RUNTIME_ENUM, type AgentRuntimeConfig } from "@repo/schemas";
 import { Button } from "@repo/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@repo/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@repo/ui/form";
 import { Input } from "@repo/ui/input";
 import { cn } from "@repo/ui/lib/utils";
 import { Textarea } from "@repo/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@repo/ui/select";
 import { ResourceName } from "../../constants";
 import {
   agentFormSchema,
@@ -34,10 +35,19 @@ export const AgentEditDialog = ({ agent, open, onOpenChange, onUpdated }: AgentE
       name: agent.name,
       description: agent.description ?? "",
       defaultRuntime: agent.defaultRuntime ?? "",
+      defaultModel: agent.defaultModel ?? "",
       systemPrompt: agent.systemPrompt ?? "",
       tags: agent.tags.join(", "),
     },
   });
+  const { result: runtimesResult } = useList<AgentRuntimeConfig>({
+    resource: ResourceName.agentRuntimes,
+  });
+  const selectedRuntime = runtimesResult.data.find(
+    (runtime) => runtime.type === form.watch("defaultRuntime"),
+  );
+  const modelOptions =
+    selectedRuntime?.connection.mode === "local" ? (selectedRuntime.connection.models ?? []) : [];
 
   const handleSubmit = async (values: AgentFormValues) => {
     await updateAgent({
@@ -132,6 +142,44 @@ export const AgentEditDialog = ({ agent, open, onOpenChange, onUpdated }: AgentE
                         {...field}
                       />
                     </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="defaultModel"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t("agents.form.defaultModel")}</FormLabel>
+                    <Select
+                      value={field.value || "__default__"}
+                      onValueChange={(value) =>
+                        field.onChange(value === "__default__" ? "" : value)
+                      }
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue
+                            placeholder={
+                              modelOptions.length > 0
+                                ? t("agents.form.defaultModelPlaceholder")
+                                : t("localAgents.modelsNotDetected")
+                            }
+                          />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="__default__">
+                          {t("agents.form.runtimeDefaultModel")}
+                        </SelectItem>
+                        {modelOptions.map((model) => (
+                          <SelectItem key={model.id} value={model.id}>
+                            {model.displayName}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}

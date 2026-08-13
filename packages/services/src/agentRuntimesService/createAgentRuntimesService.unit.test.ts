@@ -142,6 +142,34 @@ describe("createAgentRuntimesService", () => {
     expect(result).toHaveLength(2);
   });
 
+  it("syncAll preserves a previously detected catalog when a scan omits models", async () => {
+    const models = [{ id: "gpt-5", displayName: "GPT-5" }];
+    mockDao.findMany
+      .mockResolvedValueOnce([
+        {
+          ...runtimeRecord("local-codex"),
+          type: "codex",
+          connection: { mode: "local", models },
+        },
+      ])
+      .mockResolvedValueOnce([]);
+
+    const svc = createAgentRuntimesService({} as never);
+    await svc.syncAll([
+      {
+        id: "local-codex",
+        name: "Codex",
+        type: "codex",
+        connection: { mode: "local" },
+      },
+    ]);
+
+    expect(mockDao.update).toHaveBeenCalledWith(
+      "local-codex",
+      expect.objectContaining({ connection: { mode: "local", models } }),
+    );
+  });
+
   // COD-336 regression guards
   const runtimeRecord = (id: string) => ({
     id,

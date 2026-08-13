@@ -4,15 +4,9 @@ import { access } from "node:fs/promises";
 import { homedir } from "node:os";
 import { isAbsolute, join } from "node:path";
 import { logger } from "@repo/logger";
-import { AgentRuntimeSchema } from "@repo/schemas";
+import { AgentRuntimeSchema, type DetectedRuntime } from "@repo/schemas";
 import { ResultAsync } from "neverthrow";
-
-export interface DetectedRuntime {
-  type: string;
-  binaryName: string;
-  path: string;
-  version?: string;
-}
+import { probeRuntimeModels } from "./probeRuntimeModels";
 
 const BUILTIN_RUNTIME_BINARIES: Record<string, string> = {
   "claude-code": "claude",
@@ -175,6 +169,8 @@ const detectBinary = async (
   type: string,
   binaryName: string,
 ): Promise<DetectedRuntime | undefined> => {
+  const parsedType = AgentRuntimeSchema.safeParse(type);
+  if (!parsedType.success) return undefined;
   const path = await resolveBinaryPath(binaryName);
   if (!path) {
     return undefined;
@@ -188,8 +184,15 @@ const detectBinary = async (
     () => undefined as never,
   );
   const version = versionResult.isOk() ? versionResult.value.stdout.trim() || undefined : undefined;
+  const models = await probeRuntimeModels({ type: parsedType.data, path });
 
-  return { type, binaryName, path, version };
+  return {
+    type: parsedType.data,
+    binaryName,
+    path,
+    version,
+    ...(models === undefined ? {} : { models }),
+  };
 };
 
 export const scanRuntimes = async (): Promise<DetectedRuntime[]> => {
