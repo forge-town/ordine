@@ -53,6 +53,7 @@ export interface AgentRunOptions {
   attachments?: AgentInputAttachment[];
   allowedTools?: readonly string[];
   onProgress?: (msg: string) => Promise<void> | void;
+  onAssistantChunk?: (text: string) => Promise<void> | void;
   jobId?: string;
   agentId?: string;
   apiKey?: string;

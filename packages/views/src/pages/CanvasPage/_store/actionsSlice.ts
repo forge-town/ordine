@@ -74,6 +74,7 @@ const makeSkillBackedOperation = (skill: Skill): Operation => ({
 
 export interface ActionsSlice {
   _nodeDragStartPositions: Map<string, XYPosition>;
+  isCancellingRun: boolean;
   exportCanvas: () => void;
   importCanvas: (data: CanvasImportPayload) => void;
   fitView: (options?: { padding?: number }) => void;
@@ -115,6 +116,7 @@ export interface ActionsSlice {
   handleDragOverCompound: (draggedNodeId: string, position: { x: number; y: number }) => void;
   handleDragEndOnCompound: (draggedNodeId: string, isCompound: boolean) => void;
   handleRunTest: () => Promise<void>;
+  handleCancelRun: () => Promise<void>;
   addNodeAndAutoConnect: (node: PipelineNode) => void;
   createObjectNode: (type: BuiltinNodeType) => void;
   createOperationNode: (operation: Operation) => void;
@@ -184,6 +186,7 @@ export const createActionsSlice = (
   get: Parameters<CanvasPageStoreSlice>[1],
 ): ActionsSlice => ({
   _nodeDragStartPositions: new Map(),
+  isCancellingRun: false,
   exportCanvas: () => {
     const state = get();
     const exportData = {
@@ -469,6 +472,7 @@ export const createActionsSlice = (
       nodes,
       edges,
       startTestRun,
+      stopTestRun,
     } = get();
     const t = i18n.t.bind(i18n);
 
@@ -508,6 +512,7 @@ export const createActionsSlice = (
         description: t("canvas.saveFailed"),
       });
       set({ isRunning: false });
+      stopTestRun();
 
       return;
     }
@@ -527,11 +532,12 @@ export const createActionsSlice = (
         set({ activeJobId: result.jobId, isConsoleOpen: true });
         toastStore.getState().addToast({
           type: "success",
-          title: t("canvas.runCompleted"),
-          description: t("canvas.runSuccessDescription", { jobId: result.jobId }),
+          title: t("canvas.runStarted"),
+          description: t("canvas.runStartedDescription"),
         });
       },
       (error) => {
+        stopTestRun();
         toastStore.getState().addToast({
           type: "error",
           title: t("canvas.runFailed"),
@@ -541,6 +547,41 @@ export const createActionsSlice = (
     );
 
     set({ isRunning: false });
+  },
+
+  handleCancelRun: async () => {
+    const { activeJobId, isCancellingRun, stopTestRun } = get();
+    const t = i18n.t.bind(i18n);
+    if (!activeJobId || isCancellingRun) return;
+
+    set({ isCancellingRun: true });
+    const cancelResult = await ResultAsync.fromPromise(
+      getCanvasDataProvider().custom!({
+        url: "jobs/cancel",
+        method: "post",
+        payload: { jobId: activeJobId },
+      }),
+      () => t("canvas.runConsole.cancelFailed"),
+    );
+
+    cancelResult.match(
+      () => {
+        stopTestRun();
+        toastStore.getState().addToast({
+          type: "success",
+          title: t("canvas.runConsole.cancelRequested"),
+          description: t("canvas.runConsole.cancelRequestedDescription"),
+        });
+      },
+      (error) => {
+        toastStore.getState().addToast({
+          type: "error",
+          title: t("canvas.runConsole.cancelFailed"),
+          description: error,
+        });
+      },
+    );
+    set({ isCancellingRun: false });
   },
 
   addNodeAndAutoConnect: (node) => {

@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { hasMcpConnectorInjection, type McpConnectorInjection } from "../mcp";
 import { logger } from "@repo/logger";
 import { spawnCommand } from "../spawn/spawnCommand";
+import { createCodexJsonProgressParser, type CodexProgressUpdate } from "./codexJsonProgress";
 
 export interface RunCodexOptions {
   systemPrompt: string;
@@ -172,6 +173,7 @@ export const runCodex = async ({
     sandbox,
     "--ephemeral",
     "--skip-git-repo-check",
+    "--json",
     "-C",
     cwd,
     "--output-last-message",
@@ -201,8 +203,20 @@ export const runCodex = async ({
       const stdoutChunks: Buffer[] = [];
       const stderrChunks: Buffer[] = [];
       const completion = { settled: false };
+      const progressParser = createCodexJsonProgressParser();
+      let lastAgentMessage = "";
 
-      child.stdout.on("data", (chunk: Buffer) => stdoutChunks.push(chunk));
+      const publishCodexUpdates = (updates: CodexProgressUpdate[]): void => {
+        for (const update of updates) {
+          if (update.finalMessage) lastAgentMessage = update.finalMessage;
+          if (update.progressMessage) void onProgress?.(update.progressMessage);
+        }
+      };
+
+      child.stdout.on("data", (chunk: Buffer) => {
+        stdoutChunks.push(chunk);
+        publishCodexUpdates(progressParser.push(chunk.toString("utf8")));
+      });
       child.stderr.on("data", (chunk: Buffer) => stderrChunks.push(chunk));
 
       const prompt = `<system>${systemPrompt}</system>\n\n${truncatedPrompt}`;
@@ -229,12 +243,13 @@ export const runCodex = async ({
         if (completion.settled) return;
         completion.settled = true;
         clearTimeout(timer);
+        publishCodexUpdates(progressParser.flush());
         const stdout = Buffer.concat(stdoutChunks).toString("utf8");
         const stderr = Buffer.concat(stderrChunks).toString("utf8");
         void (async () => {
           const output = await readFile(outputFile, "utf8").then(
             (fileOutput) => fileOutput,
-            () => stdout,
+            () => lastAgentMessage || stdout,
           );
 
           if (code !== 0 && output.trim().length === 0) {

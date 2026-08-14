@@ -330,6 +330,18 @@ const canvasStoryFilesystem = [
 
 const storyNow = new Date();
 const minutesAgo = (minutes: number) => new Date(storyNow.getTime() - minutes * 60_000);
+const secondsAgo = (seconds: number) => new Date(storyNow.getTime() - seconds * 1000);
+const makeStoryTrace = (id: number, seconds: number, message: string): JobTrace => {
+  const createdAt = secondsAgo(seconds);
+
+  return {
+    id,
+    jobId: "job-story",
+    level: "info",
+    message: `[${createdAt.toISOString()}] ${message}`,
+    createdAt,
+  };
+};
 
 export const canvasStoryJobs: Job[] = [
   {
@@ -439,35 +451,14 @@ export const canvasStoryRoutines: Routine[] = [
 ];
 
 export const canvasStoryJobTraces: JobTrace[] = [
-  {
-    id: 1,
-    jobId: "job-story",
-    level: "info",
-    message: "[2026-04-08T16:00:00.000Z] Starting Story Pipeline",
-    createdAt: new Date("2026-04-08T16:00:00.000Z"),
-  },
-  {
-    id: 2,
-    jobId: "job-story",
-    level: "info",
-    message: "[2026-04-08T16:00:01.000Z] @@NODE_START::review-op",
-    createdAt: new Date("2026-04-08T16:00:01.000Z"),
-  },
-  {
-    id: 3,
-    jobId: "job-story",
-    level: "info",
-    message: "[2026-04-08T16:00:02.000Z] Running Review Code",
-    createdAt: new Date("2026-04-08T16:00:02.000Z"),
-  },
-  {
-    id: 4,
-    jobId: "job-story",
-    level: "info",
-    message:
-      "[2026-04-08T16:00:03.000Z] @@LLM_CONTENT::review-op::### Review\nNo blocking issues in this Storybook scenario.",
-    createdAt: new Date("2026-04-08T16:00:03.000Z"),
-  },
+  makeStoryTrace(1, 840, "Starting Story Pipeline"),
+  makeStoryTrace(2, 835, "@@NODE_START::source-file"),
+  makeStoryTrace(3, 830, "@@NODE_DONE::source-file"),
+  makeStoryTrace(4, 160, "@@NODE_START::review-op"),
+  makeStoryTrace(5, 159, "[LLM] runPrompt: agent=codex, system length=1386, input length=251"),
+  makeStoryTrace(6, 158, "[Codex] Starting codex exec (sandbox=read-only)..."),
+  makeStoryTrace(7, 156, "[Codex] Analyzing inputs and planning the step..."),
+  makeStoryTrace(8, 151, "[Codex] Inspecting the workspace (action 1)..."),
 ];
 
 export const canvasStoryPipeline: PipelineData = {

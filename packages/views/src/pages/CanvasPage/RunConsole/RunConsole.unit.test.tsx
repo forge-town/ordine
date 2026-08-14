@@ -1,6 +1,6 @@
 import { render } from "../../../test/test-wrapper";
 import type * as RefineCore from "@refinedev/core";
-import { screen, waitFor } from "@testing-library/react";
+import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { RunConsole } from "./RunConsole";
 import { CanvasPageStoreProvider, useCanvasPageStore } from "../_store";
@@ -146,16 +146,18 @@ describe("RunConsole", () => {
   it("renders console shell when jobId is null", () => {
     const { container } = render(<RunConsole />, { wrapper });
     expect(container.firstChild).not.toBeNull();
-    expect(screen.getByText("Console")).toBeInTheDocument();
+    expect(screen.getByText("Run panel")).toBeInTheDocument();
   });
 
   it("shows status bar with running indicator", () => {
     render(<RunConsole />, { wrapper: wrapperWithJob("job-1") });
     expect(screen.getByText(/Running/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Stop" })).toBeInTheDocument();
   });
 
   it("displays log entries from traces", async () => {
     render(<RunConsole />, { wrapper: wrapperWithJob("job-1") });
+    fireEvent.click(screen.getByRole("button", { name: /Technical logs/i }));
     await waitFor(() => {
       expect(screen.getByText(/Starting pipeline/)).toBeInTheDocument();
     });
@@ -165,7 +167,7 @@ describe("RunConsole", () => {
   it("shows done status when job completes", () => {
     useOneData.mockReturnValue(mockJobDone);
     render(<RunConsole />, { wrapper: wrapperWithJob("job-1") });
-    expect(screen.getByText(/Done/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/Done/i).length).toBeGreaterThan(0);
     useOneData.mockReturnValue(mockJobRunning);
   });
 
@@ -177,7 +179,7 @@ describe("RunConsole", () => {
   it("stops polling when job is done", () => {
     useOneData.mockReturnValue(mockJobDone);
     render(<RunConsole />, { wrapper: wrapperWithJob("job-1") });
-    expect(screen.getByText(/Done/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/Done/i).length).toBeGreaterThan(0);
     useOneData.mockReturnValue(mockJobRunning);
   });
 
@@ -206,7 +208,7 @@ describe("RunConsole", () => {
     expect(screen.getAllByText(/C:\\tmp\\ordine-output\\review-report.md/).length).toBeGreaterThan(
       0,
     );
-    expect(screen.getByText(/wait for all parent inputs/i)).toBeInTheDocument();
+    expect(screen.getByText(/all are now ready/i)).toBeInTheDocument();
   });
 
   it("keeps bracketed log labels out of the timestamp column", () => {
@@ -215,6 +217,7 @@ describe("RunConsole", () => {
     ]);
 
     render(<RunConsole />, { wrapper: wrapperWithJob("job-1") });
+    fireEvent.click(screen.getByRole("button", { name: /Technical logs/i }));
 
     expect(
       screen.getAllByText("[Codex] Starting codex exec (cwd=/tmp/ordine-input-repo)").length,

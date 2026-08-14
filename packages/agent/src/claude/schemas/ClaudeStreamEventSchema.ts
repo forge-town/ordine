@@ -10,6 +10,7 @@ export const ClaudeStreamEventSchema = z.object({
   total_cost_usd: z.number().optional(),
   modelUsage: z.record(z.string(), ClaudeModelUsageSchema).optional(),
   content: z.unknown().optional(),
+  event: z.unknown().optional(),
   tool_use_id: z.string().nullable().optional(),
   parent_tool_use_id: z.string().nullable().optional(),
   /** Present on `type: "result"` events — final text output from the model */

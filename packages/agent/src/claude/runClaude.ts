@@ -57,6 +57,29 @@ const safeJsonParse = Result.fromThrowable(
   () => "invalid JSON",
 );
 
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null;
+
+const extractTextDelta = (event: ClaudeStreamEvent): string | null => {
+  if (event.type !== "stream_event" || !isRecord(event.event)) return null;
+  if (event.event.type !== "content_block_delta" || !isRecord(event.event.delta)) return null;
+
+  return event.event.delta.type === "text_delta" && typeof event.event.delta.text === "string"
+    ? event.event.delta.text
+    : null;
+};
+
+const extractAssistantText = (event: ClaudeStreamEvent): string =>
+  event.type === "assistant" && event.message?.content
+    ? event.message.content
+        .filter(
+          (block): block is { type: "text"; text: string } =>
+            block.type === "text" && "text" in block,
+        )
+        .map((block) => block.text)
+        .join("\n")
+    : "";
+
 /**
  * Extract the final text result from stream-json events.
  * Looks at the last `assistant` message's text content blocks.
@@ -95,6 +118,7 @@ export const runClaude = async ({
   timeoutMs = 20 * 60 * 1000,
   maxBudgetUsd = 5,
   onProgress,
+  onAssistantChunk,
   extraEnv,
   ssh,
   mcpConfigPath,
@@ -115,6 +139,7 @@ export const runClaude = async ({
     "--verbose",
     "--output-format",
     "stream-json",
+    "--include-partial-messages",
     "--system-prompt",
     sanitizedSystemPrompt,
     "--allowedTools",
@@ -160,6 +185,7 @@ export const runClaude = async ({
     const events: ClaudeStreamEvent[] = [];
     const streamState = { lineBuf: "" };
     const stderrChunks: Buffer[] = [];
+    const partialMessages = { seen: false };
     const { stdout, stderr, stdin } = child;
 
     if (!stdout || !stderr || !stdin) {
@@ -168,21 +194,39 @@ export const runClaude = async ({
       return;
     }
 
+    const handleStreamEvent = (event: ClaudeStreamEvent): void => {
+      events.push(event);
+      const textDelta = extractTextDelta(event);
+      if (textDelta !== null) {
+        partialMessages.seen = true;
+        void onAssistantChunk?.(textDelta);
+        return;
+      }
+
+      if (partialMessages.seen) return;
+      const assistantText = extractAssistantText(event);
+      if (assistantText) void onAssistantChunk?.(assistantText);
+    };
+
+    const parseStreamLine = (line: string): void => {
+      if (!line.trim()) return;
+      const parsed = safeJsonParse(line);
+      if (parsed.isErr()) return;
+      const validated = ClaudeStreamEventSchema.safeParse(parsed.value);
+      if (!validated.success) {
+        logger.warn({ line }, "runClaude: unrecognised stream event shape, skipping");
+        return;
+      }
+
+      handleStreamEvent(validated.data);
+    };
+
     stdout.on("data", (chunk: Buffer) => {
       streamState.lineBuf += chunk.toString("utf8");
       const lines = streamState.lineBuf.split("\n");
       streamState.lineBuf = lines.pop() ?? "";
       for (const line of lines) {
-        if (!line.trim()) continue;
-        const parsed = safeJsonParse(line);
-        if (parsed.isOk()) {
-          const validated = ClaudeStreamEventSchema.safeParse(parsed.value);
-          if (validated.success) {
-            events.push(validated.data);
-          } else {
-            logger.warn({ line }, "runClaude: unrecognised stream event shape, skipping");
-          }
-        }
+        parseStreamLine(line);
       }
     });
 
@@ -209,10 +253,7 @@ export const runClaude = async ({
 
       // Flush remaining line buffer
       if (streamState.lineBuf.trim()) {
-        const parsed = safeJsonParse(streamState.lineBuf.trim());
-        if (parsed.isOk()) {
-          events.push(parsed.value as ClaudeStreamEvent);
-        }
+        parseStreamLine(streamState.lineBuf.trim());
       }
 
       // stream-json may exit with non-zero on budget exceeded but still has valid events

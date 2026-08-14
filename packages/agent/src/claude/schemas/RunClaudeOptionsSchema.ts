@@ -20,6 +20,7 @@ export const RunClaudeOptionsSchema = z.object({
   timeoutMs: z.number().optional(),
   maxBudgetUsd: z.number().optional(),
   onProgress: z.custom<(line: string) => Promise<void>>().optional(),
+  onAssistantChunk: z.custom<(text: string) => Promise<void> | void>().optional(),
   extraEnv: z.record(z.string(), z.string()).optional(),
   ssh: SshConnectionOptionsSchema.optional(),
   // Connector injection: mcpConfigPath points at a generated MCP config file

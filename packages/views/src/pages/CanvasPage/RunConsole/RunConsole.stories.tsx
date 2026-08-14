@@ -56,7 +56,7 @@ const withRunConsoleStore = (Story: React.ComponentType) => {
   return (
     <Refine dataProvider={canvasStoryDataProvider}>
       <CanvasPageStoreContext.Provider value={store}>
-        <div className="relative h-80 w-full overflow-hidden rounded-md border bg-slate-50">
+        <div className="relative h-[32rem] w-full overflow-hidden rounded-md border bg-slate-50">
           <Story />
         </div>
       </CanvasPageStoreContext.Provider>

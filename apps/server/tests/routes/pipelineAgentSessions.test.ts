@@ -301,6 +301,8 @@ describe("pipelineAgentSessionsRoutes", () => {
   it("streams planning events for a session", async () => {
     mocks.planSession.mockImplementation(async (_sessionId, input) => {
       await input.onProgress?.("planner: started");
+      input.onAssistantChunk?.("What output ");
+      input.onAssistantChunk?.("format do you want?");
       return {
         type: "question",
         question: "What output format do you want?",
@@ -319,7 +321,9 @@ describe("pipelineAgentSessionsRoutes", () => {
     const body = await response.text();
     expect(body).toContain("event: phase");
     expect(body).toContain("event: progress");
-    expect(body).not.toContain("event: assistant_chunk");
+    expect(body.match(/event: assistant_chunk/g)).toHaveLength(2);
+    expect(body).toContain('data: {"text":"What output "}');
+    expect(body).toContain('data: {"text":"format do you want?"}');
     expect(body).toContain("event: question");
     expect(body).toContain("What output format do you want?");
     expect(mocks.planSession).toHaveBeenCalledWith(
@@ -327,6 +331,7 @@ describe("pipelineAgentSessionsRoutes", () => {
       expect.objectContaining({
         runtimeId: "runtime-codex",
         onProgress: expect.any(Function),
+        onAssistantChunk: expect.any(Function),
       }),
     );
   });

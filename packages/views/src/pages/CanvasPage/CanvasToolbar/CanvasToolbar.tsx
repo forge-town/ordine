@@ -10,6 +10,8 @@ import {
   Undo2,
   Redo2,
   Play,
+  Square,
+  Loader2,
   AlignLeft,
   Plus,
   Bot,
@@ -45,11 +47,14 @@ export const CanvasToolbar = () => {
   const handleToggleQuickAdd = useStore(store, (state) => state.handleToggleQuickAdd);
   const pipelineId = useStore(store, (state) => state.pipelineId);
   const isRunning = useStore(store, (state) => state.isRunning);
+  const isTestRunning = useStore(store, (state) => state.isTestRunning);
+  const isCancellingRun = useStore(store, (state) => state.isCancellingRun);
   const handleDeleteSelected = useStore(store, (state) => state.handleDeleteSelected);
   const handleUndo = useStore(store, (state) => state.handleUndo);
   const handleRedo = useStore(store, (state) => state.handleRedo);
   const handleFormatLayout = useStore(store, (state) => state.formatLayout);
   const handleRunTest = useStore(store, (state) => state.handleRunTest);
+  const handleCancelRun = useStore(store, (state) => state.handleCancelRun);
   const handleToggleAgentPanel = useStore(store, (state) => state.toggleAgentPanel);
   const agentPanelIsOpen = useStore(store, (state) => state.agentPanel.isOpen);
   const { result: runtimesResult, query: runtimesQuery } = useList<AgentRuntimeConfig>({
@@ -293,27 +298,53 @@ export const CanvasToolbar = () => {
 
         <Separator className="mx-1 h-7" orientation="vertical" />
 
-        {/* Run Test */}
+        {/* Run / stop */}
         <Tooltip>
           <TooltipTrigger
             render={
               <Button
-                aria-label={t("canvas.runTest")}
-                className="h-7 gap-1.5 px-2 text-xs text-emerald-600 hover:bg-emerald-500/10 hover:text-emerald-700 disabled:text-muted-foreground/30 dark:text-emerald-400 dark:hover:text-emerald-300 max-[420px]:w-7 max-[420px]:gap-0 max-[420px]:px-0"
-                disabled={isRunning || !pipelineId || !runtimeConfigured}
+                aria-label={isTestRunning ? t("canvas.runConsole.cancel") : t("canvas.runTest")}
+                className={cn(
+                  "h-7 gap-1.5 px-2 text-xs max-[420px]:w-7 max-[420px]:gap-0 max-[420px]:px-0",
+                  isTestRunning
+                    ? "text-destructive hover:bg-destructive/10 hover:text-destructive"
+                    : "text-emerald-600 hover:bg-emerald-500/10 hover:text-emerald-700 disabled:text-muted-foreground/30 dark:text-emerald-400 dark:hover:text-emerald-300",
+                )}
+                disabled={
+                  isCancellingRun ||
+                  (!isTestRunning && (isRunning || !pipelineId || !runtimeConfigured))
+                }
                 size="sm"
                 title={
-                  runtimeConfigured ? t("canvas.runTest") : t("pipelineAgentErrors.runtimeNotFound")
+                  isTestRunning
+                    ? t("canvas.runConsole.cancel")
+                    : runtimeConfigured
+                      ? t("canvas.runTest")
+                      : t("pipelineAgentErrors.runtimeNotFound")
                 }
                 variant="ghost"
-                onClick={handleRunTest}
+                onClick={isTestRunning ? handleCancelRun : handleRunTest}
               />
             }
           >
-            <Play className="h-3.5 w-3.5" />
-            <span className="max-[420px]:hidden">{t("canvas.run")}</span>
+            {isCancellingRun ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : isTestRunning ? (
+              <Square className="h-3.5 w-3.5 fill-current" />
+            ) : (
+              <Play className="h-3.5 w-3.5" />
+            )}
+            <span className="max-[420px]:hidden">
+              {isCancellingRun
+                ? t("canvas.runConsole.cancelling")
+                : isTestRunning
+                  ? t("canvas.runConsole.cancel")
+                  : t("canvas.run")}
+            </span>
           </TooltipTrigger>
-          <TooltipContent>{t("canvas.runTest")}</TooltipContent>
+          <TooltipContent>
+            {isTestRunning ? t("canvas.runConsole.cancel") : t("canvas.runTest")}
+          </TooltipContent>
         </Tooltip>
       </div>
     </div>

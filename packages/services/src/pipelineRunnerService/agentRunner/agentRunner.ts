@@ -19,6 +19,7 @@ export interface AgentRunnerOptions {
   agentId: string;
   allowedTools?: readonly string[];
   onProgress?: (line: string) => Promise<void> | void;
+  onAssistantChunk?: (text: string) => Promise<void> | void;
   logPrefix: string;
   attachments?: AgentInputAttachment[];
   apiKey?: string;
@@ -38,6 +39,7 @@ export const runAgent = async (opts: AgentRunnerOptions): Promise<string> => {
     agentId,
     allowedTools,
     onProgress,
+    onAssistantChunk,
     logPrefix,
     attachments,
     apiKey,
@@ -81,6 +83,7 @@ export const runAgent = async (opts: AgentRunnerOptions): Promise<string> => {
       attachments,
       allowedTools: allowedTools ?? [],
       onProgress,
+      onAssistantChunk,
       jobId,
       agentId,
       apiKey,

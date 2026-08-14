@@ -134,6 +134,7 @@ const runLocalClaudeDirect = async (opts: AgentRunOptions): Promise<DriverResult
       cwd: opts.cwd,
       ...(effectiveTools ? { allowedTools: effectiveTools } : {}),
       onProgress: toAsyncProgress(opts.onProgress),
+      onAssistantChunk: opts.onAssistantChunk,
       extraEnv,
       ssh: opts.ssh,
       mcpConfigPath: preparedMcp?.configPath,

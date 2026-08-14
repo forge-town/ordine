@@ -41,6 +41,7 @@ import {
 import { getNextCronRunAt } from "@repo/utils";
 import { runAgent } from "../pipelineRunnerService/agentRunner/agentRunner";
 import { createPipelinesService } from "../pipelinesService/createPipelinesService";
+import { createPlanningPreviewStreamer } from "./streamPlanningPreview";
 
 const RelaxedCanvasEditPlanningResultSchema = z.discriminatedUnion("type", [
   z.object({
@@ -968,6 +969,7 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
       sessionId: string,
       input?: {
         onProgress?: (message: string) => Promise<void> | void;
+        onAssistantChunk?: (text: string) => Promise<void> | void;
         runtimeId?: string;
         signal?: AbortSignal;
       },
@@ -1005,6 +1007,11 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
             throw createRuntimeNotFoundError(input?.runtimeId);
           }
 
+          const streamPlanningPreview = createPlanningPreviewStreamer({
+            mode: session.mode,
+            onChunk: input?.onAssistantChunk,
+          });
+
           const raw = await runAbortable(
             runAgent({
               agent: effectiveRuntime,
@@ -1024,6 +1031,7 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
               apiKey: settings.defaultApiKey,
               model: settings.defaultModel,
               onProgress: input?.onProgress,
+              onAssistantChunk: streamPlanningPreview,
             }),
             activity.controller.signal,
             sessionId,
