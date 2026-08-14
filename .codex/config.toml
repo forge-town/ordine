@@ -1,0 +1,12 @@
+# Project-scoped Sol-Terra defaults. Machine-local providers, credentials,
+# notifications, hooks, MCP servers, and permission policy remain inherited.
+model = "gpt-5.6-sol"
+model_reasoning_effort = "medium"
+
+[agents]
+enabled = true
+max_concurrent_threads_per_session = 3
+# V1 depth guard; V2 leaf agents also disable their own multi-agent tools.
+max_depth = 1
+default_subagent_model = "gpt-5.6-terra"
+default_subagent_reasoning_effort = "medium"

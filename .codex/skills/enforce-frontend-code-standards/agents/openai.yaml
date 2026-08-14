@@ -1,0 +1,4 @@
+interface:
+  display_name: "ORDINE 前端规范守卫"
+  short_description: "统一 ORDINE 前端页面、Store、Refine 与重构规范"
+  default_prompt: "Use $enforce-frontend-code-standards to review and refactor this ORDINE frontend code against the project standards."

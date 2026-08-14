@@ -45,6 +45,10 @@ yarn-error.log*
 .agents/skills/*
 !.agents/skills/ordine-control/
 !.agents/skills/ordine-control/**
+!.agents/skills/sol-luna/
+!.agents/skills/sol-luna/**
+!.agents/skills/sol-terra/
+!.agents/skills/sol-terra/**
 .adal
 .augment
 .claude
