@@ -276,10 +276,12 @@ const runOpencodeDirect = async (opts: AgentRunOptions): Promise<DriverResult> =
 };
 
 const runKimiCodeDirect = async (opts: AgentRunOptions): Promise<DriverResult> => {
-  await reportConnectorInjectionSkipped(
-    opts,
-    "runtime adapter does not yet support run-level MCP injection",
-  );
+  const connectorInjection = await loadConnectorInjection(opts);
+  if (connectorInjection) {
+    await opts.onProgress?.(
+      `[Connector Injection] kimi-code injected: ${describeConnectorInjection(connectorInjection)}`,
+    );
+  }
 
   const result = await runKimiCode({
     systemPrompt: opts.systemPrompt,
@@ -287,6 +289,7 @@ const runKimiCodeDirect = async (opts: AgentRunOptions): Promise<DriverResult> =
     cwd: opts.cwd,
     model: opts.model,
     onProgress: toAsyncProgress(opts.onProgress),
+    connectorInjection,
   });
 
   if (result.isErr()) {

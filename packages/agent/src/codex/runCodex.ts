@@ -62,9 +62,9 @@ const setChildEnvValue = (env: Record<string, string>, name: string, value: stri
 
 const buildCodexMcpConfig = (
   injection?: McpConnectorInjection,
-): { configToml: string | null; env: Record<string, string> } => {
+): { configToml: string; env: Record<string, string> } => {
   if (!hasMcpConnectorInjection(injection)) {
-    return { configToml: null, env: {} };
+    return { configToml: "", env: {} };
   }
 
   const env: Record<string, string> = {};
@@ -162,9 +162,7 @@ export const runCodex = async ({
     `ordine-codex-last-message-${Date.now()}-${Math.random().toString(36).slice(2)}.txt`,
   );
   const codexMcpConfig = buildCodexMcpConfig(connectorInjection);
-  const isolatedCodexHome = codexMcpConfig.configToml
-    ? await createIsolatedCodexHome(codexMcpConfig.configToml)
-    : undefined;
+  const isolatedCodexHome = await createIsolatedCodexHome(codexMcpConfig.configToml);
 
   const args = [
     "exec",
@@ -194,7 +192,7 @@ export const runCodex = async ({
         env: {
           ...process.env,
           ...codexMcpConfig.env,
-          ...(isolatedCodexHome ? { CODEX_HOME: isolatedCodexHome } : {}),
+          CODEX_HOME: isolatedCodexHome,
         },
       });
 
@@ -276,6 +274,6 @@ export const runCodex = async ({
 
   return execution().finally(async () => {
     await cleanupPath(outputFile, "output file");
-    if (isolatedCodexHome) await cleanupPath(isolatedCodexHome, "isolated home");
+    await cleanupPath(isolatedCodexHome, "isolated home");
   });
 };

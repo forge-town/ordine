@@ -1,5 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { runClaude, runCodex, runHermes, runMastra, type ClaudeStreamEvent } from "@repo/agent";
+import {
+  runClaude,
+  runCodex,
+  runHermes,
+  runKimiCode,
+  runMastra,
+  type ClaudeStreamEvent,
+} from "@repo/agent";
 
 const fakeClaudeEvents: ClaudeStreamEvent[] = [
   {
@@ -36,6 +43,14 @@ vi.mock("@repo/agent", () => ({
     await opts.onProgress?.("progress");
 
     return { text: "fake mastra output", events: [] };
+  }),
+  runKimiCode: vi.fn(async (opts: { onProgress?: (s: string) => Promise<void> }) => {
+    await opts.onProgress?.("progress");
+
+    return {
+      isErr: () => false,
+      value: "fake kimi output",
+    };
   }),
   runOpenclaw: vi.fn(async (opts: { onProgress?: (s: string) => Promise<void> }) => {
     await opts.onProgress?.("progress");
@@ -205,6 +220,31 @@ describe("agentEngine", () => {
 
     expect(getMcpConnectorInjection).toHaveBeenCalledWith([stableMcpReference], "codex");
     expect(runCodex).toHaveBeenCalledWith(
+      expect.objectContaining({ connectorInjection: injection }),
+    );
+  });
+
+  it("loads only the selected connector for Kimi", async () => {
+    const stableMcpReference = "mcp__connector_676974687562__read_issue";
+    const injection = {
+      mcpServers: { connector_676974687562: { command: "github-mcp" } },
+      toolNames: [stableMcpReference],
+    };
+    const getMcpConnectorInjection = vi.fn().mockResolvedValue(injection);
+
+    const result = await agentEngine.run({
+      agent: "kimi-code",
+      mode: "direct",
+      systemPrompt: "Analyze this",
+      userPrompt: "Hello",
+      cwd: "/tmp/test",
+      allowedTools: ["Read", stableMcpReference],
+      getMcpConnectorInjection,
+    });
+
+    expect(result.text).toBe("fake kimi output");
+    expect(getMcpConnectorInjection).toHaveBeenCalledWith([stableMcpReference], "kimi-code");
+    expect(runKimiCode).toHaveBeenCalledWith(
       expect.objectContaining({ connectorInjection: injection }),
     );
   });
