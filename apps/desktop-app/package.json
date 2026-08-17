@@ -17,15 +17,13 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@electric-sql/pglite": "0.4.5",
     "@refinedev/core": "^5.0.12",
     "@repo/plugins": "workspace:*",
-    "@repo/ui": "workspace:*",
     "@repo/views": "workspace:*",
     "@tanstack/react-query": "^5.80.7",
     "@tanstack/react-router": "^1.168.7",
     "@tauri-apps/api": "^2",
-    "@tauri-apps/plugin-fs": "^2.5.1",
-    "@tauri-apps/plugin-opener": "^2",
     "@tauri-apps/plugin-shell": "^2.3.5",
     "i18next": "^26.0.3",
     "neverthrow": "^8.2.0",

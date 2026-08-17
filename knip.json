@@ -1,19 +1,29 @@
 {
   "workspaces": {
     "apps/app": {
-      "entry": ["src/router.tsx", "src/routes/**/*.tsx"],
-      "project": ["src/**/*.{ts,tsx}"],
+      "entry": [
+        "src/router.tsx",
+        "src/routes/**/*.tsx",
+        ".storybook/main.ts",
+        ".storybook/preview.tsx",
+        ".storybook/mocks/*.ts"
+      ],
+      "project": ["src/**/*.{ts,tsx}", ".storybook/**/*.{ts,tsx}"],
       "ignore": ["src/archived/**"],
       "ignoreDependencies": ["@tailwindcss/typography", "@types/bcryptjs"],
       "drizzle": false
+    },
+    "apps/server": {
+      "entry": ["src/desktop-entry.ts"],
+      "project": ["src/**/*.ts"]
     },
     "apps/scripts": {
       "entry": ["src/**/*.ts"],
       "project": ["src/**/*.ts"],
       "ignore": ["src/best-practices/**/code-snippet.ts"]
     },
-    "apps/server": {
-      "project": ["src/**/*.ts"]
+    "apps/create": {
+      "ignoreDependencies": ["@ordine/app"]
     },
     "packages/ui": {
       "includeEntryExports": true,
@@ -24,8 +34,15 @@
       "entry": ["plugins/**/*.js"],
       "project": ["plugins/**/*.js"]
     },
+    "packages/agent": {
+      "entry": ["src/index.ts", "src/mcp/mcpFakeServer.mjs"],
+      "project": ["src/**/*.{ts,mjs}"]
+    },
     "packages/logger": {
       "ignoreDependencies": ["pino-pretty"]
+    },
+    "packages/views": {
+      "ignoreDependencies": ["@repo/typescript-config"]
     }
   },
   "ignoreDependencies": [
