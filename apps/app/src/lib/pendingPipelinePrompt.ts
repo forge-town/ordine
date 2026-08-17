@@ -1,3 +1,5 @@
+import { Result } from "neverthrow";
+
 const PENDING_PIPELINE_PROMPT_KEY = "ordine.pendingPipelinePrompt";
 
 export interface PendingPipelinePrompt {
@@ -33,19 +35,24 @@ export const takePendingPipelinePrompt = (): PendingPipelinePrompt | null => {
     return null;
   }
 
-  try {
-    const parsed = JSON.parse(stored) as Partial<PendingPipelinePrompt>;
-    if (typeof parsed.prompt === "string" && parsed.prompt.trim().length > 0) {
-      return {
-        prompt: parsed.prompt,
-        ...(typeof parsed.runtimeId === "string" && parsed.runtimeId.length > 0
-          ? { runtimeId: parsed.runtimeId }
-          : {}),
-      };
-    }
-  } catch {
+  const parsedResult = Result.fromThrowable(
+    (value: string) => JSON.parse(value) as Partial<PendingPipelinePrompt>,
+    () => undefined,
+  )(stored);
+
+  if (parsedResult.isErr()) {
     // Backward compatibility for prompts saved by COD-345 before the runtime was included.
     return { prompt: stored };
+  }
+
+  const parsed = parsedResult.value;
+  if (typeof parsed.prompt === "string" && parsed.prompt.trim().length > 0) {
+    return {
+      prompt: parsed.prompt,
+      ...(typeof parsed.runtimeId === "string" && parsed.runtimeId.length > 0
+        ? { runtimeId: parsed.runtimeId }
+        : {}),
+    };
   }
 
   return null;
