@@ -32,6 +32,7 @@ const mockScrollIntoView = vi.fn();
 const mockGetOne = vi.fn();
 const mockGetList = vi.fn();
 const mockCreateSession = vi.fn();
+const mockGetSessionById = vi.fn();
 const mockAppendMessage = vi.fn();
 const mockUploadAttachment = vi.fn();
 const mockPlanSessionStream = vi.fn();
@@ -57,6 +58,7 @@ vi.mock("../../../lib/pipelineAgentSessionsClient", () => ({
     appendMessage: (...args: unknown[]) => mockAppendMessage(...args),
     approveProposal: (...args: unknown[]) => mockApproveProposal(...args),
     createSession: (...args: unknown[]) => mockCreateSession(...args),
+    getSessionById: (...args: unknown[]) => mockGetSessionById(...args),
     getLatestAssistantQuestion: (...args: unknown[]) => mockGetLatestAssistantQuestion(...args),
     getLatestReadyProposal: (...args: unknown[]) => mockGetLatestReadyProposal(...args),
     planSessionStream: (...args: unknown[]) => mockPlanSessionStream(...args),
@@ -201,6 +203,7 @@ describe("AgentPanel", () => {
       mode: "edit",
       status: "draft",
     });
+    mockGetSessionById.mockResolvedValue(null);
     mockAppendMessage.mockResolvedValue({
       id: "message-1",
       sessionId: "session-1",
@@ -852,5 +855,41 @@ describe("AgentPanel", () => {
       });
     });
     expect(input).toHaveValue("");
+  });
+
+  it("restores a pending generate proposal for a pipeline-bound home session", async () => {
+    globalThis.sessionStorage.setItem("ordine.canvasAgentGenerateSessionId", "session-generate");
+    mockGetSessionById.mockResolvedValue({
+      id: "session-generate",
+      entrypoint: "canvas-agent-panel",
+      mode: "generate",
+      status: "proposal_ready",
+      latestProposalId: "proposal-generate",
+      createdPipelineId: null,
+      messages: [{ id: "message-1", role: "user", kind: "text", content: "Build a pipeline" }],
+      proposals: [
+        {
+          id: "proposal-generate",
+          mode: "generate",
+          status: "proposal_ready",
+          proposal: {
+            mode: "generate",
+            purpose: "Restored pipeline",
+            inputs: ["Repository folder"],
+            outputs: ["Markdown report"],
+            majorOperations: ["Review repository"],
+            executionFlow: ["Repository folder -> review -> report"],
+            assumptions: [],
+            openQuestions: [],
+            readiness: "ready_for_generation",
+          },
+        },
+      ],
+    });
+
+    render(<AgentPanel />, { wrapper: wrapperWithState() });
+
+    await waitFor(() => expect(screen.getByTestId("agent-proposal-apply")).toBeInTheDocument());
+    expect(mockGetSessionById).toHaveBeenCalledWith("session-generate");
   });
 });

@@ -55,8 +55,8 @@ export const ProjectSwitcher = () => {
     currentProject?.name ?? t("nav.allProjects", { defaultValue: "All projects" });
 
   useEffect(() => {
-    if (!query.isLoading) syncCurrentProjectId(projectIds);
-  }, [projectIds, query.isLoading, syncCurrentProjectId]);
+    if (!query.isLoading && !query.isFetching) syncCurrentProjectId(projectIds);
+  }, [projectIds, query.isFetching, query.isLoading, syncCurrentProjectId]);
 
   const handleCreateProject = async () => {
     const name = projectName.trim();

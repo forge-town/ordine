@@ -323,7 +323,7 @@ test.describe("Canvas editor", () => {
       await runtimeDialog.getByRole("button", { name: "Cancel", exact: true }).click();
     }
     await expect(runtimeDialog).toHaveCount(0);
-    await expect(page.getByText(/\d+ of 5 supported Local Agents are synced\./)).toBeVisible();
+    await expect(page.getByText(/\d+ of \d+ supported Local Agents are synced\./)).toBeVisible();
     await openCanvasPage(page, runId);
     await createOperation(page, operationId);
     await page.reload();

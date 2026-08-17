@@ -1,0 +1,56 @@
+name: Runtime integration checks
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  kimi:
+    name: Kimi real-model integration
+    runs-on: ubuntu-latest
+    if: ${{ secrets.KIMI_API_KEY != '' }}
+    env:
+      KIMI_API_KEY: ${{ secrets.KIMI_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+      - run: bun install --frozen-lockfile
+      - run: bunx vitest run packages/agent/src/mastra/runMastra.test.ts
+
+  kimi-not-configured:
+    name: Kimi integration configuration
+    runs-on: ubuntu-latest
+    if: ${{ secrets.KIMI_API_KEY == '' }}
+    steps:
+      - run: echo "KIMI_API_KEY is not configured; Kimi real-model integration was not run."
+
+  openclaw:
+    name: OpenClaw integration
+    runs-on: ubuntu-latest
+    if: ${{ secrets.OPENCLAW_INTEGRATION == '1' }}
+    env:
+      OPENCLAW_INTEGRATION: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+      - run: bun install --frozen-lockfile
+      - name: Run OpenClaw integration when the service is available
+        run: |
+          if ! command -v openclaw >/dev/null 2>&1; then
+            echo "OPENCLAW_INTEGRATION=1 but the openclaw CLI is unavailable; integration was not run."
+            exit 0
+          fi
+          bunx vitest run packages/agent/src/openclaw/runOpenclaw.integration.test.ts
+
+  openclaw-not-configured:
+    name: OpenClaw integration configuration
+    runs-on: ubuntu-latest
+    if: ${{ secrets.OPENCLAW_INTEGRATION != '1' }}
+    steps:
+      - run: echo "OPENCLAW_INTEGRATION is not enabled; OpenClaw integration was not run."

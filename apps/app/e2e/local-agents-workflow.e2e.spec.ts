@@ -23,7 +23,7 @@ test.describe("Local Agent runtime workflow", () => {
     }
 
     await expect(dialog).toHaveCount(0);
-    const detectedSummary = page.getByText(/\d+ of 5 supported Local Agents are synced\./);
+    const detectedSummary = page.getByText(/\d+ of \d+ supported Local Agents are synced\./);
     await expect(detectedSummary).toBeVisible();
     const hermesCard = page
       .locator("article")

@@ -9,6 +9,11 @@ vi.hoisted(() => {
 const mocks = vi.hoisted(() => ({
   connectorsConnect: vi.fn(),
   connectorsGetAll: vi.fn(),
+  agentsGetAll: vi.fn(),
+  operationsCreate: vi.fn(),
+  projectsCreate: vi.fn(),
+  pipelinesGetById: vi.fn(),
+  pipelineStartRun: vi.fn(),
   conversationsClearAll: vi.fn(),
   conversationsGetAll: vi.fn(),
   pipelineAssetsGetAll: vi.fn(),
@@ -25,7 +30,7 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("./services", () => ({
   agentRuntimesService: {},
-  agentsService: {},
+  agentsService: { getAll: mocks.agentsGetAll },
   connectorsService: {
     connect: mocks.connectorsConnect,
     getAll: mocks.connectorsGetAll,
@@ -39,7 +44,7 @@ vi.mock("./services", () => ({
   jobsService: {},
   operationOutputItemTemplatesService: {},
   operationRunnerService: {},
-  operationsService: {},
+  operationsService: { create: mocks.operationsCreate },
   pipelineAssetsService: {
     getAll: mocks.pipelineAssetsGetAll,
     getUsageCount: mocks.pipelineAssetsGetUsageCount,
@@ -48,9 +53,10 @@ vi.mock("./services", () => ({
     cancelRun: mocks.jobCancelRun,
     pauseRun: mocks.jobPauseRun,
     resumeRun: mocks.jobResumeRun,
+    startRun: mocks.pipelineStartRun,
   },
-  pipelinesService: {},
-  projectsService: { getAll: mocks.projectsGetAll },
+  pipelinesService: { getById: mocks.pipelinesGetById },
+  projectsService: { getAll: mocks.projectsGetAll, create: mocks.projectsCreate },
   refinementsService: {},
   routinesService: {
     getAll: mocks.routinesGetAll,
@@ -67,8 +73,10 @@ vi.mock("@repo/services", () => ({
 }));
 
 import { router } from "./init";
+import { agentsRouter } from "./routers/agents";
 import { connectorsRouter } from "./routers/connectors";
 import { conversationsRouter } from "./routers/conversations";
+import { operationsRouter } from "./routers/operations";
 import { pipelineAssetsRouter } from "./routers/pipelineAssets";
 import { jobsRouter } from "./routers/jobs";
 import { pipelinesRouter } from "./routers/pipelines";
@@ -77,10 +85,12 @@ import { routinesRouter } from "./routers/routines";
 import { usageRouter } from "./routers/usage";
 
 const domainRouter = router({
+  agents: agentsRouter,
   connectors: connectorsRouter,
   conversations: conversationsRouter,
   pipelineAssets: pipelineAssetsRouter,
   jobs: jobsRouter,
+  operations: operationsRouter,
   pipelines: pipelinesRouter,
   projects: projectsRouter,
   routines: routinesRouter,
@@ -91,6 +101,10 @@ beforeEach(() => {
   vi.clearAllMocks();
   mocks.connectorsConnect.mockResolvedValue(ok({ id: "connector-1" }));
   mocks.connectorsGetAll.mockResolvedValue(ok([]));
+  mocks.agentsGetAll.mockResolvedValue([]);
+  mocks.operationsCreate.mockResolvedValue(ok({ id: "op-1" }));
+  mocks.projectsCreate.mockResolvedValue(ok({ id: "project-1", name: "Inbox" }));
+  mocks.pipelinesGetById.mockResolvedValue(null);
   mocks.conversationsClearAll.mockResolvedValue(ok(undefined));
   mocks.conversationsGetAll.mockResolvedValue(ok([]));
   mocks.pipelineAssetsGetAll.mockResolvedValue(ok([]));
@@ -143,6 +157,53 @@ describe("domain tRPC routers", () => {
     expect(mocks.connectorsConnect).not.toHaveBeenCalled();
   });
 
+  it("keeps agent reads behind the authenticated procedure", async () => {
+    const caller = domainRouter.createCaller({ session: null });
+    const authedCaller = domainRouter.createCaller({ session: { user: { id: "user-1" } } });
+
+    await expect(caller.agents.getMany()).rejects.toMatchObject({ code: "UNAUTHORIZED" });
+    await expect(authedCaller.agents.getMany()).resolves.toEqual([]);
+    expect(mocks.agentsGetAll).toHaveBeenCalledOnce();
+  });
+
+  it("applies operation route defaults before calling the service", async () => {
+    const caller = domainRouter.createCaller({ session: null });
+
+    await expect(caller.operations.create({ id: "op-1", name: "Read file" })).resolves.toEqual({
+      id: "op-1",
+    });
+    expect(mocks.operationsCreate).toHaveBeenCalledWith({
+      id: "op-1",
+      name: "Read file",
+      description: null,
+      acceptedObjectTypes: ["file", "folder", "github-project"],
+    });
+  });
+
+  it("maps operation service not-found errors to a tRPC error", async () => {
+    const notFound = new Error("Operation:missing not found");
+    notFound.name = "NotFoundError";
+    mocks.operationsCreate.mockResolvedValue(err(notFound));
+    const caller = domainRouter.createCaller({ session: null });
+
+    await expect(
+      caller.operations.create({ id: "missing", name: "Missing" }),
+    ).rejects.toMatchObject({
+      code: "NOT_FOUND",
+    });
+  });
+
+  it("generates a project id at the route boundary", async () => {
+    mocks.projectsCreate.mockImplementation(async (input) => ok(input));
+    const caller = domainRouter.createCaller({ session: null });
+
+    const project = await caller.projects.create({ name: "Inbox" });
+
+    expect(project).toMatchObject({ name: "Inbox", description: "" });
+    expect(project.id).toMatch(/^[0-9a-f-]{36}$/);
+    expect(mocks.projectsCreate).toHaveBeenCalledWith(project);
+  });
+
   it("requires a session to cancel pipeline runs", async () => {
     const caller = domainRouter.createCaller({ session: null });
     const authedCaller = domainRouter.createCaller({ session: { user: { id: "user-1" } } });
@@ -154,6 +215,15 @@ describe("domain tRPC routers", () => {
       cancelled: true,
       jobId: "job-1",
     });
+  });
+
+  it("does not start a pipeline run when the pipeline is missing", async () => {
+    const caller = domainRouter.createCaller({ session: null });
+
+    await expect(caller.pipelines.run({ id: "missing-pipeline" })).rejects.toMatchObject({
+      code: "NOT_FOUND",
+    });
+    expect(mocks.pipelineStartRun).not.toHaveBeenCalled();
   });
 
   it("exposes authenticated job controls for checkpoint handling", async () => {
