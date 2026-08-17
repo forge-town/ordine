@@ -334,7 +334,13 @@ describe("processOperationNode", () => {
     const deps = makeDeps({
       evaluateLoopCondition: vi.fn().mockResolvedValueOnce(false).mockResolvedValueOnce(true),
     });
-    const op = makeOperation({ type: "agent", agentMode: "prompt", prompt: "Iterate" });
+    const op = makeOperation({
+      type: "agent",
+      agentMode: "prompt",
+      prompt: "Iterate",
+      agent: "codex",
+      model: "gpt-step",
+    });
     const ops = new Map([["op-id", op]]);
     const node = makeNode({
       operationId: "op-id",
@@ -349,10 +355,46 @@ describe("processOperationNode", () => {
     expect(result.outcome).toBe("completed");
     expect(deps.runPrompt).toHaveBeenCalledTimes(2);
     expect(deps.evaluateLoopCondition).toHaveBeenCalledTimes(2);
+    expect(deps.evaluateLoopCondition).toHaveBeenCalledWith({
+      conditionPrompt: "Is it done?",
+      operationOutput: "prompt-output",
+      agent: "codex",
+      model: "gpt-step",
+    });
     expect(trace).toHaveBeenCalledWith(
       "job-1",
       expect.stringContaining("Condition PASSED on iteration 2"),
     );
+  });
+
+  it("returns a failed node result when loop evaluation rejects", async () => {
+    const deps = makeDeps({
+      evaluateLoopCondition: vi.fn().mockRejectedValue(new Error("runtime unavailable")),
+    });
+    const op = makeOperation({
+      type: "agent",
+      agentMode: "prompt",
+      prompt: "Iterate",
+      agent: "codex",
+      model: "gpt-step",
+    });
+    const node = makeNode({
+      operationId: "op-id",
+      loopEnabled: true,
+      loopConditionPrompt: "Is it done?",
+    });
+    const ctx = makeCtx(deps, new Map([["op-id", op]]), { node });
+
+    const result = await processOperationNode(node, makeInput(), ctx);
+
+    expect(result.outcome).toBe("failed");
+    if (result.outcome === "failed") {
+      expect(result.error.message).toContain("Loop condition evaluation failed");
+      expect(result.error.message).toContain("runtime unavailable");
+    }
+    expect(ctx.nodeOutputs.has("op-1")).toBe(false);
+    expect(trace).toHaveBeenCalledWith("job-1", "@@NODE_FAIL::op-1");
+    expect(trace).not.toHaveBeenCalledWith("job-1", "@@NODE_DONE::op-1");
   });
 
   it("stops at maxLoopCount when condition never passes", async () => {

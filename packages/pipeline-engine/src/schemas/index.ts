@@ -1,4 +1,5 @@
 export * from "./AgentInfoSchema";
+export * from "./LoopEvaluationOptionsSchema";
 export * from "./NodeCtxSchema";
 export * from "./NodeContextSchema";
 export * from "./OperationInfoSchema";

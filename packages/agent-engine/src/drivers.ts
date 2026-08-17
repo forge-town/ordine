@@ -167,6 +167,7 @@ const runCodexDirect = async (opts: AgentRunOptions): Promise<DriverResult> => {
     systemPrompt: opts.systemPrompt,
     userPrompt: opts.userPrompt,
     cwd: opts.cwd,
+    model: opts.model,
     onProgress: toAsyncProgress(opts.onProgress),
     connectorInjection,
   });

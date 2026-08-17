@@ -122,6 +122,52 @@ describe("pipelineRunnerEngineDeps", () => {
     expect(call.ssh).toBeUndefined();
   });
 
+  it("resolves the same default runtime and model for loop evaluation", async () => {
+    const deps = pipelineRunnerEngineDeps.build({
+      evaluateLoopCondition,
+      jobId: "job-1",
+      defaultAgent: "codex",
+      model: "gpt-default",
+      ssh: { mode: "ssh", host: "example.com", user: "runner" },
+    });
+
+    await deps.evaluateLoopCondition({
+      conditionPrompt: "is it complete?",
+      operationOutput: "candidate",
+    });
+
+    expect(evaluateLoopCondition).toHaveBeenCalledWith({
+      conditionPrompt: "is it complete?",
+      operationOutput: "candidate",
+      agent: "codex",
+      model: "gpt-default",
+      ssh: { mode: "ssh", host: "example.com", user: "runner" },
+    });
+  });
+
+  it("preserves an explicit step route for loop evaluation", async () => {
+    const deps = pipelineRunnerEngineDeps.build({
+      evaluateLoopCondition,
+      defaultAgent: "claude-code",
+      model: "claude-default",
+      ssh: { mode: "ssh", host: "example.com", user: "runner" },
+    });
+
+    await deps.evaluateLoopCondition({
+      conditionPrompt: "is it complete?",
+      operationOutput: "candidate",
+      agent: "codex",
+      model: "gpt-step",
+    });
+
+    expect(evaluateLoopCondition).toHaveBeenCalledWith({
+      conditionPrompt: "is it complete?",
+      operationOutput: "candidate",
+      agent: "codex",
+      model: "gpt-step",
+    });
+  });
+
   it("applies defaultAgent to runSkill when agent is not specified", () => {
     const deps = pipelineRunnerEngineDeps.build({
       evaluateLoopCondition,
