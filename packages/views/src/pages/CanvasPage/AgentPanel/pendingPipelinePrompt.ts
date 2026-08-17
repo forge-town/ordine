@@ -5,6 +5,10 @@ export interface PendingPipelinePrompt {
   runtimeId?: string;
 }
 
+export const hasPendingPipelinePrompt = (): boolean =>
+  globalThis.sessionStorage !== undefined &&
+  globalThis.sessionStorage.getItem(PENDING_PIPELINE_PROMPT_KEY) !== null;
+
 export const takePendingPipelinePrompt = (): PendingPipelinePrompt | null => {
   if (globalThis.sessionStorage === undefined) {
     return null;

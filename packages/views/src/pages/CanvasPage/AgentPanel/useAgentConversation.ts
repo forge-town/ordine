@@ -16,6 +16,7 @@ import {
   loadGenerateSessionId,
   saveGenerateSessionId,
 } from "./generateSessionStorage";
+import { hasPendingPipelinePrompt } from "./pendingPipelinePrompt";
 import {
   useAgentConversationPersistence,
   type SendAgentMessageInput,
@@ -50,6 +51,10 @@ export const useAgentConversation = ({
   const messages = useAgentBarStore((state) => state.messages);
   const streamingAssistantText = useAgentBarStore((state) => state.streamingAssistantText);
   const streamingProgress = useAgentBarStore((state) => state.streamingProgress);
+  const generateSession = useMemo(
+    () => !pipelineId || Boolean(loadGenerateSessionId()) || hasPendingPipelinePrompt(),
+    [pipelineId],
+  );
   const sessionCreationRef = useRef<{
     graphSignature: string;
     promise: Promise<string>;
@@ -75,7 +80,7 @@ export const useAgentConversation = ({
       return existing;
     }
 
-    if (!pipelineId) {
+    if (generateSession) {
       const persistedSessionId = loadGenerateSessionId();
       if (persistedSessionId) {
         const persistedSession = await ResultAsync.fromPromise(
@@ -149,14 +154,14 @@ export const useAgentConversation = ({
       }
 
       const session = await client.createSession({
-        // COD-346:无 pipelineId 的空画布走 generate 会话(不绑定 pipeline),
+        // 空画布和从 Home 恢复的 generate 会话不绑定 pipeline,
         // 方案同意后由后端创建 pipeline 并回填 createdPipelineId。
         entrypoint: "canvas-agent-panel",
-        mode: pipelineId ? "edit" : "generate",
+        mode: generateSession ? "generate" : "edit",
         ...(pipelineId ? { pipelineId } : {}),
         snapshot: { edges, nodes },
       });
-      if (!pipelineId) {
+      if (generateSession) {
         saveGenerateSessionId(session.id);
       }
 
@@ -180,10 +185,10 @@ export const useAgentConversation = ({
     sessionCreationRef.current = { graphSignature, promise: creationPromise };
 
     return creationPromise;
-  }, [agentBarStore, client, edges, nodes, pipelineId]);
+  }, [agentBarStore, client, edges, generateSession, nodes, pipelineId]);
 
-  // COD-346:有 pipelineId 时消息同时落 conversationMessages(可跨刷新恢复);
-  // 空画布 generate 会话没有 pipeline 可挂靠,只写本地 store,服务端由 session 持久化。
+  // 有 pipelineId 时消息同时落 conversationMessages(可跨刷新恢复);
+  // generate 会话在 pipeline 创建前没有可挂靠的 pipeline,只写本地 store,服务端由 session 持久化。
   const persistMessage = useCallback(
     async ({
       content,
@@ -291,8 +296,8 @@ export const useAgentConversation = ({
         return false;
       }
 
-      // COD-346:无 pipelineId 时是空画布 generate 会话
-      const mode = pipelineId ? "edit" : "generate";
+      // 空画布和 Home 恢复的会话走 generate 模式
+      const mode = generateSession ? "generate" : "edit";
       clearPendingProposal();
       const state = agentBarStore.getState();
       state.setGenerateProposal(null);
@@ -422,6 +427,7 @@ export const useAgentConversation = ({
       finishWithAssistantMessage,
       handlePlanEvent,
       isLoading,
+      generateSession,
       pipelineId,
       persistMessage,
       t,

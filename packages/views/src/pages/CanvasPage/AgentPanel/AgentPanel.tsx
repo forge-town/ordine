@@ -25,7 +25,8 @@ import { useAgentBarStore } from "./_store";
 import { Assistant, MessageTurn, ProposalCard } from "./messages";
 import type { MessageTurnSubmitInput } from "./messages/MessageTurn";
 import { Composer, type ComposerSubmitInput } from "./Composer";
-import { takePendingPipelinePrompt } from "./pendingPipelinePrompt";
+import { hasPendingPipelinePrompt, takePendingPipelinePrompt } from "./pendingPipelinePrompt";
+import { loadGenerateSessionId } from "./generateSessionStorage";
 import { buildProposalItems } from "./proposalView";
 import { useAgentConversation } from "./useAgentConversation";
 
@@ -80,6 +81,7 @@ export const AgentPanel = ({ onGeneratedPipeline }: AgentPanelProps) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const attachmentGraphSignatureRef = useRef<string | null>(null);
   const pendingPromptConsumedRef = useRef(false);
+  const generateSessionRestoreRef = useRef(false);
   const sendInFlightRef = useRef(false);
   const isSending = isPreparingSend || isConversationSending;
   const isUploadBlocked = isHistoryLoading || isPreparingUpload || isSending;
@@ -331,11 +333,11 @@ export const AgentPanel = ({ onGeneratedPipeline }: AgentPanelProps) => {
       return;
     }
 
-    pendingPromptConsumedRef.current = true;
     const pending = takePendingPipelinePrompt();
     if (!pending) {
       return;
     }
+    pendingPromptConsumedRef.current = true;
 
     const effectiveRuntimeId =
       runtimeOptions.find((runtime) => runtime.id === pending.runtimeId)?.id ?? selectedRuntimeId;
@@ -362,6 +364,24 @@ export const AgentPanel = ({ onGeneratedPipeline }: AgentPanelProps) => {
     selectedRuntimeId,
     submitMessage,
   ]);
+
+  useEffect(() => {
+    if (
+      generateSessionRestoreRef.current ||
+      pendingPromptConsumedRef.current ||
+      hasPendingPipelinePrompt() ||
+      !loadGenerateSessionId() ||
+      isHistoryLoading ||
+      isLoadingRuntimes ||
+      isSending ||
+      agentPanel.isLoading
+    ) {
+      return;
+    }
+
+    generateSessionRestoreRef.current = true;
+    void ensureSession();
+  }, [agentPanel.isLoading, ensureSession, isHistoryLoading, isLoadingRuntimes, isSending]);
 
   const handleComposerAttach = useCallback(
     async (files: File[]): Promise<ProposeAttachment[]> => {

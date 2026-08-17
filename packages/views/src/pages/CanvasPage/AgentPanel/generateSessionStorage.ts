@@ -1,6 +1,6 @@
 /**
- * COD-346:空画布 generate 会话的 sessionStorage 暂存。
- * 无 pipelineId 时会话消息只存在于服务端 session 里(不写入 conversationMessages),
+ * 空画布 generate 会话的 sessionStorage 暂存。
+ * generate 会话消息只存在于服务端 session 里(不写入 conversationMessages),
  * 刷新后凭这里暂存的 sessionId 恢复对话;会话绑定到新建 pipeline 后即清除。
  */
 const GENERATE_SESSION_ID_KEY = "ordine.canvasAgentGenerateSessionId";

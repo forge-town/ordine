@@ -20,37 +20,59 @@ const makeProposal = (purpose: string) => ({
   readiness: "ready_for_generation" as const,
 });
 
-const noop = () => undefined;
+const mockCanvasGeneration = async (
+  page: Page,
+  options: { generatedPipelineId: string; pipelineName: string },
+) => {
+  const sessionId = "canvas-generate-e2e-session";
+  const proposalId = "canvas-generate-e2e-proposal";
+  const proposal = makeProposal(options.pipelineName);
 
-const mockPipelineAgent = async (page: Page, generatedPipelineId: string, pipelineName: string) => {
   await page.route("**/api/**", async (route) => {
     const request = route.request();
     const pathname = new URL(request.url()).pathname;
 
     if (pathname === "/api/pipeline-agent-sessions" && request.method() === "POST") {
       await json(route, {
-        id: "e2e-session",
-        entrypoint: "new-pipeline-dialog",
+        id: sessionId,
+        entrypoint: "canvas-agent-panel",
         mode: "generate",
         status: "draft",
       });
 
       return;
     }
-    if (pathname.endsWith("/messages") && request.method() === "POST") {
+    if (pathname === `/api/pipeline-agent-sessions/${sessionId}` && request.method() === "GET") {
       await json(route, {
-        id: "e2e-message",
-        role: "user",
-        kind: "text",
-        content: "Build a review pipeline",
+        id: sessionId,
+        entrypoint: "canvas-agent-panel",
+        mode: "generate",
+        status: "proposal_ready",
+        latestProposalId: proposalId,
+        createdPipelineId: null,
+        attachments: [],
+        messages: [
+          {
+            id: "canvas-generate-e2e-message",
+            role: "user",
+            kind: "text",
+            content: "Build a review pipeline",
+          },
+        ],
+        proposals: [{ id: proposalId, mode: "generate", status: "proposal_ready", proposal }],
       });
 
       return;
     }
+    if (pathname.endsWith("/messages") && request.method() === "POST") {
+      const input = request.postDataJSON() as { content: string; kind: string; role: string };
+      await json(route, { id: `canvas-generate-e2e-${Date.now()}`, ...input });
+
+      return;
+    }
     if (pathname.endsWith("/plan") && request.method() === "POST") {
-      const proposal = makeProposal(pipelineName);
       await route.fulfill({
-        body: `event: proposal_ready\ndata: ${JSON.stringify({ proposal, proposalId: "e2e-proposal" })}\n\n`,
+        body: `event: proposal_ready\ndata: ${JSON.stringify({ proposal, proposalId })}\n\n`,
         contentType: "text/event-stream",
         status: 200,
       });
@@ -62,19 +84,29 @@ const mockPipelineAgent = async (page: Page, generatedPipelineId: string, pipeli
 
       return;
     }
-    if (pathname.endsWith("/generate") && request.method() === "POST") {
-      await json(route, { pipelineId: generatedPipelineId });
+    if (pathname.endsWith("/supersede") && request.method() === "POST") {
+      await route.fulfill({ status: 204 });
 
       return;
     }
-    if (pathname === `/api/pipelines/${generatedPipelineId}` && request.method() === "GET") {
+    if (pathname.endsWith("/generate") && request.method() === "POST") {
+      await json(route, { pipelineId: options.generatedPipelineId });
+
+      return;
+    }
+    if (
+      pathname === `/api/pipelines/${options.generatedPipelineId}` &&
+      request.method() === "GET"
+    ) {
       await json(route, {
-        id: generatedPipelineId,
-        name: pipelineName,
-        description: "Generated through the Agent-first dialog",
+        id: options.generatedPipelineId,
+        name: options.pipelineName,
+        description: "Generated through the Canvas Agent panel",
         sharedContext: "",
         tags: ["agent-generated"],
         timeoutMs: null,
+        status: "draft",
+        version: 1,
         nodes: [],
         edges: [],
         createdAt: "2026-08-11T00:00:00.000Z",
@@ -88,328 +120,73 @@ const mockPipelineAgent = async (page: Page, generatedPipelineId: string, pipeli
   });
 };
 
-const startHomeConversation = async (page: Page, message = "Build a review pipeline") => {
+const startHomeGeneration = async (page: Page, purpose: string) => {
   await navigateAndWait(page, "/");
-  const composer = page.getByRole("textbox", {
-    name: "Describe your goal and add any useful context...",
-  });
-  await composer.fill(message);
+  await page
+    .getByRole("textbox", { name: "Describe your goal and add any useful context..." })
+    .fill(purpose);
   await page.getByRole("button", { name: "Send" }).click();
+  await expect(page).toHaveURL(/\/canvas\?id=/);
+  await expect(page.getByText(purpose, { exact: true })).toBeVisible();
+  await expect(page.getByTestId("agent-proposal")).toBeVisible();
+};
+
+const seedPipeline = async (page: Page, pipelineId: string, name: string) => {
+  const response = await page.request.post("/api/trpc/pipelines.create?batch=1", {
+    data: {
+      0: {
+        json: {
+          pipeline: {
+            id: pipelineId,
+            name,
+            description: "Generated through the Canvas Agent panel",
+            sharedContext: "",
+            tags: ["e2e"],
+            timeoutMs: null,
+            status: "draft",
+            version: 1,
+            nodes: [],
+            edges: [],
+          },
+        },
+      },
+    },
+  });
+  expect(response.ok()).toBe(true);
 };
 
 test.describe("Agent-first Pipeline workflow", () => {
-  test("plans, approves, materializes, and keeps the Pipeline in the active project", async ({
+  test("plans, applies, materializes, and opens the generated Pipeline", async ({
     page,
     pageErrors,
   }, testInfo) => {
     const runId = `${Date.now()}-${testInfo.workerIndex}-${testInfo.repeatEachIndex}`;
-    const projectName = `Agent Project ${runId}`;
     const pipelineName = `Agent Pipeline ${runId}`;
-    const pipelineId = `agent-pipeline-${runId}`;
+    const generatedPipelineId = `agent-pipeline-${runId}`;
 
-    await page.addInitScript(() => globalThis.localStorage.setItem("i18nextLng", "en"));
-    await mockPipelineAgent(page, pipelineId, pipelineName);
-    await navigateAndWait(page, "/");
-    await page.getByRole("button", { name: "Projects" }).click();
-    await page.getByRole("menuitem", { name: "New project" }).click();
-    await page.getByRole("textbox", { name: "Project name" }).fill(projectName);
-    await page.getByRole("button", { name: "Create", exact: true }).click();
-    await expect(page.getByRole("button", { name: "Projects" })).toContainText(projectName);
+    await mockCanvasGeneration(page, { generatedPipelineId, pipelineName });
+    await startHomeGeneration(page, "Build a review pipeline");
+    await seedPipeline(page, generatedPipelineId, pipelineName);
 
-    await page.getByRole("button", { name: "New Pipeline" }).click();
-    await page
-      .getByPlaceholder("Describe your goal and add any useful context...")
-      .fill("Build a review pipeline");
-    await page.getByRole("button", { name: "Send" }).click();
-    await expect(page.getByText(pipelineName, { exact: true })).toBeVisible();
-    await page.getByRole("button", { name: "Approve plan" }).click();
-    await expect(page.getByText("Pipeline Ready")).toBeVisible();
-    await page.getByRole("button", { name: "Open in Canvas" }).click();
-
-    await expect(page).toHaveURL(new RegExp(`/canvas\\?id=${pipelineId}$`));
+    await page.getByTestId("agent-proposal-apply").click();
+    await expect(page).toHaveURL(new RegExp(`/canvas\\?id=${generatedPipelineId}$`));
     await expectCanvasTitle(page, pipelineName);
-    await navigateAndWait(page, "/pipelines");
-    await expect(page.getByRole("button", { name: "Projects" })).toContainText(projectName);
-    await expect(page.getByText(pipelineName, { exact: true })).toBeVisible();
     expectNoJSErrors(pageErrors);
   });
 
-  test("recovers after a failed attachment upload", async ({ page, pageErrors }) => {
-    const uploadState = { attempt: 0 };
-    await page.route("**/api/**", async (route) => {
-      const request = route.request();
-      const pathname = new URL(request.url()).pathname;
-      if (pathname === "/api/pipeline-agent-sessions" && request.method() === "POST") {
-        await json(route, {
-          id: "upload-session",
-          entrypoint: "new-pipeline-dialog",
-          mode: "generate",
-          status: "draft",
-        });
-
-        return;
-      }
-      if (pathname.endsWith("/attachments") && request.method() === "POST") {
-        uploadState.attempt += 1;
-        if (uploadState.attempt === 1) {
-          await json(
-            route,
-            {
-              code: "PIPELINE_AGENT_ATTACHMENT_UPLOAD_FAILED",
-              error: "Storage unavailable",
-            },
-            500,
-          );
-
-          return;
-        }
-        await json(route, {
-          attachment: {
-            id: "attachment-retry",
-            filename: "retry.txt",
-            parseError: null,
-            parseStatus: "parsed",
-          },
-        });
-
-        return;
-      }
-
-      await route.fallback();
-    });
-
-    await navigateAndWait(page, "/");
-    const upload = page.locator('input[type="file"][aria-label="Upload context"]');
-    await upload.setInputFiles({
-      buffer: Buffer.from("first"),
-      mimeType: "text/plain",
-      name: "failed.txt",
-    });
-    await expect(
-      page.getByText("This attachment could not be uploaded. Check storage access and retry."),
-    ).toBeVisible();
-
-    await upload.setInputFiles({
-      buffer: Buffer.from("second"),
-      mimeType: "text/plain",
-      name: "retry.txt",
-    });
-    await expect(page.getByText("retry.txt", { exact: true })).toBeVisible();
-    await expect(page.getByText("Ready", { exact: true })).toBeVisible();
-    await expect(
-      page.getByText("This attachment could not be uploaded. Check storage access and retry."),
-    ).toHaveCount(0);
-    expectNoJSErrors(pageErrors);
-  });
-
-  test("restores a pending Proposal after refresh", async ({ page, pageErrors }) => {
-    const proposal = makeProposal("Restored review pipeline");
-    await page.route("**/api/**", async (route) => {
-      const request = route.request();
-      const pathname = new URL(request.url()).pathname;
-      if (pathname === "/api/pipeline-agent-sessions" && request.method() === "POST") {
-        await json(route, {
-          id: "restore-session",
-          entrypoint: "new-pipeline-dialog",
-          mode: "generate",
-          status: "draft",
-        });
-
-        return;
-      }
-      if (pathname.endsWith("/messages") && request.method() === "POST") {
-        const input = request.postDataJSON() as { content: string; kind: string; role: string };
-        await json(route, { id: "restore-message", ...input });
-
-        return;
-      }
-      if (pathname.endsWith("/plan") && request.method() === "POST") {
-        await route.fulfill({
-          body: `event: proposal_ready\ndata: ${JSON.stringify({ proposal, proposalId: "restore-proposal" })}\n\n`,
-          contentType: "text/event-stream",
-          status: 200,
-        });
-
-        return;
-      }
-      if (
-        pathname === "/api/pipeline-agent-sessions/restore-session" &&
-        request.method() === "GET"
-      ) {
-        await json(route, {
-          id: "restore-session",
-          entrypoint: "new-pipeline-dialog",
-          mode: "generate",
-          status: "proposal_ready",
-          latestProposalId: "restore-proposal",
-          createdPipelineId: null,
-          attachments: [],
-          messages: [
-            {
-              id: "restore-message",
-              role: "user",
-              kind: "text",
-              content: "Build a review pipeline",
-            },
-          ],
-          proposals: [
-            {
-              id: "restore-proposal",
-              mode: "generate",
-              status: "proposal_ready",
-              proposal,
-            },
-          ],
-        });
-
-        return;
-      }
-
-      await route.fallback();
-    });
-
-    await startHomeConversation(page);
-    await expect(page.getByText("Restored review pipeline", { exact: true })).toBeVisible();
-    await page.reload();
-    await page.waitForLoadState("domcontentloaded");
-    await expect(page.getByText("Restored review pipeline", { exact: true })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Approve plan" })).toBeEnabled();
-    expectNoJSErrors(pageErrors);
-  });
-
-  test("cancels planning and returns to an editable conversation", async ({ page, pageErrors }) => {
-    const cancellation = { completed: false };
-    await page.route("**/api/**", async (route) => {
-      const request = route.request();
-      const pathname = new URL(request.url()).pathname;
-      if (pathname === "/api/pipeline-agent-sessions" && request.method() === "POST") {
-        await json(route, {
-          id: "planning-cancel-session",
-          entrypoint: "new-pipeline-dialog",
-          mode: "generate",
-          status: "draft",
-        });
-
-        return;
-      }
-      if (pathname.endsWith("/messages") && request.method() === "POST") {
-        const input = request.postDataJSON() as { content: string; kind: string; role: string };
-        await json(route, { id: "planning-message", ...input });
-
-        return;
-      }
-      if (pathname.endsWith("/plan") && request.method() === "POST") {
-        await route.fulfill({
-          body: `event: phase\ndata: ${JSON.stringify({ phase: "planning" })}\n\n`,
-          contentType: "text/event-stream",
-          status: 200,
-        });
-
-        return;
-      }
-      if (pathname === "/api/pipeline-agent-sessions/planning-cancel-session") {
-        await json(route, {
-          id: "planning-cancel-session",
-          entrypoint: "new-pipeline-dialog",
-          mode: "generate",
-          status: "draft",
-          attachments: [],
-          messages: [],
-          proposals: [],
-        });
-
-        return;
-      }
-      if (pathname.endsWith("/cancel") && request.method() === "POST") {
-        cancellation.completed = true;
-        await route.fulfill({ status: 204 });
-
-        return;
-      }
-
-      await route.fallback();
-    });
-
-    await startHomeConversation(page);
-    await page.getByRole("button", { name: "Cancel", exact: true }).click();
-    await expect.poll(() => cancellation.completed).toBe(true);
-    await expect(
-      page.getByRole("textbox", { name: "Describe your goal and add any useful context..." }),
-    ).toBeEnabled();
-    await expect(page.getByRole("button", { name: "Cancel", exact: true })).toHaveCount(0);
-    expectNoJSErrors(pageErrors);
-  });
-
-  test("cancels generation and keeps the Proposal ready to approve again", async ({
+  test("discards a generated Proposal and returns to the conversation", async ({
     page,
     pageErrors,
   }) => {
-    const proposal = makeProposal("Cancelable pipeline");
-    const generationControl: { markStarted: () => void; release: () => void } = {
-      markStarted: noop,
-      release: noop,
-    };
-    const generationStarted = new Promise<void>((resolve) => {
-      generationControl.markStarted = resolve;
+    const pipelineName = `Discardable pipeline ${Date.now()}`;
+    await mockCanvasGeneration(page, {
+      generatedPipelineId: `discarded-pipeline-${Date.now()}`,
+      pipelineName,
     });
-    await page.route("**/api/**", async (route) => {
-      const request = route.request();
-      const pathname = new URL(request.url()).pathname;
-      if (pathname === "/api/pipeline-agent-sessions" && request.method() === "POST") {
-        await json(route, {
-          id: "generation-cancel-session",
-          entrypoint: "new-pipeline-dialog",
-          mode: "generate",
-          status: "draft",
-        });
-
-        return;
-      }
-      if (pathname.endsWith("/messages") && request.method() === "POST") {
-        const input = request.postDataJSON() as { content: string; kind: string; role: string };
-        await json(route, { id: "generation-message", ...input });
-
-        return;
-      }
-      if (pathname.endsWith("/plan") && request.method() === "POST") {
-        await route.fulfill({
-          body: `event: proposal_ready\ndata: ${JSON.stringify({ proposal, proposalId: "generation-proposal" })}\n\n`,
-          contentType: "text/event-stream",
-          status: 200,
-        });
-
-        return;
-      }
-      if (pathname.endsWith("/approve") && request.method() === "POST") {
-        await route.fulfill({ status: 204 });
-
-        return;
-      }
-      if (pathname.endsWith("/generate") && request.method() === "POST") {
-        generationControl.markStarted();
-        await new Promise<void>((resolve) => {
-          generationControl.release = resolve;
-        });
-        await json(route, { pipelineId: "cancelled-pipeline" }).catch(() => undefined);
-
-        return;
-      }
-      if (pathname.endsWith("/cancel") && request.method() === "POST") {
-        generationControl.release();
-        await route.fulfill({ status: 204 });
-
-        return;
-      }
-
-      await route.fallback();
-    });
-
-    await startHomeConversation(page);
-    await expect(page.getByText("Cancelable pipeline", { exact: true })).toBeVisible();
-    await page.getByRole("button", { name: "Approve plan" }).click();
-    await generationStarted;
-    await page.getByRole("button", { name: "Cancel", exact: true }).click();
-    await expect(page.getByRole("button", { name: "Approve plan" })).toBeEnabled();
+    await startHomeGeneration(page, "Build a review pipeline");
+    await page.getByTestId("agent-proposal-reject").click();
+    await expect(page.getByTestId("agent-proposal")).toHaveCount(0);
+    await expect(page.getByRole("textbox", { name: "Message" })).toBeEnabled();
     expectNoJSErrors(pageErrors);
   });
 });

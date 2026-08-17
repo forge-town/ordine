@@ -133,7 +133,7 @@ const CanvasRouteComponent = () => {
 
   return (
     <AppLayout canvasMode>
-      <CanvasPage embedded id={id} />
+      <CanvasPage embedded id={id} onGeneratedPipeline={handleGeneratedPipeline} />
     </AppLayout>
   );
 };
