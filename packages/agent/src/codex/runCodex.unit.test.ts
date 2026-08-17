@@ -109,6 +109,29 @@ describe("runCodex", () => {
     expect(spawnOpts.cwd).toBe("/tmp/test");
   });
 
+  it("uses an isolated empty config when the job declares no MCP", async () => {
+    const promise = runCodex({
+      systemPrompt: "sys",
+      userPrompt: "user",
+      cwd: "/tmp",
+    });
+
+    await waitForSpawn();
+    const spawnOpts = (
+      spawnMock.mock.calls[0] as unknown as [string, string[], { env: Record<string, string> }]
+    )[2];
+    const codexHome = codexHomeFromEnv(spawnOpts.env);
+    expect(await readFile(join(codexHome, "config.toml"), "utf8")).toBe("");
+
+    testState.mockProc.stdout.push("ok");
+    testState.mockProc.stdout.push(null);
+    testState.mockProc.stderr.push(null);
+    testState.mockProc.emit("close", 0);
+
+    await promise;
+    expect(existsSync(codexHome)).toBe(false);
+  });
+
   it("returns stdout text on success", async () => {
     const promise = runCodex({
       systemPrompt: "sys",

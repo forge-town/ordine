@@ -13,6 +13,7 @@ const CLAUDE_BIN =
   process.env.CLAUDE_BIN ?? (process.platform === "win32" ? "claude.cmd" : "claude");
 const MAX_SYSTEM_PROMPT_CHARS = 10_000;
 const UNSAFE_SYSTEM_PROMPT_CONTROL_CHARS = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g;
+const EMPTY_MCP_CONFIG = JSON.stringify({ mcpServers: {} });
 
 const sanitizeSystemPrompt = (value: string) =>
   value.replace(UNSAFE_SYSTEM_PROMPT_CONTROL_CHARS, "").slice(0, MAX_SYSTEM_PROMPT_CHARS);
@@ -119,7 +120,9 @@ export const runClaude = async ({
     sanitizedSystemPrompt,
     "--allowedTools",
     effectiveAllowedTools,
-    ...(mcpConfigPath ? ["--mcp-config", mcpConfigPath] : []),
+    "--mcp-config",
+    mcpConfigPath ?? EMPTY_MCP_CONFIG,
+    "--strict-mcp-config",
     "--dangerously-skip-permissions",
     "--no-session-persistence",
     "--max-budget-usd",

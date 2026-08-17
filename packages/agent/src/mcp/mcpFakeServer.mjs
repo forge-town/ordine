@@ -21,8 +21,13 @@ const safeJsonParse = Result.fromThrowable(
 
 const send = (msg) => process.stdout.write(`${JSON.stringify(msg)}\n`);
 
-const READ_FILE = { name: "read_file", description: "Read a file" };
-const WRITE_FILE = { name: "write_file" };
+const EMPTY_INPUT_SCHEMA = { type: "object", properties: {} };
+const READ_FILE = {
+  name: "read_file",
+  description: "Read a file",
+  inputSchema: EMPTY_INPUT_SCHEMA,
+};
+const WRITE_FILE = { name: "write_file", inputSchema: EMPTY_INPUT_SCHEMA };
 
 const toolsListResult = (id, cursor) => {
   if (MODE === "malformed") return { jsonrpc: "2.0", id, result: {} };
