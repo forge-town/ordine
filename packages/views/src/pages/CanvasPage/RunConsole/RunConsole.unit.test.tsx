@@ -5,6 +5,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { RunConsole } from "./RunConsole";
 import { CanvasPageStoreProvider, useCanvasPageStore } from "../_store";
 import { useRef } from "react";
+import { useStore } from "zustand";
+import type { Job } from "@repo/schemas";
 
 vi.mock("@xyflow/react", () => ({
   Handle: () => null,
@@ -43,6 +45,13 @@ const wrapperWithJob = (jobId: string | null) => {
   return Wrapper;
 };
 
+const RunStatusProbe = ({ nodeId }: { nodeId: string }) => {
+  const store = useCanvasPageStore();
+  const status = useStore(store, (state) => state.nodeRunStatuses[nodeId]);
+
+  return <span data-testid="run-status-probe">{status ?? "missing"}</span>;
+};
+
 const timelineWrapper = ({ children }: { children?: React.ReactNode }) => (
   <CanvasPageStoreProvider
     pipeline={{
@@ -68,22 +77,22 @@ const timelineWrapper = ({ children }: { children?: React.ReactNode }) => (
   </CanvasPageStoreProvider>
 );
 
-const mockJobRunning = {
+const mockJobRunning: Job = {
   id: "job-1",
   title: "Pipeline run",
   type: "pipeline_run",
-  status: "running" as string,
+  status: "running",
   error: null,
   meta: { createdAt: new Date(), updatedAt: new Date() },
-  startedAt: Date.now(),
-  finishedAt: null as number | null,
+  startedAt: new Date(),
+  finishedAt: null,
   parentJobId: null,
 };
 
 const mockJobDone = {
   ...mockJobRunning,
   status: "done" as const,
-  finishedAt: Date.now(),
+  finishedAt: new Date(),
 };
 
 type MockTrace = {
@@ -91,7 +100,7 @@ type MockTrace = {
   message: string;
 };
 
-const useOneData = vi.fn(() => mockJobRunning);
+const useOneData = vi.fn<() => Job>(() => mockJobRunning);
 const useTraceData = vi.fn<() => MockTrace[]>(() => [
   { message: "[2026-04-08T16:00:00.000Z] Starting pipeline abc" },
   { message: "[2026-04-08T16:00:01.000Z] Processing node [github-project] skills" },
@@ -152,6 +161,25 @@ describe("RunConsole", () => {
   it("shows status bar with running indicator", () => {
     render(<RunConsole />, { wrapper: wrapperWithJob("job-1") });
     expect(screen.getByText(/Running/i)).toBeInTheDocument();
+  });
+
+  it("syncs authoritative job node statuses without structured trace markers", async () => {
+    useOneData.mockReturnValue({
+      ...mockJobRunning,
+      nodeStatuses: { "node-op": "running" },
+    });
+
+    render(
+      <>
+        <RunConsole />
+        <RunStatusProbe nodeId="node-op" />
+      </>,
+      { wrapper: wrapperWithJob("job-1") },
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId("run-status-probe")).toHaveTextContent("running");
+    });
   });
 
   it("displays log entries from traces", async () => {

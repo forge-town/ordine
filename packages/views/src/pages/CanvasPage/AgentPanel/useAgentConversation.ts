@@ -257,6 +257,8 @@ export const useAgentConversation = ({
       if (event.type === "proposal_ready" && event.proposal.mode === "edit") {
         const proposal: PipelineActionProposal = {
           actions: event.proposal.actions,
+          openQuestions: event.proposal.openQuestions,
+          readiness: event.proposal.readiness,
           summary: event.proposal.summary,
         };
         state.setProposalId(event.proposalId);

@@ -6,7 +6,6 @@ import { useStore } from "zustand";
 import type { AgentRuntimeConfig } from "@repo/schemas";
 import { Link } from "@tanstack/react-router";
 import { Button } from "@repo/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@repo/ui/select";
 import { PipelineCreationWorkspace } from "@/components/PipelineCreationWorkspace";
 import { useSidebarStore } from "@/store/sidebarStore";
 
@@ -45,31 +44,15 @@ export const HomePage = () => {
           <p className="truncate text-[11px] text-muted-foreground">{t("home.subtitle")}</p>
         </div>
         {runtime ? (
-          <div className="flex items-center gap-1">
-            <Select value={runtime.id} onValueChange={handleRuntimeValueChange}>
-              <SelectTrigger
-                aria-label={t("home.selectLocalAgent")}
-                className="h-8 max-w-48 border-0 px-2 text-xs text-muted-foreground shadow-none hover:bg-surface-2 hover:text-foreground"
-                size="sm"
-              >
-                <SelectValue>{runtime.name}</SelectValue>
-              </SelectTrigger>
-              <SelectContent align="end">
-                {localRuntimes.map((candidate) => (
-                  <SelectItem key={candidate.id} value={candidate.id}>
-                    {candidate.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Link
-              aria-label={t("home.manageLocalAgents")}
-              className="inline-flex size-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-surface-2 hover:text-foreground"
-              to="/local-agents"
-            >
-              <ChevronRight className="size-3.5" />
-            </Link>
-          </div>
+          <Link
+            aria-label={t("home.manageLocalAgents")}
+            className="flex min-w-0 max-w-[min(45vw,16rem)] items-center gap-2 rounded-lg px-2 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-surface-2 hover:text-foreground"
+            to="/local-agents"
+          >
+            <span className="size-1.5 shrink-0 rounded-full bg-info" />
+            <span className="truncate">{runtimeLabel}</span>
+            <ChevronRight className="size-3.5 shrink-0" />
+          </Link>
         ) : (
           <Link
             className="inline-flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-surface-2 hover:text-foreground"
@@ -115,6 +98,8 @@ export const HomePage = () => {
             runtimeConfigured={query.isLoading ? undefined : Boolean(runtime)}
             runtimeId={runtime?.id}
             runtimeLabel={runtimeLabel}
+            runtimeOptions={localRuntimes.map(({ id, name }) => ({ id, name }))}
+            onRuntimeChange={handleRuntimeValueChange}
           />
         </div>
       </main>

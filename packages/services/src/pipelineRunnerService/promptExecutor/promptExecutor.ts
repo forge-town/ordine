@@ -134,6 +134,7 @@ const run = ({
   return ResultAsync.fromPromise(
     (async () => {
       const systemPrompt = `${buildSystemPrompt({ prompt, runtimeContext })}\n${USER_ACTION_SECTION}`;
+      const streamState = { accumulated: "" };
       const raw = await runAgent({
         agent,
         systemPrompt,
@@ -143,6 +144,12 @@ const run = ({
         agentId: PROMPT_AGENT_ID,
         allowedTools: effectiveAllowedTools,
         onProgress,
+        onTextDelta: onChunk
+          ? async (text) => {
+              streamState.accumulated += text;
+              await onChunk(streamState.accumulated);
+            }
+          : undefined,
         logPrefix: "[LLM] runPrompt",
         apiKey,
         model,

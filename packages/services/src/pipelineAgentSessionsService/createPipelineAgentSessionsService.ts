@@ -41,6 +41,7 @@ import {
 import { getNextCronRunAt } from "@repo/utils";
 import { runAgent } from "../pipelineRunnerService/agentRunner/agentRunner";
 import { createPipelinesService } from "../pipelinesService/createPipelinesService";
+import { createPlanningPreviewStreamer } from "./streamPlanningPreview";
 
 const RelaxedCanvasEditPlanningResultSchema = z.discriminatedUnion("type", [
   z.object({
@@ -166,6 +167,27 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
     if (activeActivities.get(sessionId)?.controller === activity.controller) {
       activeActivities.delete(sessionId);
     }
+  };
+  const savePlanningQuestion = async (
+    sessionId: string,
+    question: string,
+    activity: PipelineAgentActivity,
+  ) => {
+    await db.transaction(async (tx) => {
+      assertActivityActive(sessionId, activity);
+      const transactionalMessagesDao = createPipelineAgentMessagesDao(tx);
+      const transactionalSessionsDao = createPipelineAgentSessionsDao(tx);
+      await transactionalMessagesDao.create({
+        id: crypto.randomUUID(),
+        sessionId,
+        role: "assistant",
+        kind: "question",
+        content: question,
+      });
+      assertActivityActive(sessionId, activity);
+      await transactionalSessionsDao.update(sessionId, { status: "awaiting_user" });
+      assertActivityActive(sessionId, activity);
+    });
   };
   const resolveEffectiveRuntime = (input: {
     requestedRuntimeId?: string;
@@ -968,6 +990,7 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
       sessionId: string,
       input?: {
         onProgress?: (message: string) => Promise<void> | void;
+        onTextDelta?: (text: string) => Promise<void> | void;
         runtimeId?: string;
         signal?: AbortSignal;
       },
@@ -1005,6 +1028,12 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
             throw createRuntimeNotFoundError(input?.runtimeId);
           }
 
+          const planningPreview = createPlanningPreviewStreamer({
+            mode: session.mode,
+            onText: (text) => {
+              void input?.onTextDelta?.(text);
+            },
+          });
           const raw = await runAbortable(
             runAgent({
               agent: effectiveRuntime,
@@ -1024,10 +1053,12 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
               apiKey: settings.defaultApiKey,
               model: settings.defaultModel,
               onProgress: input?.onProgress,
+              onTextDelta: planningPreview.push,
             }),
             activity.controller.signal,
             sessionId,
           );
+          planningPreview.push(raw);
           assertActivityActive(sessionId, activity);
 
           const parsed = (
@@ -1038,23 +1069,18 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
           assertActivityActive(sessionId, activity);
 
           if (parsed.type === "question") {
-            await db.transaction(async (tx) => {
-              assertActivityActive(sessionId, activity);
-              const transactionalMessagesDao = createPipelineAgentMessagesDao(tx);
-              const transactionalSessionsDao = createPipelineAgentSessionsDao(tx);
-              await transactionalMessagesDao.create({
-                id: crypto.randomUUID(),
-                sessionId,
-                role: "assistant",
-                kind: "question",
-                content: parsed.question,
-              });
-              assertActivityActive(sessionId, activity);
-              await transactionalSessionsDao.update(sessionId, { status: "awaiting_user" });
-              assertActivityActive(sessionId, activity);
-            });
+            await savePlanningQuestion(sessionId, parsed.question, activity);
 
             return parsed;
+          }
+
+          if (parsed.proposal.readiness !== "ready_for_generation") {
+            const question =
+              parsed.proposal.openQuestions.map((item) => item.trim()).filter(Boolean).join("\n") ||
+              "Please provide the missing details before I continue.";
+            await savePlanningQuestion(sessionId, question, activity);
+
+            return { type: "question" as const, question };
           }
 
           if (session.mode === "edit") {

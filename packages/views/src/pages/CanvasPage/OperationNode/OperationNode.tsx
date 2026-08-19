@@ -2,7 +2,6 @@ import {
   Zap,
   CheckCircle2,
   XCircle,
-  Loader2,
   Circle,
   Brain,
   Repeat,
@@ -49,8 +48,8 @@ const statusConfig: Record<NodeRunStatus, { icon: ElementType; color: string; la
       labelKey: "nodes.operation.statusQueued",
     },
     running: {
-      icon: Loader2,
-      color: "animate-spin text-blue-500 dark:text-blue-400",
+      icon: Circle,
+      color: "fill-current text-blue-500 dark:text-blue-400",
       labelKey: "nodes.operation.statusRunning",
     },
     waitingForUser: {
@@ -140,7 +139,8 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
   } = useStore(store, useShallow(selectNodePortCounts(id)));
   const agentOpen = operationAgentDropdownNodeId === id;
 
-  const { icon: StatusIcon, color, labelKey } = statusConfig[data.status ?? "idle"];
+  const effectiveStatus = nodeRunStatus ?? data.status ?? "idle";
+  const { icon: StatusIcon, color, labelKey } = statusConfig[effectiveStatus];
   const statusLabel = t(labelKey);
 
   const operation = operations.find((op: Operation) => op.id === data.operationId);
@@ -208,14 +208,14 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
           <div
             className={cn(
               "flex min-w-fit shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md border px-2 py-1 shadow-sm",
-              data.status === "done" && "border-emerald-500/20 bg-emerald-500/10",
-              data.status === "failed" && "border-red-500/20 bg-red-500/10",
-              data.status === "running" && "border-blue-500/20 bg-blue-500/10",
-              data.status === "retrying" && "border-blue-500/20 bg-blue-500/10",
-              data.status === "waitingForUser" && "border-amber-500/20 bg-amber-500/10",
-              data.status === "skipped" && "border-border bg-surface-2",
-              data.status === "cancelled" && "border-amber-500/20 bg-amber-500/10",
-              (!data.status || data.status === "idle" || data.status === "queued") &&
+              effectiveStatus === "done" && "border-emerald-500/20 bg-emerald-500/10",
+              effectiveStatus === "failed" && "border-red-500/20 bg-red-500/10",
+              effectiveStatus === "running" && "border-blue-500/20 bg-blue-500/10",
+              effectiveStatus === "retrying" && "border-blue-500/20 bg-blue-500/10",
+              effectiveStatus === "waitingForUser" && "border-amber-500/20 bg-amber-500/10",
+              effectiveStatus === "skipped" && "border-border bg-surface-2",
+              effectiveStatus === "cancelled" && "border-amber-500/20 bg-amber-500/10",
+              (effectiveStatus === "idle" || effectiveStatus === "queued") &&
                 "border-border bg-surface-2",
             )}
           >

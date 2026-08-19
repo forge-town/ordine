@@ -44,11 +44,15 @@ vi.mock("@/components/PipelineCreationWorkspace", () => ({
     runtimeConfigured,
     runtimeId,
     runtimeLabel,
+    runtimeOptions,
+    onRuntimeChange,
   }: {
     presentation: string;
-    runtimeConfigured: boolean;
+    runtimeConfigured?: boolean;
     runtimeId?: string;
     runtimeLabel?: string;
+    runtimeOptions?: Array<{ id: string; name: string }>;
+    onRuntimeChange?: (runtimeId: string) => void;
   }) => (
     <div
       data-connected={runtimeConfigured}
@@ -56,7 +60,21 @@ vi.mock("@/components/PipelineCreationWorkspace", () => ({
       data-runtime={runtimeLabel}
       data-runtime-id={runtimeId}
       data-testid="pipeline-creation-workspace"
-    />
+    >
+      {runtimeOptions?.length && runtimeId ? (
+        <select
+          aria-label="home.selectLocalAgent"
+          value={runtimeId}
+          onChange={(event) => onRuntimeChange?.(event.target.value)}
+        >
+          {runtimeOptions.map((option) => (
+            <option key={option.id} value={option.id}>
+              {option.name}
+            </option>
+          ))}
+        </select>
+      ) : null}
+    </div>
   ),
 }));
 
@@ -105,6 +123,10 @@ describe("HomePage", () => {
     renderHomePage();
 
     expect(screen.getByText("home.heading")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "home.manageLocalAgents" })).toHaveAttribute(
+      "href",
+      "/local-agents",
+    );
     expect(screen.getByRole("combobox", { name: "home.selectLocalAgent" })).toHaveTextContent(
       "Codex",
     );
@@ -145,8 +167,10 @@ describe("HomePage", () => {
 
     renderHomePage();
     const user = userEvent.setup();
-    await user.click(screen.getByRole("combobox", { name: "home.selectLocalAgent" }));
-    await user.click(await screen.findByRole("option", { name: "Hermes" }));
+    await user.selectOptions(
+      screen.getByRole("combobox", { name: "home.selectLocalAgent" }),
+      "local-hermes",
+    );
 
     expect(screen.getByTestId("pipeline-creation-workspace")).toHaveAttribute(
       "data-runtime-id",

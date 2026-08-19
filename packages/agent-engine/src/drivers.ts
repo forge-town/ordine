@@ -32,6 +32,18 @@ const toAsyncProgress = (
   };
 };
 
+const toAsyncTextDelta = (
+  onTextDelta?: AgentRunOptions["onTextDelta"],
+): ((text: string) => Promise<void>) | undefined => {
+  if (!onTextDelta) {
+    return undefined;
+  }
+
+  return async (text: string) => {
+    await onTextDelta(text);
+  };
+};
+
 type PreparedClaudeMcpInjection = {
   configPath: string;
   toolNames: readonly string[];
@@ -134,6 +146,7 @@ const runLocalClaudeDirect = async (opts: AgentRunOptions): Promise<DriverResult
       cwd: opts.cwd,
       ...(effectiveTools ? { allowedTools: effectiveTools } : {}),
       onProgress: toAsyncProgress(opts.onProgress),
+      onTextDelta: toAsyncTextDelta(opts.onTextDelta),
       extraEnv,
       ssh: opts.ssh,
       mcpConfigPath: preparedMcp?.configPath,
@@ -167,7 +180,9 @@ const runCodexDirect = async (opts: AgentRunOptions): Promise<DriverResult> => {
     systemPrompt: opts.systemPrompt,
     userPrompt: opts.userPrompt,
     cwd: opts.cwd,
+    ...(opts.model ? { model: opts.model } : {}),
     onProgress: toAsyncProgress(opts.onProgress),
+    onTextDelta: toAsyncTextDelta(opts.onTextDelta),
     connectorInjection,
   });
 

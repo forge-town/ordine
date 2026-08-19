@@ -1,5 +1,6 @@
 import type { ChildProcess } from "node:child_process";
 import { EventEmitter } from "node:events";
+import { existsSync, readFileSync } from "node:fs";
 import { Readable, Writable } from "node:stream";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -68,5 +69,70 @@ describe("runClaude MCP isolation", () => {
     testState.process.emit("close", 0);
 
     await expect(promise).resolves.toMatchObject({ text: "done" });
+  });
+});
+
+describe("runClaude partial text deltas", () => {
+  const testState = { process: createMockProcess() };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    testState.process = createMockProcess();
+    spawnMock.mockReturnValue(testState.process);
+  });
+
+  it("forwards only text_delta content and enables partial messages", async () => {
+    const textDeltas: string[] = [];
+    const promise = runClaude({
+      systemPrompt: "Plan safely",
+      userPrompt: "Plan this",
+      cwd: "/tmp/project",
+      onTextDelta: (text) => {
+        textDeltas.push(text);
+      },
+    });
+
+    await vi.waitFor(() => expect(spawnMock).toHaveBeenCalledOnce());
+    const args = (spawnMock.mock.calls[0] as unknown as [string, string[]])[1];
+    const systemPromptFlag =
+      process.platform === "win32" ? "--system-prompt-file" : "--system-prompt";
+    const systemPromptFlagIndex = args.indexOf(systemPromptFlag);
+
+    expect(systemPromptFlagIndex).toBeGreaterThanOrEqual(0);
+    if (process.platform === "win32") {
+      const promptFilePath = args[systemPromptFlagIndex + 1]!;
+      expect(promptFilePath).toBeTruthy();
+      expect(args).not.toContain("Plan safely");
+      expect(readFileSync(promptFilePath, "utf8")).toBe("Plan safely");
+    } else {
+      expect(args).toContain("Plan safely");
+    }
+
+    testState.process.stdout.push(
+      '{"type":"stream_event","event":{"type":"content_block_delta","delta":{"type":"thinking_delta","thinking":"SECRET"}}}\n',
+    );
+    testState.process.stdout.push(
+      '{"type":"stream_event","event":{"type":"content_block_delta","delta":{"type":"input_json_delta","partial_json":"SECRET"}}}\n',
+    );
+    testState.process.stdout.push(
+      '{"type":"stream_event","event":{"type":"content_block_delta","delta":{"type":"text_delta","text":"safe"}}}\n',
+    );
+    testState.process.stdout.push(
+      '{"type":"stream_event","event":{"type":"content_block_delta","delta":{"type":"text_delta","text":" preview"}}}\n',
+    );
+    testState.process.stdout.push('{"type":"result","result":"final"}');
+    testState.process.stdout.push(null);
+    testState.process.stderr.push(null);
+    testState.process.emit("close", 0);
+
+    const result = await promise;
+
+    expect(args).toContain("--include-partial-messages");
+    expect(textDeltas).toEqual(["safe", " preview"]);
+    expect(textDeltas.join("")).not.toContain("SECRET");
+    expect(result.text).toBe("final");
+    if (process.platform === "win32") {
+      expect(existsSync(args[systemPromptFlagIndex + 1]!)).toBe(false);
+    }
   });
 });

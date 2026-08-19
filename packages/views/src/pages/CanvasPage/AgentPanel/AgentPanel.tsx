@@ -476,17 +476,20 @@ export const AgentPanel = ({ onGeneratedPipeline }: AgentPanelProps) => {
 
   const hasBlockingDiagnostics =
     agentPanel.diagnostics?.some((diagnostic) => diagnostic.severity === "error") ?? false;
-  const generateProposalNeedsAnswer =
-    generateProposal !== null && generateProposal.readiness !== "ready_for_generation";
-
   const activeProposal = agentPanel.pendingProposal;
   const activeDiagnostics = agentPanel.diagnostics;
+  const proposalNeedsAnswer =
+    (activeProposal?.readiness !== undefined &&
+      activeProposal.readiness !== "ready_for_generation") ||
+    (activeProposal?.openQuestions?.some((question) => question.trim().length > 0) ?? false) ||
+    (generateProposal !== null && generateProposal.readiness !== "ready_for_generation") ||
+    (generateProposal?.openQuestions.some((question) => question.trim().length > 0) ?? false);
 
   const handleApply = useCallback(() => {
     if (
       (!activeProposal && !generateProposal) ||
       hasBlockingDiagnostics ||
-      generateProposalNeedsAnswer
+      proposalNeedsAnswer
     ) {
       return;
     }
@@ -495,8 +498,8 @@ export const AgentPanel = ({ onGeneratedPipeline }: AgentPanelProps) => {
     activeProposal,
     applyProposal,
     generateProposal,
-    generateProposalNeedsAnswer,
     hasBlockingDiagnostics,
+    proposalNeedsAnswer,
     selectedRuntimeId,
   ]);
 
@@ -507,8 +510,16 @@ export const AgentPanel = ({ onGeneratedPipeline }: AgentPanelProps) => {
   const proposal = activeProposal;
   const hasProposal = proposal !== null || generateProposal !== null;
   const proposalItems = useMemo(() => {
+    const openQuestionItems = (proposal?.openQuestions ?? generateProposal?.openQuestions ?? [])
+      .map((question) => question.trim())
+      .filter(Boolean)
+      .map((detail) => ({
+        detail,
+        title: t("canvas.agentPanel.proposalDetails.openQuestion"),
+      }));
+
     if (proposal) {
-      return buildProposalItems(proposal, [], t);
+      return [...buildProposalItems(proposal, [], t), ...openQuestionItems];
     }
 
     if (!generateProposal) {
@@ -520,6 +531,7 @@ export const AgentPanel = ({ onGeneratedPipeline }: AgentPanelProps) => {
       ...generateProposal.outputs.map((detail) => ({ detail, title: "Output" })),
       ...generateProposal.majorOperations.map((detail) => ({ detail, title: "Operation" })),
       ...generateProposal.executionFlow.map((detail) => ({ detail, title: "Flow" })),
+      ...openQuestionItems,
     ];
   }, [generateProposal, proposal, t]);
   const handleAskFix = useCallback(() => {
@@ -684,15 +696,19 @@ export const AgentPanel = ({ onGeneratedPipeline }: AgentPanelProps) => {
                     isSending ||
                     isPreparingUpload ||
                     isHistoryLoading ||
-                    agentPanel.isLoading ||
-                    generateProposalNeedsAnswer
+                    agentPanel.isLoading
                   }
+                  applyDisabled={proposalNeedsAnswer}
                   items={proposalItems}
                   onApply={handleApply}
                   onAskFix={hasBlockingDiagnostics ? handleAskFix : undefined}
                   onReject={handleDiscard}
                   onRevise={handleRevise}
-                  subtitle={t("canvas.agentPanel.proposal.review")}
+                  subtitle={t(
+                    proposalNeedsAnswer
+                      ? "canvas.agentPanel.proposalDetails.needsAnswer"
+                      : "canvas.agentPanel.proposalDetails.review",
+                  )}
                   title={proposal?.summary ?? generateProposal?.purpose ?? ""}
                 />
               </div>

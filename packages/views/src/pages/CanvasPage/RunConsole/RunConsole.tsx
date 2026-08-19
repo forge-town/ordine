@@ -1,4 +1,4 @@
-import { useCallback, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { Terminal, X, ChevronUp, ChevronDown, Loader2, FileText } from "lucide-react";
 import { Button } from "@repo/ui/button";
@@ -110,6 +110,7 @@ export const RunConsole = () => {
   const markNodePassed = useStore(store, (s) => s.markNodePassed);
   const markNodeFailed = useStore(store, (s) => s.markNodeFailed);
   const applyNodeLlmContent = useStore(store, (s) => s.applyNodeLlmContent);
+  const setNodeRunStatuses = useStore(store, (s) => s.setNodeRunStatuses);
   const stopTestRun = useStore(store, (s) => s.stopTestRun);
   const isConsoleCollapsed = useStore(store, (s) => s.isConsoleCollapsed);
   const handleToggleConsoleCollapse = useStore(store, (s) => s.handleToggleConsoleCollapse);
@@ -178,6 +179,14 @@ export const RunConsole = () => {
   const job = (jobQuery.data?.data as Job | undefined) ?? null;
   const jobRef = useRef(job);
   jobRef.current = job;
+
+  useEffect(() => {
+    if (!job?.nodeStatuses) {
+      return;
+    }
+
+    setNodeRunStatuses(job.nodeStatuses);
+  }, [job, setNodeRunStatuses]);
 
   const { result: tracesResult } = useCustom<{ traces: RunTrace[] }>({
     url: "jobs/traces",

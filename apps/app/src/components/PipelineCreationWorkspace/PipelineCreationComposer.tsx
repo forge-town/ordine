@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { Button } from "@repo/ui/button";
 import { cn } from "@repo/ui/lib/utils";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@repo/ui/select";
 import { Textarea } from "@repo/ui/textarea";
 
 export type PipelineCreationPhase =
@@ -21,6 +22,11 @@ export type PipelineCreationPhase =
   | "proposal_ready"
   | "generating"
   | "success";
+
+export interface PipelineCreationRuntimeOption {
+  id: string;
+  name: string;
+}
 
 interface PipelineCreationComposerProps {
   fileInputRef: RefObject<HTMLInputElement | null>;
@@ -33,7 +39,10 @@ interface PipelineCreationComposerProps {
   phase: PipelineCreationPhase;
   proposalVisible: boolean;
   runtimeConfigured?: boolean;
+  runtimeId?: string;
   runtimeLabel?: string;
+  runtimeOptions?: PipelineCreationRuntimeOption[];
+  onRuntimeChange?: (runtimeId: string | null) => void;
   onApprove: () => void;
   onCancel: () => void;
   onClose?: () => void;
@@ -58,7 +67,10 @@ export const PipelineCreationComposer = ({
   phase,
   proposalVisible,
   runtimeConfigured,
+  runtimeId,
   runtimeLabel,
+  runtimeOptions,
+  onRuntimeChange,
   onApprove: handleApprove,
   onCancel: handleCancel,
   onClose: handleClose,
@@ -150,7 +162,26 @@ export const PipelineCreationComposer = ({
             {!isHome && <span>{t("newPipelineDialog.upload")}</span>}
           </Button>
 
-          {isHome && (
+          {isHome && runtimeConfigured === true && runtimeId && runtimeOptions?.length ? (
+            <Select value={runtimeId} onValueChange={onRuntimeChange}>
+              <SelectTrigger
+                aria-label={t("home.selectLocalAgent")}
+                className="h-8 min-w-0 max-w-40 border-0 px-2 text-xs text-muted-foreground shadow-none hover:bg-surface-2 hover:text-foreground"
+                size="sm"
+              >
+                <SelectValue className="truncate">
+                  {runtimeOptions.find((option) => option.id === runtimeId)?.name ?? ""}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent align="start">
+                {runtimeOptions.map((option) => (
+                  <SelectItem key={option.id} value={option.id}>
+                    {option.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          ) : isHome ? (
             <Link
               className="inline-flex min-w-0 items-center gap-2 rounded-lg px-2 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-surface-2 hover:text-foreground"
               to="/local-agents"
@@ -163,7 +194,7 @@ export const PipelineCreationComposer = ({
               />
               <span className="truncate">{runtimeLabel ?? t("home.connectLocalAgent")}</span>
             </Link>
-          )}
+          ) : null}
 
           <span className="ml-auto hidden text-[11px] text-muted-foreground sm:inline">
             {t("home.sendHint")}

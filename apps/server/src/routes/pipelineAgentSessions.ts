@@ -245,6 +245,9 @@ pipelineAgentSessionsRoutes.post("/:id/plan", async (c) => {
           onProgress: (message) => {
             send("progress", { message });
           },
+          onTextDelta: (text) => {
+            send("assistant_chunk", { text });
+          },
         }),
         (error) => (error instanceof Error ? error : new Error(String(error))),
       );

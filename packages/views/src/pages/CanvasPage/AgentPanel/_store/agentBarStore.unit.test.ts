@@ -44,7 +44,7 @@ describe("createAgentBarStore", () => {
     store.getState().appendStreamingAssistantText("second");
     store.getState().setConversationState("streaming");
     expect(store.getState().conversationState).toBe("streaming");
-    expect(store.getState().streamingAssistantText).toBe("first\nsecond");
+    expect(store.getState().streamingAssistantText).toBe("firstsecond");
 
     store.getState().setConversationState("done");
     expect(store.getState().conversationState).toBe("done");

@@ -301,6 +301,7 @@ describe("pipelineAgentSessionsRoutes", () => {
   it("streams planning events for a session", async () => {
     mocks.planSession.mockImplementation(async (_sessionId, input) => {
       await input.onProgress?.("planner: started");
+      await input.onTextDelta?.("safe preview");
       return {
         type: "question",
         question: "What output format do you want?",
@@ -319,7 +320,8 @@ describe("pipelineAgentSessionsRoutes", () => {
     const body = await response.text();
     expect(body).toContain("event: phase");
     expect(body).toContain("event: progress");
-    expect(body).not.toContain("event: assistant_chunk");
+    expect(body).toContain("event: assistant_chunk");
+    expect(body).toContain('"text":"safe preview"');
     expect(body).toContain("event: question");
     expect(body).toContain("What output format do you want?");
     expect(mocks.planSession).toHaveBeenCalledWith(

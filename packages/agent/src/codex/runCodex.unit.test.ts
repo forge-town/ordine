@@ -106,6 +106,7 @@ describe("runCodex", () => {
     expect(args).toContain("exec");
     expect(args).toContain("--sandbox");
     expect(args).toContain("read-only");
+    expect(args).toContain("--json");
     expect(spawnOpts.cwd).toBe("/tmp/test");
   });
 
@@ -130,6 +131,35 @@ describe("runCodex", () => {
 
     await promise;
     expect(existsSync(codexHome)).toBe(false);
+  });
+
+  it("streams completed Codex agent messages before process completion", async () => {
+    const onTextDelta = vi.fn();
+    const promise = runCodex({
+      systemPrompt: "sys",
+      userPrompt: "user",
+      cwd: "/tmp",
+      onTextDelta,
+    });
+
+    await waitForSpawn();
+    testState.mockProc.stdout.push(
+      '{"type":"item.completed","item":{"type":"agent_message","text":"Inspecting input"}}\n',
+    );
+    testState.mockProc.stdout.push(
+      '{"type":"item.completed","item":{"type":"agent_message","text":"Final answer"}}\n',
+    );
+
+    await vi.waitFor(() => {
+      expect(onTextDelta).toHaveBeenNthCalledWith(1, "Inspecting input");
+      expect(onTextDelta).toHaveBeenNthCalledWith(2, "\n\nFinal answer");
+    });
+
+    testState.mockProc.stdout.push(null);
+    testState.mockProc.stderr.push(null);
+    testState.mockProc.emit("close", 0);
+
+    await expect(promise).resolves.toBe("Final answer");
   });
 
   it("returns stdout text on success", async () => {

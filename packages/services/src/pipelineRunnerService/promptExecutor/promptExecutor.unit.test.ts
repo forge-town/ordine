@@ -68,6 +68,22 @@ describe("promptExecutor", () => {
     );
   });
 
+  it("forwards accumulated runtime text to the pipeline chunk callback", async () => {
+    vi.mocked(agentEngine.run).mockImplementationOnce(async (options) => {
+      await options.onTextDelta?.("first");
+      await options.onTextDelta?.(" second");
+
+      return { text: "first second", usage: null };
+    });
+    const onChunk = vi.fn();
+
+    const result = await promptExecutor.run({ ...baseOpts, agent: "codex", onChunk });
+
+    expect(result.isOk()).toBe(true);
+    expect(onChunk).toHaveBeenNthCalledWith(1, "first");
+    expect(onChunk).toHaveBeenNthCalledWith(2, "first second");
+  });
+
   it("falls back to process.cwd() when no inputPath is configured", async () => {
     const result = await promptExecutor.run({ ...baseOpts, inputPath: "", agent: "codex" });
 
