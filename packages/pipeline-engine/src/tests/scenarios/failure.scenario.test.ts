@@ -114,6 +114,83 @@ describe("pipeline scenario: failure flow", () => {
       "flaky-op:done",
     ]);
   });
+
+  it("retries a rejected loop evaluator on the same step route and skips downstream nodes", async () => {
+    const evaluateLoopCondition = vi.fn().mockRejectedValue(new Error("runtime unavailable"));
+    const deps = makeTestDeps({ evaluateLoopCondition });
+    const operations = new Map<string, OperationInfo>([
+      [
+        "loop-op",
+        {
+          id: "loop-op",
+          name: "Loop Operation",
+          config: {
+            executor: {
+              type: "agent",
+              agentMode: "prompt",
+              prompt: "Validate",
+              agent: "codex",
+              model: "gpt-step",
+            },
+          },
+        },
+      ],
+      [
+        "downstream-op",
+        {
+          id: "downstream-op",
+          name: "Downstream Operation",
+          config: {
+            executor: { type: "agent", agentMode: "prompt", prompt: "Summarize" },
+          },
+        },
+      ],
+    ]);
+    const statusEvents: string[] = [];
+
+    const result = await executeScenario({
+      deps,
+      operations,
+      nodes: [
+        makeNode("loop-op", "operation", {
+          operationId: "loop-op",
+          loopEnabled: true,
+          loopConditionPrompt: "Is it valid?",
+        }),
+        makeNode("downstream-op", "operation", { operationId: "downstream-op" }),
+      ],
+      edges: [makeEdge("loop-op", "downstream-op")],
+      onNodeStatusChange: ({ nodeId, status }) => {
+        statusEvents.push(`${nodeId}:${status}`);
+      },
+    });
+
+    expect(result.ok).toBe(false);
+    expect(deps.runPrompt).toHaveBeenCalledTimes(2);
+    expect(evaluateLoopCondition).toHaveBeenCalledTimes(2);
+    expect(evaluateLoopCondition).toHaveBeenNthCalledWith(1, {
+      conditionPrompt: "Is it valid?",
+      operationOutput: "prompt-output",
+      agent: "codex",
+      model: "gpt-step",
+    });
+    expect(evaluateLoopCondition).toHaveBeenNthCalledWith(2, {
+      conditionPrompt: "Is it valid?",
+      operationOutput: "prompt-output",
+      agent: "codex",
+      model: "gpt-step",
+    });
+    expect(statusEvents).toEqual([
+      "loop-op:queued",
+      "downstream-op:queued",
+      "loop-op:running",
+      "loop-op:failed",
+      "loop-op:retrying",
+      "loop-op:running",
+      "loop-op:failed",
+      "downstream-op:skipped",
+    ]);
+  });
 });
 
 describe("pipeline scenario: fail-closed run control", () => {

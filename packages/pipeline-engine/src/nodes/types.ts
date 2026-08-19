@@ -1,4 +1,5 @@
 import type { PipelineRunError } from "../errors";
+import type { LoopEvaluationOptions } from "../schemas";
 export type {
   AgentInfo,
   NodeContext,
@@ -20,6 +21,10 @@ export type NodeResult =
   | { outcome: "failed"; error: PipelineRunError };
 
 export type OperationExecResult =
-  | { outcome: "completed"; content: string }
+  | {
+      outcome: "completed";
+      content: string;
+      route: Pick<LoopEvaluationOptions, "agent" | "model">;
+    }
   | { outcome: "soft-failed" }
   | { outcome: "failed"; error: PipelineRunError };

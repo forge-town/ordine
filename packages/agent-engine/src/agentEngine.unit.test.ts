@@ -181,6 +181,7 @@ describe("agentEngine", () => {
       systemPrompt: "Analyze this",
       userPrompt: "Hello",
       cwd: "/tmp/test",
+      model: "gpt-step",
       connectorInjection: {
         mcpServers: { linear: { type: "http", url: "https://mcp.linear.app/mcp" } },
         toolNames: ["mcp__linear"],
@@ -192,6 +193,7 @@ describe("agentEngine", () => {
     expect(result.usage).toBeNull();
     expect(runCodex).toHaveBeenCalledWith(
       expect.objectContaining({
+        model: "gpt-step",
         connectorInjection: {
           mcpServers: { linear: { type: "http", url: "https://mcp.linear.app/mcp" } },
           toolNames: ["mcp__linear"],

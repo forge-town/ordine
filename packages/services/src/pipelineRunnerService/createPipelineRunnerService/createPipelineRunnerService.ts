@@ -83,8 +83,6 @@ export const createPipelineRunnerService = (
   initObs(jobTracesDao);
   initSpanRecorder({ agentRawExportsDao, agentSpansDao });
 
-  const loopEvaluatorFactory = loopEvaluator.create();
-
   /** Run-control actions only apply to live jobs in an eligible status. */
   const guardJobStatus = async (
     action: string,
@@ -127,9 +125,11 @@ export const createPipelineRunnerService = (
     defaultAgent?: AgentRuntime;
     ssh?: SshConnection;
     getMcpConnectorInjection?: McpConnectorInjectionProvider;
-  }) =>
-    pipelineRunnerEngineDeps.build({
-      evaluateLoopCondition: loopEvaluatorFactory({ jobId }),
+  }) => {
+    const evaluateLoopCondition = loopEvaluator.create({ apiKey })({ jobId });
+
+    return pipelineRunnerEngineDeps.build({
+      evaluateLoopCondition,
       jobId,
       apiKey,
       model,
@@ -137,6 +137,7 @@ export const createPipelineRunnerService = (
       ssh,
       getMcpConnectorInjection,
     });
+  };
 
   const buildMcpConnectorInjectionProvider = (preferredSource: AgentRuntime) => {
     return async (
