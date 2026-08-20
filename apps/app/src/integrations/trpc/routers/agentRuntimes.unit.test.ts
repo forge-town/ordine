@@ -4,7 +4,7 @@ import { ok } from "neverthrow";
 vi.hoisted(() => {
   process.env.BETTER_AUTH_SECRET = "test-secret";
   process.env.ORDINE_LOCAL_MODE = "true";
-  process.env.PGLITE_DATA_DIR = "/tmp/ordine-agent-runtimes-router-test";
+  process.env.DATABASE_URL = "postgresql://postgres:postgres@localhost:5432/ordine";
   process.env.RUNTIME_SCAN_MODE = "local";
 });
 

@@ -5,7 +5,6 @@ import { homedir } from "node:os";
 import { randomBytes } from "node:crypto";
 import { fork } from "node:child_process";
 import { fileURLToPath } from "node:url";
-import { startEmbeddedPostgres, type EmbeddedPgInstance } from "./embedded-pg";
 import { runMigrations } from "./migrations";
 
 export interface OnboardOptions {
@@ -24,7 +23,7 @@ export interface EnvConfig {
   APP_URL: string;
   SECRET_KEY: string;
   DATA_DIR: string;
-  PGLITE_DATA_DIR: string;
+  DATABASE_URL: string;
 }
 
 const DEFAULT_APP_PORT = 9430;
@@ -39,57 +38,70 @@ const toError = (error: unknown, prefix: string): Error =>
 export const resolveDataDir = (custom?: string): string =>
   custom ?? join(homedir(), ".ordine", "default");
 
-export const generateEnvConfig = (dataDir: string, pgliteDataDir?: string): EnvConfig => ({
+export const DEFAULT_DATABASE_URL = "postgresql://postgres:postgres@localhost:5432/ordine";
+
+export const generateEnvConfig = (
+  dataDir: string,
+  databaseUrl = process.env.DATABASE_URL ?? DEFAULT_DATABASE_URL,
+): EnvConfig => ({
   APP_PORT: DEFAULT_APP_PORT,
   APP_URL: `http://localhost:${DEFAULT_APP_PORT}`,
   SECRET_KEY: randomBytes(32).toString("hex"),
   DATA_DIR: dataDir,
-  PGLITE_DATA_DIR: pgliteDataDir ?? join(dataDir, "pglite"),
+  DATABASE_URL: databaseUrl,
 });
 
 export const resolveEnvConfig = (
   dataDir: string,
   existingConfig: EnvConfig | null,
-  pgliteDataDir: string,
+  databaseUrl: string,
 ): EnvConfig => {
-  const baseConfig = existingConfig ?? generateEnvConfig(dataDir, pgliteDataDir);
+  const baseConfig = existingConfig ?? generateEnvConfig(dataDir, databaseUrl);
 
   return {
     ...baseConfig,
     DATA_DIR: baseConfig.DATA_DIR || dataDir,
-    PGLITE_DATA_DIR: pgliteDataDir,
+    DATABASE_URL: databaseUrl,
   };
 };
 
-export const isExistingInstall = (dataDir: string): boolean =>
-  existsSync(join(dataDir, ".env"));
+export const isExistingInstall = (dataDir: string): boolean => existsSync(join(dataDir, ".env"));
 
 export const readExistingEnv = (dataDir: string): Result<EnvConfig, Error> => {
   const envPath = join(dataDir, ".env");
 
   return Result.fromThrowable(
-    () => {
-      const content = readFileSync(envPath, "utf8");
-      const entries = content
-        .split("\n")
-        .filter((line) => line.includes("="))
-        .map((line) => {
-          const idx = line.indexOf("=");
-
-          return [line.slice(0, idx), line.slice(idx + 1)] as [string, string];
-        });
-      const env = Object.fromEntries(entries) as Record<string, string>;
-
-      return {
-        APP_PORT: Number(env["APP_PORT"]) || DEFAULT_APP_PORT,
-        APP_URL: env["APP_URL"] ?? `http://localhost:${DEFAULT_APP_PORT}`,
-        SECRET_KEY: env["SECRET_KEY"] ?? randomBytes(32).toString("hex"),
-        DATA_DIR: env["DATA_DIR"] ?? dataDir,
-        PGLITE_DATA_DIR: env["PGLITE_DATA_DIR"] ?? join(dataDir, "pglite"),
-      };
-    },
+    () => readFileSync(envPath, "utf8"),
     (e) => new Error(`Failed to read existing .env: ${String(e)}`),
-  )();
+  )().andThen((content) => {
+    const entries = content
+      .split("\n")
+      .filter((line) => line.includes("="))
+      .map((line) => {
+        const idx = line.indexOf("=");
+
+        return [line.slice(0, idx), line.slice(idx + 1)] as [string, string];
+      });
+    const env = Object.fromEntries(entries) as Record<string, string>;
+
+    if (env["PGLITE_DATA_DIR"]) {
+      return err(
+        new Error(
+          `Legacy PGlite data detected at ${env["PGLITE_DATA_DIR"]}. ` +
+            "Ordine will not switch this install to an empty PostgreSQL database automatically. " +
+            "Back up the PGlite directory, migrate its data to PostgreSQL, then remove PGLITE_DATA_DIR from .env.",
+        ),
+      );
+    }
+
+    return ok({
+      APP_PORT: Number(env["APP_PORT"]) || DEFAULT_APP_PORT,
+      APP_URL: env["APP_URL"] ?? `http://localhost:${DEFAULT_APP_PORT}`,
+      SECRET_KEY: env["SECRET_KEY"] ?? randomBytes(32).toString("hex"),
+      DATA_DIR: env["DATA_DIR"] ?? dataDir,
+      DATABASE_URL: env["DATABASE_URL"] ?? DEFAULT_DATABASE_URL,
+    });
+  });
 };
 
 export const prepareDataDir = (dataDir: string): Result<string, Error> => {
@@ -120,12 +132,17 @@ export const writeEnvFile = (dataDir: string, config: EnvConfig): Result<string,
 };
 
 export const formatOutput = (result: OnboardResult): string => {
+  const databaseUrl = URL.canParse(result.databaseUrl) ? new URL(result.databaseUrl) : null;
+  if (databaseUrl) {
+    if (databaseUrl.username) databaseUrl.username = "***";
+    if (databaseUrl.password) databaseUrl.password = "***";
+  }
   const lines = [
     "",
     "Ordine is running locally.",
     "",
     `App:      ${result.appUrl}`,
-    `Database: ${result.databaseUrl}`,
+    `Database: ${databaseUrl?.toString() ?? "<configured>"}`,
     `Data:     ${result.dataDir}`,
     "",
     "Press Ctrl+C to stop.",
@@ -135,8 +152,7 @@ export const formatOutput = (result: OnboardResult): string => {
   return lines.join("\n");
 };
 
-const getModuleDir = (): string =>
-  dirname(fileURLToPath(import.meta.url));
+const getModuleDir = (): string => dirname(fileURLToPath(import.meta.url));
 
 export const resolveAppServerEntry = (baseDir = getModuleDir()): Result<string, Error> => {
   const thisDir = baseDir;
@@ -173,9 +189,10 @@ export const startAppServer = (
           ...process.env,
           NODE_ENV: "production",
           PORT: String(envConfig.APP_PORT),
-          PGLITE_DATA_DIR: envConfig.PGLITE_DATA_DIR,
+          DATABASE_URL: envConfig.DATABASE_URL,
           BETTER_AUTH_SECRET: envConfig.SECRET_KEY,
           ORDINE_LOCAL_MODE: "true",
+          ORDINE_SELF_HOSTED: "true",
         },
         stdio: "inherit",
       });
@@ -206,24 +223,6 @@ export const startAppServer = (
     }),
   );
 
-const stopEmbeddedPostgres = (pg: EmbeddedPgInstance): ResultAsync<void, Error> =>
-  ResultAsync.fromPromise(pg.stop(), (error) => toError(error, "Failed to stop embedded PostgreSQL"));
-
-const stopWithError = async (
-  pg: EmbeddedPgInstance,
-  originalError: Error,
-): Promise<NeverthrowResult<never, Error>> => {
-  const stopResult = await stopEmbeddedPostgres(pg);
-
-  if (stopResult.isErr()) {
-    return err(
-      new Error(`${originalError.message}; additionally failed to stop embedded PostgreSQL: ${stopResult.error.message}`),
-    );
-  }
-
-  return err(originalError);
-};
-
 const runOnboard = async (options: OnboardOptions): Promise<NeverthrowResult<void, Error>> => {
   const dataDir = resolveDataDir(options.dataDir);
 
@@ -232,44 +231,37 @@ const runOnboard = async (options: OnboardOptions): Promise<NeverthrowResult<voi
     return err(prepareResult.error);
   }
 
-  console.log("Starting embedded PostgreSQL...");
-  const pgResult = await startEmbeddedPostgres(dataDir);
-  if (pgResult.isErr()) {
-    return err(pgResult.error);
-  }
+  console.log("Using Docker PostgreSQL...");
 
-  const pg = pgResult.value;
-
-  console.log("PostgreSQL ready (PGlite)");
-
-  const existingConfigResult = isExistingInstall(dataDir) ? readExistingEnv(dataDir) : ok<EnvConfig | null>(null);
+  const existingConfigResult = isExistingInstall(dataDir)
+    ? readExistingEnv(dataDir)
+    : ok<EnvConfig | null>(null);
   if (existingConfigResult.isErr()) {
-    return stopWithError(pg, existingConfigResult.error);
+    return err(existingConfigResult.error);
   }
 
-  const envConfig = resolveEnvConfig(dataDir, existingConfigResult.value, pg.dataDir);
+  const envConfig = resolveEnvConfig(
+    dataDir,
+    existingConfigResult.value,
+    existingConfigResult.value?.DATABASE_URL ?? process.env.DATABASE_URL ?? DEFAULT_DATABASE_URL,
+  );
 
   const writeResult = writeEnvFile(dataDir, envConfig);
   if (writeResult.isErr()) {
-    return stopWithError(pg, writeResult.error);
+    return err(writeResult.error);
   }
 
   const migrationsDirResult = resolveMigrationsDir();
   if (migrationsDirResult.isErr()) {
-    return stopWithError(pg, migrationsDirResult.error);
+    return err(migrationsDirResult.error);
   }
 
   console.log("Running database migrations...");
-  const migrateResult = await runMigrations(pg.db, migrationsDirResult.value);
+  const migrateResult = await runMigrations(envConfig.DATABASE_URL, migrationsDirResult.value);
   if (migrateResult.isErr()) {
-    return stopWithError(pg, migrateResult.error);
+    return err(migrateResult.error);
   }
   console.log(`Applied ${migrateResult.value} migration file(s).`);
-
-  const stopResult = await stopEmbeddedPostgres(pg);
-  if (stopResult.isErr()) {
-    return err(stopResult.error);
-  }
 
   const serverEntryResult = resolveAppServerEntry();
   if (serverEntryResult.isErr()) {
@@ -279,7 +271,7 @@ const runOnboard = async (options: OnboardOptions): Promise<NeverthrowResult<voi
   const result: OnboardResult = {
     dataDir,
     appUrl: envConfig.APP_URL,
-    databaseUrl: `pglite://${pg.dataDir}`,
+    databaseUrl: envConfig.DATABASE_URL,
   };
 
   console.log(formatOutput(result));

@@ -1422,16 +1422,16 @@
     "advanced": {
       "description": "本机的存储、数据版本与维护信息。",
       "rows": {
-        "dataDirectory": {
-          "hint": "用于配置本地数据库目录的环境变量。",
-          "label": "数据目录"
+        "databaseUrl": {
+          "hint": "Docker PostgreSQL 连接地址。",
+          "label": "数据库连接串"
         },
         "localMode": {
           "hint": "仅开发环境可用，可在本地模式下跳过登录。",
           "label": "本地模式"
         },
         "schemaVersion": {
-          "hint": "本地存储启动时会自动应用数据库迁移。",
+          "hint": "应用启动前会将数据库迁移应用到 PostgreSQL。",
           "label": "数据版本"
         }
       },

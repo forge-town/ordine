@@ -1,8 +1,8 @@
-import { PGlite } from "@electric-sql/pglite";
+import postgres from "postgres";
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { drizzle } from "drizzle-orm/pglite";
+import { drizzle } from "drizzle-orm/postgres-js";
 import { agentRawExportsTable, pipelinesTable } from "@repo/db-schema";
 import type { DbExecutor } from "../types";
 import {
@@ -17,8 +17,13 @@ import {
 
 const rootDir = join(import.meta.dirname, "../../../..");
 const migrationsDir = join(rootDir, "apps/create/migrations");
+const testDatabaseUrl = new URL(
+  process.env.DATABASE_URL ?? "postgresql://postgres:postgres@localhost:5432/ordine",
+);
+testDatabaseUrl.pathname = "/ordine_models_test";
+const databaseUrl = process.env.ORDINE_MODELS_TEST_DATABASE_URL ?? testDatabaseUrl.toString();
 
-const applyMigrations = async (client: PGlite) => {
+const applyMigrations = async (client: ReturnType<typeof postgres>) => {
   const files = readdirSync(migrationsDir)
     .filter((file) => file.endsWith(".sql"))
     .sort();
@@ -30,21 +35,22 @@ const applyMigrations = async (client: PGlite) => {
       .filter(Boolean);
 
     for (const statement of statements) {
-      await client.exec(statement);
+      await client.unsafe(statement);
     }
   }
 };
 
-describe("COD-116 domain DAOs with PGlite", () => {
-  const client = new PGlite();
+describe("COD-116 domain DAOs with PostgreSQL", () => {
+  const client = postgres(databaseUrl, { onnotice: () => {} });
   const executor = drizzle(client) as unknown as DbExecutor;
 
   beforeAll(async () => {
+    await client.unsafe("DROP SCHEMA public CASCADE; CREATE SCHEMA public");
     await applyMigrations(client);
   });
 
   afterAll(async () => {
-    await client.close();
+    await client.end();
   });
 
   it("persists CRUD, run statistics, and metered usage with real SQL", async () => {

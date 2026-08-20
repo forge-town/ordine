@@ -1,15 +1,26 @@
-import { PGlite } from "@electric-sql/pglite";
+import postgres from "postgres";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 
 const rootDir = join(import.meta.dirname, "../../../..");
 const migrationsDir = join(rootDir, "apps/create/migrations");
-const pgliteMigration = join(migrationsDir, "0003_harvest_capabilities.sql");
+const migration = join(migrationsDir, "0003_harvest_capabilities.sql");
 const postgresMigration = join(rootDir, "apps/app/drizzle/0030_harvest_capabilities.sql");
 const postgresJournal = join(rootDir, "apps/app/drizzle/meta/_journal.json");
+const testDatabaseUrl = new URL(
+  process.env.DATABASE_URL ?? "postgresql://postgres:postgres@localhost:5432/ordine",
+);
+testDatabaseUrl.pathname = "/ordine_db_schema_test";
+const databaseUrl = process.env.ORDINE_DB_SCHEMA_TEST_DATABASE_URL ?? testDatabaseUrl.toString();
 
-const applyMigrations = async (db: PGlite, upTo?: string) => {
+beforeEach(async () => {
+  const db = postgres(databaseUrl, { onnotice: () => {} });
+  await db.unsafe("DROP SCHEMA public CASCADE; CREATE SCHEMA public");
+  await db.end();
+});
+
+const applyMigrations = async (db: ReturnType<typeof postgres>, upTo?: string) => {
   const files = readdirSync(migrationsDir)
     .filter((file) => file.endsWith(".sql"))
     .sort();
@@ -22,15 +33,15 @@ const applyMigrations = async (db: PGlite, upTo?: string) => {
       .filter(Boolean);
 
     for (const statement of statements) {
-      await db.exec(statement);
+      await db.unsafe(statement);
     }
   }
 };
 
 describe("COD-339 migration", () => {
-  it("keeps PGlite and Postgres migrations identical and journaled", () => {
-    expect(existsSync(pgliteMigration), "COD-339 PGlite migration file must exist").toBe(true);
-    expect(readFileSync(pgliteMigration, "utf8")).toBe(readFileSync(postgresMigration, "utf8"));
+  it("keeps migration files identical and journaled", () => {
+    expect(existsSync(migration), "COD-339 migration file must exist").toBe(true);
+    expect(readFileSync(migration, "utf8")).toBe(readFileSync(postgresMigration, "utf8"));
     const journal = JSON.parse(readFileSync(postgresJournal, "utf8")) as {
       entries: Array<{ idx: number; tag: string }>;
     };
@@ -46,15 +57,15 @@ describe("COD-339 migration", () => {
   });
 
   it("adds provenance and encrypted credential columns plus the signature index", async () => {
-    const db = new PGlite();
+    const db = postgres(databaseUrl, { onnotice: () => {} });
     await applyMigrations(db);
 
-    const columns = await db.query<{ column_name: string; table_name: string }>(`
+    const columns = await db.unsafe<{ column_name: string; table_name: string }[]>(`
       SELECT table_name, column_name
       FROM information_schema.columns
       WHERE table_name IN ('connectors', 'skills')
     `);
-    const names = columns.rows.map((row) => `${row.table_name}.${row.column_name}`);
+    const names = columns.map((row) => `${row.table_name}.${row.column_name}`);
 
     expect(names).toEqual(
       expect.arrayContaining([
@@ -66,36 +77,38 @@ describe("COD-339 migration", () => {
         "skills.sources",
       ]),
     );
-    const indexes = await db.query<{ indexname: string }>(`
+    const indexes = await db.unsafe<{ indexname: string }[]>(`
       SELECT indexname FROM pg_indexes WHERE indexname = 'connectors_signature_idx'
     `);
-    expect(indexes.rows).toHaveLength(1);
+    expect(indexes).toHaveLength(1);
 
-    await db.close();
+    await db.end();
   });
 
   it("backfills existing manual rows without changing their public configuration", async () => {
-    const db = new PGlite();
+    const db = postgres(databaseUrl, { onnotice: () => {} });
     await applyMigrations(db, "0002_routines_claude_spec.sql");
-    await db.exec(`
+    await db.unsafe(`
       INSERT INTO "connectors" ("id", "name", "method", "config")
         VALUES ('manual-mcp', 'Manual MCP', 'mcp', '{"transport":"stdio","command":"npx"}'::jsonb);
       INSERT INTO "skills" ("id", "name", "label", "description", "category")
         VALUES ('manual-skill', 'manual-skill', 'Manual Skill', 'Description', 'manual');
     `);
-    const migration = readFileSync(pgliteMigration, "utf8")
+    const migrationSql = readFileSync(migration, "utf8")
       .split("--> statement-breakpoint")
       .map((statement) => statement.trim())
       .filter(Boolean);
-    for (const statement of migration) await db.exec(statement);
+    for (const statement of migrationSql) await db.unsafe(statement);
 
-    const connectors = await db.query<{
-      config: unknown;
-      encrypted_credentials: unknown;
-      origin: string;
-      sources: unknown;
-    }>(`SELECT config, encrypted_credentials, origin, sources FROM connectors`);
-    expect(connectors.rows).toEqual([
+    const connectors = await db.unsafe<
+      {
+        config: unknown;
+        encrypted_credentials: unknown;
+        origin: string;
+        sources: unknown;
+      }[]
+    >(`SELECT config, encrypted_credentials, origin, sources FROM connectors`);
+    expect(connectors).toEqual([
       {
         config: { transport: "stdio", command: "npx" },
         encrypted_credentials: {},
@@ -103,11 +116,11 @@ describe("COD-339 migration", () => {
         sources: [],
       },
     ]);
-    const skills = await db.query<{ origin: string; sources: unknown }>(
+    const skills = await db.unsafe<{ origin: string; sources: unknown }[]>(
       `SELECT origin, sources FROM skills WHERE id = 'manual-skill'`,
     );
-    expect(skills.rows).toEqual([{ origin: "manual", sources: [] }]);
+    expect(skills).toEqual([{ origin: "manual", sources: [] }]);
 
-    await db.close();
+    await db.end();
   });
 });

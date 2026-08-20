@@ -1,5 +1,12 @@
 {
   "$schema": "https://turborepo.dev/schema.json",
+  "globalEnv": [
+    "DATABASE_URL",
+    "ORDINE_CREATE_TEST_DATABASE_URL",
+    "ORDINE_DB_SCHEMA_TEST_DATABASE_URL",
+    "ORDINE_MODELS_TEST_DATABASE_URL",
+    "PLAYWRIGHT_DATABASE_URL"
+  ],
   "ui": "tui",
   "tasks": {
     "build": {

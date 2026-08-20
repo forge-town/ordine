@@ -1,13 +1,24 @@
-import { PGlite } from "@electric-sql/pglite";
+import postgres from "postgres";
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { PipelineAssetSchema } from "@repo/schemas";
 
 const rootDir = join(import.meta.dirname, "../../../../");
 const migrationsDir = join(rootDir, "apps/create/migrations");
+const testDatabaseUrl = new URL(
+  process.env.DATABASE_URL ?? "postgresql://postgres:postgres@localhost:5432/ordine",
+);
+testDatabaseUrl.pathname = "/ordine_db_schema_test";
+const databaseUrl = process.env.ORDINE_DB_SCHEMA_TEST_DATABASE_URL ?? testDatabaseUrl.toString();
 
-const applyMigrations = async (db: PGlite) => {
+beforeEach(async () => {
+  const db = postgres(databaseUrl, { onnotice: () => {} });
+  await db.unsafe("DROP SCHEMA public CASCADE; CREATE SCHEMA public");
+  await db.end();
+});
+
+const applyMigrations = async (db: ReturnType<typeof postgres>) => {
   const files = readdirSync(migrationsDir)
     .filter((file) => file.endsWith(".sql"))
     .sort();
@@ -19,7 +30,7 @@ const applyMigrations = async (db: PGlite) => {
       .filter(Boolean);
 
     for (const statement of statements) {
-      await db.exec(statement);
+      await db.unsafe(statement);
     }
   }
 };
@@ -53,14 +64,14 @@ const baseAsset = {
 
 describe("pipeline_assets round-trip", () => {
   it("inserts, reads and parses a valid pipeline asset", async () => {
-    const db = new PGlite();
+    const db = postgres(databaseUrl, { onnotice: () => {} });
     await applyMigrations(db);
 
-    await db.exec(`
+    await db.unsafe(`
       INSERT INTO pipelines (id, name) VALUES ('pipeline-1', 'Test Pipeline');
     `);
 
-    await db.query(
+    await db.unsafe(
       `
       INSERT INTO pipeline_assets (
         id, pipeline_id, name, description, snapshot_nodes, snapshot_edges,
@@ -74,33 +85,35 @@ describe("pipeline_assets round-trip", () => {
         baseAsset.pipeline_id,
         baseAsset.name,
         baseAsset.description,
-        JSON.stringify(baseAsset.snapshot_nodes),
-        JSON.stringify(baseAsset.snapshot_edges),
-        JSON.stringify(baseAsset.input_slots),
+        baseAsset.snapshot_nodes,
+        baseAsset.snapshot_edges,
+        baseAsset.input_slots,
         baseAsset.total_runs,
         baseAsset.success_rate,
         baseAsset.avg_duration_ms,
-        JSON.stringify(baseAsset.tags),
+        baseAsset.tags,
       ],
     );
 
-    const result = await db.query<{
-      id: string;
-      pipeline_id: string;
-      name: string;
-      description: string;
-      snapshot_nodes: unknown;
-      snapshot_edges: unknown;
-      input_slots: unknown;
-      total_runs: number;
-      success_rate: string | null;
-      avg_duration_ms: number | null;
-      tags: unknown;
-      created_at: string;
-      updated_at: string;
-    }>(`SELECT * FROM pipeline_assets WHERE id = 'asset-1'`);
+    const result = await db.unsafe<
+      {
+        id: string;
+        pipeline_id: string;
+        name: string;
+        description: string;
+        snapshot_nodes: unknown;
+        snapshot_edges: unknown;
+        input_slots: unknown;
+        total_runs: number;
+        success_rate: string | null;
+        avg_duration_ms: number | null;
+        tags: unknown;
+        created_at: string;
+        updated_at: string;
+      }[]
+    >(`SELECT * FROM pipeline_assets WHERE id = 'asset-1'`);
 
-    const row = result.rows[0];
+    const row = result[0];
     expect(row).toBeDefined();
     if (!row) throw new Error("pipeline_assets row not found");
 
@@ -123,7 +136,7 @@ describe("pipeline_assets round-trip", () => {
     expect(parsed.tags).toEqual(["translation"]);
     expect(parsed.snapshotNodes).toHaveLength(1);
 
-    await db.close();
+    await db.end();
   });
 
   it("rejects a pipeline asset without tags at the schema level", () => {

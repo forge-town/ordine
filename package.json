@@ -17,6 +17,9 @@
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",
+    "db:up": "docker compose up -d --wait postgres && docker compose exec -T postgres sh /usr/local/bin/ensure-test-databases",
+    "db:down": "docker compose down",
+    "db:logs": "docker compose logs -f postgres",
     "test": "turbo run test -- --run",
     "lint": "turbo run lint",
     "format": "oxfmt --config packages/oxc-formatter-config/oxfmt.json --write \"**/*.{js,jsx,ts,tsx,json,jsonc,md}\" \"!apps/scripts/src/best-practices/**/code-snippet.*\"",

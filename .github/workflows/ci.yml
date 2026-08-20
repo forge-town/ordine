@@ -16,6 +16,23 @@ concurrency:
 jobs:
   check:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: ordine
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d ordine"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/ordine
+      PLAYWRIGHT_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/ordine_playwright
     steps:
       - uses: actions/checkout@v4
         with:
@@ -27,6 +44,15 @@ jobs:
 
       - name: Install dependencies
         run: bun install --frozen-lockfile
+
+      - name: Create test databases
+        env:
+          PGPASSWORD: postgres
+        run: |
+          psql -h localhost -U postgres -d postgres -c 'CREATE DATABASE ordine_create_test'
+          psql -h localhost -U postgres -d postgres -c 'CREATE DATABASE ordine_db_schema_test'
+          psql -h localhost -U postgres -d postgres -c 'CREATE DATABASE ordine_models_test'
+          psql -h localhost -U postgres -d postgres -c 'CREATE DATABASE ordine_playwright'
 
       - name: Format check (changed files)
         env:

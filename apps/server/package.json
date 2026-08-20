@@ -23,6 +23,7 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@ordine/create": "workspace:*",
     "@repo/typescript-config": "workspace:*",
     "typescript": "5.9.2",
     "vitest": "^4.1.4"

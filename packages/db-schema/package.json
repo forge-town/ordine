@@ -22,9 +22,9 @@
     "drizzle-orm": "^0.45.2"
   },
   "devDependencies": {
-    "@electric-sql/pglite": "0.4.5",
     "@repo/typescript-config": "workspace:*",
     "@types/node": "^22.10.2",
+    "postgres": "^3.4.8",
     "typescript": "5.9.2",
     "vitest": "^4.1.4"
   }
