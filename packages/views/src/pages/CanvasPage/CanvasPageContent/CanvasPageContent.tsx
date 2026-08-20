@@ -4,14 +4,19 @@ import "../canvas.css";
 import { CanvasInner } from "../CanvasInner";
 
 export const CanvasPageContent = ({
-  onGeneratedPipeline,
+  onGeneratedPipeline: handleGeneratedPipeline,
+  showCanvasMiniSidebar = true,
 }: {
   onGeneratedPipeline?: (pipelineId: string) => Promise<void> | void;
+  showCanvasMiniSidebar?: boolean;
 }) => {
   return (
     <div className="h-full w-full overflow-hidden">
       <ReactFlowProvider>
-        <CanvasInner onGeneratedPipeline={onGeneratedPipeline} />
+        <CanvasInner
+          showCanvasMiniSidebar={showCanvasMiniSidebar}
+          onGeneratedPipeline={handleGeneratedPipeline}
+        />
       </ReactFlowProvider>
     </div>
   );

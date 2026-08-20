@@ -9,11 +9,13 @@ const pipelines = [
     id: "pipeline-1",
     name: "Release notes",
     description: "Create a changelog from merged pull requests",
+    status: "ready",
   },
   {
     id: "pipeline-2",
     name: "Issue triage",
     description: "Classify new issues",
+    status: "draft",
   },
 ];
 
@@ -75,6 +77,15 @@ describe("SearchPipelineDialog", () => {
 
     expect(screen.getByText("Issue triage")).toBeInTheDocument();
     expect(screen.queryByText("Release notes")).not.toBeInTheDocument();
+    expect(screen.getByText("draft")).toBeInTheDocument();
+  });
+
+  it("shows the Alan-style empty guidance before a query", () => {
+    searchStore.setState({ searchOpen: true });
+    render(<SearchPipelineDialog />);
+
+    expect(screen.getByText("搜索你的流水线工作区。")).toBeInTheDocument();
+    expect(screen.queryByText("Release notes")).not.toBeInTheDocument();
   });
 
   it("navigates to the selected pipeline canvas", async () => {
@@ -82,6 +93,7 @@ describe("SearchPipelineDialog", () => {
     searchStore.setState({ searchOpen: true });
     render(<SearchPipelineDialog />);
 
+    await user.type(await screen.findByRole("textbox", { name: /搜索/ }), "release");
     await user.click(screen.getByRole("button", { name: /Release notes/ }));
 
     expect(navigate).toHaveBeenCalledWith({

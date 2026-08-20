@@ -27,7 +27,12 @@ function RouteComponent() {
         </div>
       }
     >
-      <CanvasPage id={id} onGeneratedPipeline={handleGeneratedPipeline} />
+      <CanvasPage
+        embedded
+        id={id}
+        showCanvasMiniSidebar={false}
+        onGeneratedPipeline={handleGeneratedPipeline}
+      />
     </Suspense>
   );
 }

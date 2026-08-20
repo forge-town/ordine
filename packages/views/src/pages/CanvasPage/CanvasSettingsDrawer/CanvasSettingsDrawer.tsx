@@ -16,13 +16,7 @@ import { Link } from "@tanstack/react-router";
 import { Button } from "@repo/ui/button";
 import { Label } from "@repo/ui/label";
 import { Textarea } from "@repo/ui/textarea";
-import {
-  Sheet,
-  SheetClose,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from "@repo/ui/sheet";
+import { Sheet, SheetClose, SheetContent, SheetHeader, SheetTitle } from "@repo/ui/sheet";
 import { cn } from "@repo/ui/lib/utils";
 import { useCanvasPageStore, type CanvasSettingsState } from "../_store";
 
@@ -80,7 +74,7 @@ export const CanvasSettingsDrawer = () => {
   return (
     <Sheet open={isOpen} onOpenChange={handleOpenChange}>
       <SheetContent
-        className="w-[min(24rem,calc(100vw-1rem))] max-w-sm gap-0 border-l bg-surface/95 p-0 backdrop-blur"
+        className="drawer-in w-[min(24rem,calc(100vw-1rem))] max-w-sm gap-0 border-l bg-surface/95 p-0 backdrop-blur"
         showCloseButton={false}
         side="right"
       >

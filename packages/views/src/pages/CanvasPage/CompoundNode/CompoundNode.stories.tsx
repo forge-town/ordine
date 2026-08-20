@@ -30,7 +30,7 @@ const meta: Meta<typeof CompoundNode> = {
     docs: {
       description: {
         component:
-          "Compound node frame used to group related Canvas nodes. Docs stories check selected and child-count states.",
+          "Variable-size compound parent frame with Alan's neutral node surface, editable label, child count, and edge ports.",
       },
     },
   },
@@ -43,7 +43,7 @@ export const Default: Story = {
   parameters: {
     docs: {
       description: {
-        story: "Group frame with two child nodes.",
+        story: "Neutral variable-size group frame with two child nodes.",
       },
     },
   },
@@ -56,7 +56,7 @@ export const Selected: Story = {
   parameters: {
     docs: {
       description: {
-        story: "Selected group frame state.",
+        story: "Selected group frame with the neutral selection ring.",
       },
     },
   },

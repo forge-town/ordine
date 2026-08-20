@@ -66,6 +66,21 @@ export const PipelinesPageContent = () => {
     return [...tagSet].sort();
   }, [pipelinesData]);
 
+  const filterCounts = useMemo(() => {
+    const items = pipelinesData ?? [];
+
+    return {
+      all: items.length,
+      drafts: items.filter((pipeline) => pipeline.status === "draft").length,
+      savedSkills: items.filter(
+        (pipeline) => metricsByPipeline.get(pipeline.id)?.isSavedSkill === true,
+      ).length,
+      scheduled: items.filter(
+        (pipeline) => metricsByPipeline.get(pipeline.id)?.isScheduled === true,
+      ).length,
+    };
+  }, [metricsByPipeline, pipelinesData]);
+
   const filtered = useMemo(() => {
     return filterPipelines({
       pipelines: pipelinesData ?? [],
@@ -141,17 +156,18 @@ export const PipelinesPageContent = () => {
       />
 
       {/* Toolbar */}
-      <div className="flex flex-col gap-2 border-b border-border bg-background px-4 py-3 sm:px-7">
-        <div className="flex flex-wrap items-center justify-between gap-2">
+      <div className="flex flex-col gap-2 px-7 pb-3.5">
+        <div className="flex flex-wrap items-center gap-2">
           <div
             aria-label={t("pipelines.filters.label")}
-            className="flex flex-wrap gap-1"
+            className="flex items-center gap-0.5"
             role="group"
           >
             {filterKeys.map((filter) => (
               <Chip
                 key={filter}
                 active={activeFilter === filter}
+                count={filterCounts[filter]}
                 onClick={() => handleFilterChange(filter)}
               >
                 {t(`pipelines.filters.${filter}`)}
@@ -159,10 +175,12 @@ export const PipelinesPageContent = () => {
             ))}
           </div>
           <SearchInput
-            className="w-full sm:w-64"
+            className="ml-auto w-full sm:w-60"
             clearLabel={t("common.clearSearch")}
             label={t("common.search")}
-            placeholder={t("common.search")}
+            placeholder={t("pipelines.searchPlaceholder", {
+              defaultValue: "Search pipelines...",
+            })}
             value={search}
             onChange={handleSearchInputChange}
             onClear={handleClearSearchButtonClick}
@@ -194,28 +212,36 @@ export const PipelinesPageContent = () => {
       </div>
 
       {/* Grid */}
-      <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-8 pt-4 sm:px-7">
+      <div className="min-h-0 flex-1 overflow-y-auto px-7 pb-8">
         {filtered.length === 0 ? (
-          <div className="flex h-40 flex-col items-center justify-center gap-3 text-center text-muted-foreground">
+          <div className="grid place-items-center rounded-2xl bg-surface-2/50 py-16 text-center text-muted-foreground">
             <Layers className="h-8 w-8 text-muted-foreground/30" />
-            <p className="text-sm">
+            <p className="mt-2 text-[13px] font-medium text-foreground">
               {pipelines.length === 0 ? t("pipelines.noPipelines") : t("common.noResults")}
+            </p>
+            <p className="mt-0.5 text-[11.5px] text-muted-foreground">
+              {t("pipelines.emptyDescription", {
+                defaultValue: "Create a draft or try a different search term.",
+              })}
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
-            {filtered.map((p) => (
-              <PipelineCard
-                key={p.id}
-                metrics={metricsByPipeline.get(p.id)!}
-                pipeline={p}
-                onSchedule={
-                  routinesQuery?.isLoading || routinesQuery?.isError
-                    ? undefined
-                    : handleScheduleOpen(p.id)
-                }
-              />
-            ))}
+          <div className="grid grid-cols-1 gap-3.5 xl:grid-cols-2 2xl:grid-cols-3">
+            {filtered.map((p) => {
+              const handlePipelineSchedule =
+                routinesQuery?.isLoading || routinesQuery?.isError
+                  ? undefined
+                  : handleScheduleOpen(p.id);
+
+              return (
+                <PipelineCard
+                  key={p.id}
+                  metrics={metricsByPipeline.get(p.id)!}
+                  pipeline={p}
+                  onSchedule={handlePipelineSchedule}
+                />
+              );
+            })}
           </div>
         )}
       </div>

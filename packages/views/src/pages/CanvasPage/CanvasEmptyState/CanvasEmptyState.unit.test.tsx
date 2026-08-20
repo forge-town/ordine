@@ -26,9 +26,25 @@ describe("CanvasEmptyState", () => {
     expect(store.getState().isQuickAddOpen).toBe(true);
   });
 
-  it("shows the right-click creation hint", () => {
+  it("uses the centered Alan empty-state layout without the context hint", () => {
     renderEmptyState();
 
-    expect(screen.getByText(/right-click blank canvas|画布空白处右键/)).toBeInTheDocument();
+    expect(screen.getByTestId("canvas-v2-empty-state")).toHaveClass(
+      "pointer-events-none",
+      "absolute",
+      "inset-0",
+      "z-10",
+      "grid",
+      "place-items-center",
+      "px-6",
+    );
+    expect(screen.getByRole("heading")).toHaveClass("text-base");
+    expect(screen.queryByText(/right-click blank canvas|画布空白处右键/)).not.toBeInTheDocument();
+  });
+
+  it("leaves room for the open component panel on desktop", () => {
+    renderEmptyState();
+
+    expect(screen.getByTestId("canvas-v2-empty-state")).toHaveClass("min-[1181px]:pl-[246px]");
   });
 });

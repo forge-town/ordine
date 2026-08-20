@@ -80,7 +80,7 @@ export const NavGroup = ({
     {separated && <SidebarSeparator className="my-1 bg-sidebar-border/60" />}
     <SidebarGroup aria-label={ariaLabel} className="px-2! py-0!">
       {label && (
-        <SidebarGroupLabel className="h-8 px-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground group-data-[collapsible=icon]:sr-only">
+        <SidebarGroupLabel className="h-8 px-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-foreground/70 group-data-[collapsible=icon]:sr-only">
           {label}
         </SidebarGroupLabel>
       )}

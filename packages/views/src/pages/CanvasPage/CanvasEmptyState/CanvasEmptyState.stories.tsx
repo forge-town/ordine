@@ -19,7 +19,7 @@ const meta: Meta<typeof CanvasEmptyState> = {
     docs: {
       description: {
         component:
-          "Empty-canvas entry card shown when the pipeline has no nodes. It gives first-time users a quick-add action and a right-click creation hint without blocking canvas interactions outside the card.",
+          "Centered empty-canvas entry state shown when the pipeline has no nodes. It gives first-time users the same quick-add action used by the canvas toolbar.",
       },
     },
   },
@@ -33,7 +33,7 @@ export const Default: Story = {
   parameters: {
     docs: {
       description: {
-        story: "Centered first-run card with the same quick-add action used by the toolbar.",
+        story: "Centered first-run empty state with the same quick-add action used by the toolbar.",
       },
     },
   },

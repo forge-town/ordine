@@ -62,6 +62,8 @@
     "library": "Library",
     "knowledge": "Knowledge",
     "search": "Search...",
+    "sidebarFilterPlaceholder": "Filter navigation...",
+    "searchPipelinesHint": "Search across your pipeline workspaces.",
     "newPipeline": "New Pipeline",
     "preview": "Preview",
     "plugins": "Plugins",
@@ -549,6 +551,24 @@
         "description": "Align dragged nodes to the canvas grid."
       }
     },
+    "edgeInspector": {
+      "clear": "Clear",
+      "close": "Close",
+      "condition": "Condition",
+      "dropped": "dropped",
+      "flow": "Flow",
+      "maxRetries": "Max retries",
+      "noMappings": "New connection · fields are inferred at run time.",
+      "noTransform": "No transform steps.",
+      "onFail": "On fail",
+      "qualityGate": "Quality Gate",
+      "qualityPlaceholder": "non-empty or required text",
+      "sourceField": "Source field",
+      "targetInput": "Target input",
+      "title": "Data Contract",
+      "toggleHint": "Tap a field to toggle downstream flow · {{enabled}}/{{total}} on",
+      "transform": "Transform"
+    },
     "collapseSidebar": "Collapse sidebar",
     "expandSidebar": "Expand sidebar",
     "nodeLibrary": "Node Library",
@@ -584,8 +604,14 @@
     "aiMode": "AI Mode",
     "agentPanel": {
       "toggle": "AI Assistant",
-      "title": "AI Assistant",
+      "title": "Agent",
       "welcome": "Hi! I'm your AI assistant. Tell me what you'd like to do with your pipeline and I'll suggest operations.",
+      "empty": {
+        "intro": "New canvas — tell me what to make, or drop a finished sample and I'll reverse-engineer the pipeline behind it.",
+        "suggestChangelog": "Summarize a GitHub repo into a changelog",
+        "suggestQuiz": "Turn my textbook PDFs into a Notion quiz",
+        "suggestReverse": "Upload a finished sample → reverse-engineer it"
+      },
       "thinking": "Thinking...",
       "proposal": "Proposed Operations",
       "proposalReceived": "I've received a proposal. Review it below and choose to apply or discard.",
@@ -595,25 +621,91 @@
       "applied": "Proposal applied.",
       "discarded": "Proposal discarded.",
       "diagnostics": "Diagnostics",
-      "error": "Request failed. Please try again later.",
+      "requestFailed": "Request failed. Please try again later.",
       "errorTitle": "AI Assistant Error",
       "close": "Close AI assistant",
+      "resize": "Resize AI assistant",
+      "reopen": "Open AI assistant",
       "send": "Send request",
+      "upload": "Upload context",
+      "revise": "Revise plan",
       "runtimeLabel": "Runtime",
       "runtimePlaceholder": "Select a configured runtime",
       "runtimeLoading": "Loading runtimes...",
       "inputPlaceholder": "Type your request...",
       "runtimeNotConfigured": "AI runtime is not configured yet.",
       "goToRuntimeSettings": "Go to configuration",
+      "messageActions": {
+        "copy": "Copy message",
+        "copied": "Copied",
+        "edit": "Edit message",
+        "retry": "Retry message"
+      },
       "proposalDetails": {
         "review": "Review the proposed operations",
         "needsAnswer": "Needs more information before applying",
-        "openQuestion": "Open question"
-      }
+        "openQuestion": "Open question",
+        "askFix": "Fix diagnostics",
+        "fixDiagnostics": "Please fix the blocking diagnostics in the proposal.",
+        "revisePrompt": "Please revise this proposal.",
+        "newOperationBadge": "new op",
+        "loopBadge": "loop x{{count}}",
+        "actionTitles": {
+          "addNode": "Add node: {{nodeType}}",
+          "removeNode": "Remove node",
+          "addEdge": "Add edge",
+          "removeEdge": "Remove edge",
+          "reconnectEdge": "Reconnect edge",
+          "replaceNodeData": "Replace node data",
+          "updateOperation": "Update operation executor"
+        }
+      },
+      "checkpoint": {
+        "waiting": "Waiting for review at {{node}}",
+        "nextNode": "the next node",
+        "controls": "Run checkpoint controls",
+        "pause": "Pause",
+        "resume": "Resume",
+        "review": "Review"
+      },
+      "error": {
+        "title": "Request failed",
+        "tryPrefix": "Try:"
+      },
+      "errorActions": {
+        "openSettings": "Open runtime settings",
+        "retry": "Retry request"
+      },
+      "userAction": {
+        "title": "Action needed ({{count}})",
+        "openConfig": "Open config",
+        "askAgent": "Ask assistant"
+      },
+      "reversing": {
+        "steps": {
+          "structure": "Read structure",
+          "structureDetail": "Understand the current graph",
+          "steps": "Map steps",
+          "stepsDetail": "Identify the requested operations",
+          "matched": "Match nodes",
+          "matchedDetail": "Match operations to the graph",
+          "draft": "Draft proposal",
+          "draftDetail": "Prepare a safe change"
+        }
+      },
+      "action": {
+        "addNode": "Add node: {{type}}",
+        "removeNode": "Remove node: {{nodeId}}",
+        "addEdge": "Add edge: {{source}} → {{target}}",
+        "removeEdge": "Remove edge: {{edgeId}}",
+        "reconnectEdge": "Reconnect edge: {{edgeId}}",
+        "replaceNodeData": "Replace node data: {{nodeId}}"
+      },
+      "contextReset": "The canvas changed, so the attached context was cleared."
     },
     "emptyState": {
-      "title": "Start with a node",
-      "description": "Add an input object or Operation to shape the first pipeline path.",
+      "title": "Start with a node...",
+      "description": "Start with a node, then connect inputs, operations, and outputs into a runnable pipeline.",
       "quickAdd": "Quick add node",
       "contextHint": "You can also right-click blank canvas space to create nodes."
     },
@@ -667,6 +759,20 @@
       "saveSuccessDescription": "Pipeline \"{{name}}\" was saved",
       "createSuccessDescription": "Pipeline \"{{name}}\" was created",
       "saveFailedDescription": "Please try again later"
+    },
+    "componentPanel": {
+      "searchLabel": "Search components",
+      "searchPlaceholder": "Search components...",
+      "categoryAriaLabel": "{{label}} category",
+      "skillFallbackLabel": "Skill",
+      "newCustomOperation": "New Custom Operation",
+      "categories": {
+        "input": "Input Objects",
+        "operations": "Operations",
+        "compound": "Compound",
+        "skills": "Skills",
+        "output": "Output"
+      }
     },
     "nodeTypes": {
       "operation": {
@@ -1315,7 +1421,32 @@
     "createPipeline": "Create one",
     "objectsCount": "{{count}} objects",
     "noPipelineSelected": "\u2014 No pipeline selected",
-    "entireProject": "Entire project"
+    "entireProject": "Entire project",
+    "canvas": {
+      "edges": {
+        "defaultLabel": "data"
+      },
+      "chrome": {
+        "states": {
+          "cancelled": "Cancelled",
+          "done": "Done",
+          "failed": "Failed",
+          "idle": "Idle",
+          "queued": "Queued",
+          "retrying": "Retrying",
+          "running": "Running",
+          "skipped": "Skipped",
+          "title": "Node run states",
+          "trigger": "States",
+          "waitingForUser": "Waiting for user"
+        }
+      },
+      "nodeConfig": {
+        "close": "Close",
+        "done": "Done",
+        "editable": "Editable"
+      }
+    }
   },
   "validation": {
     "nameRequired": "Name is required",

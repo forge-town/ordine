@@ -43,7 +43,7 @@ const WebUserFooter = () => {
             </Avatar>
             <div className="flex flex-1 flex-col overflow-hidden group-data-[state=collapsed]/sidebar:hidden">
               <span className="truncate text-xs font-medium">{session?.user?.name ?? "User"}</span>
-              <span className="truncate text-[10px] text-muted-foreground">
+              <span className="truncate text-[10px] text-foreground/70">
                 {session?.user?.email ?? ""}
               </span>
             </div>

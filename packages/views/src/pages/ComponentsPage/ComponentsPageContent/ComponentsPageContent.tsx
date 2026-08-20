@@ -99,6 +99,24 @@ export const ComponentsPageContent = () => {
     editingItem?.source === "asset"
       ? assets.find((asset) => asset.id === editingItem.id)
       : undefined;
+  const handleFindClick = () => setFindOpen(true);
+  const handleNewOperationClick = () => void navigate({ to: "/pipelines/operations/new" });
+  const handleDistillSkillClick = () => void navigate({ to: "/distillations" });
+  const handleCategoryClick = (category: ActiveCategory) => () => setActive(category);
+  const handleSearchChange = (value: string) => setSearch(value);
+  const handleSearchClear = () => setSearch("");
+  const handleEditorOpenChange = (open: boolean) => {
+    if (!open) setEditingItem(null);
+  };
+  const handleDeleteConfirm = () => void handleConfirmDelete();
+  const handleDeleteOpenChange = (open: boolean) => {
+    if (!open) {
+      deleteUsageRequestId.current += 1;
+      setPendingDelete(null);
+      setDeleteUsageCount(null);
+    }
+  };
+  const handleFindOpenChange = (open: boolean) => setFindOpen(open);
 
   const handleEdit = (item: ComponentCardItem) => {
     if (item.source === "operation") {
@@ -169,7 +187,7 @@ export const ComponentsPageContent = () => {
       <PageHeader
         actions={
           <>
-            <Button size="sm" variant="ghost" onClick={() => setFindOpen(true)}>
+            <Button size="sm" variant="ghost" onClick={handleFindClick}>
               <Search className="h-3.5 w-3.5" />
               {t("components.findForMe.title")}
             </Button>
@@ -179,13 +197,11 @@ export const ComponentsPageContent = () => {
                 {t("components.newComponent")}
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuItem
-                  onClick={() => void navigate({ to: "/pipelines/operations/new" })}
-                >
+                <DropdownMenuItem onClick={handleNewOperationClick}>
                   <Cpu className="h-4 w-4" />
                   {t("components.newOperation")}
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => void navigate({ to: "/distillations" })}>
+                <DropdownMenuItem onClick={handleDistillSkillClick}>
                   <Workflow className="h-4 w-4" />
                   {t("components.distillSkill")}
                 </DropdownMenuItem>
@@ -199,7 +215,10 @@ export const ComponentsPageContent = () => {
         title={t("components.title")}
       />
 
-      <div className="flex shrink-0 flex-col gap-2 border-b border-border px-4 py-3 sm:flex-row sm:items-center sm:px-7">
+      <div
+        className="flex shrink-0 flex-col gap-2 px-4 pb-3.5 sm:flex-row sm:items-center sm:px-7"
+        data-testid="components-toolbar"
+      >
         <div className="flex min-w-0 items-center gap-0.5 overflow-x-auto pb-1 sm:pb-0">
           {CATEGORIES.map((category) => (
             <Chip
@@ -207,7 +226,7 @@ export const ComponentsPageContent = () => {
               active={active === category}
               className="shrink-0"
               count={counts[category]}
-              onClick={() => setActive(category)}
+              onClick={handleCategoryClick(category)}
             >
               {t(`components.categories.${category}`)}
             </Chip>
@@ -219,12 +238,12 @@ export const ComponentsPageContent = () => {
           label={t("components.searchLabel")}
           placeholder={t("components.searchPlaceholder")}
           value={search}
-          onChange={setSearch}
-          onClear={() => setSearch("")}
+          onChange={handleSearchChange}
+          onClear={handleSearchClear}
         />
       </div>
 
-      <div className="min-h-0 flex-1 space-y-6 overflow-y-auto px-4 pb-8 pt-4 sm:px-7">
+      <div className="min-h-0 flex-1 space-y-6 overflow-y-auto px-4 pb-8 sm:px-7">
         {sections.map(({ category, items: sectionItems }) =>
           sectionItems.length > 0 ? (
             <section key={category} aria-labelledby={`component-section-${category}`}>
@@ -238,7 +257,7 @@ export const ComponentsPageContent = () => {
                   {sectionItems.length}
                 </span>
               </div>
-              <div className="grid grid-cols-1 gap-3 md:grid-cols-2 2xl:grid-cols-3">
+              <div className="grid grid-cols-1 gap-3 xl:grid-cols-2 2xl:grid-cols-3">
                 {sectionItems.map((item) => (
                   <ComponentCard
                     key={`${item.source}-${item.id}`}
@@ -252,7 +271,7 @@ export const ComponentsPageContent = () => {
           ) : null,
         )}
         {filteredItems.length === 0 && (
-          <div className="grid min-h-52 place-items-center py-10 text-center">
+          <div className="grid min-h-52 place-items-center rounded-2xl bg-surface-2/50 py-10 text-center">
             <div>
               <Boxes className="mx-auto h-7 w-7 text-muted-foreground/40" />
               <p className="mt-3 text-[13px] font-medium">{t("components.empty.title")}</p>
@@ -266,29 +285,21 @@ export const ComponentsPageContent = () => {
 
       {editingItem && editingAsset && (
         <ComponentEditor
+          open
           key={editingItem.id}
           asset={editingAsset}
           item={editingItem}
-          open
-          onOpenChange={(open) => {
-            if (!open) setEditingItem(null);
-          }}
+          onOpenChange={handleEditorOpenChange}
         />
       )}
       <DeleteComponentDialog
         item={pendingDelete}
         open={!!pendingDelete}
         usageCount={deleteUsageCount}
-        onConfirm={() => void handleConfirmDelete()}
-        onOpenChange={(open) => {
-          if (!open) {
-            deleteUsageRequestId.current += 1;
-            setPendingDelete(null);
-            setDeleteUsageCount(null);
-          }
-        }}
+        onConfirm={handleDeleteConfirm}
+        onOpenChange={handleDeleteOpenChange}
       />
-      <FindForMeModal open={findOpen} operations={operations} onOpenChange={setFindOpen} />
+      <FindForMeModal open={findOpen} operations={operations} onOpenChange={handleFindOpenChange} />
     </div>
   );
 };

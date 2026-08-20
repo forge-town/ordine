@@ -70,10 +70,11 @@ describe("ProjectSwitcher", () => {
   it("inherits the sidebar header padding so its icon aligns with navigation items", () => {
     renderSwitcher();
 
-    const trigger = screen.getByRole("button", { name: "项目: 所有项目" });
+    const trigger = screen.getByRole("button", { name: "项目" });
 
     expect(trigger.parentElement).toHaveClass("py-2");
     expect(trigger.parentElement).not.toHaveClass("px-2");
+    expect(trigger).toHaveClass("h-9", "w-full");
   });
 
   it("shows all projects by default and lets the user switch the project filter", async () => {
@@ -81,13 +82,13 @@ describe("ProjectSwitcher", () => {
 
     await waitFor(() => expect(store.getState().currentProjectId).toBeNull());
     expect(screen.getByText("所有项目")).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "项目: 所有项目" }));
+    fireEvent.click(screen.getByRole("button", { name: "项目" }));
     fireEvent.click(await screen.findByText("Beta"));
 
     expect(store.getState().currentProjectId).toBe("project-2");
     expect(localStorage.getItem("ordine.sidebar.currentProjectId")).toBe("project-2");
 
-    fireEvent.click(screen.getByRole("button", { name: "项目: Beta" }));
+    fireEvent.click(screen.getByRole("button", { name: "项目" }));
     fireEvent.click(await screen.findByRole("menuitem", { name: "所有项目" }));
 
     expect(store.getState().currentProjectId).toBeNull();
@@ -98,7 +99,7 @@ describe("ProjectSwitcher", () => {
     createProject.mockResolvedValue({ data: { ...projects[0], id: "project-3", name: "Gamma" } });
     const store = renderSwitcher();
 
-    fireEvent.click(screen.getByRole("button", { name: "项目: 所有项目" }));
+    fireEvent.click(screen.getByRole("button", { name: "项目" }));
     fireEvent.click(await screen.findByText("新建项目"));
     fireEvent.change(screen.getByRole("textbox", { name: "项目名称" }), {
       target: { value: "Gamma" },

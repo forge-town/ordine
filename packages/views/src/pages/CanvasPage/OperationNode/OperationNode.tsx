@@ -27,7 +27,7 @@ import { useCanvasPageStore, selectNodeRunState, selectNodePortCounts } from "..
 import type { OperationNodeData, NodeRunStatus, Operation, Agent } from "@repo/schemas";
 import { useList } from "@refinedev/core";
 import { ResourceName } from "../../../constants";
-import { NodeCard } from "../NodeCard";
+import { NodeCard, useNodeCardActions } from "../NodeCard";
 
 export interface OperationNodeProps {
   id: string;
@@ -89,6 +89,7 @@ const stopCanvasInteraction = (event: SyntheticEvent) => event.stopPropagation()
 export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
   const { t } = useTranslation();
   const store = useCanvasPageStore();
+  const nodeCardActions = useNodeCardActions(id);
   const { runStatus: nodeRunStatus, dimmed } = useStore(store, useShallow(selectNodeRunState(id)));
   const nodeCardMode = useStore(store, (s) => s.nodeCardMode);
   const { result: operationsResult } = useList<Operation>({
@@ -200,8 +201,10 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
       <NodeCard
         leftHandle
         rightHandle
+        actions={nodeCardActions}
         bodyClassName="space-y-2"
         compact={nodeCardMode === "compact"}
+        detail={data.agentRuntime ?? data.agentId ?? data.operationName}
         description={operation?.description || t("nodes.operation.customDescription")}
         dimmed={dimmed}
         headerRight={
@@ -265,7 +268,7 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
               {operation.acceptedObjectTypes.map((type) => (
                 <span
                   key={type}
-                  className="rounded bg-violet-500/10 px-1.5 py-0.5 text-[9px] font-medium text-violet-700 dark:text-violet-300"
+                  className="rounded bg-surface-2 px-1.5 py-0.5 text-[9px] font-medium text-muted-foreground ring-1 ring-border"
                 >
                   {objectTypeLabels[type] ?? type}
                 </span>
@@ -316,7 +319,7 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
         </div>
 
         {hasLlmContent && (
-          <div className="flex items-center gap-1 rounded-md border border-violet-500/20 bg-violet-500/10 px-2 py-1 text-[10px] text-violet-700 dark:text-violet-300">
+          <div className="flex items-center gap-1 rounded-md border border-border bg-surface-2 px-2 py-1 text-[10px] text-muted-foreground">
             <Brain className="h-3 w-3 shrink-0" />
             <span>{t("nodes.operation.inspectLlmOutput")}</span>
           </div>
@@ -327,7 +330,7 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
             className={cn(
               "nodrag nopan flex h-8 w-full items-center gap-1.5 rounded-md border px-2.5 text-[11px] font-medium transition-colors",
               data.loopEnabled
-                ? "border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-300"
+                ? "border-border bg-surface-2 text-foreground ring-1 ring-ring"
                 : "border-border bg-surface-2 text-muted-foreground hover:bg-muted",
             )}
             type="button"
@@ -338,14 +341,14 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
           </button>
 
           {data.loopEnabled && (
-            <div className="space-y-2 rounded-md border border-amber-500/20 bg-amber-500/10 p-2.5">
+            <div className="space-y-2 rounded-md border border-border bg-surface-2 p-2.5">
               <div className="flex items-center gap-2">
-                <span className="whitespace-nowrap text-[11px] font-medium text-amber-700 dark:text-amber-300">
+                <span className="whitespace-nowrap text-[11px] font-medium text-muted-foreground">
                   {t("nodes.operation.maxLoopCount")}
                 </span>
                 <input
                   aria-label={t("nodes.operation.maxLoopCountAria")}
-                  className="nodrag nopan h-7 w-16 rounded border border-amber-500/25 bg-background px-2 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-amber-500/40"
+                  className="nodrag nopan h-7 w-16 rounded border border-border bg-background px-2 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
                   max={20}
                   min={1}
                   name={`${id}-maxLoopCount`}
@@ -357,12 +360,12 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
                 />
               </div>
               <div className="space-y-1">
-                <span className="text-[11px] font-medium text-amber-700 dark:text-amber-300">
+                <span className="text-[11px] font-medium text-muted-foreground">
                   {t("nodes.operation.acceptanceCondition")}
                 </span>
                 <textarea
                   aria-label={t("nodes.operation.loopConditionAria")}
-                  className="nodrag nopan min-h-16 w-full rounded border border-amber-500/25 bg-background px-2 py-1.5 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-amber-500/40"
+                  className="nodrag nopan min-h-16 w-full rounded border border-border bg-background px-2 py-1.5 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
                   name={`${id}-loopCondition`}
                   placeholder={t("nodes.operation.loopConditionPlaceholder")}
                   rows={2}

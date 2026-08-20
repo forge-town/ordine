@@ -75,15 +75,19 @@ const CanvasRouteComponent = () => {
 
   if (!id) {
     return (
-      <AppLayout canvasMode>
-        <CanvasPage embedded onGeneratedPipeline={handleGeneratedPipeline} />
+      <AppLayout>
+        <CanvasPage
+          embedded
+          showCanvasMiniSidebar={false}
+          onGeneratedPipeline={handleGeneratedPipeline}
+        />
       </AppLayout>
     );
   }
 
   if (id && pipelineQuery?.isLoading) {
     return (
-      <AppLayout canvasMode>
+      <AppLayout>
         <PageLoadingState variant="detail" />
       </AppLayout>
     );
@@ -91,7 +95,7 @@ const CanvasRouteComponent = () => {
 
   if (pipelineQuery?.isError) {
     return (
-      <AppLayout canvasMode>
+      <AppLayout>
         <div className="grid h-full w-full place-items-center bg-background p-6">
           <PageState
             action={
@@ -112,7 +116,7 @@ const CanvasRouteComponent = () => {
 
   if (!pipeline) {
     return (
-      <AppLayout canvasMode>
+      <AppLayout>
         <div className="grid h-full w-full place-items-center bg-background p-6">
           <PageState
             action={
@@ -132,8 +136,13 @@ const CanvasRouteComponent = () => {
   }
 
   return (
-    <AppLayout canvasMode>
-      <CanvasPage embedded id={id} onGeneratedPipeline={handleGeneratedPipeline} />
+    <AppLayout>
+      <CanvasPage
+        embedded
+        id={id}
+        showCanvasMiniSidebar={false}
+        onGeneratedPipeline={handleGeneratedPipeline}
+      />
     </AppLayout>
   );
 };

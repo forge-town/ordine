@@ -78,9 +78,7 @@ export const SettingsPageContent = () => {
             <span className="hidden sm:inline">{t("settings.sections.keyboard")}</span>
           </Button>
         }
-        eyebrow={t("nav.workspace")}
         icon={<Settings className="h-4 w-4 text-primary" />}
-        sub={t("settings.subtitle")}
         title={t("settings.title")}
       />
       <Dialog open={keyboardOpen} onOpenChange={handleKeyboardOpenChange}>
@@ -133,7 +131,7 @@ export const SettingsPageContent = () => {
         </nav>
 
         <main className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
-          <div className="mx-auto max-w-2xl space-y-6">
+          <div className="mx-auto max-w-lg space-y-6">
             {active === "language" && <LanguageSection />}
             {active === "notifications" && <NotificationsSection />}
             {active === "defaults" && <DefaultsSection />}

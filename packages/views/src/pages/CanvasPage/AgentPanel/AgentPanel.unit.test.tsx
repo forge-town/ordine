@@ -225,10 +225,15 @@ describe("AgentPanel", () => {
     mockApplyPipelineActions.mockReturnValue(ok({ nodes: [], edges: [] }));
   });
 
-  it("renders panel with title and welcome message", async () => {
+  it("renders panel with Alan-style empty guidance", async () => {
     render(<AgentPanel />, { wrapper: wrapperWithState() });
     expect(screen.getByText("canvas.agentPanel.title")).toBeInTheDocument();
-    expect(screen.getByText("canvas.agentPanel.welcome")).toBeInTheDocument();
+    expect(screen.getByText("canvas.agentPanel.empty.intro")).toBeInTheDocument();
+    expect(screen.getByTestId("agent-empty-state")).toBeInTheDocument();
+    expect(screen.getByTestId("agent-suggestions")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "canvas.agentPanel.empty.suggestQuiz" }),
+    ).toBeInTheDocument();
     expect(screen.getByText("canvas.agentPanel.runtimeLabel")).toBeInTheDocument();
     expect(
       screen.getByRole("combobox", { name: "canvas.agentPanel.runtimeLabel" }),
@@ -236,20 +241,44 @@ describe("AgentPanel", () => {
     expect(screen.getByTestId("canvas-agent-panel")).toHaveClass("bg-surface");
     expect(screen.getByTestId("canvas-agent-panel")).toHaveClass("h-full", "w-full");
     expect(screen.getByTestId("canvas-agent-panel-header")).toBeInTheDocument();
+    expect(screen.getByTestId("canvas-agent-panel-header")).toHaveClass("px-3.5", "pb-2", "pt-3");
+    expect(screen.getByTestId("canvas-agent-panel-messages")).toHaveClass(
+      "min-h-0",
+      "flex-1",
+      "space-y-3.5",
+      "overflow-y-auto",
+      "px-4",
+      "py-3",
+    );
     await waitFor(() =>
       expect(screen.getByTestId("canvas-agent-panel-status-dot")).toHaveClass("bg-success"),
     );
     expect(screen.getByTestId("canvas-agent-panel-collapse")).toBeInTheDocument();
     expect(screen.getByTestId("canvas-agent-panel-runtime-context")).toHaveClass(
-      "mx-3",
-      "mb-1",
-      "rounded-lg",
-      "bg-surface-2",
+      "h-auto",
+      "w-fit",
+      "rounded-none",
+      "border-0",
+      "bg-transparent",
     );
     expect(screen.getByPlaceholderText("workspace.agentBar.composer.placeholder")).toHaveClass(
       "bg-transparent",
     );
     expect(screen.getByTestId("agent-assistant")).toHaveClass("text-[12px]");
+  });
+
+  it("seeds the Composer for the reverse-engineering suggestion without sending", async () => {
+    const user = userEvent.setup();
+    render(<AgentPanel />, { wrapper: wrapperWithState() });
+
+    await user.click(
+      screen.getByRole("button", { name: "canvas.agentPanel.empty.suggestReverse" }),
+    );
+
+    expect(
+      screen.getByRole("textbox", { name: "workspace.agentBar.composer.messageLabel" }),
+    ).toHaveValue("canvas.agentPanel.empty.suggestReverse");
+    expect(mockCreateSession).not.toHaveBeenCalled();
   });
 
   it("auto-sends the home prompt with the runtime selected on the home page", async () => {

@@ -120,10 +120,7 @@ export const PipelineCard = ({ metrics, onSchedule, pipeline }: PipelineCardProp
             <StatusPill label={t(`pipelines.status.${pipeline.status}`)} status={pipeline.status} />
           )}
           {Object.entries(typeCounts).map(([type, count]) => (
-            <Tag
-              key={type}
-              className={cn(NODE_TYPE_COLORS[type] ?? "bg-muted text-muted-foreground")}
-            >
+            <Tag key={type} className={cn(NODE_TYPE_COLORS[type] ?? "bg-muted text-foreground/70")}>
               {count} {t(`pipelines.nodeTypes.${type}`, { defaultValue: type })}
             </Tag>
           ))}

@@ -5,7 +5,7 @@ import { OUTPUT_MODE_ENUM, type OutputMode, type LocalPathOutputNodeData } from 
 import { useStore } from "zustand";
 import { useShallow } from "zustand/shallow";
 import { useCanvasPageStore, selectNodeRunState, selectNodePortCounts } from "../_store";
-import { NodeCard } from "../NodeCard";
+import { NodeCard, useNodeCardActions } from "../NodeCard";
 import { FolderBrowserDialog } from "../../../components/FolderBrowserDialog/FolderBrowserDialog";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
@@ -29,6 +29,7 @@ const MODE_LABEL_KEYS: Record<OutputMode, string> = {
 export const OutputLocalPathNode = ({ id, data, selected }: OutputLocalPathNodeProps) => {
   const { t } = useTranslation();
   const store = useCanvasPageStore();
+  const nodeCardActions = useNodeCardActions(id);
   const {
     runStatus,
     dimmed,
@@ -97,8 +98,10 @@ export const OutputLocalPathNode = ({ id, data, selected }: OutputLocalPathNodeP
     <div className="group relative w-fit overflow-visible">
       <NodeCard
         leftHandle
+        actions={nodeCardActions}
         bodyClassName="space-y-2"
         compact={nodeCardMode === "compact"}
+        detail={data.outputMode ?? t("canvas.nodeTypes.output-local-path.label")}
         description={t("nodes.outputLocalPathNode.description")}
         dimmed={dimmed}
         icon={HardDrive}
@@ -113,12 +116,12 @@ export const OutputLocalPathNode = ({ id, data, selected }: OutputLocalPathNodeP
         theme="teal"
         onLabelChange={handleLabelChange}
       >
-        <div className="flex items-center gap-1 rounded-md bg-teal-500/10 px-2 py-1 ring-1 ring-teal-500/20">
-          <span className="shrink-0 text-[10px] font-medium text-teal-700 dark:text-teal-300">
+        <div className="flex items-center gap-1 rounded-md bg-surface-2 px-1.5 py-1 ring-1 ring-border">
+          <span className="shrink-0 text-[10px] font-medium text-muted-foreground">
             {t("nodes.outputLocalPathNode.pathLabel")}
           </span>
           <Input
-            className="nodrag nopan h-auto min-w-0 flex-1 border-none bg-transparent p-0 font-mono text-[11px] font-semibold text-foreground shadow-none focus:outline-none"
+            className="nodrag nopan h-auto min-w-0 flex-1 truncate border-none bg-transparent p-0 font-mono text-[9.5px] text-muted-foreground shadow-none focus:outline-none focus:text-foreground"
             placeholder="/Users/you/Desktop/output"
             value={data.localPath}
             onChange={handleLocalPathInputChange}
@@ -127,7 +130,7 @@ export const OutputLocalPathNode = ({ id, data, selected }: OutputLocalPathNodeP
             onMouseDown={handleStopPropagation}
           />
           <Button
-            className="nodrag nopan h-auto shrink-0 rounded p-0.5 text-teal-500 transition-colors hover:bg-teal-500/10 hover:text-teal-700 dark:hover:text-teal-300"
+            className="nodrag nopan h-auto shrink-0 rounded p-0.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
             title={t("nodes.outputLocalPathNode.browseFolder")}
             type="button"
             variant="ghost"
@@ -138,12 +141,12 @@ export const OutputLocalPathNode = ({ id, data, selected }: OutputLocalPathNodeP
           </Button>
         </div>
 
-        <div className="flex items-center gap-1 rounded-md bg-teal-500/10 px-2 py-1 ring-1 ring-teal-500/20">
-          <span className="shrink-0 text-[10px] font-medium text-teal-700 dark:text-teal-300">
+        <div className="flex items-center gap-1 rounded-md bg-surface-2 px-1.5 py-1 ring-1 ring-border">
+          <span className="shrink-0 text-[10px] font-medium text-muted-foreground">
             {t("nodes.outputLocalPathNode.filenameLabel")}
           </span>
           <Input
-            className="nodrag nopan h-auto min-w-0 flex-1 border-none bg-transparent p-0 font-mono text-[11px] font-semibold text-foreground shadow-none focus:outline-none"
+            className="nodrag nopan h-auto min-w-0 flex-1 truncate border-none bg-transparent p-0 font-mono text-[9.5px] text-muted-foreground shadow-none focus:outline-none focus:text-foreground"
             placeholder="output.md"
             value={data.outputFileName ?? ""}
             onChange={handleFileNameInputChange}
@@ -153,13 +156,13 @@ export const OutputLocalPathNode = ({ id, data, selected }: OutputLocalPathNodeP
           />
         </div>
 
-        <div className="flex items-center gap-1 rounded-md bg-teal-500/10 px-2 py-1 ring-1 ring-teal-500/20">
-          <span className="shrink-0 text-[10px] font-medium text-teal-700 dark:text-teal-300">
+        <div className="flex items-center gap-1 rounded-md bg-surface-2 px-1.5 py-1 ring-1 ring-border">
+          <span className="shrink-0 text-[10px] font-medium text-muted-foreground">
             {t("nodes.outputLocalPathNode.writeModeLabel")}
           </span>
           <Select value={currentMode} onValueChange={handleOutputModeChange}>
             <SelectTrigger
-              className="nodrag nopan h-6 min-w-0 flex-1 border-none bg-transparent px-0 py-0 text-[11px] font-semibold text-foreground shadow-none focus:ring-0"
+              className="nodrag nopan h-6 min-w-0 flex-1 border-none bg-transparent px-0 py-0 font-mono text-[9.5px] text-muted-foreground shadow-none focus:text-foreground focus:ring-0"
               onClick={handleStopPropagation}
               onMouseDown={handleStopPropagation}
             >

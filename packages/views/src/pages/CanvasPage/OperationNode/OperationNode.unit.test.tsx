@@ -67,6 +67,7 @@ const renderOperationNode = (
     handleParentClick?: () => void;
     handleParentMouseDown?: () => void;
   } = {},
+  selected = false,
 ) => {
   const node = {
     id: nodeId,
@@ -88,7 +89,7 @@ const renderOperationNode = (
     </CanvasPageStoreContext.Provider>
   );
 
-  render(<OperationNode data={data} id={nodeId} />, { wrapper });
+  render(<OperationNode data={data} id={nodeId} selected={selected} />, { wrapper });
 
   return store;
 };
@@ -124,6 +125,30 @@ describe("OperationNode", () => {
     expect(runningLabel).toBeInTheDocument();
     expect(runningLabel.parentElement?.querySelector("svg")).not.toHaveClass("animate-spin");
     expect(screen.queryByText("待运行")).not.toBeInTheDocument();
+  });
+
+  it("keeps a compact card compact when the node is selected", () => {
+    const store = createCanvasPageStore([
+      {
+        id: nodeId,
+        type: "operation",
+        position: { x: 0, y: 0 },
+        data: baseData,
+      } as PipelineNode,
+    ]);
+    store.setState({ nodeCardMode: "compact" });
+
+    render(<OperationNode data={baseData} id={nodeId} selected />, {
+      wrapper: ({ children }) => (
+        <CanvasPageStoreContext.Provider value={store}>{children}</CanvasPageStoreContext.Provider>
+      ),
+    });
+
+    expect(screen.getByTestId("canvas-v2-node-shell-root")).toHaveAttribute(
+      "data-card-mode",
+      "compact",
+    );
+    expect(screen.queryByText("Agent")).not.toBeInTheDocument();
   });
 
   it("updates runtime selection without bubbling canvas interactions", async () => {

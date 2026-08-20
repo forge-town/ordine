@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/react";
+import type { Decorator, Meta, StoryObj } from "@storybook/react";
 import { Refine } from "@refinedev/core";
 import {
   createCanvasPageStore,
@@ -43,14 +43,26 @@ const edge = {
   data: {},
 } as PipelineEdge;
 
-const withRunConsoleStore = (Story: React.ComponentType) => {
+type RunConsoleState = "loading" | "queued" | "running" | "done" | "failed";
+
+const withRunConsoleStore: Decorator<typeof RunConsole> = (Story, context) => {
+  const state = (context.parameters.runConsoleState ?? "running") as RunConsoleState;
+  const jobIdByState: Record<RunConsoleState, string | null> = {
+    loading: null,
+    queued: "job-queued-story",
+    running: "job-story",
+    done: "job-done-story",
+    failed: "job-failed-story",
+  };
+  const jobId = jobIdByState[state];
+  const isRunning = state === "running";
   const store = createCanvasPageStore([sourceNode, operationNode], [edge]);
   store.setState({
-    activeJobId: "job-story",
+    activeJobId: jobId,
     isConsoleOpen: true,
-    isTestRunning: true,
-    runningNodeId: "review-op",
-    nodeRunStatuses: { "review-op": "running" },
+    isTestRunning: isRunning,
+    runningNodeId: isRunning ? "review-op" : null,
+    nodeRunStatuses: isRunning ? { "review-op": "running" } : {},
   });
 
   return (
@@ -84,9 +96,56 @@ type Story = StoryObj<typeof RunConsole>;
 
 export const Running: Story = {
   parameters: {
+    runConsoleState: "running",
     docs: {
       description: {
         story: "Console open with a running job, visible logs, and structured node status updates.",
+      },
+    },
+  },
+};
+
+export const Loading: Story = {
+  parameters: {
+    runConsoleState: "loading",
+    docs: {
+      description: {
+        story: "Console shell mounted before the active develop Job resource has resolved.",
+      },
+    },
+  },
+};
+
+export const Queued: Story = {
+  parameters: {
+    runConsoleState: "queued",
+    docs: {
+      description: {
+        story:
+          "Queued Job state before execution begins, using the current develop JobStatus enum.",
+      },
+    },
+  },
+};
+
+export const Completed: Story = {
+  parameters: {
+    runConsoleState: "done",
+    docs: {
+      description: {
+        story:
+          "Successful terminal state with an empty timeline, preserving the current run-console layout.",
+      },
+    },
+  },
+};
+
+export const Failed: Story = {
+  parameters: {
+    runConsoleState: "failed",
+    docs: {
+      description: {
+        story: "Failed terminal state with the develop Job error rendered in the console body.",
       },
     },
   },

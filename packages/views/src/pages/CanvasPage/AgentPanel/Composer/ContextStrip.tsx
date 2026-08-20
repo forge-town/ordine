@@ -101,6 +101,7 @@ export const ContextStrip = ({ context, defaultOpen = false }: ContextStripProps
       : anchorCount > 0
         ? t("workspace.agentBar.context.summary.annotations")
         : t("workspace.agentBar.context.summary.default");
+  const handleToggleClick = () => setOpen((value) => !value);
 
   return (
     <div className="px-3 pt-2" data-testid="agent-context-strip">
@@ -109,14 +110,14 @@ export const ContextStrip = ({ context, defaultOpen = false }: ContextStripProps
         className="flex w-full items-center gap-1.5 rounded-lg px-1.5 py-1 text-left text-[10px] text-muted-foreground transition-colors hover:bg-accent/50"
         data-testid="agent-context-toggle"
         type="button"
-        onClick={() => setOpen((value) => !value)}
+        onClick={handleToggleClick}
       >
         <Icon icon={Layers} size={11} />
         <span className="font-medium">{t("workspace.agentBar.context.title")}</span>
-        <span className="rounded-full bg-surface-2 px-1.5 py-0.5 font-mono text-[9px]">
+        <span className="rounded-full bg-surface-2 px-1.5 py-0.5 font-mono text-[9px] text-foreground/70">
           {t("workspace.agentBar.context.itemCount", { count: activeCount })}
         </span>
-        <span className="truncate text-foreground/65">{summary}</span>
+        <span className="truncate text-foreground/70">{summary}</span>
         <Icon className="ml-auto shrink-0" icon={open ? ChevronDown : ChevronUp} size={11} />
       </button>
       {open ? (
@@ -129,7 +130,7 @@ export const ContextStrip = ({ context, defaultOpen = false }: ContextStripProps
               key={item.id}
               className={cn(
                 "flex items-center gap-2 rounded-lg px-1.5 py-1 text-[10.5px]",
-                !item.on && "opacity-60",
+                !item.on && "opacity-40",
               )}
               data-context-on={item.on ? "true" : "false"}
               data-testid={`agent-context-item-${item.id}`}
@@ -154,12 +155,12 @@ export const ContextStrip = ({ context, defaultOpen = false }: ContextStripProps
               >
                 {item.label}
               </span>
-              <span className="shrink-0 font-mono text-[9px] text-muted-foreground">
+              <span className="shrink-0 font-mono text-[9px] text-muted-foreground/70">
                 {item.rule}
               </span>
             </div>
           ))}
-          <div className="px-1.5 pt-1 text-[9px] leading-snug text-muted-foreground">
+          <div className="px-1.5 pt-1 text-[9px] leading-snug text-muted-foreground/70">
             {running
               ? t("workspace.agentBar.context.footer.running")
               : t("workspace.agentBar.context.footer.editing")}

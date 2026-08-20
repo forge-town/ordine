@@ -85,12 +85,27 @@ const measureInteraction = async (
   metrics.push({ durationMs: Math.round(finishedAt - startedAt), name });
 };
 
+const clickCanvasAction = async (page: Page, name: string) => {
+  await page.getByTestId("canvas-actions-menu").click();
+  await page.getByRole("menuitem", { name, exact: true }).click();
+};
+
 const dragNodeBy = async (page: Page, node: Locator, delta: { x: number; y: number }) => {
   const before = await node.boundingBox();
   expect(before).not.toBeNull();
   if (!before) return;
 
-  const start = { x: before.x + 20, y: before.y + 20 };
+  const headerIcon = node
+    .getByTestId("canvas-v2-node-card")
+    .locator('[data-slot="card-header"] > div')
+    .first();
+  const headerIconBounds = await headerIcon.boundingBox();
+  const start = headerIconBounds
+    ? {
+        x: headerIconBounds.x + headerIconBounds.width / 2,
+        y: headerIconBounds.y + headerIconBounds.height / 2,
+      }
+    : { x: before.x + 20, y: before.y + 20 };
   await page.mouse.move(start.x, start.y);
   await page.mouse.down();
   await page.mouse.move(start.x + delta.x, start.y + delta.y, { steps: 16 });
@@ -180,6 +195,22 @@ const createOperation = async (page: Page, operationId: string) => {
   expect(response.ok()).toBe(true);
 };
 
+const createAgentRuntime = async (page: Page, runtimeId: string) => {
+  const response = await page.request.post("/api/trpc/agentRuntimes.create?batch=1", {
+    data: {
+      0: {
+        json: {
+          connection: { binaryName: "node", mode: "local" },
+          id: runtimeId,
+          name: "Canvas E2E Runtime",
+          type: "hermes",
+        },
+      },
+    },
+  });
+  expect(response.ok()).toBe(true);
+};
+
 const openCanvasPage = async (page: Page, runId: string) => {
   await navigateAndWait(page, "/pipelines");
   const pipelineId = `pipeline-e2e-${runId}`;
@@ -207,19 +238,20 @@ const openCanvasPage = async (page: Page, runId: string) => {
 };
 
 test.describe("Canvas editor", () => {
-  test("keeps the desktop Canvas inside 701-1440px viewports", async ({
-    page,
-    pageErrors,
-  }, testInfo) => {
+  test("keeps the Canvas inside 390-1440px viewports", async ({ page, pageErrors }, testInfo) => {
     await openCanvasPage(page, `responsive-${Date.now()}-${testInfo.workerIndex}`);
 
-    for (const width of [1440, 1180, 981, 701]) {
+    for (const width of [1440, 1180, 981, 701, 390]) {
       await page.setViewportSize({ width, height: 820 });
       await expect(page.getByTestId("canvas-langflow-shell")).toBeVisible();
       await expect(page.getByTestId("canvas-top-chrome")).toBeVisible();
-      await expect(page.getByTestId("canvas-toolbar")).toBeVisible();
+      await expect(page.getByTestId("canvas-v2-toolbar")).toBeVisible();
       await expect(page.getByTestId("canvas-agent-panel-region")).toBeVisible();
-      await expect(page.getByRole("button", { name: "Notifications" })).toBeVisible();
+      if (width <= 768) {
+        await expect(page.getByRole("button", { name: "Toggle Sidebar" })).toBeVisible();
+      } else {
+        await expect(page.getByTestId("notification-bell")).toBeVisible();
+      }
 
       const metrics = await page.evaluate(() => {
         const agentBounds = document
@@ -228,8 +260,37 @@ test.describe("Canvas editor", () => {
         const shellBounds = document
           .querySelector<HTMLElement>('[data-testid="canvas-langflow-shell"]')
           ?.getBoundingClientRect();
+        const sidebarToggleBounds = document
+          .querySelector<HTMLElement>('[data-sidebar="trigger"]')
+          ?.getBoundingClientRect();
+        const sidebarToggleBar = document.querySelector<HTMLElement>(
+          '[data-sidebar="trigger"]',
+        )?.parentElement;
         const topChromeBounds = document
           .querySelector<HTMLElement>('[data-testid="canvas-top-chrome"]')
+          ?.getBoundingClientRect();
+        const topRightControlSelectors = [
+          '[data-testid="canvas-v2-state-legend-trigger"]',
+          '[data-testid="canvas-v2-run"]',
+          '[data-testid="canvas-v2-agent-reopen"]',
+        ];
+        const topRightControls = topRightControlSelectors.flatMap((selector) => {
+          const bounds = document.querySelector<HTMLElement>(selector)?.getBoundingClientRect();
+
+          return bounds
+            ? [
+                {
+                  bottom: bounds.bottom,
+                  left: bounds.left,
+                  right: bounds.right,
+                  selector,
+                  top: bounds.top,
+                },
+              ]
+            : [];
+        });
+        const agentShellBounds = document
+          .querySelector<HTMLElement>('[data-testid="canvas-agent-panel-shell"]')
           ?.getBoundingClientRect();
 
         return {
@@ -242,6 +303,7 @@ test.describe("Canvas editor", () => {
               }
             : null,
           documentWidth: document.documentElement.scrollWidth,
+          agentShellWidth: agentShellBounds?.width ?? null,
           shell: shellBounds
             ? {
                 bottom: shellBounds.bottom,
@@ -250,6 +312,26 @@ test.describe("Canvas editor", () => {
                 top: shellBounds.top,
               }
             : null,
+          sidebarToggle: sidebarToggleBounds
+            ? {
+                bottom: sidebarToggleBounds.bottom,
+                left: sidebarToggleBounds.left,
+                right: sidebarToggleBounds.right,
+                top: sidebarToggleBounds.top,
+              }
+            : null,
+          sidebarToggleBarZIndex: sidebarToggleBar
+            ? Number.parseInt(getComputedStyle(sidebarToggleBar).zIndex, 10)
+            : null,
+          topChromeZIndex: document.querySelector<HTMLElement>('[data-testid="canvas-top-chrome"]')
+            ? Number.parseInt(
+                getComputedStyle(
+                  document.querySelector<HTMLElement>('[data-testid="canvas-top-chrome"]')!,
+                ).zIndex,
+                10,
+              )
+            : null,
+          topRightControls,
           topChrome: topChromeBounds
             ? {
                 bottom: topChromeBounds.bottom,
@@ -268,11 +350,19 @@ test.describe("Canvas editor", () => {
       if (width <= 1180) {
         expect(metrics.agent?.top).toBeGreaterThanOrEqual((metrics.topChrome?.bottom ?? 0) - 1);
       }
+      if (width <= 768) {
+        expect(metrics.sidebarToggle).not.toBeNull();
+      }
+      if (width === 390) {
+        expect(metrics.sidebarToggleBarZIndex).toBeGreaterThan(metrics.topChromeZIndex ?? 0);
+        expect(metrics.agentShellWidth).toBeGreaterThan(width - 2);
+        for (const control of metrics.topRightControls) {
+          expect(control.left).toBeGreaterThanOrEqual(-1);
+          expect(control.right).toBeLessThanOrEqual(width + 1);
+        }
+      }
 
-      await testInfo.attach(`canvas-${width}x820`, {
-        body: await page.screenshot(),
-        contentType: "image/png",
-      });
+      process.stdout.write(`CANVAS_VIEWPORT_METRICS ${JSON.stringify({ width, ...metrics })}\n`);
     }
 
     expectNoJSErrors(pageErrors);
@@ -283,20 +373,56 @@ test.describe("Canvas editor", () => {
 
     await expect(page.getByTestId("canvas-langflow-shell")).toBeVisible();
     await expect(page.getByTestId("canvas-flow-viewport")).toBeVisible();
-    await expect(page.getByTestId("canvas-toolbar")).toBeVisible();
+    await expect(page.getByTestId("canvas-v2-toolbar")).toBeVisible();
     await expect(page.getByTestId("canvas-top-chrome")).toBeVisible();
     await expect(page.getByTestId("canvas-component-panel")).toBeVisible();
     await expect(page.getByTestId("canvas-agent-panel")).toBeVisible();
 
-    const folderButton = page.getByRole("button", {
-      name: /(?:Folder Folder|文件夹 文件夹)/,
-    });
+    await page.getByTestId("canvas-v2-state-legend-trigger").click();
+    await expect(page.getByTestId("canvas-v2-state-legend")).toBeVisible();
+    await expect(page.getByTestId("canvas-status-bar")).toBeVisible();
+    await page.getByTestId("canvas-v2-state-legend-trigger").click();
+
+    const folderButton = page.getByTestId("canvas-component-object-folder");
     await expect(folderButton).toBeVisible();
 
     await folderButton.click();
-    await expect(
-      page.getByTestId("canvas-flow-viewport").locator(".react-flow__node").first(),
-    ).toBeVisible();
+    const folderNode = page
+      .getByTestId("canvas-flow-viewport")
+      .locator(".react-flow__node")
+      .first();
+    await expect(folderNode).toBeVisible();
+    await folderNode.hover();
+    await folderNode.getByTestId("canvas-node-configure").click();
+
+    const nodeConfig = page.getByTestId("canvas-v2-node-config");
+    await expect(nodeConfig).toBeVisible();
+    await expect(nodeConfig.getByTestId("node-config-label")).toBeVisible();
+    await expect(page.getByTestId("canvas-properties-panel")).toHaveCSS("width", "440px");
+    await testInfo.attach("canvas-node-config", {
+      body: await page.screenshot(),
+      contentType: "image/png",
+    });
+    await nodeConfig.getByTestId("node-config-done").click();
+    await expect(nodeConfig).toHaveCount(0);
+
+    await page.getByTestId("canvas-component-panel-toggle").click();
+    await page.getByTestId("canvas-flow-viewport").click({
+      button: "right",
+      position: { x: 600, y: 520 },
+    });
+    const canvasMenu = page.getByRole("menu");
+    await expect(canvasMenu).toBeVisible();
+    await expect(canvasMenu).toHaveClass(/rounded-2xl/);
+    await expect(canvasMenu.getByRole("menuitem", { name: /Folder/i }).first()).toBeVisible();
+    await page.keyboard.press("Escape");
+
+    await clickCanvasAction(page, "Quick add node");
+    const quickAdd = page.getByRole("dialog", { name: "Quick add node" });
+    await expect(quickAdd).toBeVisible();
+    await expect(quickAdd).toHaveClass(/rounded-2xl/);
+    await quickAdd.getByRole("button", { name: "Close quick add" }).click();
+    await expect(quickAdd).toHaveCount(0);
 
     expectNoJSErrors(pageErrors);
   });
@@ -308,22 +434,11 @@ test.describe("Canvas editor", () => {
     test.setTimeout(60_000);
     const runId = `${Date.now()}-${testInfo.workerIndex}-${testInfo.repeatEachIndex}`;
     const operationId = `operation-e2e-${runId}`;
+    const runtimeId = `runtime-e2e-${runId}`;
     const interactions: InteractionMetric[] = [];
 
     await mockCanvasAgent(page);
-    await navigateAndWait(page, "/local-agents");
-    await page.getByRole("button", { name: "Re-scan" }).click();
-    const runtimeDialog = page.getByRole("dialog", { name: "Runtime scan results" });
-    await expect(runtimeDialog).toBeVisible();
-    const syncButton = runtimeDialog.getByRole("button", { name: "Sync changes" });
-    if (await syncButton.isVisible()) {
-      await syncButton.click();
-    } else {
-      await expect(runtimeDialog.getByText("No runtime changes detected.")).toBeVisible();
-      await runtimeDialog.getByRole("button", { name: "Cancel", exact: true }).click();
-    }
-    await expect(runtimeDialog).toHaveCount(0);
-    await expect(page.getByText(/\d+ of \d+ supported Local Agents are synced\./)).toBeVisible();
+    await createAgentRuntime(page, runtimeId);
     await openCanvasPage(page, runId);
     await createOperation(page, operationId);
     await page.reload();
@@ -333,44 +448,72 @@ test.describe("Canvas editor", () => {
 
     const componentPanel = page.getByTestId("canvas-component-panel");
     const flow = page.getByTestId("canvas-flow-viewport");
-    const fileEntry = componentPanel.getByRole("button", { name: /^File File/ });
+    const fileEntry = componentPanel.getByTestId("canvas-component-object-file");
     const operationEntry = componentPanel.getByTestId(`canvas-operation-${operationId}`);
     await expect(operationEntry).toBeVisible();
 
     await measureInteraction(page, interactions, "drag file from palette", async () => {
-      await fileEntry.dragTo(flow, { targetPosition: { x: 120, y: 120 } });
+      await fileEntry.dragTo(flow, { targetPosition: { x: 450, y: 220 } });
       await expect(page.locator(".react-flow__node-file")).toHaveCount(1);
     });
     await measureInteraction(page, interactions, "add operation from palette", async () => {
       await operationEntry.click();
       await expect(page.locator(".react-flow__node-operation")).toHaveCount(1);
     });
+    await page.getByTestId("canvas-component-panel-toggle").click();
 
     const fileNode = page.locator(".react-flow__node-file");
     const operationNode = page.locator(".react-flow__node-operation");
     await page.getByRole("button", { name: "Select" }).click();
-    const operationPositionBeforeMove = await operationNode.boundingBox();
+    await expect(operationNode.getByTestId("canvas-v2-node-shell-root")).toHaveAttribute(
+      "data-card-mode",
+      "compact",
+    );
+    const operationTransformBeforeMove = await operationNode.evaluate(
+      (element) => (element as HTMLElement).style.transform,
+    );
     await measureInteraction(page, interactions, "move operation node", async () => {
       await dragNodeBy(page, operationNode, { x: 120, y: 80 });
     });
-    await page.getByTitle("Undo").click();
+    await clickCanvasAction(page, "Undo");
+    await flow.click({ position: { x: 600, y: 100 } });
     await expect
-      .poll(async () => {
-        const afterUndo = await operationNode.boundingBox();
-        if (!operationPositionBeforeMove || !afterUndo) return Number.POSITIVE_INFINITY;
-
-        return Math.hypot(
-          afterUndo.x - operationPositionBeforeMove.x,
-          afterUndo.y - operationPositionBeforeMove.y,
-        );
-      })
-      .toBeLessThan(12);
-    await page.getByTitle("Redo").click();
+      .poll(() => operationNode.evaluate((element) => (element as HTMLElement).style.transform))
+      .toBe(operationTransformBeforeMove);
+    await clickCanvasAction(page, "Redo");
 
     await measureInteraction(page, interactions, "connect file to operation", async () => {
       await connectNodes(page, fileNode, operationNode);
       await expect(page.locator(".react-flow__edge")).toHaveCount(1);
     });
+
+    await page.locator(".react-flow__edge-interaction").first().dispatchEvent("click");
+    const edgeInspector = page.getByTestId("canvas-edge-inspector");
+    await expect(edgeInspector).toBeVisible();
+    await edgeInspector.getByTestId("canvas-edge-condition").fill("approved");
+    await expect(edgeInspector.getByTestId("canvas-edge-condition")).toHaveValue("approved");
+    await edgeInspector.getByTestId("canvas-edge-inspector-close").click();
+    await expect(edgeInspector).toHaveCount(0);
+
+    await Promise.all([
+      page.waitForResponse(
+        (response) => response.url().includes("pipelines.update") && response.ok(),
+      ),
+      page
+        .getByTestId("canvas-top-chrome")
+        .getByRole("button", { name: "Save", exact: true })
+        .click(),
+    ]);
+    await expect(page.getByText("Pipeline saved")).toBeVisible();
+    await page.reload();
+    await page.waitForLoadState("networkidle");
+    await startRenderingSample(page);
+    await expect(page.locator(".react-flow__node-file")).toHaveCount(1);
+    await expect(page.locator(".react-flow__node-operation")).toHaveCount(1);
+    await expect(page.locator(".react-flow__edge")).toHaveCount(1);
+    await page.locator(".react-flow__edge-interaction").first().dispatchEvent("click");
+    await expect(page.getByTestId("canvas-edge-condition")).toHaveValue("approved");
+    await page.getByTestId("canvas-edge-inspector-close").click();
 
     await measureInteraction(page, interactions, "send canvas Agent message", async () => {
       await page.getByRole("textbox", { name: "Message" }).fill("Review the connected nodes");

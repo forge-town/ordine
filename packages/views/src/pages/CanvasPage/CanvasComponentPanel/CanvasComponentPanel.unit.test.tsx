@@ -5,7 +5,10 @@ import userEvent from "@testing-library/user-event";
 import type { Operation, Skill } from "@repo/schemas";
 import { describe, expect, it, vi } from "vitest";
 import { createCanvasPageStore, CanvasPageStoreContext } from "../_store";
-import { CANVAS_COMPONENT_DRAG_MIME } from "../utils/canvasComponentDragPayload";
+import {
+  CANVAS_COMPONENT_DRAG_MIME,
+  decodeCanvasComponentDragPayload,
+} from "../utils/canvasComponentDragPayload";
 import { CanvasComponentPanel } from "./CanvasComponentPanel";
 
 const operations = [
@@ -60,6 +63,51 @@ const renderPanel = () => {
 };
 
 describe("CanvasComponentPanel", () => {
+  it("toggles the panel through the current sidebar state", async () => {
+    const user = userEvent.setup();
+    const store = renderPanel();
+    const toggle = screen.getByTestId("canvas-component-panel-toggle");
+
+    expect(screen.getByTestId("canvas-component-panel")).toBeInTheDocument();
+
+    await user.click(toggle);
+
+    expect(store.getState().isSidebarOpen).toBe(false);
+    expect(screen.queryByTestId("canvas-component-panel")).not.toBeInTheDocument();
+
+    await user.click(toggle);
+
+    expect(store.getState().isSidebarOpen).toBe(true);
+    expect(store.getState().sidebarPanel).toBe("components");
+    expect(screen.getByTestId("canvas-component-panel")).toBeInTheDocument();
+  });
+
+  it("keeps operation creation on the current develop handler", async () => {
+    const user = userEvent.setup();
+    const store = renderPanel();
+    const handleCreateOperationNode = vi.fn();
+    store.setState({ handleCreateOperationNode });
+
+    await user.click(screen.getByRole("button", { name: /Review Code/i }));
+
+    expect(handleCreateOperationNode).toHaveBeenCalledWith(operations[0], { x: 400, y: 300 });
+  });
+
+  it("renders a non-collapsible generic compound entry", async () => {
+    const user = userEvent.setup();
+    const store = renderPanel();
+    const handleCreateObjectNode = vi.fn();
+    store.setState({ handleCreateObjectNode });
+
+    const compoundCategory = screen.getByTestId("canvas-component-category-compound");
+    expect(compoundCategory).toBeInTheDocument();
+    expect(compoundCategory).not.toHaveAttribute("aria-expanded");
+
+    await user.click(screen.getByTestId("canvas-component-object-compound"));
+
+    expect(handleCreateObjectNode).toHaveBeenCalledWith("compound", { x: 400, y: 300 });
+  });
+
   it("renders collapsible component categories", async () => {
     const user = userEvent.setup();
     renderPanel();
@@ -70,6 +118,16 @@ describe("CanvasComponentPanel", () => {
     expect(screen.getByRole("button", { name: /Output category/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Review Code/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Error Handling/i })).toBeInTheDocument();
+    expect(screen.queryByTestId("canvas-component-search-toggle")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Input Objects category/i })).toHaveClass(
+      "px-1",
+      "pb-1",
+      "text-[9.5px]",
+      "font-medium",
+      "uppercase",
+      "tracking-[0.1em]",
+      "text-muted-foreground",
+    );
 
     await user.click(screen.getByRole("button", { name: /Operations category/i }));
 
@@ -89,6 +147,12 @@ describe("CanvasComponentPanel", () => {
 
     expect(screen.queryByRole("button", { name: /Review Code/i })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Error Handling/i })).toBeInTheDocument();
+
+    await user.clear(searchInput);
+    await user.type(searchInput, "compound");
+
+    expect(screen.getByTestId("canvas-component-object-compound")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Error Handling/i })).not.toBeInTheDocument();
   });
 
   it("serializes palette items for drag creation", () => {
@@ -115,5 +179,25 @@ describe("CanvasComponentPanel", () => {
       operation: { id: "review-code" },
     });
     expect(dataTransfer.setDragImage).toHaveBeenCalled();
+  });
+
+  it("serializes the generic Compound entry as an object payload", () => {
+    renderPanel();
+
+    const data = new Map<string, string>();
+    const dataTransfer = {
+      effectAllowed: "none",
+      setData: vi.fn((type: string, value: string) => data.set(type, value)),
+      setDragImage: vi.fn(),
+    };
+
+    fireEvent.dragStart(screen.getByTestId("canvas-component-object-compound"), {
+      dataTransfer,
+    });
+
+    expect(decodeCanvasComponentDragPayload(data.get(CANVAS_COMPONENT_DRAG_MIME) ?? "")).toEqual({
+      kind: "object",
+      type: "compound",
+    });
   });
 });

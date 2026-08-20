@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type MouseEvent as ReactMouseEvent } from "react";
 import { useStore } from "zustand";
 import { useNavigate } from "@tanstack/react-router";
 import { CalendarDays, Clock, ListChecks, Play, Rows3, X } from "lucide-react";
@@ -98,8 +98,35 @@ export const JobsPageContent = () => {
   const handleOpenJob = (job: Job) => {
     setDetailJob(job);
   };
-  const refetchAll = () => {
+  const handleJobsChanged = () => {
     void jobsQuery?.refetch?.();
+  };
+  const handleNewRoutineClick = () => setScheduling("pick");
+  const handleNewRunClick = () => void navigate({ to: "/pipelines" });
+  const handleViewClick = (candidate: JobsView) => () => setView(candidate);
+  const handleEditRoutine = (routine: Routine) => {
+    const pipeline = pipelines.find((item) => item.id === routine.pipelineId);
+    setScheduling({
+      pipelineId: routine.pipelineId,
+      pipelineName: pipeline?.name ?? routine.name,
+      routine,
+    });
+  };
+  const handleDetailClose = () => setDetailJob(null);
+  const handlePickerClose = () => setScheduling(null);
+  const handlePickerContentClick = (event: ReactMouseEvent<HTMLDivElement>) => {
+    event.stopPropagation();
+  };
+  const handlePipelinePick = (pipeline: PipelineData) => () => {
+    setScheduling({
+      pipelineId: pipeline.id,
+      pipelineName: pipeline.name,
+      routine: null,
+    });
+  };
+  const handleScheduleEditorClose = () => {
+    setScheduling(null);
+    void routinesQuery?.refetch?.();
   };
 
   if (jobsQuery?.isLoading || routinesQuery?.isLoading) {
@@ -125,16 +152,12 @@ export const JobsPageContent = () => {
               className="flex items-center gap-1.5"
               size="sm"
               variant="outline"
-              onClick={() => setScheduling("pick")}
+              onClick={handleNewRoutineClick}
             >
               <Clock className="h-3.5 w-3.5" />
               {t("jobs.newRoutine")}
             </Button>
-            <Button
-              className="flex items-center gap-1.5"
-              size="sm"
-              onClick={() => void navigate({ to: "/pipelines" })}
-            >
+            <Button className="flex items-center gap-1.5" size="sm" onClick={handleNewRunClick}>
               <Play className="h-3.5 w-3.5" />
               {t("jobs.newRun")}
             </Button>
@@ -142,15 +165,14 @@ export const JobsPageContent = () => {
         }
         eyebrow={t("jobs.eyebrow")}
         icon={<Icon className="text-muted-foreground" icon={ListChecks} size={18} />}
-        sub={t("jobs.subtitle")}
         title={t("jobs.title")}
       />
 
       <div
-        className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-b border-border bg-background px-4 py-3 sm:px-7"
+        className="flex shrink-0 flex-wrap items-center gap-3 px-4 pb-3.5 sm:px-7"
         data-testid="jobs-toolbar"
       >
-        <div className="flex gap-1 rounded-lg bg-surface-2 p-1" data-testid="jobs-view-toggle">
+        <div className="flex gap-1 rounded-xl bg-surface-2 p-1" data-testid="jobs-view-toggle">
           {(
             [
               ["list", Rows3],
@@ -167,7 +189,7 @@ export const JobsPageContent = () => {
               )}
               data-testid={`jobs-view-${candidate}`}
               type="button"
-              onClick={() => setView(candidate)}
+              onClick={handleViewClick(candidate)}
             >
               <IconComponent className="size-3.5" />
               {t(`jobs.views.${candidate}`)}
@@ -175,7 +197,7 @@ export const JobsPageContent = () => {
           ))}
         </div>
         {view === "list" ? (
-          <div className="flex w-full min-w-0 flex-col gap-2 lg:w-auto lg:flex-row lg:items-center">
+          <div className="ml-auto flex w-full min-w-0 flex-col gap-2 lg:w-auto lg:flex-row lg:items-center">
             <div className="flex max-w-full items-center gap-0.5 overflow-x-auto pb-1 lg:pb-0">
               {JOB_STATUS_FILTERS.map((filter) => (
                 <Chip
@@ -200,10 +222,10 @@ export const JobsPageContent = () => {
         ) : null}
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-8 pt-4 sm:px-7">
+      <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-8 sm:px-7">
         {view === "list" ? (
           filtered.length === 0 ? (
-            <div className="grid place-items-center py-16 text-center text-muted-foreground">
+            <div className="grid place-items-center rounded-2xl bg-surface-2/50 py-16 text-center text-muted-foreground">
               <ListChecks className="h-8 w-8 text-muted-foreground/30" />
               <p className="mt-2 text-[13px] font-medium text-foreground">
                 {jobs.length === 0 ? t("jobs.emptyTitle") : t("jobs.noMatchTitle")}
@@ -214,7 +236,7 @@ export const JobsPageContent = () => {
             <JobsTable
               jobs={filtered}
               pipelineNameById={pipelineNameById}
-              onChanged={refetchAll}
+              onChanged={handleJobsChanged}
               onOpen={handleOpenJob}
             />
           )
@@ -223,15 +245,8 @@ export const JobsPageContent = () => {
             jobs={jobs}
             pipelineNameById={pipelineNameById}
             routines={routines}
-            onEditRoutine={(routine) => {
-              const pipeline = pipelines.find((item) => item.id === routine.pipelineId);
-              setScheduling({
-                pipelineId: routine.pipelineId,
-                pipelineName: pipeline?.name ?? routine.name,
-                routine,
-              });
-            }}
-            onNewRoutine={() => setScheduling("pick")}
+            onEditRoutine={handleEditRoutine}
+            onNewRoutine={handleNewRoutineClick}
             onOpenJob={handleOpenJob}
           />
         )}
@@ -240,20 +255,20 @@ export const JobsPageContent = () => {
       {detailJob ? (
         <JobDetailDrawer
           job={detailJob}
-          onChanged={refetchAll}
-          onClose={() => setDetailJob(null)}
+          onChanged={handleJobsChanged}
+          onClose={handleDetailClose}
         />
       ) : null}
       {scheduling === "pick" ? (
         <div
           className="absolute inset-0 z-50 grid place-items-center p-6"
           data-testid="jobs-pipeline-picker"
-          onClick={() => setScheduling(null)}
+          onClick={handlePickerClose}
         >
           <div className="absolute inset-0 bg-foreground/10 backdrop-blur-[1px]" />
           <div
-            className="relative w-[min(380px,calc(100vw_-_2rem))] overflow-hidden rounded-lg bg-surface shadow-float ring-1 ring-border-strong"
-            onClick={(event) => event.stopPropagation()}
+            className="relative w-[min(380px,calc(100vw_-_2rem))] overflow-hidden rounded-2xl bg-surface shadow-float ring-1 ring-border-strong"
+            onClick={handlePickerContentClick}
           >
             <div className="flex items-center gap-2 border-b border-border/70 px-4 py-3">
               <Clock className="size-3.5 text-foreground/75" />
@@ -262,7 +277,7 @@ export const JobsPageContent = () => {
                 aria-label={t("jobs.closePipelinePicker")}
                 size="icon"
                 variant="ghost"
-                onClick={() => setScheduling(null)}
+                onClick={handlePickerClose}
               >
                 <X className="size-3.5" />
               </Button>
@@ -279,13 +294,7 @@ export const JobsPageContent = () => {
                   className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-xs hover:bg-accent/60"
                   data-testid={`jobs-pick-${pipeline.id}`}
                   type="button"
-                  onClick={() =>
-                    setScheduling({
-                      pipelineId: pipeline.id,
-                      pipelineName: pipeline.name,
-                      routine: null,
-                    })
-                  }
+                  onClick={handlePipelinePick(pipeline)}
                 >
                   <span className="min-w-0 flex-1 truncate font-medium">{pipeline.name}</span>
                   {(routines.some((routine) => routine.pipelineId === pipeline.id) && (
@@ -306,10 +315,7 @@ export const JobsPageContent = () => {
           pipelineName={scheduling.pipelineName}
           routine={scheduling.routine}
           routines={routines.filter((routine) => routine.pipelineId === scheduling.pipelineId)}
-          onClose={() => {
-            setScheduling(null);
-            void routinesQuery?.refetch?.();
-          }}
+          onClose={handleScheduleEditorClose}
         />
       ) : null}
     </div>

@@ -4,11 +4,11 @@ import { Sidebar, SidebarProvider, SidebarRail } from "@repo/ui/sidebar";
 
 const STORAGE_KEY = "test.sidebar.width";
 
-const renderRail = () => {
+const renderRail = (autoCollapseWidth?: number) => {
   const result = render(
     <SidebarProvider widthStorageKey={STORAGE_KEY}>
       <Sidebar collapsible="icon">
-        <SidebarRail resizable />
+        <SidebarRail resizable autoCollapseWidth={autoCollapseWidth} />
       </Sidebar>
     </SidebarProvider>,
   );
@@ -152,5 +152,15 @@ describe("SidebarRail", () => {
     const second = renderRail();
     expect(second.wrapper.style.getPropertyValue("--sidebar-width")).toBe("384px");
     expect(localStorage.getItem(STORAGE_KEY)).toBe("384");
+  });
+
+  it("supports an Alan-style collapse threshold for the shared app shell", () => {
+    const { rail, sidebar, wrapper } = renderRail(168);
+
+    dragRail(rail, 256, 100, 9);
+
+    expect(sidebar).toHaveAttribute("data-state", "collapsed");
+    expect(wrapper.style.getPropertyValue("--sidebar-width")).toBe("256px");
+    expect(localStorage.getItem(STORAGE_KEY)).toBeNull();
   });
 });

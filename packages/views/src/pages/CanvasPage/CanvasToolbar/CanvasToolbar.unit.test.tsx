@@ -1,14 +1,11 @@
-import { canvasTestDataProvider, render } from "../../../test/test-wrapper";
+import { render } from "../../../test/test-wrapper";
 import i18n from "i18next";
-import { screen, waitFor } from "@testing-library/react";
+import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { CanvasToolbar } from "./CanvasToolbar";
 import { CanvasPageStoreProvider } from "../_store";
-import { toastStore } from "../../../store/toastStore";
 
-const mockTrpcUpdate = vi.fn();
-const mockTrpcRun = vi.fn();
 vi.mock("@repo/ui/button", () => ({
   Button: ({
     children,
@@ -29,44 +26,15 @@ vi.mock("@repo/ui/button", () => ({
     </button>
   ),
 }));
-vi.mock("@repo/ui/separator", () => ({
-  Separator: ({
-    orientation,
-    ...props
-  }: React.ComponentProps<"hr"> & { orientation?: "horizontal" | "vertical" }) => (
-    <hr data-orientation={orientation} {...props} />
-  ),
-}));
-vi.mock("@repo/ui/tooltip", () => ({
-  Tooltip: ({ children }: React.PropsWithChildren) => <>{children}</>,
-  TooltipTrigger: ({
-    children,
-    render: renderProp,
-  }: {
-    children?: React.ReactNode;
-    render?: React.ReactElement;
-  }) => (
-    <>
-      {renderProp}
-      {children}
-    </>
-  ),
-  TooltipContent: ({ children }: React.PropsWithChildren) => (
-    <span data-testid="tooltip">{children}</span>
-  ),
-}));
 
 const wrapper = ({ children }: React.PropsWithChildren) => (
   <CanvasPageStoreProvider pipeline={null}>{children}</CanvasPageStoreProvider>
 );
 
-const wrapperWithPipeline = ({ children }: React.PropsWithChildren) => (
-  <CanvasPageStoreProvider
-    pipeline={{ id: "pipe-test", name: "Test Pipeline", nodes: [], edges: [] }}
-  >
-    {children}
-  </CanvasPageStoreProvider>
-);
+const openCanvasActions = async (user: ReturnType<typeof userEvent.setup>) => {
+  await user.click(screen.getByTestId("canvas-actions-menu"));
+  await screen.findByRole("menu");
+};
 
 describe("CanvasToolbar - export removed", () => {
   it("does NOT render export tooltip/button in any locale", () => {
@@ -81,16 +49,24 @@ describe("CanvasToolbar - export removed", () => {
 });
 
 describe("CanvasToolbar - viewport controls", () => {
-  it("uses the same medium radius as the title input and full-height separators", () => {
+  it("uses the Alan-style pill for primary viewport controls", () => {
     render(<CanvasToolbar />, { wrapper });
 
-    const toolbarShell = screen.getByTestId("canvas-toolbar").firstElementChild;
-    expect(toolbarShell).toHaveClass("rounded-md");
-    expect(toolbarShell).not.toHaveClass("rounded-full");
-    expect(screen.getAllByRole("separator")).toHaveLength(5);
-    for (const separator of screen.getAllByRole("separator")) {
-      expect(separator).toHaveClass("h-7");
-    }
+    const toolbar = screen.getByTestId("canvas-v2-toolbar");
+    expect(toolbar).toHaveClass(
+      "absolute",
+      "bottom-4",
+      "right-4",
+      "z-20",
+      "gap-0.5",
+      "rounded-full",
+      "bg-surface",
+      "p-1",
+      "shadow-pill",
+      "ring-1",
+      "ring-border",
+    );
+    expect(toolbar.querySelector(".bg-border-strong")).toHaveClass("h-4", "w-px");
   });
 
   it("keeps zoom and fit view available through accessible custom controls", () => {
@@ -99,122 +75,7 @@ describe("CanvasToolbar - viewport controls", () => {
     expect(screen.getByRole("button", { name: i18n.t("canvas.zoomOut") })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: i18n.t("canvas.zoomIn") })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: i18n.t("canvas.fitView") })).toBeInTheDocument();
-  });
-});
-
-describe("CanvasToolbar - Run Test button", () => {
-  beforeEach(() => {
-    mockTrpcUpdate.mockReset();
-    mockTrpcUpdate.mockResolvedValue({ data: { id: "pipe-test" } });
-    mockTrpcRun.mockReset();
-    mockTrpcRun.mockResolvedValue({ data: { jobId: "job-123" } });
-    canvasTestDataProvider.update = mockTrpcUpdate;
-    canvasTestDataProvider.custom = mockTrpcRun;
-    canvasTestDataProvider.getList = vi.fn(async ({ resource }) => ({
-      data:
-        resource === "agentRuntimes"
-          ? [
-              {
-                id: "runtime-codex",
-                name: "Codex Local",
-                type: "codex",
-                connection: { mode: "local" },
-              },
-            ]
-          : [],
-      total: resource === "agentRuntimes" ? 1 : 0,
-    })) as never;
-    toastStore.setState({ toasts: [] });
-  });
-
-  it("renders the Run Test button", () => {
-    render(<CanvasToolbar />, { wrapper });
-    expect(screen.getByRole("button", { name: i18n.t("canvas.runTest") })).toBeInTheDocument();
-  });
-
-  it("Run Test button is disabled without pipelineId", () => {
-    render(<CanvasToolbar />, { wrapper });
-    expect(screen.getByRole("button", { name: i18n.t("canvas.runTest") })).toBeDisabled();
-  });
-
-  it("Run Test button is enabled when pipelineId and runtime exist", async () => {
-    render(<CanvasToolbar />, { wrapper: wrapperWithPipeline });
-    await waitFor(() =>
-      expect(screen.getByRole("button", { name: i18n.t("canvas.runTest") })).not.toBeDisabled(),
-    );
-  });
-
-  it("Run Test button stays disabled when no runtime is configured", async () => {
-    canvasTestDataProvider.getList = vi.fn(async () => ({ data: [], total: 0 })) as never;
-    render(<CanvasToolbar />, { wrapper: wrapperWithPipeline });
-
-    await waitFor(() =>
-      expect(screen.getByRole("button", { name: i18n.t("canvas.runTest") })).toBeDisabled(),
-    );
-  });
-
-  it("clicking Run saves pipeline then calls run API", async () => {
-    const user = userEvent.setup();
-    render(<CanvasToolbar />, { wrapper: wrapperWithPipeline });
-    const runButton = screen.getByRole("button", { name: i18n.t("canvas.runTest") });
-    await waitFor(() => expect(runButton).not.toBeDisabled());
-    await user.click(runButton);
-
-    await waitFor(() => {
-      expect(mockTrpcUpdate).toHaveBeenCalledWith(
-        expect.objectContaining({
-          id: "pipe-test",
-        }),
-      );
-    });
-
-    await waitFor(() => {
-      expect(mockTrpcRun).toHaveBeenCalledWith(
-        expect.objectContaining({ payload: { id: "pipe-test" } }),
-      );
-    });
-  });
-
-  it("shows success toast after successful run", async () => {
-    const user = userEvent.setup();
-    render(<CanvasToolbar />, { wrapper: wrapperWithPipeline });
-    const runButton = screen.getByRole("button", { name: i18n.t("canvas.runTest") });
-    await waitFor(() => expect(runButton).not.toBeDisabled());
-    await user.click(runButton);
-    await waitFor(() => {
-      expect(toastStore.getState().toasts).toEqual(
-        expect.arrayContaining([expect.objectContaining({ type: "success" })]),
-      );
-    });
-  });
-
-  it("shows error toast when save fails", async () => {
-    mockTrpcUpdate.mockRejectedValue(new Error("save failed"));
-    const user = userEvent.setup();
-    render(<CanvasToolbar />, { wrapper: wrapperWithPipeline });
-    const runButton = screen.getByRole("button", { name: i18n.t("canvas.runTest") });
-    await waitFor(() => expect(runButton).not.toBeDisabled());
-    await user.click(runButton);
-    await waitFor(() => {
-      expect(toastStore.getState().toasts).toEqual(
-        expect.arrayContaining([expect.objectContaining({ type: "error" })]),
-      );
-    });
-    expect(mockTrpcRun).not.toHaveBeenCalled();
-  });
-
-  it("shows error toast when run API fails", async () => {
-    mockTrpcRun.mockRejectedValue(new Error("Internal Server Error"));
-    const user = userEvent.setup();
-    render(<CanvasToolbar />, { wrapper: wrapperWithPipeline });
-    const runButton = screen.getByRole("button", { name: i18n.t("canvas.runTest") });
-    await waitFor(() => expect(runButton).not.toBeDisabled());
-    await user.click(runButton);
-    await waitFor(() => {
-      expect(toastStore.getState().toasts).toEqual(
-        expect.arrayContaining([expect.objectContaining({ type: "error" })]),
-      );
-    });
+    expect(screen.getByTestId("canvas-v2-zoom-reset")).toHaveTextContent("125%");
   });
 });
 
@@ -238,15 +99,33 @@ describe("CanvasToolbar - interactive state", () => {
   it("toggles the custom canvas interactivity control", async () => {
     const user = userEvent.setup();
     render(<CanvasToolbar />, { wrapper });
+    await openCanvasActions(user);
+    await user.click(screen.getByRole("menuitem", { name: i18n.t("canvas.disableInteractivity") }));
+    await openCanvasActions(user);
+    expect(
+      screen.getByRole("menuitem", { name: i18n.t("canvas.enableInteractivity") }),
+    ).toBeInTheDocument();
+  });
 
-    const toggle = screen.getByRole("button", { name: i18n.t("canvas.disableInteractivity") });
-
-    expect(toggle).toHaveAttribute("aria-pressed", "true");
-
-    await user.click(toggle);
+  it("keeps develop actions in the overflow without duplicating Run or Agent", async () => {
+    const user = userEvent.setup();
+    render(<CanvasToolbar />, { wrapper });
+    await openCanvasActions(user);
 
     expect(
-      screen.getByRole("button", { name: i18n.t("canvas.enableInteractivity") }),
-    ).toHaveAttribute("aria-pressed", "false");
+      screen.getByRole("menuitem", { name: i18n.t("canvas.formatLayout") }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("menuitem", { name: i18n.t("canvas.undo") })).toBeInTheDocument();
+    expect(screen.getByRole("menuitem", { name: i18n.t("canvas.redo") })).toBeInTheDocument();
+    expect(
+      screen.getByRole("menuitem", { name: i18n.t("canvas.quickAdd.open") }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("menuitem", { name: i18n.t("canvas.deleteNode") })).toBeInTheDocument();
+    expect(
+      screen.queryByRole("menuitem", { name: i18n.t("canvas.runTest") }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("menuitem", { name: i18n.t("canvas.agentPanel.toggle") }),
+    ).not.toBeInTheDocument();
   });
 });

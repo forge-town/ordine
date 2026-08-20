@@ -1,9 +1,8 @@
 import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
-import { Bot, ChevronsRight, AlertCircle, AlertTriangle } from "lucide-react";
+import { ChevronsRight, AlertCircle, AlertTriangle } from "lucide-react";
 import { Button } from "@repo/ui/button";
-import { ScrollArea } from "@repo/ui/scroll-area";
 import {
   Select,
   SelectContent,
@@ -22,7 +21,7 @@ import { createPipelineAgentSessionsClient } from "../../../lib/pipelineAgentSes
 import { usePlatform } from "../../../platform";
 import { toastStore } from "../../../store/toastStore";
 import { useAgentBarStore } from "./_store";
-import { Assistant, MessageTurn, ProposalCard } from "./messages";
+import { Assistant, MessageTurn, ProposalCard, SuggestionList } from "./messages";
 import type { MessageTurnSubmitInput } from "./messages/MessageTurn";
 import { Composer, type ComposerSubmitInput } from "./Composer";
 import { hasPendingPipelinePrompt, takePendingPipelinePrompt } from "./pendingPipelinePrompt";
@@ -264,7 +263,7 @@ export const AgentPanel = ({ onGeneratedPipeline }: AgentPanelProps) => {
         const runtimeSetupResult = await fetchRuntimeState();
         if (runtimeSetupResult.isErr()) {
           addMessage({
-            content: t("canvas.agentPanel.error"),
+            content: t("canvas.agentPanel.requestFailed"),
             id: `assistant-${Date.now()}`,
             role: "assistant",
           });
@@ -541,67 +540,49 @@ export const AgentPanel = ({ onGeneratedPipeline }: AgentPanelProps) => {
   const handleRevise = useCallback(() => {
     setComposerDraft(t("canvas.agentPanel.proposalDetails.revisePrompt"));
   }, [t]);
-  const selectedRuntime = runtimeOptions.find((runtime) => runtime.id === selectedRuntimeId);
+  const handleEmptySuggestion = useCallback(
+    (content: string, submit: boolean) => {
+      if (submit) {
+        void handleComposerSubmit({
+          content,
+          metadata: { attachments: [], referencedNodeIds: [] },
+        });
+
+        return;
+      }
+
+      setComposerDraft(content);
+    },
+    [handleComposerSubmit],
+  );
   const isConversationActive = isSending || agentPanel.isLoading;
-  const headerSubtitle = isConversationActive
-    ? (streamingProgress ?? t("canvas.agentPanel.thinking"))
-    : selectedRuntime
-      ? formatRuntimeLabel(selectedRuntime)
-      : t("canvas.agentPanel.runtimePlaceholder");
 
   return (
     <aside className="flex h-full w-full flex-col bg-surface" data-testid="canvas-agent-panel">
       <header
-        className="flex h-14 shrink-0 items-center justify-between border-b border-border/70 px-3"
+        className="flex shrink-0 items-center justify-between px-3.5 pb-2 pt-3"
         data-testid="canvas-agent-panel-header"
       >
-        <div className="flex min-w-0 items-center gap-2.5">
-          <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-surface-2 text-foreground ring-1 ring-border">
-            <Bot className="size-4" />
-          </span>
-          <div className="min-w-0">
-            <div className="truncate text-[12px] font-semibold">{t("canvas.agentPanel.title")}</div>
-            <div className="flex min-w-0 items-center gap-1.5">
-              <span
-                className={cn(
-                  "size-1.5 shrink-0 rounded-full",
-                  isConversationActive
-                    ? "animate-pulse bg-foreground"
-                    : selectedRuntimeId
-                      ? "bg-success"
-                      : "bg-muted-foreground/45",
-                )}
-                data-testid="canvas-agent-panel-status-dot"
-              />
-              <span className="truncate text-[10.5px] text-muted-foreground">{headerSubtitle}</span>
-            </div>
-          </div>
-        </div>
-        <Button
-          aria-label={t("canvas.agentPanel.close")}
-          className="h-7 w-7 shrink-0"
-          data-testid="canvas-agent-panel-collapse"
-          size="icon"
-          title={t("canvas.agentPanel.close")}
-          variant="ghost"
-          onClick={handleToggleAgentPanel}
-        >
-          <ChevronsRight className="size-3.5" />
-        </Button>
-      </header>
-
-      <div
-        className="mx-3 mb-1 rounded-lg bg-surface-2 px-2.5 py-2 ring-1 ring-border-strong"
-        data-testid="canvas-agent-panel-runtime-context"
-      >
-        <div className="flex flex-col gap-1.5">
-          <span className="text-[10.5px] font-medium text-muted-foreground">
-            {t("canvas.agentPanel.runtimeLabel")}
-          </span>
+        <div className="flex min-w-0 items-center gap-2">
+          <span
+            className={cn(
+              "size-1.5 shrink-0 rounded-full",
+              isConversationActive
+                ? "animate-pulse bg-foreground"
+                : selectedRuntimeId
+                  ? "bg-success"
+                  : "bg-muted-foreground/45",
+            )}
+            data-testid="canvas-agent-panel-status-dot"
+          />
+          <span className="truncate text-[12px] font-semibold">{t("canvas.agentPanel.title")}</span>
+          <span className="truncate text-[10.5px] text-muted-foreground">·</span>
+          <span className="sr-only">{t("canvas.agentPanel.runtimeLabel")}</span>
           <Select value={selectedRuntimeId} onValueChange={handleRuntimeValueChange}>
             <SelectTrigger
               aria-label={t("canvas.agentPanel.runtimeLabel")}
-              className="h-7 w-full text-[11px]"
+              className="h-auto w-fit min-w-0 rounded-none border-0 bg-transparent p-0 text-[10.5px] font-normal text-muted-foreground shadow-none ring-0 focus-visible:border-transparent focus-visible:ring-0 [&>svg]:size-2.5"
+              data-testid="canvas-agent-panel-runtime-context"
               disabled={isLoadingRuntimes || runtimeOptions.length === 0}
             >
               <SelectValue
@@ -623,92 +604,131 @@ export const AgentPanel = ({ onGeneratedPipeline }: AgentPanelProps) => {
             </SelectContent>
           </Select>
         </div>
-      </div>
+        <Button
+          aria-label={t("canvas.agentPanel.close")}
+          className="h-7 w-7 shrink-0"
+          data-testid="canvas-agent-panel-collapse"
+          size="icon"
+          title={t("canvas.agentPanel.close")}
+          variant="ghost"
+          onClick={handleToggleAgentPanel}
+        >
+          <ChevronsRight className="size-3.5" />
+        </Button>
+      </header>
 
-      <ScrollArea className="min-h-0 flex-1" data-testid="canvas-agent-panel-messages">
-        <div className="flex flex-col gap-3 p-3">
-          {messages.length === 0 && <Assistant>{t("canvas.agentPanel.welcome")}</Assistant>}
-          {messages.map((msg, index) => (
-            <MessageTurn
-              key={msg.id}
-              isLast={index === messages.length - 1}
-              isSending={isSending || isPreparingUpload || isHistoryLoading || agentPanel.isLoading}
-              message={msg}
-              runtimeId={selectedRuntimeId}
-              refs={canvasRefs}
-              visibleMessages={messages}
-              onEditDraft={setComposerDraft}
-              onOpenSettings={handleOpenRuntimeSettings}
-              onSubmit={handleMessageSubmit}
+      <div
+        className="min-h-0 flex-1 space-y-3.5 overflow-y-auto px-4 py-3"
+        data-testid="canvas-agent-panel-messages"
+      >
+        {messages.length === 0 && (
+          <div data-testid="agent-empty-state">
+            <Assistant>{t("canvas.agentPanel.empty.intro")}</Assistant>
+            <SuggestionList
+              items={[
+                {
+                  id: "quiz",
+                  label: t("canvas.agentPanel.empty.suggestQuiz"),
+                  onSelect: () =>
+                    handleEmptySuggestion(t("canvas.agentPanel.empty.suggestQuiz"), true),
+                },
+                {
+                  id: "changelog",
+                  label: t("canvas.agentPanel.empty.suggestChangelog"),
+                  onSelect: () =>
+                    handleEmptySuggestion(t("canvas.agentPanel.empty.suggestChangelog"), true),
+                },
+                {
+                  id: "reverse",
+                  label: t("canvas.agentPanel.empty.suggestReverse"),
+                  onSelect: () =>
+                    handleEmptySuggestion(t("canvas.agentPanel.empty.suggestReverse"), false),
+                  reverse: true,
+                },
+              ]}
             />
-          ))}
-          {streamingAssistantText && (
-            <Assistant className="whitespace-pre-wrap">{streamingAssistantText}</Assistant>
-          )}
+          </div>
+        )}
+        {messages.map((msg, index) => (
+          <MessageTurn
+            key={msg.id}
+            isLast={index === messages.length - 1}
+            isSending={isSending || isPreparingUpload || isHistoryLoading || agentPanel.isLoading}
+            message={msg}
+            runtimeId={selectedRuntimeId}
+            refs={canvasRefs}
+            visibleMessages={messages}
+            onEditDraft={setComposerDraft}
+            onOpenSettings={handleOpenRuntimeSettings}
+            onSubmit={handleMessageSubmit}
+          />
+        ))}
+        {streamingAssistantText && (
+          <Assistant className="whitespace-pre-wrap">{streamingAssistantText}</Assistant>
+        )}
 
-          {isConversationActive && (
-            <Assistant isThinking>{streamingProgress ?? t("canvas.agentPanel.thinking")}</Assistant>
-          )}
-          <div ref={messagesEndRef} />
+        {isConversationActive && (
+          <Assistant isThinking>{streamingProgress ?? t("canvas.agentPanel.thinking")}</Assistant>
+        )}
+        <div ref={messagesEndRef} />
 
-          {/* Diagnostics */}
-          {activeDiagnostics && activeDiagnostics.length > 0 && (
-            <div className="border-t">
-              <div className="flex flex-col gap-2 p-3">
-                <span className="text-xs font-medium text-muted-foreground">
-                  {t("canvas.agentPanel.diagnostics")}
-                </span>
-                {activeDiagnostics.map((d, i) => (
-                  <div
-                    key={i}
-                    className={cn(
-                      "flex items-start gap-2 rounded-md px-2.5 py-2 text-xs",
-                      d.severity === "error"
-                        ? "border border-red-500/20 bg-red-500/10 text-red-700 dark:text-red-300"
-                        : "border border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-300",
-                    )}
-                  >
-                    {d.severity === "error" ? (
-                      <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-                    ) : (
-                      <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-                    )}
-                    <span>{d.message}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Proposal */}
-          {hasProposal && (
-            <div className="border-t">
-              <div className="flex flex-col gap-2 p-3">
-                <span className="text-xs font-medium text-muted-foreground">
-                  {t("canvas.agentPanel.proposal")}
-                </span>
-                <ProposalCard
-                  disabled={
-                    isSending || isPreparingUpload || isHistoryLoading || agentPanel.isLoading
-                  }
-                  applyDisabled={proposalNeedsAnswer}
-                  items={proposalItems}
-                  onApply={handleApply}
-                  onAskFix={hasBlockingDiagnostics ? handleAskFix : undefined}
-                  onReject={handleDiscard}
-                  onRevise={handleRevise}
-                  subtitle={t(
-                    proposalNeedsAnswer
-                      ? "canvas.agentPanel.proposalDetails.needsAnswer"
-                      : "canvas.agentPanel.proposalDetails.review",
+        {/* Diagnostics */}
+        {activeDiagnostics && activeDiagnostics.length > 0 && (
+          <div className="border-t">
+            <div className="flex flex-col gap-2 p-3">
+              <span className="text-xs font-medium text-muted-foreground">
+                {t("canvas.agentPanel.diagnostics")}
+              </span>
+              {activeDiagnostics.map((d, i) => (
+                <div
+                  key={i}
+                  className={cn(
+                    "flex items-start gap-2 rounded-md px-2.5 py-2 text-xs",
+                    d.severity === "error"
+                      ? "border border-red-500/20 bg-red-500/10 text-red-700 dark:text-red-300"
+                      : "border border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-300",
                   )}
-                  title={proposal?.summary ?? generateProposal?.purpose ?? ""}
-                />
-              </div>
+                >
+                  {d.severity === "error" ? (
+                    <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                  ) : (
+                    <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                  )}
+                  <span>{d.message}</span>
+                </div>
+              ))}
             </div>
-          )}
-        </div>
-      </ScrollArea>
+          </div>
+        )}
+
+        {/* Proposal */}
+        {hasProposal && (
+          <div className="border-t">
+            <div className="flex flex-col gap-2 p-3">
+              <span className="text-xs font-medium text-muted-foreground">
+                {t("canvas.agentPanel.proposal")}
+              </span>
+              <ProposalCard
+                disabled={
+                  isSending || isPreparingUpload || isHistoryLoading || agentPanel.isLoading
+                }
+                applyDisabled={proposalNeedsAnswer}
+                items={proposalItems}
+                onApply={handleApply}
+                onAskFix={hasBlockingDiagnostics ? handleAskFix : undefined}
+                onReject={handleDiscard}
+                onRevise={handleRevise}
+                subtitle={t(
+                  proposalNeedsAnswer
+                    ? "canvas.agentPanel.proposalDetails.needsAnswer"
+                    : "canvas.agentPanel.proposalDetails.review",
+                )}
+                title={proposal?.summary ?? generateProposal?.purpose ?? ""}
+              />
+            </div>
+          </div>
+        )}
+      </div>
 
       {needsRuntimeSetup && (
         <div className="border-t bg-amber-500/10">
@@ -722,7 +742,7 @@ export const AgentPanel = ({ onGeneratedPipeline }: AgentPanelProps) => {
         </div>
       )}
 
-      <div className="shrink-0 border-t border-border/70 bg-surface">
+      <div className="shrink-0 border-t border-border/70">
         <Composer
           agentContext={agentContext}
           canRemoveAttachments={false}

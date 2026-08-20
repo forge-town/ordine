@@ -1,9 +1,9 @@
-import { Handle, Position } from "@xyflow/react";
 import { Group } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { cn } from "@repo/ui/lib/utils";
 import { useStore } from "zustand";
 import { useCanvasPageStore } from "../_store";
+import { NodeCardPorts } from "../NodeCard/NodeCardPorts";
 import type { CompoundNodeData } from "@repo/schemas";
 
 export interface CompoundNodeProps {
@@ -31,31 +31,33 @@ export const CompoundNode = ({ id, data, selected }: CompoundNodeProps) => {
   return (
     <div
       className={cn(
-        "relative size-full min-h-30 min-w-50 rounded-xl border-2 border-dashed bg-indigo-50/30 transition-all duration-200",
-        selected ? "border-indigo-500 shadow-lg" : "border-indigo-300/60",
-        isHovered && "border-indigo-400 bg-indigo-50/50 shadow-md",
+        "relative size-full min-h-30 min-w-50 rounded-xl bg-surface/80 shadow-soft ring-1 ring-border transition-all duration-150",
+        selected
+          ? "shadow-float ring-2 ring-foreground/40"
+          : "hover:shadow-float hover:ring-border-strong",
+        isHovered && "shadow-float ring-2 ring-foreground/30",
       )}
+      data-testid="canvas-v2-node-shell-root"
     >
-      <Handle className="bg-indigo-400! w-3! h-3!" position={Position.Left} type="target" />
-
-      <div className="flex items-center gap-1.5 px-3 py-2">
-        <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-indigo-100">
-          <Group className="h-3.5 w-3.5 text-indigo-600" />
+      <div className="flex items-center gap-2 border-b border-border/70 px-2.5 py-2">
+        <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-surface-2">
+          <Group className="h-3.5 w-3.5 text-foreground/80" />
         </div>
-        <input
-          className="nodrag nopan bg-transparent text-xs font-semibold text-indigo-700 w-full focus:outline-none"
-          value={data.label}
-          onChange={handleLabelChange}
-          onMouseDown={handleMouseDown}
-        />
-        {data.childNodeIds.length > 0 && (
-          <span className="text-[10px] text-indigo-400 whitespace-nowrap">
+        <div className="min-w-0 flex-1">
+          <input
+            aria-label={t("canvas.nodeLabel")}
+            className="nodrag nopan w-full min-w-0 truncate border-0 bg-transparent p-0 text-[12px] font-semibold leading-tight text-foreground focus:outline-none"
+            value={data.label}
+            onChange={handleLabelChange}
+            onMouseDown={handleMouseDown}
+          />
+          <div className="truncate text-[10px] text-muted-foreground">
             {t("canvas.compoundNode.childCount", { count: data.childNodeIds.length })}
-          </span>
-        )}
+          </div>
+        </div>
       </div>
 
-      <Handle className="bg-indigo-400! w-3! h-3!" position={Position.Right} type="source" />
+      <NodeCardPorts leftHandle leftHandleCount={1} rightHandle rightHandleCount={1} />
     </div>
   );
 };

@@ -6,8 +6,8 @@ import {
 } from "@xyflow/react";
 import { cn } from "@repo/ui/lib/utils";
 import { useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { getNodePortOffsets, makeNodePortId, type NodePortSide } from "./nodePorts";
-import { themeMap, type NodeTheme } from "./nodeCardTheme";
 
 export interface NodeCardPortsProps {
   cardMaxPortSpread?: number;
@@ -23,11 +23,10 @@ export interface NodeCardPortsProps {
   rightConnectedPortMask?: number;
   rightHandle?: boolean;
   rightHandleCount: number;
-  theme: NodeTheme;
 }
 
 const nodePortClassName =
-  "node-card-port absolute !top-[calc(50%+var(--node-port-offset))] !z-10 !h-0 !min-h-0 !w-0 !min-w-0 !border-0 !bg-transparent !opacity-100 transition-opacity duration-150 ease-out before:content-[''] before:absolute before:left-1/2 before:top-1/2 before:h-2 before:w-2 before:-translate-x-1/2 before:-translate-y-1/2 before:scale-75 before:rounded-full before:opacity-30 before:shadow-[0_0_0_2px_rgba(255,255,255,0.8),0_1px_4px_rgba(15,23,42,0.12)] before:transition-[opacity,transform,box-shadow] before:duration-200 before:ease-out after:content-[''] after:absolute after:left-1/2 after:top-1/2 after:h-5 after:w-5 after:-translate-x-1/2 after:-translate-y-1/2 after:rounded-full hover:before:scale-125 hover:before:opacity-100 hover:before:shadow-[0_0_0_3px_rgba(255,255,255,0.95),0_2px_8px_rgba(15,23,42,0.28)] group-hover/node-card:before:scale-100 group-hover/node-card:before:opacity-75 group-data-[selected=true]/node-card:before:scale-110 group-data-[selected=true]/node-card:before:opacity-100 data-[connected=true]:before:scale-100 data-[connected=true]:before:opacity-90 data-[active=true]:before:scale-125 data-[active=true]:before:opacity-100";
+  "node-card-port absolute !top-[calc(50%+var(--node-port-offset))] !z-10 !h-0 !min-h-0 !w-0 !min-w-0 !border-0 !bg-transparent !opacity-100 cursor-crosshair before:content-[''] before:absolute before:left-1/2 before:top-1/2 before:h-3 before:w-3 before:-translate-x-1/2 before:-translate-y-1/2 before:rounded-full before:border before:border-border-strong before:bg-surface before:shadow-[0_1px_2px_rgba(15,23,42,0.12)] before:transition-transform before:duration-150 before:ease-out after:content-[''] after:absolute after:left-1/2 after:top-1/2 after:h-5 after:w-5 after:-translate-x-1/2 after:-translate-y-1/2 after:rounded-full hover:before:scale-150 hover:before:border-foreground data-[connected=true]:before:border-foreground/60 data-[active=true]:before:scale-125 data-[active=true]:before:border-foreground";
 
 const getNodePortStyle = (offset: number) =>
   ({
@@ -105,15 +104,14 @@ export const NodeCardPorts = ({
   rightConnectedPortMask,
   rightHandle,
   rightHandleCount,
-  theme,
 }: NodeCardPortsProps) => {
-  const t = themeMap[theme] ?? themeMap.emerald;
+  const { t } = useTranslation();
   const nodeId = useNodeId();
   const updateNodeInternals = useUpdateNodeInternals();
   const leftPortOffsets = getNodePortOffsets(leftHandleCount, cardMaxPortSpread);
   const rightPortOffsets = getNodePortOffsets(rightHandleCount, cardMaxPortSpread);
-  const leftPortClassName = cn(nodePortClassName, "!left-0", t.handleColor);
-  const rightPortClassName = cn(nodePortClassName, "!right-0", t.handleColor);
+  const leftPortClassName = cn(nodePortClassName, "!left-0");
+  const rightPortClassName = cn(nodePortClassName, "!right-0");
 
   useEffect(() => {
     if (!nodeId) {
@@ -162,10 +160,15 @@ export const NodeCardPorts = ({
 
           return (
             <ReactFlowPort
+              aria-label={t("workspace.canvas.nodes.ports.left", {
+                defaultValue: `Input port ${index + 1}`,
+                index: index + 1,
+              })}
               key={makeNodePortId("left", index)}
               className={leftPortClassName}
               data-active={visualState.active ? "true" : "false"}
               data-connected={visualState.connected ? "true" : "false"}
+              data-testid="canvas-v2-node-left-port"
               data-port-state={visualState.state}
               id={makeNodePortId("left", index)}
               position={getNodePortPosition("left")}
@@ -191,10 +194,15 @@ export const NodeCardPorts = ({
 
           return (
             <ReactFlowPort
+              aria-label={t("workspace.canvas.nodes.ports.right", {
+                defaultValue: `Output port ${index + 1}`,
+                index: index + 1,
+              })}
               key={makeNodePortId("right", index)}
               className={rightPortClassName}
               data-active={visualState.active ? "true" : "false"}
               data-connected={visualState.connected ? "true" : "false"}
+              data-testid="canvas-v2-node-right-port"
               data-port-state={visualState.state}
               id={makeNodePortId("right", index)}
               position={getNodePortPosition("right")}
