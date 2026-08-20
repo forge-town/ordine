@@ -96,6 +96,61 @@ describe("executePipeline", () => {
     expect(result.ok).toBe(false);
   });
 
+  it("rejects an incompatible file handoff before starting an Operation", async () => {
+    const deps = makeDeps();
+    const sourceId = "write-markdown";
+    const targetId = "read-pdf";
+    const operations = new Map([
+      [
+        sourceId,
+        makeOp(sourceId, "Write Markdown", {
+          executor: { type: "agent", agentMode: "prompt", prompt: "Write a report" },
+          inputs: [],
+          outputs: [
+            {
+              id: "report",
+              name: "Report",
+              contentType: "markdown",
+              produces: ["text/markdown"],
+            },
+          ],
+        }),
+      ],
+      [
+        targetId,
+        makeOp(targetId, "Read PDF", {
+          executor: { type: "agent", agentMode: "prompt", prompt: "Read the document" },
+          inputs: [
+            {
+              id: "document",
+              name: "Document",
+              kind: "file",
+              required: true,
+              accepts: ["application/pdf"],
+            },
+          ],
+          outputs: [],
+        }),
+      ],
+    ]);
+    const nodes = [
+      makeNode("write", "operation", { operationId: sourceId, operationName: "Write Markdown" }),
+      makeNode("read", "operation", { operationId: targetId, operationName: "Read PDF" }),
+    ];
+    const edge: PipelineEdge = {
+      ...makeEdge("write", "read"),
+      data: {
+        label: "",
+        handoff: { kind: "handoff", sourcePortId: "report", targetPortId: "document" },
+      },
+    };
+
+    const result = await pipelineEngine.execute(makeOpts(nodes, [edge], deps, { operations }));
+
+    expect(result.ok).toBe(false);
+    expect(deps.runPrompt).not.toHaveBeenCalled();
+  });
+
   describe("folder node", () => {
     it("processes a folder node with tree disclosure", async () => {
       const folderPath = join(testDir, "project-folder");

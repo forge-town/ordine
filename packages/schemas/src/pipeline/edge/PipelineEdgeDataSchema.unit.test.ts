@@ -37,4 +37,20 @@ describe("PipelineEdgeDataSchema backward compatibility", () => {
     expect(parsed.condition?.expression).toBe("has_risk == true");
     expect(parsed.qualityGate?.onFail).toBe("retry");
   });
+
+  it("parses a semantic handoff binding independently of UI handles", () => {
+    const parsed = PipelineEdgeDataSchema.parse({
+      handoff: {
+        kind: "handoff",
+        sourcePortId: "report",
+        targetPortId: "document",
+      },
+    });
+
+    expect(parsed.handoff).toEqual({
+      kind: "handoff",
+      sourcePortId: "report",
+      targetPortId: "document",
+    });
+  });
 });
