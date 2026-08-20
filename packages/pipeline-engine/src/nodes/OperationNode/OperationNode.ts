@@ -8,6 +8,7 @@ import {
 } from "@repo/schemas";
 import type { NodeCtx, OperationRuntimeContext } from "../../schemas";
 import { trace } from "@repo/obs";
+import { ResultAsync } from "neverthrow";
 import { ScriptExecutionError } from "../../errors";
 import { runScript, safeParseConfig } from "../../infrastructure";
 import type { OperationNodeContext, OperationExecResult, NodeResult } from "../types";
@@ -131,8 +132,13 @@ export const executeOperationNode = async (
 
   const effectiveAgentMode =
     executor.agentMode ?? (executor.type === "agent" ? "prompt" : undefined);
+  const effectiveAgent = agentOverride ?? executor.agent;
   const effectiveModel =
     agentSelection.model ?? (agentSelection.overridesExecutor ? undefined : executor.model);
+  const route = {
+    ...(effectiveAgent ? { agent: effectiveAgent } : {}),
+    ...(effectiveModel ? { model: effectiveModel } : {}),
+  };
 
   // lastContent tracks the most recently emitted LLM_CONTENT so the final emit can dedupe:
   // the last streamed frame's accumulated text often equals the final full text, and
@@ -194,7 +200,7 @@ export const executeOperationNode = async (
         operationDescription: operation.description ?? "",
         instruction: prompt,
       }),
-      agent: agentOverride ?? executor.agent,
+      agent: effectiveAgent,
       ...(effectiveModel ? { model: effectiveModel } : {}),
       onChunk: handleChunk,
       onProgress,
@@ -228,7 +234,7 @@ export const executeOperationNode = async (
     const skillDescription = skill
       ? `${skill.label}: ${skill.description}`
       : `Skill "${skillId}" (no description available)`;
-    const agent = agentOverride ?? executor.agent;
+    const agent = effectiveAgent;
 
     if (agent === "hermes") {
       const message = `Hermes is not available for skill operation "${operation.name}" because skills require local tool permissions`;
@@ -270,7 +276,7 @@ export const executeOperationNode = async (
     await trace(jobId, `Skill output (${opResult.value.length} chars)`);
   }
 
-  return { outcome: "completed", content: opResult.value };
+  return { outcome: "completed", content: opResult.value, route };
 };
 
 export const processOperationNode = async (
@@ -316,7 +322,25 @@ export const processOperationNode = async (
       exec.succeeded = true;
       loopState.currentInput = { inputPath: input.inputPath, content: resultState.content };
 
-      const passed = await deps.evaluateLoopCondition(conditionPrompt, resultState.content);
+      const evaluation = await ResultAsync.fromPromise(
+        deps.evaluateLoopCondition({
+          conditionPrompt,
+          operationOutput: resultState.content,
+          ...loopResult.route,
+        }),
+        (cause) =>
+          new ScriptExecutionError(
+            `Loop condition evaluation failed: ${cause instanceof Error ? cause.message : String(cause)}`,
+            cause,
+          ),
+      );
+      if (evaluation.isErr()) {
+        await trace(jobId, `ERROR: ${evaluation.error.message}`);
+        await trace(jobId, encodeNodeFail(node.id));
+
+        return { outcome: "failed", error: evaluation.error };
+      }
+      const passed = evaluation.value;
       if (passed) {
         await trace(jobId, `[Loop] Condition PASSED on iteration ${attempt}`);
         break;

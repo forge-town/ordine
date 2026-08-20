@@ -44,8 +44,6 @@ export const createOperationRunnerService = (db: DbConnection) => {
   initObs(jobTracesDao);
   initSpanRecorder({ agentRawExportsDao, agentSpansDao });
 
-  const loopEvaluatorFactory = loopEvaluator.create();
-
   const buildDepsForJob = ({
     jobId,
     apiKey,
@@ -58,15 +56,18 @@ export const createOperationRunnerService = (db: DbConnection) => {
     model?: string;
     defaultAgent?: AgentRuntime;
     ssh?: SshConnection;
-  }) =>
-    pipelineRunnerEngineDeps.build({
-      evaluateLoopCondition: loopEvaluatorFactory({ jobId }),
+  }) => {
+    const evaluateLoopCondition = loopEvaluator.create({ apiKey })({ jobId });
+
+    return pipelineRunnerEngineDeps.build({
+      evaluateLoopCondition,
       jobId,
       apiKey,
       model,
       defaultAgent,
       ssh,
     });
+  };
 
   return {
     startRun: async (opts: {

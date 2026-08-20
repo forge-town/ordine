@@ -31,10 +31,10 @@ vi.mock("@repo/agent", () => ({
       onProgress?: (s: string) => Promise<void>;
       onTextDelta?: (s: string) => Promise<void>;
     }) => {
-    await opts.onProgress?.("progress");
-    await opts.onTextDelta?.("partial codex output");
+      await opts.onProgress?.("progress");
+      await opts.onTextDelta?.("partial codex output");
 
-    return "fake codex output";
+      return "fake codex output";
     },
   ),
   runHermes: vi.fn(async (opts: { onProgress?: (s: string) => Promise<void> }) => {
@@ -187,6 +187,7 @@ describe("agentEngine", () => {
       systemPrompt: "Analyze this",
       userPrompt: "Hello",
       cwd: "/tmp/test",
+      model: "gpt-step",
       connectorInjection: {
         mcpServers: { linear: { type: "http", url: "https://mcp.linear.app/mcp" } },
         toolNames: ["mcp__linear"],
@@ -198,6 +199,7 @@ describe("agentEngine", () => {
     expect(result.usage).toBeNull();
     expect(runCodex).toHaveBeenCalledWith(
       expect.objectContaining({
+        model: "gpt-step",
         connectorInjection: {
           mcpServers: { linear: { type: "http", url: "https://mcp.linear.app/mcp" } },
           toolNames: ["mcp__linear"],
