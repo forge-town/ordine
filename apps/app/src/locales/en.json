@@ -907,6 +907,8 @@
       },
       "proposalDetails": {
         "review": "Review the proposed operations",
+        "needsAnswer": "Needs more information before applying",
+        "openQuestion": "Open question",
         "askFix": "Fix diagnostics",
         "fixDiagnostics": "Please fix the blocking diagnostics in the proposal.",
         "revisePrompt": "Please revise this proposal.",

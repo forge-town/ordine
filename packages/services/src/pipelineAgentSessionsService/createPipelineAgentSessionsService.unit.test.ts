@@ -1158,6 +1158,58 @@ describe("createPipelineAgentSessionsService", () => {
     );
   });
 
+  it("returns an edit question without calling proposeActions when planning needs user input", async () => {
+    mockSessionsDao.findById.mockResolvedValueOnce({
+      id: "session-edit",
+      entrypoint: "canvas-agent-panel",
+      mode: "edit",
+      status: "draft",
+      pipelineId: "pipe-1",
+      snapshot: { nodes: [], edges: [] },
+      latestProposalId: null,
+      approvedProposalId: null,
+      createdPipelineId: null,
+      createdAt: new Date("2026-06-03T12:00:00.000Z"),
+      updatedAt: new Date("2026-06-03T12:00:00.000Z"),
+    });
+    mockRunAgent.mockResolvedValueOnce(
+      JSON.stringify({
+        type: "proposal",
+        proposal: {
+          mode: "edit",
+          summary: "Update the exam pipeline",
+          targetGraphIntent: "Clarify the required exam format",
+          majorChanges: ["Update the output step"],
+          assumptions: [],
+          openQuestions: ["Which grade level should this target?", "Which output format?"],
+          readiness: "needs_user_answer",
+        },
+      }),
+    );
+
+    const result = await createPipelineAgentSessionsService({} as never).planSession(
+      "session-edit",
+      { runtimeId: "runtime-codex" },
+    );
+
+    expect(result).toEqual({
+      type: "question",
+      question: "Which grade level should this target?\nWhich output format?",
+    });
+    expect(mockPipelinesService.proposeActions).not.toHaveBeenCalled();
+    expect(mockProposalsDao.create).not.toHaveBeenCalled();
+    expect(mockMessagesDao.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sessionId: "session-edit",
+        kind: "question",
+        content: expect.stringContaining("Which grade level should this target?"),
+      }),
+    );
+    expect(mockSessionsDao.update).toHaveBeenLastCalledWith("session-edit", {
+      status: "awaiting_user",
+    });
+  });
+
   it("stores pendingOperations returned by proposeActions in the edit proposal", async () => {
     mockSessionsDao.findById.mockResolvedValueOnce({
       id: "session-edit",

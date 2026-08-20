@@ -2,10 +2,31 @@ import { z } from "zod/v4";
 import { ClaudeMessageSchema } from "./ClaudeMessageSchema";
 import { ClaudeModelUsageSchema } from "./ClaudeModelUsageSchema";
 
+const ClaudeStreamDeltaSchema = z.object({
+  type: z.string(),
+  text: z.string().optional(),
+});
+
+const ClaudeStreamInnerDeltaSchema = z
+  .object({
+    type: z.string().optional(),
+    text: z.string().optional(),
+  })
+  .passthrough();
+
+const ClaudeStreamInnerEventSchema = z
+  .object({
+    type: z.string(),
+    delta: ClaudeStreamInnerDeltaSchema.optional(),
+  })
+  .passthrough();
+
 export const ClaudeStreamEventSchema = z.object({
   type: z.string(),
   subtype: z.string().optional(),
   message: ClaudeMessageSchema.optional(),
+  delta: ClaudeStreamDeltaSchema.optional(),
+  event: ClaudeStreamInnerEventSchema.optional(),
   duration_ms: z.number().optional(),
   total_cost_usd: z.number().optional(),
   modelUsage: z.record(z.string(), ClaudeModelUsageSchema).optional(),

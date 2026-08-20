@@ -3,6 +3,7 @@ import { homedir, tmpdir } from "node:os";
 import { join } from "node:path";
 import { hasMcpConnectorInjection, type McpConnectorInjection } from "../mcp";
 import { logger } from "@repo/logger";
+import { Result } from "neverthrow";
 import { spawnCommand } from "../spawn/spawnCommand";
 
 export interface RunCodexOptions {
@@ -13,8 +14,22 @@ export interface RunCodexOptions {
   model?: string;
   timeoutMs?: number;
   onProgress?: (line: string) => Promise<void>;
+  onTextDelta?: (text: string) => Promise<void> | void;
   connectorInjection?: McpConnectorInjection;
 }
+
+type CodexJsonEvent = {
+  type?: unknown;
+  item?: {
+    type?: unknown;
+    text?: unknown;
+  };
+};
+
+const parseCodexJsonEvent = Result.fromThrowable(
+  (line: string) => JSON.parse(line) as CodexJsonEvent,
+  () => null,
+);
 
 const CODEX_BIN = process.platform === "win32" ? "codex.cmd" : "codex";
 
@@ -150,6 +165,7 @@ export const runCodex = async ({
   model,
   timeoutMs = 10 * 60 * 1000,
   onProgress,
+  onTextDelta,
   connectorInjection,
 }: RunCodexOptions): Promise<string> => {
   const MAX_INPUT_CHARS = 50_000;
@@ -170,6 +186,7 @@ export const runCodex = async ({
     sandbox,
     "--ephemeral",
     "--skip-git-repo-check",
+    "--json",
     "-C",
     cwd,
     "--output-last-message",
@@ -199,8 +216,51 @@ export const runCodex = async ({
       const stdoutChunks: Buffer[] = [];
       const stderrChunks: Buffer[] = [];
       const completion = { settled: false };
+      const streamState = {
+        lineBuffer: "",
+        parsedEventCount: 0,
+        emittedAgentMessage: false,
+        lastAgentMessage: "",
+        delivery: Promise.resolve(),
+      };
 
-      child.stdout.on("data", (chunk: Buffer) => stdoutChunks.push(chunk));
+      const processStreamLine = (line: string) => {
+        if (!line.trim()) return;
+
+        const parsed = parseCodexJsonEvent(line.trim());
+        if (parsed.isErr()) return;
+        streamState.parsedEventCount += 1;
+
+        const event = parsed.value;
+        if (
+          event.type !== "item.completed" ||
+          event.item?.type !== "agent_message" ||
+          typeof event.item.text !== "string" ||
+          event.item.text.length === 0
+        ) {
+          return;
+        }
+
+        const textDelta = streamState.emittedAgentMessage
+          ? `\n\n${event.item.text}`
+          : event.item.text;
+        streamState.emittedAgentMessage = true;
+        streamState.lastAgentMessage = event.item.text;
+        streamState.delivery = streamState.delivery
+          .then(() => onTextDelta?.(textDelta))
+          .then(() => undefined)
+          .catch((error) => {
+            logger.warn({ err: String(error) }, "runCodex: text delta callback failed");
+          });
+      };
+
+      child.stdout.on("data", (chunk: Buffer) => {
+        stdoutChunks.push(chunk);
+        streamState.lineBuffer += chunk.toString("utf8");
+        const lines = streamState.lineBuffer.split("\n");
+        streamState.lineBuffer = lines.pop() ?? "";
+        for (const line of lines) processStreamLine(line);
+      });
       child.stderr.on("data", (chunk: Buffer) => stderrChunks.push(chunk));
 
       const prompt = `<system>${systemPrompt}</system>\n\n${truncatedPrompt}`;
@@ -230,9 +290,12 @@ export const runCodex = async ({
         const stdout = Buffer.concat(stdoutChunks).toString("utf8");
         const stderr = Buffer.concat(stderrChunks).toString("utf8");
         void (async () => {
+          processStreamLine(streamState.lineBuffer);
+          await streamState.delivery;
           const output = await readFile(outputFile, "utf8").then(
             (fileOutput) => fileOutput,
-            () => stdout,
+            () =>
+              streamState.lastAgentMessage || (streamState.parsedEventCount === 0 ? stdout : ""),
           );
 
           if (code !== 0 && output.trim().length === 0) {

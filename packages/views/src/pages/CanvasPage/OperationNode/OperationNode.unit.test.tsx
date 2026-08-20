@@ -1,7 +1,7 @@
 import { render } from "../../../test/test-wrapper";
 import type * as RefineCore from "@refinedev/core";
 import i18n from "i18next";
-import { fireEvent, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { OperationNodeData } from "@repo/schemas";
@@ -111,6 +111,19 @@ describe("OperationNode", () => {
     );
     expect(screen.getByRole("spinbutton", { name: "最大循环次数" })).toBeInTheDocument();
     expect(screen.getByRole("textbox", { name: "循环验收条件" })).toBeInTheDocument();
+  });
+
+  it("renders the live run status instead of the persisted idle status", () => {
+    const store = renderOperationNode();
+
+    act(() => {
+      store.getState().setNodeRunStatuses({ [nodeId]: "running" });
+    });
+
+    const runningLabel = screen.getByText("运行中");
+    expect(runningLabel).toBeInTheDocument();
+    expect(runningLabel.parentElement?.querySelector("svg")).not.toHaveClass("animate-spin");
+    expect(screen.queryByText("待运行")).not.toBeInTheDocument();
   });
 
   it("updates runtime selection without bubbling canvas interactions", async () => {

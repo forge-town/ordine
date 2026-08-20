@@ -31,7 +31,10 @@ import {
 } from "./usePipelineCreationSessionRecovery";
 import { type PipelineCreationAttachment } from "./PipelineCreationAttachments";
 import { PipelineCreationMessages, type PipelineCreationMessage } from "./PipelineCreationMessages";
-import { PipelineCreationComposer } from "./PipelineCreationComposer";
+import {
+  PipelineCreationComposer,
+  type PipelineCreationRuntimeOption,
+} from "./PipelineCreationComposer";
 
 type WorkspacePresentation = "dialog" | "home";
 
@@ -43,6 +46,8 @@ export interface PipelineCreationWorkspaceProps {
   runtimeConfigured?: boolean;
   runtimeId?: string;
   runtimeLabel?: string;
+  runtimeOptions?: PipelineCreationRuntimeOption[];
+  onRuntimeChange?: (runtimeId: string | null) => void;
   onClose?: () => void;
 }
 
@@ -54,6 +59,8 @@ export const PipelineCreationWorkspace = ({
   runtimeConfigured,
   runtimeId,
   runtimeLabel,
+  runtimeOptions,
+  onRuntimeChange,
   onClose: handleClose,
 }: PipelineCreationWorkspaceProps) => {
   const { t } = useTranslation();
@@ -256,9 +263,7 @@ export const PipelineCreationWorkspace = ({
     }
 
     if (event.type === "assistant_chunk") {
-      setStreamingAssistantText((current) =>
-        current.length === 0 ? event.text : `${current}\n${event.text}`,
-      );
+      setStreamingAssistantText((current) => `${current}${event.text}`);
 
       return;
     }
@@ -814,7 +819,10 @@ export const PipelineCreationWorkspace = ({
         phase={phase}
         proposalVisible={proposal !== null}
         runtimeConfigured={runtimeConfigured}
+        runtimeId={runtimeId}
         runtimeLabel={runtimeLabel}
+        runtimeOptions={runtimeOptions}
+        onRuntimeChange={onRuntimeChange}
         onApprove={handleApprove}
         onCancel={handleCancel}
         onClose={handleClose}

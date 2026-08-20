@@ -89,10 +89,7 @@ export const createAgentBarStore = (pipelineId: string | null = null): AgentBarS
       })),
     appendStreamingAssistantText: (text) =>
       set((state) => ({
-        streamingAssistantText:
-          state.streamingAssistantText.length === 0
-            ? text
-            : `${state.streamingAssistantText}\n${text}`,
+        streamingAssistantText: `${state.streamingAssistantText}${text}`,
       })),
     clearMessages: () => set({ messages: [] }),
     removeMessage: (id) =>

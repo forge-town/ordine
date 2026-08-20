@@ -16,6 +16,7 @@ export type ProposalCardProps = {
   onAskFix?: () => void;
   onReject?: () => void;
   onRevise?: () => void;
+  applyDisabled?: boolean;
   disabled?: boolean;
   subtitle: string;
   title: string;
@@ -28,6 +29,7 @@ export const ProposalCard = ({
   onAskFix,
   onReject,
   onRevise,
+  applyDisabled = false,
   disabled = false,
   subtitle,
   title,
@@ -64,7 +66,7 @@ export const ProposalCard = ({
         <Button
           className="h-7 rounded-lg px-3 text-[11.5px]"
           data-testid="agent-proposal-apply"
-          disabled={disabled || Boolean(onAskFix)}
+          disabled={disabled || applyDisabled || Boolean(onAskFix)}
           size="sm"
           onClick={onApply}
         >

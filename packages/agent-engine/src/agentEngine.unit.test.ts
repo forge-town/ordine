@@ -26,11 +26,17 @@ vi.mock("@repo/agent", () => ({
 
     return { text: "fake claude output", events: fakeClaudeEvents };
   }),
-  runCodex: vi.fn(async (opts: { onProgress?: (s: string) => Promise<void> }) => {
-    await opts.onProgress?.("progress");
+  runCodex: vi.fn(
+    async (opts: {
+      onProgress?: (s: string) => Promise<void>;
+      onTextDelta?: (s: string) => Promise<void>;
+    }) => {
+      await opts.onProgress?.("progress");
+      await opts.onTextDelta?.("partial codex output");
 
-    return "fake codex output";
-  }),
+      return "fake codex output";
+    },
+  ),
   runHermes: vi.fn(async (opts: { onProgress?: (s: string) => Promise<void> }) => {
     await opts.onProgress?.("progress");
 
@@ -200,6 +206,21 @@ describe("agentEngine", () => {
         },
       }),
     );
+  });
+
+  it("forwards Codex text deltas to the caller", async () => {
+    const onTextDelta = vi.fn();
+
+    await agentEngine.run({
+      agent: "codex",
+      mode: "direct",
+      systemPrompt: "Analyze this",
+      userPrompt: "Hello",
+      cwd: "/tmp/test",
+      onTextDelta,
+    });
+
+    expect(onTextDelta).toHaveBeenCalledWith("partial codex output");
   });
 
   it("loads only the selected connector tools inside a supported adapter", async () => {

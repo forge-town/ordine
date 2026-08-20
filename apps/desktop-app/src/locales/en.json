@@ -604,7 +604,12 @@
       "runtimeLoading": "Loading runtimes...",
       "inputPlaceholder": "Type your request...",
       "runtimeNotConfigured": "AI runtime is not configured yet.",
-      "goToRuntimeSettings": "Go to configuration"
+      "goToRuntimeSettings": "Go to configuration",
+      "proposalDetails": {
+        "review": "Review the proposed operations",
+        "needsAnswer": "Needs more information before applying",
+        "openQuestion": "Open question"
+      }
     },
     "emptyState": {
       "title": "Start with a node",

@@ -598,7 +598,12 @@
       "runtimeLoading": "正在加载运行时...",
       "inputPlaceholder": "输入你的需求...",
       "runtimeNotConfigured": "暂未配置运行时 AI。",
-      "goToRuntimeSettings": "前往配置"
+      "goToRuntimeSettings": "前往配置",
+      "proposalDetails": {
+        "review": "查看拟议操作",
+        "needsAnswer": "应用前还需要补充信息",
+        "openQuestion": "待确认问题"
+      }
     },
     "emptyState": {
       "title": "从一个节点开始",

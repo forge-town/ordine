@@ -1,6 +1,7 @@
 import type { ChangeEvent } from "react";
 import { applyPipelineActions } from "@repo/pipeline-engine/actions";
 import type {
+  Job,
   NodeRunStatus,
   PipelineActionDiagnostic,
   PipelineActionProposal,
@@ -153,6 +154,8 @@ export interface UISlice {
   startTestRun: () => void;
   stopTestRun: () => void;
   applyNodeLlmContent: (nodeId: string, content: string) => void;
+  restoreRunState: (job: Job) => void;
+  setNodeRunStatuses: (statuses: Record<string, NodeRunStatus>) => void;
 
   // Semantic actions
   handleCloseConsole: () => void;
@@ -419,6 +422,32 @@ export const createUISlice = (
     set((state) => ({
       nodeLlmContent: { ...state.nodeLlmContent, [nodeId]: content },
     }));
+  },
+
+  restoreRunState: (job) => {
+    const live = job.status === "queued" || job.status === "running" || job.status === "paused";
+    const nodeRunStatuses = { ...job.nodeStatuses };
+    const runningNodeId =
+      Object.entries(nodeRunStatuses).find(
+        ([, status]) => status === "running" || status === "retrying",
+      )?.[0] ?? null;
+
+    set({
+      activeJobId: live ? job.id : null,
+      isConsoleOpen: live,
+      isTestRunning: live,
+      nodeRunStatuses,
+      runningNodeId,
+    });
+  },
+
+  setNodeRunStatuses: (nodeRunStatuses) => {
+    const runningNodeId =
+      Object.entries(nodeRunStatuses).find(
+        ([, status]) => status === "running" || status === "retrying",
+      )?.[0] ?? null;
+
+    set({ nodeRunStatuses: { ...nodeRunStatuses }, runningNodeId });
   },
 
   // Semantic actions

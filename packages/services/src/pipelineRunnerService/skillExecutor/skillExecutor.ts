@@ -240,6 +240,7 @@ const run = ({
   return ResultAsync.fromPromise(
     (async () => {
       await onProgress?.("runSkill: start");
+      const streamState = { accumulated: "" };
 
       const raw = await runAgent({
         agent,
@@ -250,6 +251,12 @@ const run = ({
         agentId: skillId,
         allowedTools,
         onProgress,
+        onTextDelta: onChunk
+          ? async (text) => {
+              streamState.accumulated += text;
+              await onChunk(streamState.accumulated);
+            }
+          : undefined,
         logPrefix: "runSkill",
         apiKey,
         model,

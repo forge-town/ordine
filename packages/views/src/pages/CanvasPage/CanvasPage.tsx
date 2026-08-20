@@ -5,6 +5,7 @@ import { PageLoadingState } from "../../components/PageLoadingState";
 import { ResourceName } from "../../constants";
 import { CanvasPageStoreProvider } from "./_store";
 import { CanvasPageContent } from "./CanvasPageContent";
+import { RunStateRestorer } from "./RunConsole/RunStateRestorer";
 
 interface CanvasPageProps {
   // Pipeline id to load, read from the route's search params by each app.
@@ -32,6 +33,7 @@ export const CanvasPage = ({ embedded = false, id, onGeneratedPipeline }: Canvas
   return (
     <CanvasLayout embedded={embedded}>
       <CanvasPageStoreProvider pipeline={pipeline}>
+        <RunStateRestorer />
         <CanvasPageContent onGeneratedPipeline={onGeneratedPipeline} />
       </CanvasPageStoreProvider>
     </CanvasLayout>

@@ -602,6 +602,51 @@ describe("AgentPanel", () => {
     });
   });
 
+  it("keeps an edit proposal needing answers non-applicable while leaving revise and discard enabled", async () => {
+    mockPlanSessionStream.mockImplementation(async (_sessionId, { onEvent }) => {
+      onEvent({
+        type: "proposal_ready",
+        proposalId: "proposal-needs-answer",
+        proposal: {
+          mode: "edit",
+          summary: "Prepare the exam pipeline",
+          targetGraphIntent: "Clarify the exam requirements",
+          majorChanges: ["Update the output step"],
+          assumptions: [],
+          openQuestions: ["Which grade level should this target?"],
+          readiness: "needs_user_answer",
+          diagnosticsPreview: [],
+          actions: [
+            {
+              type: "removeNode",
+              nodeId: "node-1",
+            },
+          ],
+        },
+      });
+    });
+
+    render(<AgentPanel />, { wrapper: wrapperWithState() });
+    await waitFor(() => expect(mockGetList).toHaveBeenCalled());
+    await userEvent.type(
+      screen.getByPlaceholderText("workspace.agentBar.composer.placeholder"),
+      "Prepare the exam pipeline",
+    );
+    await userEvent.keyboard("{Enter}");
+
+    await waitFor(() => expect(mockPlanSessionStream).toHaveBeenCalled());
+    await waitFor(() => {
+      expect(screen.getByTestId("agent-proposal")).toBeInTheDocument();
+    });
+    expect(screen.getByText(/Which grade level should this target\?/)).toBeInTheDocument();
+    expect(screen.getByTestId("agent-proposal-apply")).toBeDisabled();
+    expect(screen.getByTestId("agent-proposal-revise")).toBeEnabled();
+    expect(screen.getByTestId("agent-proposal-reject")).toBeEnabled();
+
+    await userEvent.click(screen.getByTestId("agent-proposal-apply"));
+    expect(mockApproveProposal).not.toHaveBeenCalled();
+  });
+
   it("renders an edit proposal from session fallback when the stream misses proposal_ready", async () => {
     mockPlanSessionStream.mockResolvedValue(undefined);
     mockGetLatestReadyProposal.mockResolvedValueOnce({
