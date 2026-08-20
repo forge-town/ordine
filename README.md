@@ -44,15 +44,19 @@ No more scattered scripts. No more babysitting agent runs. Define your workflow 
 
 ### Option 1 — Quick install (recommended)
 
-The fastest way to run Ordine locally — no external database or configuration needed:
+The fastest way to run Ordine locally. Docker Desktop is required for the PostgreSQL container:
 
 ```sh
+docker run -d --name ordine-postgres -p 127.0.0.1:5432:5432 \
+  -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=ordine \
+  -v ordine-postgres-data:/var/lib/postgresql/data postgres:16-alpine
+until docker exec ordine-postgres pg_isready -U postgres -d ordine >/dev/null 2>&1; do sleep 1; done
 npm create @ordine -- --yes
 ```
 
-This starts Ordine at `http://localhost:9430` with embedded PostgreSQL (PGLite), auto-runs migrations, and enables local mode (single-user, no login required).
+This starts Ordine at `http://localhost:9430` using the Docker PostgreSQL database, auto-runs migrations, and enables local mode (single-user, no login required).
 
-To stop, press `Ctrl+C`.
+To stop the app, press `Ctrl+C`. Stop the database separately with `docker stop ordine-postgres`.
 
 For interactive mode (choose data directory, port, etc.):
 
@@ -75,33 +79,29 @@ cp apps/app/.env.example apps/app/.env
 cp apps/server/.env.example apps/server/.env
 ```
 
-**Database — pick one:**
+**Database — Docker PostgreSQL:**
 
-- **PGLite (embedded, no external DB required):**
-  ```sh
-  # In both .env files, set:
-  PGLITE_DATA_DIR=./.pglite
-  ```
-
-- **PostgreSQL (external):**
-  ```sh
-  # In both .env files, set:
-  DATABASE_URL=postgresql://postgres:<password>@localhost:5432/ordine
-  ```
+```sh
+bun run db:up
+# The examples use the same URL in both .env files:
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/ordine
+```
 
 Push the schema:
+
 ```sh
 cd apps/app && bun run db:push && cd ../..
 ```
 
 Start development:
+
 ```sh
 bun dev
 ```
 
-| Service | URL |
-|---------|-----|
-| Main app | http://localhost:9430 |
+| Service    | URL                   |
+| ---------- | --------------------- |
+| Main app   | http://localhost:9430 |
 | API server | http://localhost:9433 |
 
 > **💡 Local Mode (self-hosted, single-user):**

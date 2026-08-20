@@ -3,7 +3,7 @@ import { err, ok } from "neverthrow";
 
 vi.hoisted(() => {
   process.env.BETTER_AUTH_SECRET = "test-secret";
-  process.env.PGLITE_DATA_DIR = "/tmp/ordine-cod-122-test";
+  process.env.DATABASE_URL = "postgresql://postgres:postgres@localhost:5432/ordine";
 });
 
 const mocks = vi.hoisted(() => ({

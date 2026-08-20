@@ -4,13 +4,17 @@ Get Ordine running locally in minutes.
 
 ## Quick Install (recommended)
 
-The fastest way to run Ordine — no external database or configuration needed:
+The fastest way to run Ordine with a local Docker PostgreSQL database:
 
 ```sh
+docker run -d --name ordine-postgres -p 127.0.0.1:5432:5432 \
+  -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=ordine \
+  -v ordine-postgres-data:/var/lib/postgresql/data postgres:16-alpine
+until docker exec ordine-postgres pg_isready -U postgres -d ordine >/dev/null 2>&1; do sleep 1; done
 npm create @ordine -- --yes
 ```
 
-This starts Ordine at `http://localhost:9430` with embedded PostgreSQL (PGLite), automatically runs database migrations, and enables local mode (single-user, no login required).
+This starts Ordine at `http://localhost:9430` with Docker PostgreSQL, automatically runs database migrations, and enables local mode (single-user, no login required).
 
 To stop, press `Ctrl+C`.
 
@@ -47,19 +51,13 @@ cp apps/app/.env.example apps/app/.env
 cp apps/server/.env.example apps/server/.env
 ```
 
-**Pick one database option:**
+**Database — Docker PostgreSQL:**
 
-- **PGLite (embedded, no external PostgreSQL required):**
-  ```sh
-  # In both .env files, set:
-  PGLITE_DATA_DIR=./.pglite
-  ```
-
-- **PostgreSQL (external):**
-  ```sh
-  # In both .env files, set:
-  DATABASE_URL=postgresql://postgres:<password>@localhost:5432/ordine
-  ```
+```sh
+bun run db:up
+# In both .env files, set:
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/ordine
+```
 
 Then push the schema:
 
@@ -67,10 +65,6 @@ Then push the schema:
 cd apps/app
 bun run db:push
 ```
-
-::: tip
-PGLite is the easiest option for local development — no need to install or run a separate PostgreSQL server. Data is stored in the directory you specify.
-:::
 
 ### Start Development
 
@@ -81,10 +75,10 @@ bun dev
 
 This starts all apps in parallel via Turborepo:
 
-| App | URL | Description |
-|-----|-----|-------------|
-| `apps/app` | `http://localhost:9430` | Main web application |
-| `apps/server` | `http://localhost:9433` | API server (Hono) |
+| App           | URL                     | Description          |
+| ------------- | ----------------------- | -------------------- |
+| `apps/app`    | `http://localhost:9430` | Main web application |
+| `apps/server` | `http://localhost:9433` | API server (Hono)    |
 
 ### Local Mode
 

@@ -1,15 +1,29 @@
-import { PGlite } from "@electric-sql/pglite";
+import postgres from "postgres";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 
 const rootDir = join(import.meta.dirname, "../../../..");
 const migrationsDir = join(rootDir, "apps/create/migrations");
-const pgliteMigration = join(migrationsDir, "0002_routines_claude_spec.sql");
+const migration = join(migrationsDir, "0002_routines_claude_spec.sql");
 const postgresMigration = join(rootDir, "apps/app/drizzle/0029_routines_claude_spec.sql");
 const postgresJournal = join(rootDir, "apps/app/drizzle/meta/_journal.json");
+const testDatabaseUrl = new URL(
+  process.env.DATABASE_URL ?? "postgresql://postgres:postgres@localhost:5432/ordine",
+);
+testDatabaseUrl.pathname = "/ordine_db_schema_test";
+const databaseUrl = process.env.ORDINE_DB_SCHEMA_TEST_DATABASE_URL ?? testDatabaseUrl.toString();
 
-const applyMigrations = async (db: PGlite, range?: { after?: string; upTo?: string }) => {
+beforeEach(async () => {
+  const db = postgres(databaseUrl, { onnotice: () => {} });
+  await db.unsafe("DROP SCHEMA public CASCADE; CREATE SCHEMA public");
+  await db.end();
+});
+
+const applyMigrations = async (
+  db: ReturnType<typeof postgres>,
+  range?: { after?: string; upTo?: string },
+) => {
   const files = readdirSync(migrationsDir)
     .filter((file) => file.endsWith(".sql"))
     .sort();
@@ -23,25 +37,25 @@ const applyMigrations = async (db: PGlite, range?: { after?: string; upTo?: stri
       .filter(Boolean);
 
     for (const statement of statements) {
-      await db.exec(statement);
+      await db.unsafe(statement);
     }
   }
 };
 
-const routineColumns = async (db: PGlite) => {
-  const columns = await db.query<{ column_name: string }>(`
+const routineColumns = async (db: ReturnType<typeof postgres>) => {
+  const columns = await db.unsafe<{ column_name: string }[]>(`
       SELECT column_name
       FROM information_schema.columns
       WHERE table_name = 'routines'
     `);
 
-  return columns.rows.map((row) => row.column_name);
+  return columns.map((row) => row.column_name);
 };
 
 describe("COD-244 migration", () => {
-  it("keeps the PGlite and Postgres migration files identical and journaled", () => {
-    expect(existsSync(pgliteMigration), "COD-244 PGlite migration file must exist").toBe(true);
-    expect(readFileSync(pgliteMigration, "utf8")).toBe(readFileSync(postgresMigration, "utf8"));
+  it("keeps the migration files identical and journaled", () => {
+    expect(existsSync(migration), "COD-244 migration file must exist").toBe(true);
+    expect(readFileSync(migration, "utf8")).toBe(readFileSync(postgresMigration, "utf8"));
     const journal = JSON.parse(readFileSync(postgresJournal, "utf8")) as {
       entries: Array<{ idx: number; tag: string }>;
     };
@@ -54,7 +68,7 @@ describe("COD-244 migration", () => {
   });
 
   it("adds description and removes the event trigger columns", async () => {
-    const db = new PGlite();
+    const db = postgres(databaseUrl, { onnotice: () => {} });
     await applyMigrations(db);
 
     const columns = await routineColumns(db);
@@ -63,14 +77,14 @@ describe("COD-244 migration", () => {
     expect(columns).not.toContain("event_type");
     expect(columns).not.toContain("event_config");
 
-    await db.close();
+    await db.end();
   });
 
   it("drops legacy event routines and keeps cron routines intact", async () => {
-    const db = new PGlite();
+    const db = postgres(databaseUrl, { onnotice: () => {} });
     await applyMigrations(db, { upTo: "0001_add_ordine_domain_tables.sql" });
 
-    await db.exec(`
+    await db.unsafe(`
       INSERT INTO "pipelines" ("id", "name") VALUES ('pipeline-1', 'Pipeline');
       INSERT INTO "routines" ("id", "pipeline_id", "name", "trigger_type", "cron_expression")
         VALUES ('routine-cron', 'pipeline-1', 'Cron routine', 'cron', '0 9 * * 1-5');
@@ -80,19 +94,19 @@ describe("COD-244 migration", () => {
 
     await applyMigrations(db, { after: "0001_add_ordine_domain_tables.sql" });
 
-    const rows = await db.query<{ id: string; description: string | null }>(
+    const rows = await db.unsafe<{ id: string; description: string | null }[]>(
       `SELECT id, description FROM "routines" ORDER BY id`,
     );
-    expect(rows.rows).toEqual([{ id: "routine-cron", description: null }]);
+    expect(rows).toEqual([{ id: "routine-cron", description: null }]);
 
-    await db.close();
+    await db.end();
   });
 
   it("disables routines with cron expressions the new parser cannot parse", async () => {
-    const db = new PGlite();
+    const db = postgres(databaseUrl, { onnotice: () => {} });
     await applyMigrations(db, { upTo: "0001_add_ordine_domain_tables.sql" });
 
-    await db.exec(`
+    await db.unsafe(`
       INSERT INTO "pipelines" ("id", "name") VALUES ('pipeline-1', 'Pipeline');
       INSERT INTO "routines" ("id", "pipeline_id", "name", "trigger_type", "cron_expression", "enabled")
         VALUES ('routine-valid', 'pipeline-1', 'Valid', 'cron', '0 9 * * 1-5', true);
@@ -112,10 +126,10 @@ describe("COD-244 migration", () => {
 
     await applyMigrations(db, { after: "0001_add_ordine_domain_tables.sql" });
 
-    const rows = await db.query<{ id: string; enabled: boolean; next_run_at: string | null }>(
+    const rows = await db.unsafe<{ id: string; enabled: boolean; next_run_at: string | null }[]>(
       `SELECT id, enabled, next_run_at FROM "routines" ORDER BY id`,
     );
-    expect(rows.rows).toEqual([
+    expect(rows).toEqual([
       { id: "routine-empty", enabled: false, next_run_at: null },
       { id: "routine-feb-30", enabled: false, next_run_at: null },
       { id: "routine-legacy-l", enabled: false, next_run_at: null },
@@ -125,6 +139,6 @@ describe("COD-244 migration", () => {
       { id: "routine-valid", enabled: true, next_run_at: null },
     ]);
 
-    await db.close();
+    await db.end();
   });
 });

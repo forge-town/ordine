@@ -996,16 +996,16 @@
     "advanced": {
       "description": "Storage, data version, and maintenance facts for this machine.",
       "rows": {
-        "dataDirectory": {
-          "hint": "Environment variable that configures the local database directory.",
-          "label": "Data directory"
+        "databaseUrl": {
+          "hint": "Docker PostgreSQL connection string.",
+          "label": "Database URL"
         },
         "localMode": {
           "hint": "Development-only flag that can bypass login in local mode.",
           "label": "Local mode"
         },
         "schemaVersion": {
-          "hint": "Database migrations are applied automatically when local storage starts.",
+          "hint": "Database migrations are applied to PostgreSQL before the app starts.",
           "label": "Schema version"
         }
       },

@@ -17,13 +17,15 @@
     "migrations"
   ],
   "type": "module",
+  "exports": {
+    "./migrations": "./src/migrations.ts"
+  },
   "publishConfig": {
     "access": "public"
   },
   "scripts": {
-    "build:cli": "bun build ./src/index.ts --target=node --format=esm --outfile=./dist/index.js --external=@electric-sql/pglite",
-    "build:app": "rm -rf app && cp -r ../app/.output app && bun run copy-pglite-assets",
-    "copy-pglite-assets": "bun scripts/copy-pglite-assets.ts",
+    "build:cli": "bun build ./src/index.ts --target=node --format=esm --outfile=./dist/index.js",
+    "build:app": "rm -rf app && cp -r ../app/.output app",
     "build": "bun run build:cli && bun run build:app",
     "check-types": "tsc --noEmit",
     "lint": "oxlint --config ./.oxlintrc.json src/",
@@ -32,9 +34,10 @@
     "prepublishOnly": "bun run build"
   },
   "dependencies": {
-    "@electric-sql/pglite": "0.4.5",
     "commander": "^14.0.0",
-    "neverthrow": "^8.2.0"
+    "neverthrow": "^8.2.0",
+    "postgres": "^3.4.8",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@ordine/app": "workspace:*",

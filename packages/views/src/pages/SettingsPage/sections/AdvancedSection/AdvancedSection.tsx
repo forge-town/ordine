@@ -2,10 +2,10 @@ import { useTranslation } from "react-i18next";
 import { SectionHeader } from "../../SectionHeader";
 import { ClearHistoryPanel } from "../ProjectSection";
 
-const ROWS = ["dataDirectory", "schemaVersion", "localMode"] as const;
+const ROWS = ["databaseUrl", "schemaVersion", "localMode"] as const;
 
 const VALUES: Record<(typeof ROWS)[number], string> = {
-  dataDirectory: "PGLITE_DATA_DIR",
+  databaseUrl: "DATABASE_URL",
   localMode: "ORDINE_LOCAL_MODE",
   schemaVersion: "auto",
 };

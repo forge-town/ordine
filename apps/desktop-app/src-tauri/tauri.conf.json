@@ -28,12 +28,7 @@
     "active": true,
     "targets": ["dmg", "app"],
     "externalBin": ["binaries/ordine-server"],
-    "resources": [
-      "resources/server/server-bundle.mjs",
-      "resources/server/pglite.wasm",
-      "resources/server/pglite.data",
-      "resources/server/initdb.wasm"
-    ],
+    "resources": ["resources/server/server-bundle.mjs", "resources/server/migrations/*.sql"],
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",

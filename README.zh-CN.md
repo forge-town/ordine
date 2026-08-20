@@ -44,15 +44,19 @@
 
 ### 方式一 — 快速安装（推荐）
 
-最快的本地运行方式 — 无需外部数据库或配置：
+最快的本地运行方式。需要 Docker Desktop 提供 PostgreSQL 容器：
 
 ```sh
+docker run -d --name ordine-postgres -p 127.0.0.1:5432:5432 \
+  -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=ordine \
+  -v ordine-postgres-data:/var/lib/postgresql/data postgres:16-alpine
+until docker exec ordine-postgres pg_isready -U postgres -d ordine >/dev/null 2>&1; do sleep 1; done
 npm create @ordine -- --yes
 ```
 
-这会在 `http://localhost:9430` 启动成序，使用嵌入式 PostgreSQL（PGLite），自动运行迁移，并启用本地模式（单用户，无需登录）。
+这会在 `http://localhost:9430` 启动程序，使用 Docker PostgreSQL，自动运行迁移，并启用本地模式（单用户，无需登录）。
 
-按 `Ctrl+C` 停止。
+按 `Ctrl+C` 停止应用；数据库需另行执行 `docker stop ordine-postgres`。
 
 交互模式（可选择数据目录、端口等）：
 
@@ -75,33 +79,29 @@ cp apps/app/.env.example apps/app/.env
 cp apps/server/.env.example apps/server/.env
 ```
 
-**数据库 — 二选一：**
+**数据库 — Docker PostgreSQL：**
 
-- **PGLite（嵌入式，无需外部数据库）：**
-  ```sh
-  # 在两个 .env 文件中设置：
-  PGLITE_DATA_DIR=./.pglite
-  ```
-
-- **PostgreSQL（外部）：**
-  ```sh
-  # 在两个 .env 文件中设置：
-  DATABASE_URL=postgresql://postgres:<密码>@localhost:5432/ordine
-  ```
+```sh
+bun run db:up
+# 两个 .env 文件使用同一个连接串：
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/ordine
+```
 
 推送 schema：
+
 ```sh
 cd apps/app && bun run db:push && cd ../..
 ```
 
 启动开发环境：
+
 ```sh
 bun dev
 ```
 
-| 服务 | 地址 |
-|------|------|
-| 主应用 | http://localhost:9430 |
+| 服务     | 地址                  |
+| -------- | --------------------- |
+| 主应用   | http://localhost:9430 |
 | API 服务 | http://localhost:9433 |
 
 > **💡 Local Mode（自托管、单用户）：**
