@@ -295,8 +295,7 @@ export const runCodex = async ({
           const output = await readFile(outputFile, "utf8").then(
             (fileOutput) => fileOutput,
             () =>
-              streamState.lastAgentMessage ||
-              (streamState.parsedEventCount === 0 ? stdout : ""),
+              streamState.lastAgentMessage || (streamState.parsedEventCount === 0 ? stdout : ""),
           );
 
           if (code !== 0 && output.trim().length === 0) {

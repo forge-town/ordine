@@ -1076,8 +1076,10 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
 
           if (parsed.proposal.readiness !== "ready_for_generation") {
             const question =
-              parsed.proposal.openQuestions.map((item) => item.trim()).filter(Boolean).join("\n") ||
-              "Please provide the missing details before I continue.";
+              parsed.proposal.openQuestions
+                .map((item) => item.trim())
+                .filter(Boolean)
+                .join("\n") || "Please provide the missing details before I continue.";
             await savePlanningQuestion(sessionId, question, activity);
 
             return { type: "question" as const, question };

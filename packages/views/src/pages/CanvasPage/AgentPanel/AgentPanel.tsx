@@ -486,11 +486,7 @@ export const AgentPanel = ({ onGeneratedPipeline }: AgentPanelProps) => {
     (generateProposal?.openQuestions.some((question) => question.trim().length > 0) ?? false);
 
   const handleApply = useCallback(() => {
-    if (
-      (!activeProposal && !generateProposal) ||
-      hasBlockingDiagnostics ||
-      proposalNeedsAnswer
-    ) {
+    if ((!activeProposal && !generateProposal) || hasBlockingDiagnostics || proposalNeedsAnswer) {
       return;
     }
     void applyProposal(selectedRuntimeId);
@@ -693,10 +689,7 @@ export const AgentPanel = ({ onGeneratedPipeline }: AgentPanelProps) => {
                 </span>
                 <ProposalCard
                   disabled={
-                    isSending ||
-                    isPreparingUpload ||
-                    isHistoryLoading ||
-                    agentPanel.isLoading
+                    isSending || isPreparingUpload || isHistoryLoading || agentPanel.isLoading
                   }
                   applyDisabled={proposalNeedsAnswer}
                   items={proposalItems}
