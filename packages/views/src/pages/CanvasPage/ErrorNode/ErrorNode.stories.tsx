@@ -24,7 +24,7 @@ const meta: Meta<typeof ErrorNode> = {
     docs: {
       description: {
         component:
-          "Fallback node shown when the Canvas receives an unknown or unsupported node type.",
+          "Neutral Alan-style fallback card with destructive status detail for an unknown or unsupported node type.",
       },
     },
   },
@@ -37,7 +37,7 @@ export const Default: Story = {
   parameters: {
     docs: {
       description: {
-        story: "Unknown-node fallback with type and id visible.",
+        story: "Unknown-node fallback with type, id, and failed status detail visible.",
       },
     },
   },
@@ -50,7 +50,7 @@ export const Selected: Story = {
   parameters: {
     docs: {
       description: {
-        story: "Selected fallback node state.",
+        story: "Selected fallback card with the neutral selection ring.",
       },
     },
   },

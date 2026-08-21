@@ -58,7 +58,7 @@ export const FolderTreePreview = ({
             data-excluded={isExcluded}
           >
             {entry.type === "directory" ? (
-              <Folder className="h-3 w-3 shrink-0 text-orange-400" />
+              <Folder className="h-3 w-3 shrink-0 text-muted-foreground" />
             ) : (
               <File className="h-3 w-3 shrink-0 text-muted-foreground" />
             )}

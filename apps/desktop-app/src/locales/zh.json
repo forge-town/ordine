@@ -65,6 +65,8 @@
     "library": "库",
     "knowledge": "知识",
     "search": "搜索...",
+    "sidebarFilterPlaceholder": "筛选导航...",
+    "searchPipelinesHint": "搜索你的流水线工作区。",
     "newPipeline": "新建流水线",
     "preview": "预览",
     "plugins": "插件",
@@ -543,6 +545,24 @@
         "description": "拖动节点时对齐到画布网格。"
       }
     },
+    "edgeInspector": {
+      "clear": "清空",
+      "close": "关闭",
+      "condition": "条件",
+      "dropped": "不传递",
+      "flow": "流向",
+      "maxRetries": "最大重试",
+      "noMappings": "新连接 · 字段将在运行时推断。",
+      "noTransform": "暂无转换步骤。",
+      "onFail": "失败时",
+      "qualityGate": "质量门",
+      "qualityPlaceholder": "非空或必须包含的文本",
+      "sourceField": "源字段",
+      "targetInput": "目标输入",
+      "title": "数据契约",
+      "toggleHint": "点击字段切换是否向下游传递 · {{enabled}}/{{total}} 开启",
+      "transform": "转换"
+    },
     "collapseSidebar": "收起侧栏",
     "expandSidebar": "展开侧栏",
     "nodeLibrary": "节点库",
@@ -578,8 +598,14 @@
     "aiMode": "AI 模式",
     "agentPanel": {
       "toggle": "AI 助手",
-      "title": "AI 助手",
+      "title": "Agent",
       "welcome": "你好！我是你的 AI 助手。告诉我你想对 Pipeline 做什么，我会帮你生成操作建议。",
+      "empty": {
+        "intro": "新画布 — 告诉我要做什么，或拖入一个成品样本，我会逆向推导出生成它的 Pipeline。",
+        "suggestChangelog": "把 GitHub 仓库总结成 changelog",
+        "suggestQuiz": "把我的教材 PDF 变成 Notion 测验",
+        "suggestReverse": "上传成品样本 → 逆向工程"
+      },
       "thinking": "思考中...",
       "proposal": "操作建议",
       "proposalReceived": "已收到操作建议，请查看并决定是否应用。",
@@ -589,25 +615,91 @@
       "applied": "已应用操作建议。",
       "discarded": "已丢弃操作建议。",
       "diagnostics": "诊断信息",
-      "error": "请求失败，请稍后重试。",
+      "requestFailed": "请求失败，请稍后重试。",
       "errorTitle": "AI 助手错误",
       "close": "关闭 AI 助手",
+      "resize": "调整 AI 助手宽度",
+      "reopen": "打开 AI 助手",
       "send": "发送请求",
+      "upload": "上传上下文",
+      "revise": "修改方案",
       "runtimeLabel": "运行时",
       "runtimePlaceholder": "选择已配置的运行时",
       "runtimeLoading": "正在加载运行时...",
       "inputPlaceholder": "输入你的需求...",
       "runtimeNotConfigured": "暂未配置运行时 AI。",
       "goToRuntimeSettings": "前往配置",
+      "messageActions": {
+        "copy": "复制消息",
+        "copied": "已复制",
+        "edit": "编辑消息",
+        "retry": "重试消息"
+      },
       "proposalDetails": {
         "review": "查看拟议操作",
         "needsAnswer": "应用前还需要补充信息",
-        "openQuestion": "待确认问题"
-      }
+        "openQuestion": "待确认问题",
+        "askFix": "修复诊断问题",
+        "fixDiagnostics": "请先修复方案中的阻塞诊断问题。",
+        "revisePrompt": "请修改这个方案。",
+        "newOperationBadge": "新操作",
+        "loopBadge": "循环 x{{count}}",
+        "actionTitles": {
+          "addNode": "添加节点: {{nodeType}}",
+          "removeNode": "删除节点",
+          "addEdge": "添加连线",
+          "removeEdge": "删除连线",
+          "reconnectEdge": "重连连线",
+          "replaceNodeData": "替换节点数据",
+          "updateOperation": "更新 Operation 执行器"
+        }
+      },
+      "checkpoint": {
+        "waiting": "等待在 {{node}} 处审核",
+        "nextNode": "下一个节点",
+        "controls": "运行检查点控制",
+        "pause": "暂停",
+        "resume": "继续",
+        "review": "审核"
+      },
+      "error": {
+        "title": "请求失败",
+        "tryPrefix": "尝试："
+      },
+      "errorActions": {
+        "openSettings": "打开运行时配置",
+        "retry": "重试请求"
+      },
+      "userAction": {
+        "title": "需要操作 ({{count}})",
+        "openConfig": "打开配置",
+        "askAgent": "询问助手"
+      },
+      "reversing": {
+        "steps": {
+          "structure": "读取结构",
+          "structureDetail": "了解当前图结构",
+          "steps": "梳理步骤",
+          "stepsDetail": "识别请求中的操作",
+          "matched": "匹配节点",
+          "matchedDetail": "将操作匹配到当前图",
+          "draft": "生成方案",
+          "draftDetail": "准备安全变更"
+        }
+      },
+      "action": {
+        "addNode": "添加节点: {{type}}",
+        "removeNode": "删除节点: {{nodeId}}",
+        "addEdge": "添加连线: {{source}} → {{target}}",
+        "removeEdge": "删除连线: {{edgeId}}",
+        "reconnectEdge": "重连连线: {{edgeId}}",
+        "replaceNodeData": "替换节点数据: {{nodeId}}"
+      },
+      "contextReset": "画布已变更，已清除附加的上下文。"
     },
     "emptyState": {
       "title": "从一个节点开始",
-      "description": "添加输入对象或 Operation，搭出第一条流水线。",
+      "description": "先放一个节点，再把输入、Operation 和输出连接成可运行的 Pipeline。",
       "quickAdd": "快速新建节点",
       "contextHint": "也可以在画布空白处右键创建节点。"
     },
@@ -661,6 +753,20 @@
       "saveSuccessDescription": "Pipeline「{{name}}」已保存",
       "createSuccessDescription": "Pipeline「{{name}}」已创建",
       "saveFailedDescription": "请稍后重试"
+    },
+    "componentPanel": {
+      "searchLabel": "搜索组件",
+      "searchPlaceholder": "搜索组件...",
+      "categoryAriaLabel": "{{label}} 分类",
+      "skillFallbackLabel": "技能",
+      "newCustomOperation": "新建自定义 Operation",
+      "categories": {
+        "input": "输入对象",
+        "operations": "工序",
+        "compound": "复合节点",
+        "skills": "技能",
+        "output": "输出"
+      }
     },
     "nodeTypes": {
       "operation": {
@@ -1304,7 +1410,32 @@
     "createPipeline": "去创建",
     "objectsCount": "{{count}} 个对象",
     "noPipelineSelected": "— 未选 Pipeline",
-    "entireProject": "整个项目"
+    "entireProject": "整个项目",
+    "canvas": {
+      "edges": {
+        "defaultLabel": "数据"
+      },
+      "chrome": {
+        "states": {
+          "cancelled": "已取消",
+          "done": "完成",
+          "failed": "失败",
+          "idle": "空闲",
+          "queued": "排队中",
+          "retrying": "重试中",
+          "running": "运行中",
+          "skipped": "已跳过",
+          "title": "节点运行状态",
+          "trigger": "状态",
+          "waitingForUser": "等待确认"
+        }
+      },
+      "nodeConfig": {
+        "close": "关闭",
+        "done": "完成",
+        "editable": "可编辑"
+      }
+    }
   },
   "validation": {
     "nameRequired": "名称不能为空",

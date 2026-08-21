@@ -1,8 +1,8 @@
-import { useCallback, useEffect, useRef, type MouseEvent as ReactMouseEvent } from "react";
+import { useCallback, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
 import { PanelRightOpen } from "lucide-react";
-import { Button } from "@repo/ui/button";
+import { cn } from "@repo/ui/lib/utils";
 import { ResizeHandle } from "../../../components/ResizeHandle";
 import {
   MAX_AGENT_PANEL_WIDTH,
@@ -12,6 +12,7 @@ import {
 } from "../_store";
 import { CanvasFlow } from "../CanvasFlow";
 import { CanvasContextMenu } from "../CanvasContextMenu";
+import { CanvasEdgeInspector } from "../CanvasEdgeInspector";
 import { ConnectionMenu } from "../ConnectionMenu";
 import { NodeContextMenu } from "../NodeContextMenu";
 import { RunConsole } from "../RunConsole";
@@ -19,9 +20,9 @@ import { AgentPanel } from "../AgentPanel";
 import { LlmContentCard } from "../LlmContentCard/LlmContentCard";
 import { CanvasEmptyState } from "../CanvasEmptyState";
 import { CanvasNodeCreationPalette } from "../CanvasNodeCreationPalette";
-import { CanvasStatusBar } from "../CanvasStatusBar";
 import { CanvasSettingsDrawer } from "../CanvasSettingsDrawer";
 import { CanvasTopChrome } from "../CanvasTopChrome";
+import { CanvasToolbar } from "../CanvasToolbar";
 import { CanvasMiniSidebar } from "../CanvasMiniSidebar";
 import { CanvasComponentPanel } from "../CanvasComponentPanel";
 import { CanvasNodePropertiesPanel } from "../CanvasNodePropertiesPanel";
@@ -31,15 +32,16 @@ import { getScreenViewportCenter, getViewportRectCenter } from "../utils/nodePos
 const AGENT_PANEL_COLLAPSE_AT = 248;
 
 export const CanvasInner = ({
-  onGeneratedPipeline,
+  onGeneratedPipeline: handleGeneratedPipeline,
+  showCanvasMiniSidebar = true,
 }: {
   onGeneratedPipeline?: (pipelineId: string) => Promise<void> | void;
+  showCanvasMiniSidebar?: boolean;
 }) => {
   const { t } = useTranslation();
   const store = useCanvasPageStore();
   const flowViewportRef = useRef<HTMLDivElement>(null);
   const agentPanelShellRef = useRef<HTMLDivElement>(null);
-  const sidebarResizeStateRef = useRef<{ startClientX: number; startWidth: number } | null>(null);
   const agentPanelResizeStartWidthRef = useRef(0);
 
   const contextMenu = useStore(store, (state) => state.contextMenu);
@@ -53,9 +55,6 @@ export const CanvasInner = ({
   const toggleAgentPanel = useStore(store, (state) => state.toggleAgentPanel);
   const nodes = useStore(store, (state) => state.nodes);
   const sidebarPanel = useStore(store, (state) => state.sidebarPanel);
-  const isSidebarOpen = useStore(store, (state) => state.isSidebarOpen);
-  const workspacePanelWidth = useStore(store, (state) => state.workspacePanelWidth);
-  const setWorkspacePanelWidth = useStore(store, (state) => state.setWorkspacePanelWidth);
   const selectedNode = useStore(store, selectSelectedNode);
   const showPropertiesPanel = sidebarPanel === "properties" && !!selectedNode;
 
@@ -65,106 +64,42 @@ export const CanvasInner = ({
     return rect ? getViewportRectCenter(rect) : getScreenViewportCenter();
   }, []);
 
-  const stopSidebarResize = useCallback(() => {
-    if (!sidebarResizeStateRef.current) {
-      return;
-    }
-
-    sidebarResizeStateRef.current = null;
-    document.body.style.removeProperty("cursor");
-    document.body.style.removeProperty("user-select");
-  }, []);
-
-  useEffect(() => {
-    const handleMouseMove = (event: MouseEvent) => {
-      const resizeState = sidebarResizeStateRef.current;
-      if (!resizeState) {
-        return;
-      }
-
-      const delta = event.clientX - resizeState.startClientX;
-      setWorkspacePanelWidth(resizeState.startWidth + delta);
-    };
-
-    const handleMouseUp = () => {
-      stopSidebarResize();
-    };
-
-    globalThis.addEventListener("mousemove", handleMouseMove);
-    globalThis.addEventListener("mouseup", handleMouseUp);
-
-    return () => {
-      globalThis.removeEventListener("mousemove", handleMouseMove);
-      globalThis.removeEventListener("mouseup", handleMouseUp);
-      stopSidebarResize();
-    };
-  }, [setWorkspacePanelWidth, stopSidebarResize]);
-
-  const handleWorkspacePanelResizeStart = useCallback(
-    (event: ReactMouseEvent<HTMLButtonElement>) => {
-      event.preventDefault();
-      sidebarResizeStateRef.current = {
-        startClientX: event.clientX,
-        startWidth: workspacePanelWidth,
-      };
-      document.body.style.cursor = "col-resize";
-      document.body.style.userSelect = "none";
-    },
-    [workspacePanelWidth],
-  );
-
   const handleAgentPanelDelta = useCallback(
     (delta: number) => {
       const nextWidth = agentPanelResizeStartWidthRef.current + delta;
       if (nextWidth < AGENT_PANEL_COLLAPSE_AT) {
         toggleAgentPanel();
+
         return;
       }
       setAgentPanelWidth(nextWidth);
     },
     [setAgentPanelWidth, toggleAgentPanel],
   );
+  const handleToggleAgentPanel = toggleAgentPanel;
+  const handleAgentPanelDragStart = () => {
+    const renderedWidth = agentPanelShellRef.current?.getBoundingClientRect().width ?? 0;
+    agentPanelResizeStartWidthRef.current = renderedWidth || agentPanelWidth;
+  };
 
   return (
     <div
-      className="relative flex h-full min-h-0 w-full overflow-hidden bg-background"
+      className="canvas-container relative flex h-full min-h-0 w-full overflow-hidden bg-background"
       data-testid="canvas-langflow-shell"
     >
-      <CanvasMiniSidebar />
+      {showCanvasMiniSidebar && <CanvasMiniSidebar />}
 
-      <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
-        <CanvasTopChrome />
-
+      <div className="relative flex min-w-0 flex-1 overflow-hidden">
         <div className="relative flex min-h-0 flex-1 overflow-hidden">
-          {isSidebarOpen && (
-            <div className="relative shrink-0 max-[1180px]:pointer-events-auto max-[1180px]:absolute max-[1180px]:inset-y-0 max-[1180px]:left-0 max-[1180px]:z-30">
-              <aside
-                className="h-full shrink-0 border-r bg-background shadow-none max-[1180px]:max-w-[calc(100vw-4rem)] max-[1180px]:shadow-float"
-                data-testid="canvas-work-panel"
-                style={{ width: `${workspacePanelWidth}px` }}
-              >
-                {showPropertiesPanel ? (
-                  <CanvasNodePropertiesPanel />
-                ) : (
-                  <CanvasComponentPanel getCreateNodeScreenPosition={getFlowViewportScreenCenter} />
-                )}
-              </aside>
-              <Button
-                aria-label={t("canvas.operationsPanel.resize", {
-                  defaultValue: "Resize operations panel",
-                })}
-                className="absolute inset-y-0 -right-3 z-10 h-full w-6 cursor-col-resize touch-none rounded-none px-0 max-[1180px]:hidden"
-                data-testid="canvas-work-panel-resizer"
-                size="icon"
-                variant="ghost"
-                onMouseDown={handleWorkspacePanelResizeStart}
-              >
-                <span className="absolute inset-y-0 left-1/2 w-px -translate-x-1/2 bg-border transition-colors hover:bg-primary" />
-              </Button>
-            </div>
-          )}
-
-          <main className="relative min-w-0 flex-1 overflow-hidden">
+          <main
+            className={cn(
+              "relative min-w-0 flex-1 overflow-hidden",
+              agentPanelIsOpen && "max-[1180px]:z-40",
+            )}
+          >
+            <CanvasComponentPanel getCreateNodeScreenPosition={getFlowViewportScreenCenter} />
+            {showPropertiesPanel && <CanvasNodePropertiesPanel />}
+            <CanvasToolbar />
             <CanvasFlow viewportRef={flowViewportRef} />
 
             {nodes.length === 0 && <CanvasEmptyState />}
@@ -175,11 +110,11 @@ export const CanvasInner = ({
               />
             )}
 
-            <CanvasStatusBar />
-
             {contextMenu && <CanvasContextMenu />}
 
             {connectionMenu && <ConnectionMenu />}
+
+            <CanvasEdgeInspector />
 
             {nodeContextMenu && <NodeContextMenu />}
 
@@ -190,41 +125,54 @@ export const CanvasInner = ({
         </div>
       </div>
 
+      <CanvasTopChrome />
+
       {agentPanelIsOpen ? (
         <div
-          className="pointer-events-none absolute bottom-0 right-0 top-14 z-40 flex w-[calc(100%_-_3.5rem)] justify-end min-[1181px]:static min-[1181px]:inset-y-0 min-[1181px]:z-auto min-[1181px]:w-auto min-[1181px]:shrink-0 min-[1181px]:self-stretch"
-          data-testid="canvas-agent-panel-region"
+          className={cn(
+            "pointer-events-none absolute bottom-0 right-0 top-16 z-40 flex justify-end min-[1181px]:static min-[1181px]:inset-y-0 min-[1181px]:z-auto min-[1181px]:h-full min-[1181px]:w-auto min-[1181px]:shrink-0 min-[1181px]:self-stretch",
+            showCanvasMiniSidebar ? "w-[calc(100%_-_3.5rem)] max-[480px]:!w-full" : "w-full",
+          )}
+          data-testid="canvas-agent-panel-region-wrapper"
         >
-          <ResizeHandle
-            ariaLabel={t("canvas.agentPanel.resize")}
-            max={MAX_AGENT_PANEL_WIDTH}
-            min={MIN_AGENT_PANEL_WIDTH}
-            side="right"
-            value={agentPanelWidth}
-            onCollapse={toggleAgentPanel}
-            onDelta={handleAgentPanelDelta}
-            onDragStart={() => {
-              const renderedWidth = agentPanelShellRef.current?.getBoundingClientRect().width ?? 0;
-              agentPanelResizeStartWidthRef.current = renderedWidth || agentPanelWidth;
-            }}
-          />
           <div
-            ref={agentPanelShellRef}
-            className="pointer-events-auto min-h-0 min-w-0 shrink overflow-hidden border-l border-border bg-surface"
-            data-testid="canvas-agent-panel-shell"
-            style={{ width: `${agentPanelWidth}px`, maxWidth: "calc(100% - 1px)" }}
+            className="pointer-events-none flex w-px shrink-0 justify-center min-[1181px]:h-full min-[1181px]:w-1.5"
+            data-testid="canvas-agent-panel-resize-gutter"
           >
-            <AgentPanel onGeneratedPipeline={onGeneratedPipeline} />
+            <ResizeHandle
+              ariaLabel={t("canvas.agentPanel.resize")}
+              line={false}
+              max={MAX_AGENT_PANEL_WIDTH}
+              min={MIN_AGENT_PANEL_WIDTH}
+              side="right"
+              value={agentPanelWidth}
+              onCollapse={handleToggleAgentPanel}
+              onDelta={handleAgentPanelDelta}
+              onDragStart={handleAgentPanelDragStart}
+            />
+          </div>
+          <div
+            className="pointer-events-none min-h-0 min-w-0 overflow-hidden max-[480px]:flex-1 min-[1181px]:h-full min-[1181px]:shrink-0 min-[1181px]:py-1.5 min-[1181px]:pr-1.5"
+            data-testid="canvas-agent-panel-region"
+          >
+            <div
+              ref={agentPanelShellRef}
+              className="pointer-events-auto h-full min-h-0 min-w-0 w-full shrink overflow-hidden rounded-2xl bg-surface shadow-float ring-1 ring-border-strong max-[480px]:!w-full"
+              data-testid="canvas-agent-panel-shell"
+              style={{ width: `${agentPanelWidth}px`, maxWidth: "100%" }}
+            >
+              <AgentPanel onGeneratedPipeline={handleGeneratedPipeline} />
+            </div>
           </div>
         </div>
       ) : (
         <button
           aria-label={t("canvas.agentPanel.reopen")}
-          className="absolute bottom-0 right-0 top-14 z-30 flex w-12 shrink-0 items-center justify-center border-l border-border bg-surface text-muted-foreground hover:bg-accent hover:text-foreground min-[1181px]:static min-[1181px]:inset-y-0 min-[1181px]:z-auto"
+          className="absolute bottom-0 right-0 top-16 z-30 flex w-12 shrink-0 items-center justify-center border-l border-border bg-surface text-muted-foreground hover:bg-accent hover:text-foreground min-[1181px]:static min-[1181px]:inset-y-0 min-[1181px]:z-auto"
           data-testid="canvas-agent-panel-reopen"
           title={t("canvas.agentPanel.reopen")}
           type="button"
-          onClick={toggleAgentPanel}
+          onClick={handleToggleAgentPanel}
         >
           <PanelRightOpen className="h-4 w-4" />
         </button>

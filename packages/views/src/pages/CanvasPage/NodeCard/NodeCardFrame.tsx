@@ -1,22 +1,16 @@
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-  CardAction,
-} from "@repo/ui/card";
 import { cn } from "@repo/ui/lib/utils";
 import type { NodeRunStatus } from "@repo/schemas";
 import { memo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { themeMap, type NodeTheme } from "./nodeCardTheme";
+import type { NodeTheme } from "./nodeCardTheme";
 
 export interface NodeCardFrameProps {
   selected?: boolean;
   theme: NodeTheme;
   icon: React.ElementType;
   label: string;
+  detail?: string;
+  compact?: boolean;
   headerRight?: React.ReactNode;
   children?: React.ReactNode;
   bodyClassName?: string;
@@ -31,9 +25,10 @@ const handleMouseDown = (e: React.MouseEvent) => e.stopPropagation();
 export const NodeCardFrame = memo(
   ({
     selected,
-    theme,
     icon: Icon,
     label,
+    detail,
+    compact = false,
     headerRight,
     children,
     bodyClassName,
@@ -43,7 +38,10 @@ export const NodeCardFrame = memo(
     dimmed,
   }: NodeCardFrameProps) => {
     const { t: translate } = useTranslation();
-    const t = themeMap[theme] ?? themeMap.emerald;
+    const normalizedStatus = runStatus ?? "idle";
+    const statusLabel = translate(`workspace.canvas.nodes.status.${normalizedStatus}`, {
+      defaultValue: normalizedStatus,
+    });
     const [isLabelEditing, setIsLabelEditing] = useState(false);
     const handleChange = onLabelChange
       ? (e: React.ChangeEvent<HTMLInputElement>) => onLabelChange(e.target.value)
@@ -52,78 +50,103 @@ export const NodeCardFrame = memo(
     const handleLabelFocus = () => setIsLabelEditing(true);
     const handleLabelBlur = () => setIsLabelEditing(false);
 
+    const hasBody =
+      !compact &&
+      Boolean(
+        detail || children || normalizedStatus === "running" || normalizedStatus === "retrying",
+      );
+
     return (
-      <Card
+      <div
+        data-slot="card"
         className={cn(
-          "w-[214px] shrink-0 gap-0 rounded-xl bg-surface py-0 shadow-soft transition-all duration-200 data-[size=sm]:gap-0 data-[size=sm]:py-0",
-          selected
-            ? "shadow-float ring-2 ring-foreground/40"
-            : "ring-1 ring-border hover:shadow-float hover:ring-border-strong",
-          runStatus === "running" &&
-            "ring-2 ring-blue-500 shadow-[0_0_12px_rgba(59,130,246,0.4)] animate-pulse",
-          runStatus === "done" && "ring-2 ring-green-500",
-          runStatus === "failed" && "ring-2 ring-red-500",
-          dimmed && "opacity-40 pointer-events-none",
+          "relative overflow-hidden rounded-xl bg-surface shadow-soft ring-1 ring-border transition-all duration-150",
+          selected && "shadow-float ring-2 ring-foreground/40",
+          !selected && "hover:shadow-float hover:ring-border-strong",
+          dimmed && "opacity-45",
         )}
-        size="sm"
+        data-testid="canvas-v2-node-card"
       >
-        <CardHeader className={cn("flex min-h-12 items-center px-2.5 py-2", t.headerBg)}>
-          <div className="flex w-full min-w-0 items-center gap-2">
-            <div
-              className={cn(
-                "flex size-6 shrink-0 items-center justify-center rounded-md",
-                t.iconBg,
-              )}
-            >
-              <Icon className={cn("size-3.5", t.iconColor)} />
-            </div>
-            <div className="flex min-h-6 min-w-0 flex-1 flex-col items-start justify-center overflow-hidden">
-              {handleChange ? (
-                <span className="relative inline-block max-w-full min-w-0 overflow-hidden align-top">
-                  <span
-                    aria-hidden="true"
-                    className="invisible block max-w-full truncate whitespace-pre text-xs font-semibold leading-tight"
-                  >
-                    {label || " "}
-                  </span>
-                  <input
-                    aria-label={translate("canvas.nodeLabel")}
-                    className={cn(
-                      "nodrag nopan absolute inset-0 h-full w-full min-w-0 max-w-full truncate border-0 bg-transparent p-0 text-xs font-semibold leading-tight focus:outline-none",
-                      isLabelEditing ? "select-text" : "cursor-inherit select-none",
-                    )}
-                    name="nodeLabel"
-                    readOnly={!isLabelEditing}
-                    value={label}
-                    onBlur={handleLabelBlur}
-                    onChange={handleChange}
-                    onClick={handleLabelClick}
-                    onFocus={handleLabelFocus}
-                    onMouseDown={handleMouseDown}
-                  />
+        <div
+          className="flex items-center gap-2 border-b border-border/70 px-2.5 py-2"
+          data-slot="card-header"
+        >
+          <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-surface-2">
+            <Icon className="h-3.5 w-3.5 text-foreground/80" />
+          </div>
+          <div className="min-w-0 flex-1">
+            {handleChange ? (
+              <span className="relative inline-block max-w-full min-w-0 overflow-hidden align-top">
+                <span
+                  aria-hidden="true"
+                  className="invisible block max-w-full truncate whitespace-pre text-[12px] font-semibold leading-tight"
+                >
+                  {label || " "}
                 </span>
-              ) : (
-                <CardTitle className="w-full max-w-full truncate text-xs font-semibold leading-tight">
-                  {label}
-                </CardTitle>
-              )}
-              {description && (
-                <CardDescription className="w-full max-w-full truncate text-[10px] leading-tight">
-                  {description}
-                </CardDescription>
-              )}
-            </div>
-            {headerRight && (
-              <CardAction className="ml-auto shrink-0 self-center">{headerRight}</CardAction>
+                <input
+                  aria-label={translate("canvas.nodeLabel")}
+                  className={cn(
+                    "nodrag nopan absolute inset-0 h-full w-full min-w-0 max-w-full truncate border-0 bg-transparent p-0 text-[12px] font-semibold leading-tight focus:outline-none",
+                    isLabelEditing ? "select-text" : "cursor-inherit select-none",
+                  )}
+                  name="nodeLabel"
+                  readOnly={!isLabelEditing}
+                  value={label}
+                  onBlur={handleLabelBlur}
+                  onChange={handleChange}
+                  onClick={handleLabelClick}
+                  onFocus={handleLabelFocus}
+                  onMouseDown={handleMouseDown}
+                />
+              </span>
+            ) : (
+              <div
+                className="truncate text-[12px] font-semibold leading-tight"
+                data-slot="card-title"
+              >
+                {label}
+              </div>
+            )}
+            {description && (
+              <div
+                className="truncate text-[10px] text-muted-foreground"
+                data-slot="card-description"
+              >
+                {description}
+              </div>
             )}
           </div>
-        </CardHeader>
-        {children && (
-          <CardContent className={cn("border-t border-border/70 px-2.5 py-2.5", bodyClassName)}>
+          {headerRight && (
+            <div className="shrink-0" data-slot="card-action">
+              {headerRight}
+            </div>
+          )}
+        </div>
+        {hasBody && (
+          <div className={cn("space-y-1.5 px-2.5 py-2", bodyClassName)} data-slot="card-content">
+            {detail ? (
+              <div className="flex min-w-0 items-center gap-1.5 text-[10.5px] text-muted-foreground">
+                <span className="inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-foreground/55" />
+                <span className="truncate">{detail}</span>
+              </div>
+            ) : null}
+            {normalizedStatus === "running" || normalizedStatus === "retrying" ? (
+              <div className="space-y-1 pt-0.5">
+                <div className="h-1 overflow-hidden rounded-full bg-surface-2">
+                  <div
+                    className={cn(
+                      "h-1 w-full animate-pulse rounded-full",
+                      normalizedStatus === "retrying" ? "bg-warning" : "bg-foreground",
+                    )}
+                  />
+                </div>
+                <div className="truncate text-[10px] text-foreground/70">{statusLabel}</div>
+              </div>
+            ) : null}
             {children}
-          </CardContent>
+          </div>
         )}
-      </Card>
+      </div>
     );
   },
 );

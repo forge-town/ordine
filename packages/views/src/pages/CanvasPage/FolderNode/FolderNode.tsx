@@ -5,7 +5,7 @@ import { useStore } from "zustand";
 import { useShallow } from "zustand/shallow";
 import { useCanvasPageStore, selectNodeRunState, selectNodePortCounts } from "../_store";
 import type { FolderObjectNodeData } from "@repo/schemas";
-import { NodeCard } from "../NodeCard";
+import { NodeCard, useNodeCardActions } from "../NodeCard";
 import { FolderBrowserDialog } from "../../../components/FolderBrowserDialog/FolderBrowserDialog";
 import { FolderTreePreview } from "./FolderTreePreview";
 import { Input } from "@repo/ui/input";
@@ -23,6 +23,7 @@ const handleStopPropagation = (e: React.SyntheticEvent) => e.stopPropagation();
 export const FolderNode = ({ id, data, selected }: FolderNodeProps) => {
   const { t } = useTranslation();
   const store = useCanvasPageStore();
+  const nodeCardActions = useNodeCardActions(id);
   const {
     runStatus,
     dimmed,
@@ -81,8 +82,10 @@ export const FolderNode = ({ id, data, selected }: FolderNodeProps) => {
     <div className="group relative w-fit overflow-visible">
       <NodeCard
         rightHandle
+        actions={nodeCardActions}
         bodyClassName="space-y-2"
         compact={nodeCardMode === "compact"}
+        detail={data.disclosureMode ?? t("canvas.nodeTypes.folder.label")}
         description={t("canvas.nodeTypes.folder.label")}
         dimmed={dimmed}
         icon={Folder}
@@ -97,9 +100,9 @@ export const FolderNode = ({ id, data, selected }: FolderNodeProps) => {
         theme="orange"
         onLabelChange={handleLabelChange}
       >
-        <div className="flex items-center gap-1 rounded-md bg-surface-2 px-2 py-1 ring-1 ring-border">
+        <div className="flex items-center gap-1 rounded-md bg-surface-2 px-1.5 py-1 ring-1 ring-border">
           <Input
-            className="nodrag nopan h-auto min-w-0 flex-1 border-none bg-transparent p-0 font-mono text-[11px] font-semibold text-foreground shadow-none focus:outline-none"
+            className="nodrag nopan h-auto min-w-0 flex-1 truncate border-none bg-transparent p-0 font-mono text-[9.5px] text-muted-foreground shadow-none focus:outline-none focus:text-foreground"
             placeholder="src/components/"
             value={data.folderPath}
             onChange={handleFolderPathInputChange}
@@ -108,7 +111,7 @@ export const FolderNode = ({ id, data, selected }: FolderNodeProps) => {
             onMouseDown={handleStopPropagation}
           />
           <Button
-            className="nodrag nopan h-auto shrink-0 rounded p-0.5 text-orange-500 transition-colors hover:bg-orange-500/10 hover:text-orange-700 dark:hover:text-orange-300"
+            className="nodrag nopan h-auto shrink-0 rounded p-0.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
             title={t("canvas.browseFolder")}
             type="button"
             variant="ghost"

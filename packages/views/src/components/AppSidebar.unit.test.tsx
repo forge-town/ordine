@@ -98,14 +98,14 @@ describe("AppSidebar", () => {
       </NotificationStoreContext.Provider>,
     );
 
-    const brand = screen.getByText("Ordine Studio").parentElement?.parentElement;
+    const brand = screen.getByText("ordine").parentElement;
     const trigger = screen.getByRole("button", { name: "Toggle Sidebar" });
     fireEvent.click(trigger);
 
     expect(brand).toHaveAttribute("aria-hidden", "true");
     expect(trigger).toHaveClass(
-      "right-0",
-      "top-1.5",
+      "right-0.5",
+      "top-0.5",
       "active:translate-y-0!",
       "group-data-[state=collapsed]/sidebar:right-[calc(50%_-_0.875rem)]",
     );

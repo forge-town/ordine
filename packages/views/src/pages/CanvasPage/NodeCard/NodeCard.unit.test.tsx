@@ -20,6 +20,7 @@ vi.mock("@xyflow/react", () => ({
     position,
     style,
     type,
+    "data-testid": _dataTestId,
     ...rest
   }: {
     className?: string;
@@ -83,9 +84,9 @@ describe("NodeCard", () => {
   it("does not render body wrapper when no children", () => {
     const { container } = render(<NodeCard icon={Box} label="Node" theme="emerald" />);
     const wrapper = container.firstElementChild;
-    const card = wrapper?.firstElementChild;
+    const card = container.querySelector('[data-slot="card"]');
 
-    expect(wrapper).toHaveClass("relative", "w-fit");
+    expect(wrapper).toHaveClass("relative", "w-[214px]");
     expect(card).toHaveAttribute("data-slot", "card");
     expect(card?.childNodes).toHaveLength(1);
   });
@@ -93,6 +94,45 @@ describe("NodeCard", () => {
   it("renders headerRight slot", () => {
     render(<NodeCard headerRight={<span>Status</span>} icon={Box} label="Node" theme="violet" />);
     expect(screen.getByText("Status")).toBeInTheDocument();
+  });
+
+  it("uses Alan's status dot and running indicator", () => {
+    const { container, rerender } = render(
+      <NodeCard
+        detail="Executing"
+        icon={Box}
+        label="Running node"
+        runStatus="running"
+        theme="violet"
+      >
+        <span>Body content</span>
+      </NodeCard>,
+    );
+
+    const statusDot = container.querySelector(
+      '[data-testid="canvas-v2-node-shell-root"] > span[aria-label]',
+    );
+    expect(statusDot).toHaveClass("inline-flex", "h-[9px]", "w-[9px]");
+    expect(statusDot?.querySelector(".bg-foreground")).toBeInTheDocument();
+    expect(statusDot?.querySelector(".animate-ping")).toBeInTheDocument();
+    expect(container.querySelector('[data-slot="card-content"]')).toHaveTextContent("Executing");
+    expect(container.querySelector('[data-slot="card-content"]')).toHaveTextContent(
+      /执行中|running/i,
+    );
+
+    rerender(
+      <NodeCard detail="Complete" icon={Box} label="Done node" runStatus="done" theme="violet" />,
+    );
+    expect(
+      container.querySelector(
+        '[data-testid="canvas-v2-node-shell-root"] > span[aria-label] .bg-success',
+      ),
+    ).toBeInTheDocument();
+    expect(
+      container.querySelector(
+        '[data-testid="canvas-v2-node-shell-root"] > span[aria-label] .animate-ping',
+      ),
+    ).not.toBeInTheDocument();
   });
 
   it("keeps header affordances visible for long labels", () => {
@@ -106,26 +146,28 @@ describe("NodeCard", () => {
       />,
     );
 
-    expect(container.firstElementChild).toHaveClass("relative", "w-fit");
+    expect(container.firstElementChild).toHaveClass("relative", "w-[214px]");
     expect(container.querySelector('[data-slot="card"]')).toHaveClass(
-      "w-[214px]",
-      "data-[size=sm]:py-0",
+      "relative",
+      "overflow-hidden",
+      "rounded-xl",
+      "bg-surface",
+      "ring-1",
+      "ring-border",
     );
-    expect(container.querySelector('[data-slot="card-header"] > div')).toHaveClass(
-      "w-full",
-      "min-w-0",
+    expect(container.querySelector('[data-slot="card-header"]')).toHaveClass(
+      "flex",
+      "items-center",
+      "gap-2",
+      "border-b",
+      "border-border/70",
     );
     expect(container.querySelector('[data-slot="card-description"]')).toHaveClass(
-      "w-full",
-      "max-w-full",
       "truncate",
+      "text-[10px]",
+      "text-muted-foreground",
     );
-    expect(container.querySelector('[data-slot="card-header"]')).toHaveClass("min-h-12");
-    expect(container.querySelector('[data-slot="card-action"]')).toHaveClass(
-      "ml-auto",
-      "shrink-0",
-      "self-center",
-    );
+    expect(container.querySelector('[data-slot="card-action"]')).toHaveClass("shrink-0");
   });
 
   it("applies the neutral Alan selection ring for every theme", () => {
@@ -144,6 +186,41 @@ describe("NodeCard", () => {
     expect(container.querySelector('[data-slot="card"]')).toHaveClass("ring-foreground/40");
   });
 
+  it("uses Alan hover-only action pill visibility", () => {
+    const handleAsk = vi.fn();
+    const handleConfigure = vi.fn();
+    const handleDelete = vi.fn();
+    const handleDuplicate = vi.fn();
+    render(
+      <NodeCard
+        selected
+        actions={{
+          onAsk: handleAsk,
+          onConfigure: handleConfigure,
+          onDelete: handleDelete,
+          onDuplicate: handleDuplicate,
+        }}
+        icon={Box}
+        label="Node"
+        theme="violet"
+      />,
+    );
+
+    expect(screen.getByTestId("canvas-node-actions")).toHaveClass(
+      "hidden",
+      "group-hover/node-card:flex",
+      "rounded-full",
+    );
+    fireEvent.click(screen.getByTestId("canvas-node-configure"));
+    fireEvent.click(screen.getByTestId("canvas-node-ask"));
+    fireEvent.click(screen.getByTestId("canvas-node-duplicate"));
+    fireEvent.click(screen.getByTestId("canvas-node-delete"));
+    expect(handleConfigure).toHaveBeenCalled();
+    expect(handleAsk).toHaveBeenCalled();
+    expect(handleDuplicate).toHaveBeenCalled();
+    expect(handleDelete).toHaveBeenCalled();
+  });
+
   it("renders one small center port per enabled side by default", () => {
     render(<NodeCard leftHandle rightHandle icon={Box} label="Node" theme="orange" />);
 
@@ -157,10 +234,11 @@ describe("NodeCard", () => {
       "before:left-1/2",
       "after:h-5",
       "after:w-5",
-      "before:opacity-30",
-      "before:scale-75",
-      "group-hover/node-card:before:opacity-75",
-      "before:!bg-orange-500",
+      "before:h-3",
+      "before:w-3",
+      "before:border-border-strong",
+      "before:bg-surface",
+      "hover:before:scale-150",
     );
     expect(screen.getByTestId("source-handle")).toHaveClass(
       "!right-0",
@@ -172,10 +250,11 @@ describe("NodeCard", () => {
       "before:left-1/2",
       "after:h-5",
       "after:w-5",
-      "before:opacity-30",
-      "before:scale-75",
-      "group-hover/node-card:before:opacity-75",
-      "before:!bg-orange-500",
+      "before:h-3",
+      "before:w-3",
+      "before:border-border-strong",
+      "before:bg-surface",
+      "hover:before:scale-150",
     );
     expect(screen.getByTestId("target-handle")).toHaveAttribute("data-handleid", "left-port-0");
     expect(screen.getByTestId("target-handle")).toHaveAttribute("data-port-state", "idle");
@@ -215,13 +294,10 @@ describe("NodeCard", () => {
     expect(targetHandles[1]).toHaveAttribute("data-port-state", "connected");
     expect(targetHandles[1]).toHaveAttribute("data-connected", "true");
     expect(sourceHandle).toHaveAttribute("data-port-state", "connected");
-    expect(sourceHandle).toHaveClass(
-      "data-[connected=true]:before:opacity-90",
-      "data-[connected=true]:before:scale-100",
-    );
+    expect(sourceHandle).toHaveClass("data-[connected=true]:before:border-foreground/60");
     expect(targetHandles[0]).toHaveClass(
-      "data-[active=true]:before:opacity-100",
       "data-[active=true]:before:scale-125",
+      "data-[active=true]:before:border-foreground",
     );
   });
 

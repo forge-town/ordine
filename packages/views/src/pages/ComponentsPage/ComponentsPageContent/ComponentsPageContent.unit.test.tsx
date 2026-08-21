@@ -115,6 +115,7 @@ describe("ComponentsPageContent", () => {
     render(<ComponentsPageContent />);
 
     expect(screen.getByRole("heading", { name: "Components" })).toBeInTheDocument();
+    expect(screen.getByTestId("components-toolbar")).not.toHaveClass("border-b");
     expect(screen.getByText("Folder")).toBeInTheDocument();
     expect(screen.getByText("Review Code")).toBeInTheDocument();
     expect(screen.getByText("Release Review")).toBeInTheDocument();

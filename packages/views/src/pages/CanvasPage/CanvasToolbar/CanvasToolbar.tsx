@@ -1,29 +1,28 @@
 import { useStore } from "zustand";
-import { useList } from "@refinedev/core";
-import type { AgentRuntimeConfig } from "@repo/schemas";
-import { useCanvasPageStore } from "../_store";
 import {
-  ZoomIn,
-  ZoomOut,
-  Maximize2,
+  AlignLeft,
+  Hand,
+  Lock,
+  Minus,
+  MoreHorizontal,
+  MousePointer2,
+  Plus,
+  Redo2,
   Trash2,
   Undo2,
-  Redo2,
-  Play,
-  AlignLeft,
-  Plus,
-  Bot,
-  Lock,
   Unlock,
-  Hand,
-  MousePointer2,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
-import { Separator } from "@repo/ui/separator";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@repo/ui/tooltip";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@repo/ui/dropdown-menu";
 import { cn } from "@repo/ui/lib/utils";
-import { ResourceName } from "../../../constants";
+import { useCanvasPageStore } from "../_store";
 
 export const CanvasToolbar = () => {
   const { t } = useTranslation();
@@ -35,287 +34,132 @@ export const CanvasToolbar = () => {
   const handleZoomIn = useStore(store, (state) => state.handleZoomIn);
   const handleZoomOut = useStore(store, (state) => state.handleZoomOut);
   const canvasTool = useStore(store, (state) => state.canvasTool);
+  const viewportZoom = useStore(store, (state) => state.viewportZoom);
   const setCanvasTool = useStore(store, (state) => state.setCanvasTool);
   const isCanvasInteractive = useStore(store, (state) => state.isCanvasInteractive);
   const handleToggleCanvasInteractive = useStore(
     store,
     (state) => state.handleToggleCanvasInteractive,
   );
-  const isQuickAddOpen = useStore(store, (state) => state.isQuickAddOpen);
   const handleToggleQuickAdd = useStore(store, (state) => state.handleToggleQuickAdd);
-  const pipelineId = useStore(store, (state) => state.pipelineId);
-  const isRunning = useStore(store, (state) => state.isRunning);
   const handleDeleteSelected = useStore(store, (state) => state.handleDeleteSelected);
   const handleUndo = useStore(store, (state) => state.handleUndo);
   const handleRedo = useStore(store, (state) => state.handleRedo);
   const handleFormatLayout = useStore(store, (state) => state.formatLayout);
-  const handleRunTest = useStore(store, (state) => state.handleRunTest);
-  const handleToggleAgentPanel = useStore(store, (state) => state.toggleAgentPanel);
-  const agentPanelIsOpen = useStore(store, (state) => state.agentPanel.isOpen);
-  const { result: runtimesResult, query: runtimesQuery } = useList<AgentRuntimeConfig>({
-    resource: ResourceName.agentRuntimes,
-  });
-  const runtimeConfigured =
-    !(runtimesQuery?.isLoading ?? false) && (runtimesResult?.data.length ?? 0) > 0;
   const interactivityActionLabel = isCanvasInteractive
     ? t("canvas.disableInteractivity")
     : t("canvas.enableInteractivity");
   const InteractivityIcon = isCanvasInteractive ? Unlock : Lock;
 
   return (
-    <div className="pointer-events-auto shrink-0 w-max max-w-full" data-testid="canvas-toolbar">
-      <div className="flex h-10 w-max items-center gap-0.5 rounded-md bg-surface px-1.5 py-1 shadow-soft ring-1 ring-border max-[420px]:gap-0 max-[420px]:px-1">
-        {/* Canvas tools */}
-        <Tooltip>
-          <TooltipTrigger
-            render={
-              <Button
-                aria-label={t("canvas.selectTool")}
-                aria-pressed={canvasTool === "select"}
-                className={cn(
-                  "h-7 w-7",
-                  canvasTool === "select" ? "bg-accent text-foreground" : "text-muted-foreground",
-                )}
-                size="icon"
-                title={t("canvas.selectTool")}
-                variant="ghost"
-                onClick={() => setCanvasTool("select")}
-              />
-            }
-          >
-            <MousePointer2 className="h-4 w-4" />
-          </TooltipTrigger>
-          <TooltipContent>{t("canvas.selectTool")}</TooltipContent>
-        </Tooltip>
-        <Tooltip>
-          <TooltipTrigger
-            render={
-              <Button
-                aria-label={t("canvas.handTool")}
-                aria-pressed={canvasTool === "hand"}
-                className={cn(
-                  "h-7 w-7",
-                  canvasTool === "hand" ? "bg-accent text-foreground" : "text-muted-foreground",
-                )}
-                size="icon"
-                title={t("canvas.handTool")}
-                variant="ghost"
-                onClick={() => setCanvasTool("hand")}
-              />
-            }
-          >
-            <Hand className="h-4 w-4" />
-          </TooltipTrigger>
-          <TooltipContent>{t("canvas.handTool")}</TooltipContent>
-        </Tooltip>
+    <div
+      className="pointer-events-auto absolute bottom-4 right-4 z-20 flex items-center gap-0.5 rounded-full bg-surface p-1 shadow-pill ring-1 ring-border"
+      data-testid="canvas-v2-toolbar"
+    >
+      <button
+        className={cn(
+          "rounded-full p-1.5 transition-colors",
+          canvasTool === "select"
+            ? "bg-accent text-foreground"
+            : "text-muted-foreground hover:bg-accent/60",
+        )}
+        data-testid="canvas-v2-tool-select"
+        aria-pressed={canvasTool === "select"}
+        title={t("canvas.selectTool")}
+        type="button"
+        onClick={() => setCanvasTool("select")}
+      >
+        <MousePointer2 className="size-3.5" />
+      </button>
+      <button
+        className={cn(
+          "rounded-full p-1.5 transition-colors",
+          canvasTool === "hand"
+            ? "bg-accent text-foreground"
+            : "text-muted-foreground hover:bg-accent/60",
+        )}
+        data-testid="canvas-v2-tool-hand"
+        aria-pressed={canvasTool === "hand"}
+        title={t("canvas.handTool")}
+        type="button"
+        onClick={() => setCanvasTool("hand")}
+      >
+        <Hand className="size-3.5" />
+      </button>
+      <div className="mx-0.5 h-4 w-px bg-border-strong" />
+      <button
+        className="rounded-full p-1.5 text-muted-foreground transition-colors hover:bg-accent/60 hover:text-foreground"
+        data-testid="canvas-v2-zoom-out"
+        title={t("canvas.zoomOut")}
+        type="button"
+        onClick={handleZoomOut}
+      >
+        <Minus className="size-3.5" />
+      </button>
+      <button
+        aria-label={t("canvas.fitView")}
+        className="px-1 font-mono text-[11px] tabular-nums text-muted-foreground transition-colors hover:text-foreground"
+        data-testid="canvas-v2-zoom-reset"
+        title={t("canvas.fitView")}
+        type="button"
+        onClick={handleFitView}
+      >
+        {Math.round(viewportZoom * 100)}%
+      </button>
+      <button
+        className="rounded-full p-1.5 text-muted-foreground transition-colors hover:bg-accent/60 hover:text-foreground"
+        data-testid="canvas-v2-zoom-in"
+        title={t("canvas.zoomIn")}
+        type="button"
+        onClick={handleZoomIn}
+      >
+        <Plus className="size-3.5" />
+      </button>
 
-        <Separator className="mx-1 h-7" orientation="vertical" />
-
-        {/* Zoom controls */}
-        <div className="contents max-[1180px]:hidden">
-          <Tooltip>
-            <TooltipTrigger
-              render={
-                <Button
-                  aria-label={t("canvas.zoomOut")}
-                  className="h-7 w-7"
-                  size="icon"
-                  title={t("canvas.zoomOut")}
-                  variant="ghost"
-                  onClick={handleZoomOut}
-                />
-              }
-            >
-              <ZoomOut className="h-4 w-4" />
-            </TooltipTrigger>
-            <TooltipContent>{t("canvas.zoomOut")}</TooltipContent>
-          </Tooltip>
-          <Tooltip>
-            <TooltipTrigger
-              render={
-                <Button
-                  aria-label={t("canvas.zoomIn")}
-                  className="h-7 w-7"
-                  size="icon"
-                  title={t("canvas.zoomIn")}
-                  variant="ghost"
-                  onClick={handleZoomIn}
-                />
-              }
-            >
-              <ZoomIn className="h-4 w-4" />
-            </TooltipTrigger>
-            <TooltipContent>{t("canvas.zoomIn")}</TooltipContent>
-          </Tooltip>
-        </div>
-        <Tooltip>
-          <TooltipTrigger
-            render={
-              <Button
-                aria-label={t("canvas.fitView")}
-                className="h-7 w-7"
-                size="icon"
-                title={t("canvas.fitView")}
-                variant="ghost"
-                onClick={handleFitView}
-              />
-            }
-          >
-            <Maximize2 className="h-4 w-4" />
-          </TooltipTrigger>
-          <TooltipContent>{t("canvas.fitView")}</TooltipContent>
-        </Tooltip>
-        <div className="contents max-[1180px]:hidden">
-          <Tooltip>
-            <TooltipTrigger
-              render={
-                <Button
-                  aria-label={interactivityActionLabel}
-                  aria-pressed={isCanvasInteractive}
-                  className="h-7 w-7"
-                  size="icon"
-                  title={interactivityActionLabel}
-                  variant="ghost"
-                  onClick={handleToggleCanvasInteractive}
-                />
-              }
-            >
-              <InteractivityIcon className="h-4 w-4" />
-            </TooltipTrigger>
-            <TooltipContent>{interactivityActionLabel}</TooltipContent>
-          </Tooltip>
-          <Tooltip>
-            <TooltipTrigger
-              render={
-                <Button
-                  aria-label={t("canvas.formatLayout")}
-                  className="h-7 w-7"
-                  size="icon"
-                  title={t("canvas.formatLayout")}
-                  variant="ghost"
-                  onClick={handleFormatLayout}
-                />
-              }
-            >
-              <AlignLeft className="h-4 w-4" />
-            </TooltipTrigger>
-            <TooltipContent>{t("canvas.formatLayout")}</TooltipContent>
-          </Tooltip>
-        </div>
-
-        <Separator className="mx-1 h-7" orientation="vertical" />
-
-        {/* History controls */}
-        <Button
-          className="h-7 w-7"
-          disabled={!canUndo}
-          size="icon"
-          title={t("canvas.undo")}
-          variant="ghost"
-          onClick={handleUndo}
+      <DropdownMenu>
+        <DropdownMenuTrigger
+          render={
+            <Button
+              aria-label={t("canvas.floatingMenu.menu")}
+              className="absolute bottom-0 right-[calc(100%+0.25rem)] size-8 rounded-full bg-surface shadow-pill ring-1 ring-border"
+              data-testid="canvas-actions-menu"
+              size="icon"
+              title={t("canvas.floatingMenu.menu")}
+              variant="ghost"
+            />
+          }
         >
-          <Undo2 className="h-4 w-4" />
-        </Button>
-        <Button
-          className="h-7 w-7"
-          disabled={!canRedo}
-          size="icon"
-          title={t("canvas.redo")}
-          variant="ghost"
-          onClick={handleRedo}
-        >
-          <Redo2 className="h-4 w-4" />
-        </Button>
-
-        <Separator className="mx-1 h-7" orientation="vertical" />
-
-        {/* Quick add */}
-        <Tooltip>
-          <TooltipTrigger
-            render={
-              <Button
-                aria-label={t("canvas.quickAdd.open")}
-                aria-pressed={isQuickAddOpen}
-                className="h-7 w-7 text-primary hover:bg-primary/10"
-                size="icon"
-                title={t("canvas.quickAdd.open")}
-                variant="ghost"
-                onClick={handleToggleQuickAdd}
-              />
-            }
-          >
-            <Plus className="h-4 w-4" />
-          </TooltipTrigger>
-          <TooltipContent>{t("canvas.quickAdd.open")}</TooltipContent>
-        </Tooltip>
-
-        {/* AI Assistant */}
-        <Tooltip>
-          <TooltipTrigger
-            render={
-              <Button
-                aria-label={t("canvas.agentPanel.toggle")}
-                aria-pressed={agentPanelIsOpen}
-                className="h-7 w-7 text-primary hover:bg-primary/10"
-                size="icon"
-                title={t("canvas.agentPanel.toggle")}
-                variant="ghost"
-                onClick={handleToggleAgentPanel}
-              />
-            }
-          >
-            <Bot className="h-4 w-4" />
-          </TooltipTrigger>
-          <TooltipContent>{t("canvas.agentPanel.toggle")}</TooltipContent>
-        </Tooltip>
-
-        <Separator className="mx-1 h-7" orientation="vertical" />
-
-        {/* Delete */}
-        <Tooltip>
-          <TooltipTrigger
-            render={
-              <Button
-                aria-label={t("canvas.deleteNode")}
-                className="h-7 w-7 text-destructive hover:bg-destructive/10 disabled:text-muted-foreground/30"
-                disabled={!selectedNodeId}
-                size="icon"
-                title={t("canvas.deleteNode")}
-                variant="ghost"
-                onClick={handleDeleteSelected}
-              />
-            }
-          >
-            <Trash2 className="h-4 w-4" />
-          </TooltipTrigger>
-          <TooltipContent>{t("canvas.deleteNode")}</TooltipContent>
-        </Tooltip>
-
-        <Separator className="mx-1 h-7" orientation="vertical" />
-
-        {/* Run Test */}
-        <Tooltip>
-          <TooltipTrigger
-            render={
-              <Button
-                aria-label={t("canvas.runTest")}
-                className="h-7 gap-1.5 px-2 text-xs text-emerald-600 hover:bg-emerald-500/10 hover:text-emerald-700 disabled:text-muted-foreground/30 dark:text-emerald-400 dark:hover:text-emerald-300 max-[420px]:w-7 max-[420px]:gap-0 max-[420px]:px-0"
-                disabled={isRunning || !pipelineId || !runtimeConfigured}
-                size="sm"
-                title={
-                  runtimeConfigured ? t("canvas.runTest") : t("pipelineAgentErrors.runtimeNotFound")
-                }
-                variant="ghost"
-                onClick={handleRunTest}
-              />
-            }
-          >
-            <Play className="h-3.5 w-3.5" />
-            <span className="max-[420px]:hidden">{t("canvas.run")}</span>
-          </TooltipTrigger>
-          <TooltipContent>{t("canvas.runTest")}</TooltipContent>
-        </Tooltip>
-      </div>
+          <MoreHorizontal className="size-4" />
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-56" side="top" sideOffset={8}>
+          <DropdownMenuItem onClick={handleToggleCanvasInteractive}>
+            <InteractivityIcon className="size-4" />
+            {interactivityActionLabel}
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={handleFormatLayout}>
+            <AlignLeft className="size-4" />
+            {t("canvas.formatLayout")}
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem disabled={!canUndo} onClick={handleUndo}>
+            <Undo2 className="size-4" />
+            {t("canvas.undo")}
+          </DropdownMenuItem>
+          <DropdownMenuItem disabled={!canRedo} onClick={handleRedo}>
+            <Redo2 className="size-4" />
+            {t("canvas.redo")}
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={handleToggleQuickAdd}>
+            <Plus className="size-4" />
+            {t("canvas.quickAdd.open")}
+          </DropdownMenuItem>
+          <DropdownMenuItem disabled={!selectedNodeId} onClick={handleDeleteSelected}>
+            <Trash2 className="size-4 text-destructive" />
+            {t("canvas.deleteNode")}
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   );
 };

@@ -39,17 +39,15 @@ export const AppLayout = ({
                         "[&_[data-slot=sidebar-container]]:hidden [&_[data-slot=sidebar-gap]]:w-0",
                     )}
                     defaultWidth={236}
-                    maxWidth={320}
-                    minWidth={216}
+                    maxWidth={360}
+                    minWidth={200}
                     widthStorageKey="ordine.sidebar.width"
                   >
                     <AppSidebar />
                     <SidebarInset className={cn(canvasMode && "h-svh min-h-0 overflow-hidden")}>
-                      {!canvasMode && (
-                        <div className="hidden h-12 shrink-0 items-center border-b border-border px-3 min-[701px]:flex md:hidden">
-                          <SidebarTrigger />
-                        </div>
-                      )}
+                      <div className="relative z-50 flex h-12 shrink-0 items-center border-b border-border px-3 md:hidden">
+                        <SidebarTrigger />
+                      </div>
                       {children}
                     </SidebarInset>
                     <ToastContainer />

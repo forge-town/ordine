@@ -1,13 +1,4 @@
-import {
-  ArrowLeft,
-  Box,
-  FileCode,
-  Folder,
-  FolderOutput,
-  HardDrive,
-  MessageSquareText,
-  Zap,
-} from "lucide-react";
+import { Settings2, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
 import { useList } from "@refinedev/core";
@@ -26,11 +17,8 @@ import { Input } from "@repo/ui/input";
 import { Label } from "@repo/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@repo/ui/select";
 import { Textarea } from "@repo/ui/textarea";
-import { cn } from "@repo/ui/lib/utils";
-import { SiGitHubIcon } from "../../../components/icons/SiGitHubIcon";
 import { ResourceName } from "../../../constants";
 import { selectSelectedNode, useCanvasPageStore } from "../_store";
-import { getNodeMeta } from "../utils/nodeTypeMeta";
 import { CanvasOperationPropertiesForm } from "./CanvasOperationPropertiesForm";
 import { ExcludedPathsField } from "./ExcludedPathsField";
 
@@ -77,33 +65,22 @@ export const CanvasNodePropertiesPanel = () => {
   const agents = agentsResult.data;
 
   if (!selectedNode) {
-    return (
-      <div className="flex h-full flex-col bg-background p-4">
-        <p className="text-sm text-muted-foreground">{t("canvas.propertiesPanel.empty")}</p>
-      </div>
-    );
+    return null;
   }
 
   const data = selectedNode.data;
-  const meta = getNodeMeta(selectedNode.type);
-  const Icon =
-    selectedNode.type === "file"
-      ? FileCode
-      : selectedNode.type === "folder"
-        ? Folder
-        : selectedNode.type === "github-project"
-          ? SiGitHubIcon
-          : selectedNode.type === "prompt"
-            ? MessageSquareText
-            : selectedNode.type === "operation"
-              ? Zap
-              : selectedNode.type === "output-project-path"
-                ? FolderOutput
-                : selectedNode.type === "output-local-path"
-                  ? HardDrive
-                  : Box;
   const handleUpdateNodeData = (patch: Record<string, unknown>) => {
     updateNodeData(selectedNode.id, patch);
+  };
+
+  const handleLabelChange = (value: string) => {
+    if (data.nodeType === "operation") {
+      handleOperationLabelChange(selectedNode.id, value);
+
+      return;
+    }
+
+    handleUpdateNodeData({ label: value });
   };
 
   const handleOperationUpdated = (operation: Operation) => {
@@ -222,177 +199,84 @@ export const CanvasNodePropertiesPanel = () => {
 
   return (
     <div
-      className="flex h-full min-h-0 flex-col bg-background"
-      data-testid="canvas-properties-panel"
+      className="absolute inset-0 z-40 grid place-items-center p-6"
+      data-testid="canvas-v2-node-config"
+      onClick={handleClearSelection}
     >
-      <div className="border-b p-4">
-        <Button
-          className="mb-3 h-8 gap-2 px-2 text-muted-foreground"
-          type="button"
-          variant="ghost"
-          onClick={handleClearSelection}
-        >
-          <ArrowLeft className="size-4" />
-          {t("canvas.propertiesPanel.backToComponents")}
-        </Button>
-        <div className="flex items-center gap-3">
-          <span
-            className={cn(
-              "flex size-9 items-center justify-center rounded-md",
-              meta?.iconBg ?? "bg-muted",
-            )}
-          >
-            <Icon className="size-4 text-white" />
-          </span>
-          <div className="min-w-0">
-            <p className="truncate text-sm font-semibold">{data.label}</p>
-            <p className="text-xs text-muted-foreground">{selectedNode.type}</p>
+      <div
+        className="absolute inset-0 bg-foreground/10 backdrop-blur-[1px]"
+        data-testid="node-config-backdrop"
+      />
+      <div
+        className="relative flex max-h-full w-[440px] max-w-[calc(100vw-3rem)] flex-col overflow-hidden rounded-2xl bg-surface shadow-float ring-1 ring-border-strong"
+        data-testid="canvas-properties-panel"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <div className="flex items-center gap-2.5 border-b border-border/70 px-4 py-3">
+          <div className="flex size-8 items-center justify-center rounded-lg bg-surface-2">
+            <Settings2 className="size-4 text-muted-foreground" />
           </div>
-        </div>
-      </div>
-
-      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-4">
-        {renderTextField({
-          field: "label",
-          label: t("canvas.propertiesPanel.fields.label"),
-          value: String(data.label ?? ""),
-          onChangeValue:
-            data.nodeType === "operation"
-              ? (value) => handleOperationLabelChange(selectedNode.id, value)
-              : undefined,
-        })}
-
-        {data.nodeType === "file" && (
-          <>
-            {renderTextField({
-              field: "filePath",
-              label: t("canvas.propertiesPanel.fields.filePath"),
-              placeholder: t("canvas.propertiesPanel.placeholders.filePath"),
-              value: data.filePath,
-            })}
-            {renderTextField({
-              field: "language",
-              label: t("canvas.propertiesPanel.fields.language"),
-              placeholder: t("canvas.propertiesPanel.placeholders.language"),
-              value: data.language ?? "",
-            })}
-            {renderTextareaField({
-              field: "description",
-              label: t("canvas.propertiesPanel.fields.description"),
-              value: data.description ?? "",
-            })}
-          </>
-        )}
-
-        {data.nodeType === "folder" && (
-          <>
-            {renderTextField({
-              field: "folderPath",
-              label: t("canvas.propertiesPanel.fields.folderPath"),
-              placeholder: t("canvas.propertiesPanel.placeholders.folderPath"),
-              value: data.folderPath,
-            })}
-            <div className="space-y-1.5">
-              <Label className="text-xs font-medium text-muted-foreground">
-                {t("canvas.propertiesPanel.fields.disclosureMode")}
-              </Label>
-              <Select
-                value={data.disclosureMode ?? DISCLOSURE_MODE_ENUM.TREE}
-                onValueChange={(value) =>
-                  handleUpdateNodeData({ disclosureMode: value as DisclosureMode })
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {(Object.values(DISCLOSURE_MODE_ENUM) as DisclosureMode[]).map((mode) => (
-                    <SelectItem key={mode} value={mode}>
-                      {t(disclosureModeLabelKeys[mode])}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label
-                className="text-xs font-medium text-muted-foreground"
-                htmlFor={fieldId(selectedNode.id, "includedExtensions")}
-              >
-                {t("canvas.propertiesPanel.fields.includedExtensions")}
-              </Label>
-              <Input
-                className="h-8 text-sm"
-                id={fieldId(selectedNode.id, "includedExtensions")}
-                placeholder="ts,tsx,js,jsx"
-                value={(data.includedExtensions ?? []).join(",")}
-                onChange={(e) =>
-                  handleUpdateNodeData({
-                    includedExtensions: e.target.value
-                      .split(",")
-                      .map((s) => s.trim())
-                      .filter(Boolean),
-                  })
-                }
-              />
-            </div>
-            <ExcludedPathsField
-              excludedPaths={data.excludedPaths}
-              nodeId={selectedNode.id}
-              onAdd={handleNodeAddExcludedPath}
-              onRemove={handleNodeRemoveExcludedPath}
+          <div className="min-w-0 flex-1">
+            <input
+              className="-mx-1 w-full truncate rounded-md bg-transparent px-1 text-sm font-semibold hover:bg-surface-2 focus:bg-surface-2 focus:outline-none focus:ring-1 focus:ring-border-strong"
+              data-testid="node-config-label"
+              value={String(data.label ?? "")}
+              onChange={(event) => handleLabelChange(event.target.value)}
             />
-            {renderTextareaField({
-              field: "description",
-              label: t("canvas.propertiesPanel.fields.description"),
-              value: data.description ?? "",
-            })}
-          </>
-        )}
-
-        {data.nodeType === "github-project" && (
-          <>
-            <div className="space-y-1.5">
-              <Label className="text-xs font-medium text-muted-foreground">
-                {t("canvas.propertiesPanel.fields.sourceType")}
-              </Label>
-              <Select
-                value={data.sourceType ?? SOURCE_TYPE_ENUM.GITHUB}
-                onValueChange={(value) => handleUpdateNodeData({ sourceType: value as SourceType })}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {(Object.values(SOURCE_TYPE_ENUM) as SourceType[]).map((type) => (
-                    <SelectItem key={type} value={type}>
-                      {t(sourceTypeLabelKeys[type])}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="px-1 text-[10.5px] text-muted-foreground">
+              {selectedNode.type} ·{" "}
+              {t("workspace.canvas.nodeConfig.editable", { defaultValue: "Editable" })}
             </div>
-            {renderTextField({
-              field: "owner",
-              label: t("canvas.propertiesPanel.fields.owner"),
-              value: data.owner,
-            })}
-            {renderTextField({
-              field: "repo",
-              label: t("canvas.propertiesPanel.fields.repository"),
-              value: data.repo,
-            })}
-            {renderTextField({
-              field: "branch",
-              label: t("canvas.propertiesPanel.fields.branch"),
-              value: data.branch ?? "",
-            })}
-            {renderTextField({
-              field: "localPath",
-              label: t("canvas.propertiesPanel.fields.localPath"),
-              value: data.localPath ?? "",
-            })}
-            {data.sourceType !== SOURCE_TYPE_ENUM.LOCAL && (
+          </div>
+          <Button
+            aria-label={t("workspace.canvas.nodeConfig.close", { defaultValue: "Close" })}
+            data-testid="node-config-close"
+            size="icon"
+            variant="ghost"
+            onClick={handleClearSelection}
+          >
+            <X className="size-4" />
+          </Button>
+        </div>
+
+        <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-3">
+          {renderTextField({
+            field: "label",
+            label: t("canvas.propertiesPanel.fields.label"),
+            value: String(data.label ?? ""),
+            onChangeValue: handleLabelChange,
+          })}
+
+          {data.nodeType === "file" && (
+            <>
+              {renderTextField({
+                field: "filePath",
+                label: t("canvas.propertiesPanel.fields.filePath"),
+                placeholder: t("canvas.propertiesPanel.placeholders.filePath"),
+                value: data.filePath,
+              })}
+              {renderTextField({
+                field: "language",
+                label: t("canvas.propertiesPanel.fields.language"),
+                placeholder: t("canvas.propertiesPanel.placeholders.language"),
+                value: data.language ?? "",
+              })}
+              {renderTextareaField({
+                field: "description",
+                label: t("canvas.propertiesPanel.fields.description"),
+                value: data.description ?? "",
+              })}
+            </>
+          )}
+
+          {data.nodeType === "folder" && (
+            <>
+              {renderTextField({
+                field: "folderPath",
+                label: t("canvas.propertiesPanel.fields.folderPath"),
+                placeholder: t("canvas.propertiesPanel.placeholders.folderPath"),
+                value: data.folderPath,
+              })}
               <div className="space-y-1.5">
                 <Label className="text-xs font-medium text-muted-foreground">
                   {t("canvas.propertiesPanel.fields.disclosureMode")}
@@ -415,155 +299,267 @@ export const CanvasNodePropertiesPanel = () => {
                   </SelectContent>
                 </Select>
               </div>
-            )}
-            <ExcludedPathsField
-              excludedPaths={data.excludedPaths}
-              nodeId={selectedNode.id}
-              onAdd={handleNodeAddExcludedPath}
-              onRemove={handleNodeRemoveExcludedPath}
-            />
-            {renderTextareaField({
-              field: "description",
-              label: t("canvas.propertiesPanel.fields.description"),
-              value: data.description ?? "",
-            })}
-          </>
-        )}
-
-        {data.nodeType === "prompt" && (
-          <>
-            {renderTextareaField({
-              field: "prompt",
-              label: t("canvas.propertiesPanel.fields.prompt"),
-              value: data.prompt,
-            })}
-            {renderTextareaField({
-              field: "description",
-              label: t("canvas.propertiesPanel.fields.description"),
-              value: data.description ?? "",
-            })}
-          </>
-        )}
-
-        {data.nodeType === "operation" && (
-          <>
-            <div className="space-y-1.5">
-              <Label htmlFor={fieldId(selectedNode.id, "agentId")}>
-                {t("canvas.propertiesPanel.fields.agentId")}
-              </Label>
-              <Select
-                value={data.agentId ?? "__default__"}
-                onValueChange={(value) =>
-                  handleOperationAgentChange(
-                    selectedNode.id,
-                    value === "__default__" ? null : value,
-                  )
-                }
-              >
-                <SelectTrigger id={fieldId(selectedNode.id, "agentId")}>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="__default__">{t("nodes.operation.defaultAgent")}</SelectItem>
-                  {agents.map((agent) => (
-                    <SelectItem key={agent.id} value={agent.id}>
-                      {agent.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {renderIntegerField({
-              field: "maxLoopCount",
-              label: t("canvas.propertiesPanel.fields.maxLoopCount"),
-              max: 20,
-              min: 1,
-              value: data.maxLoopCount ?? 3,
-              handleValueChange: (value) => handleOperationMaxLoopChange(selectedNode.id, value),
-            })}
-            {renderTextareaField({
-              field: "loopConditionPrompt",
-              label: t("canvas.propertiesPanel.fields.loopCondition"),
-              value: data.loopConditionPrompt ?? "",
-            })}
-
-            <div className="border-t pt-4">
-              <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                {t("canvas.propertiesPanel.operationDefinition")}
-              </p>
-              <CanvasOperationPropertiesForm
-                operationId={data.operationId}
-                onOperationUpdated={handleOperationUpdated}
+              <div className="space-y-1.5">
+                <Label
+                  className="text-xs font-medium text-muted-foreground"
+                  htmlFor={fieldId(selectedNode.id, "includedExtensions")}
+                >
+                  {t("canvas.propertiesPanel.fields.includedExtensions")}
+                </Label>
+                <Input
+                  className="h-8 text-sm"
+                  id={fieldId(selectedNode.id, "includedExtensions")}
+                  placeholder="ts,tsx,js,jsx"
+                  value={(data.includedExtensions ?? []).join(",")}
+                  onChange={(e) =>
+                    handleUpdateNodeData({
+                      includedExtensions: e.target.value
+                        .split(",")
+                        .map((s) => s.trim())
+                        .filter(Boolean),
+                    })
+                  }
+                />
+              </div>
+              <ExcludedPathsField
+                excludedPaths={data.excludedPaths}
+                nodeId={selectedNode.id}
+                onAdd={handleNodeAddExcludedPath}
+                onRemove={handleNodeRemoveExcludedPath}
               />
-            </div>
-          </>
-        )}
+              {renderTextareaField({
+                field: "description",
+                label: t("canvas.propertiesPanel.fields.description"),
+                value: data.description ?? "",
+              })}
+            </>
+          )}
 
-        {data.nodeType === "output-project-path" && (
-          <>
-            {renderTextField({
-              field: "projectId",
-              label: t("canvas.propertiesPanel.fields.projectId"),
-              value: data.projectId ?? "",
-            })}
-            {renderTextField({
-              field: "path",
-              label: t("canvas.propertiesPanel.fields.outputPath"),
-              value: data.path,
-            })}
-            {renderTextareaField({
+          {data.nodeType === "github-project" && (
+            <>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-medium text-muted-foreground">
+                  {t("canvas.propertiesPanel.fields.sourceType")}
+                </Label>
+                <Select
+                  value={data.sourceType ?? SOURCE_TYPE_ENUM.GITHUB}
+                  onValueChange={(value) =>
+                    handleUpdateNodeData({ sourceType: value as SourceType })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(Object.values(SOURCE_TYPE_ENUM) as SourceType[]).map((type) => (
+                      <SelectItem key={type} value={type}>
+                        {t(sourceTypeLabelKeys[type])}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              {renderTextField({
+                field: "owner",
+                label: t("canvas.propertiesPanel.fields.owner"),
+                value: data.owner,
+              })}
+              {renderTextField({
+                field: "repo",
+                label: t("canvas.propertiesPanel.fields.repository"),
+                value: data.repo,
+              })}
+              {renderTextField({
+                field: "branch",
+                label: t("canvas.propertiesPanel.fields.branch"),
+                value: data.branch ?? "",
+              })}
+              {renderTextField({
+                field: "localPath",
+                label: t("canvas.propertiesPanel.fields.localPath"),
+                value: data.localPath ?? "",
+              })}
+              {data.sourceType !== SOURCE_TYPE_ENUM.LOCAL && (
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-medium text-muted-foreground">
+                    {t("canvas.propertiesPanel.fields.disclosureMode")}
+                  </Label>
+                  <Select
+                    value={data.disclosureMode ?? DISCLOSURE_MODE_ENUM.TREE}
+                    onValueChange={(value) =>
+                      handleUpdateNodeData({ disclosureMode: value as DisclosureMode })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {(Object.values(DISCLOSURE_MODE_ENUM) as DisclosureMode[]).map((mode) => (
+                        <SelectItem key={mode} value={mode}>
+                          {t(disclosureModeLabelKeys[mode])}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+              <ExcludedPathsField
+                excludedPaths={data.excludedPaths}
+                nodeId={selectedNode.id}
+                onAdd={handleNodeAddExcludedPath}
+                onRemove={handleNodeRemoveExcludedPath}
+              />
+              {renderTextareaField({
+                field: "description",
+                label: t("canvas.propertiesPanel.fields.description"),
+                value: data.description ?? "",
+              })}
+            </>
+          )}
+
+          {data.nodeType === "prompt" && (
+            <>
+              {renderTextareaField({
+                field: "prompt",
+                label: t("canvas.propertiesPanel.fields.prompt"),
+                value: data.prompt,
+              })}
+              {renderTextareaField({
+                field: "description",
+                label: t("canvas.propertiesPanel.fields.description"),
+                value: data.description ?? "",
+              })}
+            </>
+          )}
+
+          {data.nodeType === "operation" && (
+            <>
+              <div className="space-y-1.5">
+                <Label htmlFor={fieldId(selectedNode.id, "agentId")}>
+                  {t("canvas.propertiesPanel.fields.agentId")}
+                </Label>
+                <Select
+                  value={data.agentId ?? "__default__"}
+                  onValueChange={(value) =>
+                    handleOperationAgentChange(
+                      selectedNode.id,
+                      value === "__default__" ? null : value,
+                    )
+                  }
+                >
+                  <SelectTrigger id={fieldId(selectedNode.id, "agentId")}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__default__">{t("nodes.operation.defaultAgent")}</SelectItem>
+                    {agents.map((agent) => (
+                      <SelectItem key={agent.id} value={agent.id}>
+                        {agent.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {renderIntegerField({
+                field: "maxLoopCount",
+                label: t("canvas.propertiesPanel.fields.maxLoopCount"),
+                max: 20,
+                min: 1,
+                value: data.maxLoopCount ?? 3,
+                handleValueChange: (value) => handleOperationMaxLoopChange(selectedNode.id, value),
+              })}
+              {renderTextareaField({
+                field: "loopConditionPrompt",
+                label: t("canvas.propertiesPanel.fields.loopCondition"),
+                value: data.loopConditionPrompt ?? "",
+              })}
+
+              <div className="border-t pt-4">
+                <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  {t("canvas.propertiesPanel.operationDefinition")}
+                </p>
+                <CanvasOperationPropertiesForm
+                  operationId={data.operationId}
+                  onOperationUpdated={handleOperationUpdated}
+                />
+              </div>
+            </>
+          )}
+
+          {data.nodeType === "output-project-path" && (
+            <>
+              {renderTextField({
+                field: "projectId",
+                label: t("canvas.propertiesPanel.fields.projectId"),
+                value: data.projectId ?? "",
+              })}
+              {renderTextField({
+                field: "path",
+                label: t("canvas.propertiesPanel.fields.outputPath"),
+                value: data.path,
+              })}
+              {renderTextareaField({
+                field: "description",
+                label: t("canvas.propertiesPanel.fields.description"),
+                value: data.description ?? "",
+              })}
+            </>
+          )}
+
+          {data.nodeType === "output-local-path" && (
+            <>
+              {renderTextField({
+                field: "localPath",
+                label: t("canvas.propertiesPanel.fields.localPath"),
+                value: data.localPath,
+              })}
+              {renderTextField({
+                field: "outputFileName",
+                label: t("canvas.propertiesPanel.fields.outputFileName"),
+                value: data.outputFileName ?? "",
+              })}
+              <div className="space-y-1.5">
+                <Label>{t("canvas.propertiesPanel.fields.writeMode")}</Label>
+                <Select
+                  value={data.outputMode ?? "overwrite"}
+                  onValueChange={(value) =>
+                    handleUpdateNodeData({ outputMode: value as OutputMode })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.values(OUTPUT_MODE_ENUM).map((mode) => (
+                      <SelectItem key={mode} value={mode}>
+                        {t(outputModeLabelKeys[mode])}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              {renderTextareaField({
+                field: "description",
+                label: t("canvas.propertiesPanel.fields.description"),
+                value: data.description ?? "",
+              })}
+            </>
+          )}
+
+          {data.nodeType === "compound" &&
+            renderTextareaField({
               field: "description",
               label: t("canvas.propertiesPanel.fields.description"),
               value: data.description ?? "",
             })}
-          </>
-        )}
+        </div>
 
-        {data.nodeType === "output-local-path" && (
-          <>
-            {renderTextField({
-              field: "localPath",
-              label: t("canvas.propertiesPanel.fields.localPath"),
-              value: data.localPath,
-            })}
-            {renderTextField({
-              field: "outputFileName",
-              label: t("canvas.propertiesPanel.fields.outputFileName"),
-              value: data.outputFileName ?? "",
-            })}
-            <div className="space-y-1.5">
-              <Label>{t("canvas.propertiesPanel.fields.writeMode")}</Label>
-              <Select
-                value={data.outputMode ?? "overwrite"}
-                onValueChange={(value) => handleUpdateNodeData({ outputMode: value as OutputMode })}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.values(OUTPUT_MODE_ENUM).map((mode) => (
-                    <SelectItem key={mode} value={mode}>
-                      {t(outputModeLabelKeys[mode])}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            {renderTextareaField({
-              field: "description",
-              label: t("canvas.propertiesPanel.fields.description"),
-              value: data.description ?? "",
-            })}
-          </>
-        )}
-
-        {data.nodeType === "compound" &&
-          renderTextareaField({
-            field: "description",
-            label: t("canvas.propertiesPanel.fields.description"),
-            value: data.description ?? "",
-          })}
+        <div className="flex items-center gap-2 border-t border-border/70 px-4 py-3">
+          <Button className="flex-1" data-testid="node-config-done" onClick={handleClearSelection}>
+            {t("workspace.canvas.nodeConfig.done", { defaultValue: "Done" })}
+          </Button>
+        </div>
       </div>
     </div>
   );

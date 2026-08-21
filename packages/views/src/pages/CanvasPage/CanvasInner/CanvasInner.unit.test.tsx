@@ -95,7 +95,19 @@ const ClosedAgentPanelSetup = ({ children }: React.PropsWithChildren) => {
     initializedRef.current = true;
     store.setState((state) => ({
       agentPanel: { ...state.agentPanel, isOpen: false },
+      isSidebarOpen: true,
     }));
+  }
+
+  return children;
+};
+
+const SelectedNodeSetup = ({ children }: React.PropsWithChildren) => {
+  const store = useCanvasPageStore();
+  const initializedRef = useRef(false);
+  if (!initializedRef.current) {
+    initializedRef.current = true;
+    store.setState({ selectedNodeId: existingNode.id, sidebarPanel: "properties" });
   }
 
   return children;
@@ -118,6 +130,22 @@ const makeWrapper =
 const wrapper = makeWrapper();
 
 const wrapperWithNode = makeWrapper([existingNode]);
+
+const wrapperWithSelectedNode = ({ children }: React.PropsWithChildren) => (
+  <QueryClientProvider client={queryClient}>
+    <NotificationStoreContext.Provider value={notificationStore}>
+      <CanvasPageStoreProvider
+        pipeline={{ id: "pipe-1", name: "Pipeline", nodes: [existingNode], edges: [] }}
+      >
+        <ClosedAgentPanelSetup>
+          <SelectedNodeSetup>
+            <ReactFlowProvider>{children}</ReactFlowProvider>
+          </SelectedNodeSetup>
+        </ClosedAgentPanelSetup>
+      </CanvasPageStoreProvider>
+    </NotificationStoreContext.Provider>
+  </QueryClientProvider>
+);
 
 const wrapperWithoutPipeline = ({ children }: React.PropsWithChildren) => (
   <QueryClientProvider client={queryClient}>
@@ -144,42 +172,31 @@ describe("CanvasInner", () => {
     expect(screen.getByTestId("canvas-flow-viewport")).toBeInTheDocument();
   });
 
-  it("renders the workspace panel at the default width with a resize handle", () => {
-    render(<CanvasInner />, { wrapper });
+  it("supports the Alan workspace shell without replacing develop panel state", () => {
+    render(<CanvasInner showCanvasMiniSidebar={false} />, { wrapper: wrapperWithoutPipeline });
 
-    expect(screen.getByTestId("canvas-work-panel")).toHaveStyle({ width: "300px" });
-    expect(screen.getByTestId("canvas-work-panel-resizer")).toBeInTheDocument();
+    expect(screen.queryByTestId("canvas-mini-sidebar")).not.toBeInTheDocument();
+    expect(screen.getByTestId("canvas-component-panel")).toBeInTheDocument();
+    const canvasToolbar = screen.getByTestId("canvas-v2-toolbar");
+    expect(canvasToolbar).toHaveClass("absolute", "bottom-4", "right-4", "z-20");
+    expect(canvasToolbar.parentElement?.tagName).toBe("MAIN");
+    expect(
+      screen.getByRole("button", { name: /Collapse operations panel|收起操作面板/i }),
+    ).toBeInTheDocument();
+    expect(screen.getByTestId("canvas-v2-state-legend-trigger").closest("main")).toBeNull();
+    expect(screen.queryByTestId("canvas-status-bar")).not.toBeInTheDocument();
   });
 
-  it("clamps the workspace panel width while dragging the resize handle", () => {
-    render(<CanvasInner />, { wrapper });
+  it("renders selected node properties as an Alan modal inside main", () => {
+    render(<CanvasInner />, { wrapper: wrapperWithSelectedNode });
 
-    const workPanel = screen.getByTestId("canvas-work-panel");
-    const resizeHandle = screen.getByTestId("canvas-work-panel-resizer");
-    const globalWindow = globalThis.window;
-    vi.spyOn(workPanel, "getBoundingClientRect").mockReturnValue({
-      x: 0,
-      y: 0,
-      width: 352,
-      height: 640,
-      top: 0,
-      right: 352,
-      bottom: 640,
-      left: 0,
-      toJSON: () => ({}),
-    });
+    const modal = screen.getByTestId("canvas-v2-node-config");
 
-    fireEvent.mouseDown(resizeHandle, { clientX: 352 });
-    fireEvent.mouseMove(globalWindow, { clientX: 120 });
-    expect(workPanel).toHaveStyle({ width: "288px" });
-
-    fireEvent.mouseMove(globalWindow, { clientX: 460 });
-    expect(workPanel).toHaveStyle({ width: "408px" });
-
-    fireEvent.mouseMove(globalWindow, { clientX: 700 });
-    expect(workPanel).toHaveStyle({ width: "560px" });
-
-    fireEvent.mouseUp(globalWindow);
+    expect(modal).toHaveClass("absolute", "inset-0", "z-40", "grid", "place-items-center", "p-6");
+    expect(screen.getByTestId("canvas-properties-panel")).toHaveClass("w-[440px]");
+    expect(modal.parentElement?.tagName).toBe("MAIN");
+    expect(screen.queryByTestId("canvas-work-panel")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("canvas-work-panel-resizer")).not.toBeInTheDocument();
   });
 
   it("opens the AgentPanel as a resizable right-hand sibling", async () => {
@@ -190,24 +207,61 @@ describe("CanvasInner", () => {
 
     await user.click(screen.getByTestId("canvas-agent-panel-reopen"));
 
-    expect(screen.getByTestId("canvas-agent-panel-shell")).toHaveStyle({ width: "344px" });
-    expect(screen.getByTestId("resize-handle-right")).toBeInTheDocument();
+    const regionWrapper = screen.getByTestId("canvas-agent-panel-region-wrapper");
+    const resizeGutter = screen.getByTestId("canvas-agent-panel-resize-gutter");
+    const resizeHandle = screen.getByTestId("resize-handle-right");
+    const region = screen.getByTestId("canvas-agent-panel-region");
+    const shell = screen.getByTestId("canvas-agent-panel-shell");
+
+    expect(shell).toHaveStyle({ width: "344px" });
+    expect(shell).toHaveClass(
+      "h-full",
+      "w-full",
+      "overflow-hidden",
+      "rounded-2xl",
+      "bg-surface",
+      "shadow-float",
+      "ring-1",
+      "ring-border-strong",
+      "max-[480px]:!w-full",
+    );
+    expect(regionWrapper).toHaveClass(
+      "max-[480px]:!w-full",
+      "min-[1181px]:h-full",
+      "min-[1181px]:shrink-0",
+    );
+    expect(resizeGutter).toHaveClass("w-px", "min-[1181px]:h-full", "min-[1181px]:w-1.5");
+    expect(region).toHaveClass(
+      "max-[480px]:flex-1",
+      "min-[1181px]:h-full",
+      "min-[1181px]:shrink-0",
+      "min-[1181px]:py-1.5",
+      "min-[1181px]:pr-1.5",
+    );
+    expect(region).not.toHaveClass("bg-surface", "border", "shadow-float", "rounded-2xl");
+    expect(shell.parentElement).toBe(region);
+    expect(resizeGutter.nextElementSibling).toBe(region);
+    expect(resizeHandle.parentElement).toBe(resizeGutter);
+    expect(resizeHandle.querySelector(".bg-border")).toBeNull();
     expect(screen.getByTestId("canvas-agent-panel")).toBeInTheDocument();
   });
 
-  it("overlays the AgentPanel below the wide workspace breakpoint", async () => {
+  it("keeps the component library floating when the AgentPanel opens", async () => {
     const user = userEvent.setup();
     render(<CanvasInner />, { wrapper });
     await user.click(screen.getByTestId("canvas-agent-panel-reopen"));
 
-    expect(screen.getByTestId("canvas-agent-panel-region")).toHaveClass(
+    expect(screen.getByTestId("canvas-agent-panel-region-wrapper")).toHaveClass(
       "absolute",
-      "top-14",
+      "top-16",
       "min-[1181px]:static",
     );
-    expect(screen.getByTestId("canvas-work-panel").parentElement).toHaveClass(
-      "max-[1180px]:absolute",
-      "max-[1180px]:left-0",
+    expect(screen.getByTestId("canvas-component-panel-root")).toHaveClass(
+      "absolute",
+      "left-3",
+      "top-16",
+      "z-10",
+      "max-[1180px]:hidden",
     );
   });
 
@@ -288,16 +342,14 @@ describe("CanvasInner", () => {
     expect(screen.getByTestId("canvas-agent-panel-shell")).toHaveStyle({ width: "344px" });
   });
 
-  it("toggles the AgentPanel from the canvas toolbar", async () => {
+  it("does not duplicate the Agent action in the canvas toolbar", async () => {
     const user = userEvent.setup();
     render(<CanvasInner />, { wrapper });
 
-    await user.click(screen.getByRole("button", { name: /^(AI Assistant|AI 助手)$/i }));
-
-    expect(screen.getByTestId("canvas-agent-panel-shell")).toBeInTheDocument();
-
-    await user.dblClick(screen.getByTestId("resize-handle-right"));
-
+    await user.click(screen.getByTestId("canvas-actions-menu"));
+    expect(
+      screen.queryByRole("menuitem", { name: /^(AI Assistant|AI 助手)$/i }),
+    ).not.toBeInTheDocument();
     expect(screen.getByTestId("canvas-agent-panel-reopen")).toBeInTheDocument();
   });
 
@@ -315,7 +367,9 @@ describe("CanvasInner", () => {
   it("shows the canvas empty state when there are no nodes", () => {
     render(<CanvasInner />, { wrapper });
 
-    expect(screen.getByText(/Start with a node|从一个节点开始/)).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: /Start with a node|从一个节点开始/ }),
+    ).toBeInTheDocument();
   });
 
   it("hides the canvas empty state after nodes exist", () => {

@@ -359,6 +359,7 @@ function SidebarTrigger({ className, onClick, ...props }: React.ComponentProps<t
 function SidebarRail({
   className,
   resizable = false,
+  autoCollapseWidth = SIDEBAR_AUTO_COLLAPSE_WIDTH,
   side = "left",
   onClick,
   onKeyDown,
@@ -372,6 +373,7 @@ function SidebarRail({
   title,
   ...props
 }: React.ComponentProps<"button"> & {
+  autoCollapseWidth?: number;
   resizable?: boolean;
   side?: "left" | "right";
 }) {
@@ -454,11 +456,11 @@ function SidebarRail({
     if (
       dragState.initialOpen &&
       !dragState.autoCollapsed &&
-      dragState.liveWidth <= SIDEBAR_AUTO_COLLAPSE_WIDTH
+      dragState.liveWidth <= autoCollapseWidth
     ) {
       dragState.autoCollapsed = true;
       setOpen(false);
-    } else if (!dragState.initialOpen && dragState.liveWidth > SIDEBAR_AUTO_COLLAPSE_WIDTH) {
+    } else if (!dragState.initialOpen && dragState.liveWidth > autoCollapseWidth) {
       setOpen(true);
     }
   };

@@ -468,6 +468,14 @@ export const canvasStoryJobTraces: JobTrace[] = [
       "[2026-04-08T16:00:03.000Z] @@LLM_CONTENT::review-op::### Review\nNo blocking issues in this Storybook scenario.",
     createdAt: new Date("2026-04-08T16:00:03.000Z"),
   },
+  {
+    id: 5,
+    jobId: "job-story",
+    level: "info",
+    message:
+      "[2026-04-08T16:00:04.000Z] Wrote output to: /workspace/ordine/output/review-report.md (120 chars)",
+    createdAt: new Date("2026-04-08T16:00:04.000Z"),
+  },
 ];
 
 export const canvasStoryPipeline: PipelineData = {

@@ -52,7 +52,7 @@ const renderStatusBar = (
 
   return (
     <CanvasPageStoreContext.Provider value={store}>
-      <div className="relative h-24 w-full bg-slate-50">
+      <div className="relative flex h-24 w-full items-start justify-end bg-slate-50 p-3">
         <CanvasStatusBar />
       </div>
     </CanvasPageStoreContext.Provider>
@@ -67,7 +67,7 @@ const meta: Meta<typeof CanvasStatusBar> = {
     docs: {
       description: {
         component:
-          "Small canvas state readout pinned to the bottom of the canvas. It shows node count, edge count, current zoom, and the selected node label.",
+          "Alan-style state legend trigger with the current node, edge, zoom, and selection summary in the popover footer.",
       },
     },
   },
@@ -81,7 +81,7 @@ export const EmptyCanvas: Story = {
   parameters: {
     docs: {
       description: {
-        story: "Empty-canvas state at the default 125% zoom.",
+        story: "Empty-canvas state at the default 125% zoom with no selected node.",
       },
     },
   },

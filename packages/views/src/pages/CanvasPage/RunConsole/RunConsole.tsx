@@ -1,8 +1,6 @@
 import { useCallback, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
-import { Terminal, X, ChevronUp, ChevronDown, Loader2, FileText } from "lucide-react";
-import { Button } from "@repo/ui/button";
-import { ScrollArea } from "@repo/ui/scroll-area";
+import { ChevronDown, ChevronUp, FileText, Loader2, SquareTerminal, X } from "lucide-react";
 import { cn } from "@repo/ui/lib/utils";
 import { useCustom, useDataProvider, useOne } from "@refinedev/core";
 import { useStore } from "zustand";
@@ -227,158 +225,143 @@ export const RunConsole = () => {
 
   return (
     <div
-      className={cn(
-        "absolute bottom-0 left-0 right-0 z-30 border-t bg-surface shadow-float transition-all",
-        isConsoleCollapsed ? "h-9" : "h-64",
-      )}
+      className="pointer-events-auto absolute inset-x-3 bottom-16 z-30"
       data-testid="canvas-run-console"
     >
-      {/* Status bar */}
-      <div className="flex h-9 items-center justify-between border-b bg-surface-2/80 px-3">
-        <div className="flex items-center gap-2 text-xs">
-          <Terminal className="h-3.5 w-3.5 text-muted-foreground" />
-          <span className="font-medium">{t("canvas.runConsole.title")}</span>
-          {job && (
-            <>
-              <span className="text-muted-foreground">|</span>
-              <StatusIcon status={job.status} />
-              <span
-                className={cn(
-                  "font-medium",
-                  job.status === "running" && "text-blue-600 dark:text-blue-400",
-                  job.status === "done" && "text-emerald-600 dark:text-emerald-400",
-                  job.status === "failed" && "text-red-600 dark:text-red-400",
-                  job.status === "expired" && "text-muted-foreground",
-                )}
-              >
-                {t(statusLabelKeys[job.status])}
-              </span>
-              {job.status === "running" && (
-                <span className="text-muted-foreground">
-                  ({t("canvas.runConsole.logs", { count: traceLogs.length })})
-                </span>
-              )}
-            </>
-          )}
-        </div>
-
-        <div className="flex items-center gap-0.5">
-          <Button
-            className="h-6 w-6"
-            size="icon"
-            variant="ghost"
+      <div className="overflow-hidden rounded-2xl bg-surface shadow-float ring-1 ring-border-strong">
+        <div className="flex w-full items-center gap-2 border-b border-border/70 px-3.5 py-2">
+          <button
+            className="flex min-w-0 flex-1 items-center gap-2 text-left"
+            data-testid="run-console-toggle"
+            type="button"
             onClick={handleToggleConsoleCollapse}
           >
-            {isConsoleCollapsed ? (
-              <ChevronUp className="h-3.5 w-3.5" />
-            ) : (
-              <ChevronDown className="h-3.5 w-3.5" />
-            )}
-          </Button>
-          <Button className="h-6 w-6" size="icon" variant="ghost" onClick={handleCloseConsole}>
-            <X className="h-3.5 w-3.5" />
-          </Button>
+            <span className="flex size-5 items-center justify-center rounded-md bg-surface-2">
+              <SquareTerminal className="size-3 text-foreground/75" />
+            </span>
+            <span className="text-xs font-semibold">{t("canvas.runConsole.title")}</span>
+            <span className="rounded-full bg-surface-2 px-1.5 py-0.5 font-mono text-[9.5px] text-muted-foreground">
+              {t("canvas.runConsole.logs", { count: traceLogs.length })}
+            </span>
+            {job ? (
+              <span className="flex min-w-0 items-center gap-1.5 truncate font-mono text-[10px] text-muted-foreground">
+                <StatusIcon status={job.status} />
+                <span className="truncate">
+                  {jobId} · {t(statusLabelKeys[job.status])}
+                </span>
+              </span>
+            ) : null}
+            <span className="ml-auto flex items-center gap-1 text-[10px] text-muted-foreground">
+              {isConsoleCollapsed ? (
+                <ChevronUp className="size-3.5" />
+              ) : (
+                <ChevronDown className="size-3.5" />
+              )}
+            </span>
+          </button>
+          <button
+            className="rounded-lg p-1 text-muted-foreground hover:bg-accent/60 hover:text-foreground"
+            aria-label={t("common.close")}
+            data-testid="run-console-close"
+            type="button"
+            onClick={handleCloseConsole}
+          >
+            <X className="size-3.5" />
+          </button>
         </div>
-      </div>
-
-      {/* Log area */}
-      {!isConsoleCollapsed && (
-        <ScrollArea className="h-[calc(100%-2.25rem)]">
-          <div ref={scrollRef} className="h-full overflow-auto p-3 text-xs">
+        {!isConsoleCollapsed && (
+          <div
+            ref={scrollRef}
+            className="h-44 overflow-y-auto px-3.5 py-2.5 font-mono text-[10.5px] leading-relaxed"
+          >
             {!job && (
               <div className="flex items-center gap-2 text-muted-foreground">
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                <Loader2 className="size-3.5 animate-spin" />
                 {t("canvas.runConsole.loading")}
               </div>
             )}
             {job && (
-              <div className="mb-3 grid gap-2 lg:grid-cols-[1fr_1.15fr]">
-                <section className="rounded-lg border bg-card/70 p-3">
-                  <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+              <div className="mb-2 space-y-1.5 font-sans text-[10px] leading-normal">
+                <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+                  <span className="font-semibold uppercase tracking-wide text-muted-foreground">
                     {t("canvas.runConsole.currentStep")}
-                  </div>
-                  <div className="mt-1 truncate text-sm font-semibold">{currentNodeLabel}</div>
-                  {runTimeline.latestProgressMessage && (
-                    <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
+                  </span>
+                  <span className="truncate font-semibold text-foreground">{currentNodeLabel}</span>
+                  {runTimeline.latestProgressMessage ? (
+                    <span className="min-w-0 truncate text-muted-foreground">
                       {runTimeline.latestProgressMessage}
-                    </p>
-                  )}
-                  <p className="mt-2 rounded-md bg-blue-500/10 px-2 py-1 text-[11px] text-blue-700 dark:text-blue-300">
-                    {multiInputSummary.count > 0
-                      ? t("canvas.runConsole.multiInputRuleWithCount", {
-                          count: multiInputSummary.count,
-                        })
-                      : t("canvas.runConsole.multiInputRule")}
-                  </p>
-                </section>
-
-                <section className="rounded-lg border bg-card/70 p-3">
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                      {t("canvas.runConsole.timeline")}
-                    </div>
-                    <span className="text-[11px] text-muted-foreground">
-                      {t("canvas.runConsole.timelineCount", {
-                        count: runTimeline.timeline.length,
-                      })}
                     </span>
-                  </div>
-                  <div className="mt-2 flex flex-wrap gap-1.5">
-                    {runTimeline.timeline.length === 0 ? (
-                      <span className="text-muted-foreground">
-                        {t("canvas.runConsole.timelineEmpty")}
-                      </span>
-                    ) : (
-                      runTimeline.timeline.map((item) => (
-                        <span
-                          key={item.nodeId}
-                          className={cn(
-                            "inline-flex max-w-[220px] items-center gap-1 rounded-full border px-2 py-1",
-                            item.status === "running" &&
-                              "border-blue-500/20 bg-blue-500/10 text-blue-700 dark:text-blue-300",
-                            item.status === "done" &&
-                              "border-emerald-500/20 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
-                            item.status === "failed" &&
-                              "border-red-500/20 bg-red-500/10 text-red-700 dark:text-red-300",
-                          )}
-                        >
-                          <span className="truncate">
-                            {nodeLabelById.get(item.nodeId) ?? item.nodeId}
-                          </span>
-                          <span className="shrink-0 text-[10px] font-semibold uppercase">
-                            {t(timelineStatusLabelKeys[item.status])}
-                          </span>
+                  ) : null}
+                </div>
+
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <span className="font-semibold uppercase tracking-wide text-muted-foreground">
+                    {t("canvas.runConsole.timeline")}
+                  </span>
+                  <span className="text-muted-foreground">
+                    {t("canvas.runConsole.timelineCount", {
+                      count: runTimeline.timeline.length,
+                    })}
+                  </span>
+                  {runTimeline.timeline.length === 0 ? (
+                    <span className="text-muted-foreground">
+                      {t("canvas.runConsole.timelineEmpty")}
+                    </span>
+                  ) : (
+                    runTimeline.timeline.map((item) => (
+                      <span
+                        key={item.nodeId}
+                        className={cn(
+                          "inline-flex max-w-[220px] items-center gap-1 rounded-full border px-1.5 py-0.5",
+                          ["running", "queued", "waitingForUser", "retrying"].includes(
+                            item.status,
+                          ) && "status-wash-muted",
+                          item.status === "done" && "status-wash-success",
+                          item.status === "failed" && "status-wash-error",
+                        )}
+                      >
+                        <span className="truncate">
+                          {nodeLabelById.get(item.nodeId) ?? item.nodeId}
                         </span>
-                      ))
-                    )}
-                  </div>
-                </section>
+                        <span className="shrink-0 font-semibold uppercase">
+                          {t(timelineStatusLabelKeys[item.status])}
+                        </span>
+                      </span>
+                    ))
+                  )}
+                </div>
+
+                <div className="rounded-lg bg-surface-2/60 px-2 py-1 text-muted-foreground ring-1 ring-border">
+                  {multiInputSummary.count > 0
+                    ? t("canvas.runConsole.multiInputRuleWithCount", {
+                        count: multiInputSummary.count,
+                      })
+                    : t("canvas.runConsole.multiInputRule")}
+                </div>
 
                 {runTimeline.artifacts.length > 0 && (
-                  <section className="rounded-lg border bg-card/70 p-3 lg:col-span-2">
-                    <div className="mb-2 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                      <FileText className="h-3.5 w-3.5" />
+                  <div className="flex flex-wrap items-center gap-1.5 text-muted-foreground">
+                    <span className="inline-flex items-center gap-1 font-semibold uppercase tracking-wide">
+                      <FileText className="size-3" />
                       {t("canvas.runConsole.artifacts")}
-                    </div>
-                    <div className="flex flex-col gap-1">
-                      {runTimeline.artifacts.map((artifact) => (
-                        <code
-                          key={artifact.path}
-                          className="rounded bg-muted px-2 py-1 font-mono text-[11px] text-foreground"
-                        >
-                          {artifact.path}
-                        </code>
-                      ))}
-                    </div>
-                  </section>
+                    </span>
+                    {runTimeline.artifacts.map((artifact) => (
+                      <code
+                        key={artifact.path}
+                        className="rounded bg-surface-2 px-1.5 py-0.5 font-mono text-[10px] text-foreground"
+                      >
+                        {artifact.path}
+                      </code>
+                    ))}
+                  </div>
                 )}
               </div>
             )}
             {traceLogs
               .filter((l) => !isStructuredLog(l))
               .map((log, i) => (
-                <div key={i} className="flex gap-2 py-0.5 font-mono hover:bg-muted/30">
-                  <span className="shrink-0 text-muted-foreground tabular-nums">
+                <div key={i} className="flex gap-2">
+                  <span className="shrink-0 tabular-nums text-muted-foreground">
                     {parseTimestamp(log)}
                   </span>
                   <span
@@ -395,14 +378,12 @@ export const RunConsole = () => {
                   </span>
                 </div>
               ))}
-            {job?.status === "failed" && job.error && (
-              <div className="mt-2 rounded border border-red-500/20 bg-red-500/10 px-3 py-2 text-red-700 dark:text-red-300">
-                {job.error}
-              </div>
-            )}
+            {job?.status === "failed" && job.error ? (
+              <div className="mt-2 rounded-lg px-2 py-1.5 status-wash-error">{job.error}</div>
+            ) : null}
           </div>
-        </ScrollArea>
-      )}
+        )}
+      </div>
     </div>
   );
 };

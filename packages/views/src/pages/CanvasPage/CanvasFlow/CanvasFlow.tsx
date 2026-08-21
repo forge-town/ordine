@@ -26,6 +26,7 @@ import {
 } from "../utils/canvasComponentDragPayload";
 import { DEFAULT_CANVAS_VIEWPORT } from "../utils/canvasViewport";
 import { decorateEdgesWithPortHandles } from "../NodeCard";
+import { SemanticEdge } from "../SemanticEdge";
 
 // Must be defined outside the component to prevent React Flow infinite re-renders
 const nodeTypes = {
@@ -40,10 +41,12 @@ const nodeTypes = {
   "output-local-path": OutputLocalPathNode,
 };
 
+const edgeTypes = {
+  semantic: SemanticEdge,
+};
+
 const defaultEdgeOptions = {
-  type: "default" as const,
-  animated: true,
-  style: { stroke: "var(--edge)", strokeWidth: 1.5 },
+  type: "semantic" as const,
 };
 
 const proOpts = { hideAttribution: false };
@@ -73,6 +76,10 @@ export const CanvasFlow = ({ viewportRef }: CanvasFlowProps) => {
   const portRoutedEdges = useMemo(
     () => decorateEdgesWithPortHandles(nodes, edges, connectStart),
     [connectStart, edges, nodes],
+  );
+  const semanticEdges = useMemo<typeof portRoutedEdges>(
+    () => portRoutedEdges.map((edge) => ({ ...edge, animated: false, type: "semantic" as const })),
+    [portRoutedEdges],
   );
   const isConsoleOpen = useStore(store, (s) => s.isConsoleOpen);
   const canvasSettings = useStore(store, (s) => s.canvasSettings);
@@ -242,7 +249,7 @@ export const CanvasFlow = ({ viewportRef }: CanvasFlowProps) => {
   return (
     <div
       ref={viewportRef}
-      className="h-full w-full"
+      className="canvas-container h-full w-full"
       data-testid="canvas-flow-viewport"
       onDragOver={handleComponentDragOver}
       onDrop={handleDrop}
@@ -252,14 +259,15 @@ export const CanvasFlow = ({ viewportRef }: CanvasFlowProps) => {
         defaultEdgeOptions={defaultEdgeOptions}
         defaultViewport={DEFAULT_CANVAS_VIEWPORT}
         deleteKeyCode={isCanvasInteractive ? ["Backspace", "Delete"] : null}
-        edges={portRoutedEdges}
+        edges={semanticEdges}
+        edgeTypes={edgeTypes}
         elementsSelectable={isCanvasInteractive}
+        minZoom={0.1}
         nodes={nodes}
         nodesConnectable={isCanvasInteractive}
         nodesDraggable={isCanvasInteractive}
         nodeTypes={nodeTypes}
-        minZoom={0.1}
-        panOnDrag={!isCanvasInteractive ? false : canvasTool === "hand" ? true : [1, 2]}
+        panOnDrag={isCanvasInteractive ? (canvasTool === "hand" ? true : [1, 2]) : false}
         panOnScroll={false}
         proOptions={proOpts}
         selectionOnDrag={isCanvasInteractive && canvasTool === "select"}

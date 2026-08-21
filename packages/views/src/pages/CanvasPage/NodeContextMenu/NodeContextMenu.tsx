@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import {
   Copy,
   Trash2,
+  Plus,
   Zap,
   FileCode,
   Folder,
@@ -31,8 +32,7 @@ import { useList } from "@refinedev/core";
 import { ResourceName } from "../../../constants";
 import type { Operation, BuiltinNodeType } from "@repo/schemas";
 import { getAllowedConnections } from "../utils/getAllowedConnections";
-import { getNodeMeta, getNodeTypeLabel, getNodeTypeShortLabel } from "../utils/nodeTypeMeta";
-import { cn } from "@repo/ui/lib/utils";
+import { getNodeTypeLabel, getNodeTypeShortLabel } from "../utils/nodeTypeMeta";
 
 const TYPE_ICONS: Record<string, React.ElementType> = {
   operation: Zap,
@@ -79,7 +79,6 @@ export const NodeContextMenu = () => {
 
   if (!nodeContextMenu || !node) return null;
 
-  const meta = getNodeMeta(node.type)!;
   const allowedConnections = getAllowedConnections(operations);
   const availableTypes = allowedConnections[node.type as BuiltinNodeType] ?? [];
 
@@ -133,19 +132,14 @@ export const NodeContextMenu = () => {
       <ContextMenuContent
         align="start"
         anchor={virtualAnchor}
-        className="w-56"
+        className="w-56 rounded-2xl border border-border bg-surface p-2 shadow-float ring-1 ring-border"
         positionMethod="fixed"
         side="bottom"
         sideOffset={0}
       >
         {/* Node type header */}
-        <div className="mb-1 flex items-center gap-2 border-b border-border px-1.5 py-1.5">
-          <span
-            className={cn(
-              "flex h-5 w-5 items-center justify-center rounded text-[9px] font-bold text-white",
-              meta.iconBg,
-            )}
-          >
+        <div className="mb-1 flex items-center gap-2 border-b border-border px-2 pb-2 pt-1">
+          <span className="flex size-5 items-center justify-center rounded-md bg-surface-2 text-[9px] font-bold text-foreground/70">
             {getNodeTypeShortLabel(t, node.type).charAt(0)}
           </span>
           <span className="text-xs font-medium text-foreground">
@@ -155,13 +149,17 @@ export const NodeContextMenu = () => {
 
         {/* Actions submenu */}
         <ContextMenuSub>
-          <ContextMenuSubTrigger>
-            <Zap className="size-4 text-muted-foreground" />
+          <ContextMenuSubTrigger className="rounded-lg px-2 py-1.5 text-xs">
+            <span className="flex size-5 shrink-0 items-center justify-center rounded-md bg-surface-2">
+              <Zap className="size-3 text-foreground/70" />
+            </span>
             {t("canvas.contextMenu.actions")}
           </ContextMenuSubTrigger>
-          <ContextMenuSubContent className="min-w-52">
+          <ContextMenuSubContent className="min-w-52 rounded-2xl border border-border bg-surface p-2 shadow-float ring-1 ring-border">
             <ContextMenuGroup>
-              <ContextMenuLabel>{t("canvas.contextMenu.connectNewNode")}</ContextMenuLabel>
+              <ContextMenuLabel className="px-2 py-1 text-[9.5px] font-medium uppercase tracking-[0.1em] text-muted-foreground">
+                {t("canvas.contextMenu.connectNewNode")}
+              </ContextMenuLabel>
             </ContextMenuGroup>
 
             {/* Object types */}
@@ -169,28 +167,26 @@ export const NodeContextMenu = () => {
               availableTypes.includes(t as BuiltinNodeType),
             ) && (
               <ContextMenuGroup>
-                <ContextMenuLabel>{t("canvas.contextMenu.processingObject")}</ContextMenuLabel>
+                <ContextMenuLabel className="px-2 py-1 text-[9.5px] font-medium uppercase tracking-[0.1em] text-muted-foreground">
+                  {t("canvas.contextMenu.processingObject")}
+                </ContextMenuLabel>
                 {["file", "folder", "github-project", "prompt"]
                   .filter((t) => availableTypes.includes(t as BuiltinNodeType))
                   .map((type) => {
                     const Icon = TYPE_ICONS[type as BuiltinNodeType];
-                    const m = getNodeMeta(type)!;
 
                     return (
                       <ContextMenuItem
                         key={type}
+                        className="rounded-lg px-2 py-1.5 text-xs"
                         closeOnClick={false}
                         onClick={() => handleNodeContextAddObject(type as BuiltinNodeType)}
                       >
-                        <span
-                          className={cn(
-                            "flex size-4 shrink-0 items-center justify-center rounded",
-                            m.iconBg,
-                          )}
-                        >
-                          <Icon className="size-2.5 text-white" />
+                        <span className="flex size-5 shrink-0 items-center justify-center rounded-md bg-surface-2">
+                          <Icon className="size-3 text-foreground/70" />
                         </span>
                         {getNodeTypeShortLabel(t, type)}
+                        <Plus className="ml-auto size-3 text-muted-foreground/50" />
                       </ContextMenuItem>
                     );
                   })}
@@ -200,19 +196,23 @@ export const NodeContextMenu = () => {
             {/* Operations */}
             {canAddOperation && availableOperations.length > 0 && (
               <>
-                <ContextMenuSeparator />
+                <ContextMenuSeparator className="my-1 bg-border/70" />
                 <ContextMenuGroup>
-                  <ContextMenuLabel>{t("canvas.contextMenu.operationNode")}</ContextMenuLabel>
+                  <ContextMenuLabel className="px-2 py-1 text-[9.5px] font-medium uppercase tracking-[0.1em] text-muted-foreground">
+                    {t("canvas.contextMenu.operationNode")}
+                  </ContextMenuLabel>
                   {availableOperations.map((operation) => (
                     <ContextMenuItem
                       key={operation.id}
+                      className="rounded-lg px-2 py-1.5 text-xs"
                       closeOnClick={false}
                       onClick={() => handleAddOperation(operation.id)}
                     >
-                      <span className="flex size-4 shrink-0 items-center justify-center rounded bg-violet-500">
-                        <Zap className="size-2.5 text-white" />
+                      <span className="flex size-5 shrink-0 items-center justify-center rounded-md bg-surface-2">
+                        <Zap className="size-3 text-foreground/70" />
                       </span>
                       <span className="truncate">{operation.name}</span>
+                      <Plus className="ml-auto size-3 text-muted-foreground/50" />
                     </ContextMenuItem>
                   ))}
                 </ContextMenuGroup>
@@ -222,10 +222,12 @@ export const NodeContextMenu = () => {
             {/* Empty state */}
             {canAddOperation && availableOperations.length === 0 && (
               <>
-                <ContextMenuSeparator />
+                <ContextMenuSeparator className="my-1 bg-border/70" />
                 <ContextMenuGroup>
-                  <ContextMenuLabel>{t("canvas.contextMenu.operationNode")}</ContextMenuLabel>
-                  <p className="px-1.5 py-1 text-xs text-muted-foreground">
+                  <ContextMenuLabel className="px-2 py-1 text-[9.5px] font-medium uppercase tracking-[0.1em] text-muted-foreground">
+                    {t("canvas.contextMenu.operationNode")}
+                  </ContextMenuLabel>
+                  <p className="px-2 py-1 text-xs text-muted-foreground">
                     {t("canvas.contextMenu.noOperationsForType")}
                   </p>
                 </ContextMenuGroup>
@@ -237,30 +239,28 @@ export const NodeContextMenu = () => {
               availableTypes.includes(t),
             ) && (
               <>
-                <ContextMenuSeparator />
+                <ContextMenuSeparator className="my-1 bg-border/70" />
                 <ContextMenuGroup>
-                  <ContextMenuLabel>{t("canvas.contextMenu.outputEndpoint")}</ContextMenuLabel>
+                  <ContextMenuLabel className="px-2 py-1 text-[9.5px] font-medium uppercase tracking-[0.1em] text-muted-foreground">
+                    {t("canvas.contextMenu.outputEndpoint")}
+                  </ContextMenuLabel>
                   {(["output-project-path", "output-local-path"] as BuiltinNodeType[])
                     .filter((t) => availableTypes.includes(t))
                     .map((type) => {
                       const Icon = TYPE_ICONS[type];
-                      const m = getNodeMeta(type)!;
 
                       return (
                         <ContextMenuItem
                           key={type}
+                          className="rounded-lg px-2 py-1.5 text-xs"
                           closeOnClick={false}
                           onClick={() => handleNodeContextAddObject(type)}
                         >
-                          <span
-                            className={cn(
-                              "flex size-4 shrink-0 items-center justify-center rounded",
-                              m.iconBg,
-                            )}
-                          >
-                            <Icon className="size-2.5 text-white" />
+                          <span className="flex size-5 shrink-0 items-center justify-center rounded-md bg-surface-2">
+                            <Icon className="size-3 text-foreground/70" />
                           </span>
                           {getNodeTypeLabel(t, type)}
+                          <Plus className="ml-auto size-3 text-muted-foreground/50" />
                         </ContextMenuItem>
                       );
                     })}
@@ -271,45 +271,73 @@ export const NodeContextMenu = () => {
         </ContextMenuSub>
 
         {/* Duplicate */}
-        <ContextMenuItem closeOnClick={false} onClick={handleNodeContextDuplicate}>
-          <Copy className="size-4 text-muted-foreground" />
+        <ContextMenuItem
+          className="rounded-lg px-2 py-1.5 text-xs"
+          closeOnClick={false}
+          onClick={handleNodeContextDuplicate}
+        >
+          <span className="flex size-5 shrink-0 items-center justify-center rounded-md bg-surface-2">
+            <Copy className="size-3 text-foreground/70" />
+          </span>
           {t("canvas.contextMenu.duplicate")}
           <span className="ml-auto text-xs tracking-widest text-muted-foreground">⌘D</span>
         </ContextMenuItem>
 
         {/* Group selected nodes */}
         {selectedIds.length >= 2 && (
-          <ContextMenuItem closeOnClick={false} onClick={handleNodeContextGroupSelected}>
-            <Group className="size-4 text-muted-foreground" />
+          <ContextMenuItem
+            className="rounded-lg px-2 py-1.5 text-xs"
+            closeOnClick={false}
+            onClick={handleNodeContextGroupSelected}
+          >
+            <span className="flex size-5 shrink-0 items-center justify-center rounded-md bg-surface-2">
+              <Group className="size-3 text-foreground/70" />
+            </span>
             {t("canvas.contextMenu.groupSelected", { count: selectedIds.length })}
           </ContextMenuItem>
         )}
 
         {/* Ungroup (compound only) */}
         {node.type === "compound" && (
-          <ContextMenuItem closeOnClick={false} onClick={handleNodeContextUngroup}>
-            <Ungroup className="size-4 text-muted-foreground" />
+          <ContextMenuItem
+            className="rounded-lg px-2 py-1.5 text-xs"
+            closeOnClick={false}
+            variant="destructive"
+            onClick={handleNodeContextUngroup}
+          >
+            <span className="flex size-5 shrink-0 items-center justify-center rounded-md bg-destructive/10">
+              <Ungroup className="size-3 text-destructive" />
+            </span>
             {t("canvas.contextMenu.ungroup")}
           </ContextMenuItem>
         )}
 
         {/* Detach from compound (child nodes only) */}
         {node.parentId && (
-          <ContextMenuItem closeOnClick={false} onClick={handleNodeContextDetach}>
-            <Ungroup className="size-4 text-muted-foreground" />
+          <ContextMenuItem
+            className="rounded-lg px-2 py-1.5 text-xs"
+            closeOnClick={false}
+            onClick={handleNodeContextDetach}
+          >
+            <span className="flex size-5 shrink-0 items-center justify-center rounded-md bg-surface-2">
+              <Ungroup className="size-3 text-foreground/70" />
+            </span>
             {t("canvas.contextMenu.detachFromGroup")}
           </ContextMenuItem>
         )}
 
-        <ContextMenuSeparator />
+        <ContextMenuSeparator className="my-1 bg-border/70" />
 
         {/* Delete */}
         <ContextMenuItem
+          className="rounded-lg px-2 py-1.5 text-xs"
           closeOnClick={false}
           variant="destructive"
           onClick={handleNodeContextDelete}
         >
-          <Trash2 className="size-4" />
+          <span className="flex size-5 shrink-0 items-center justify-center rounded-md bg-destructive/10">
+            <Trash2 className="size-3 text-destructive" />
+          </span>
           {t("canvas.contextMenu.delete")}
           <span className="ml-auto text-xs tracking-widest text-destructive/40">⌫</span>
         </ContextMenuItem>

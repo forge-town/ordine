@@ -17,6 +17,9 @@ describe("SettingsPageContent", () => {
   it("renders settings header", () => {
     render(<SettingsPageContent />);
     expect(screen.getByText("设置")).toBeTruthy();
+    expect(
+      screen.queryByText("配置工作区默认项、自主性、通知与本地开发环境。"),
+    ).not.toBeInTheDocument();
   });
 
   it("renders navigation sidebar items", () => {

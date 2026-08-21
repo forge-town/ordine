@@ -20,7 +20,7 @@ export const Chip = ({ active = false, children, className, count, onClick }: Ch
         <span
           className={cn(
             "rounded-full px-1.5 text-[10px] tabular-nums",
-            active ? "bg-background text-foreground" : "bg-surface-2",
+            active ? "bg-background text-foreground" : "bg-surface-2 text-foreground/70",
           )}
         >
           {count}

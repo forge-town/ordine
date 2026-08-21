@@ -2,7 +2,7 @@ import { act, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ReactFlowProvider } from "@xyflow/react";
 import type * as XyFlowReact from "@xyflow/react";
-import type { PipelineNode } from "../_store/canvasSlice";
+import type { PipelineEdge, PipelineNode } from "../_store/canvasSlice";
 import { createCanvasPageStore, CanvasPageStoreContext, CanvasPageStoreProvider } from "../_store";
 import {
   CANVAS_COMPONENT_DRAG_MIME,
@@ -28,6 +28,9 @@ vi.mock("@xyflow/react", async (importOriginal) => {
     ReactFlow: ({
       children,
       defaultViewport,
+      defaultEdgeOptions,
+      edgeTypes,
+      edges,
       fitView,
       onMove,
       elementsSelectable,
@@ -56,6 +59,9 @@ vi.mock("@xyflow/react", async (importOriginal) => {
       snapToGrid,
     }: React.PropsWithChildren<{
       defaultViewport?: { zoom: number };
+      defaultEdgeOptions?: { animated?: boolean; type?: string };
+      edgeTypes?: Record<string, unknown>;
+      edges?: unknown[];
       fitView?: boolean;
       onMove?: XyFlowReact.OnMove;
       elementsSelectable?: boolean;
@@ -89,6 +95,12 @@ vi.mock("@xyflow/react", async (importOriginal) => {
       return (
         <div
           data-auto-fit={String(fitView ?? false)}
+          data-edge-animated={String(defaultEdgeOptions?.animated ?? false)}
+          data-edge-render-types={JSON.stringify(
+            edges?.map((edge) => (edge as { type?: string }).type ?? "default") ?? [],
+          )}
+          data-edge-types={Object.keys(edgeTypes ?? {}).join(",")}
+          data-default-edge-type={defaultEdgeOptions?.type}
           data-delete-key-code={JSON.stringify(deleteKeyCode)}
           data-elements-selectable={String(elementsSelectable ?? true)}
           data-has-on-connect={String(typeof onConnect === "function")}
@@ -147,8 +159,12 @@ const wrapper = ({ children }: React.PropsWithChildren) => (
   </CanvasPageStoreProvider>
 );
 
-const renderWithStore = (nodes: PipelineNode[], isConsoleOpen = false) => {
-  const store = createCanvasPageStore(nodes, []);
+const renderWithStore = (
+  nodes: PipelineNode[],
+  isConsoleOpen = false,
+  edges: PipelineEdge[] = [],
+) => {
+  const store = createCanvasPageStore(nodes, edges);
   store.setState({ isConsoleOpen });
 
   render(
@@ -191,6 +207,26 @@ describe("CanvasFlow", () => {
     expect(screen.getByTestId("react-flow")).toHaveAttribute("data-min-zoom", "0.1");
     expect(screen.getByTestId("react-flow")).toHaveAttribute("data-has-on-node-drag-start", "true");
     expect(screen.queryByTestId("flow-controls")).not.toBeInTheDocument();
+  });
+
+  it("routes every current edge through the semantic renderer without global animation", () => {
+    renderWithStore([makeNode("source"), makeNode("target")], false, [
+      {
+        id: "edge-1",
+        source: "source",
+        target: "target",
+        type: "default",
+        data: { label: "document" },
+      },
+    ]);
+
+    expect(screen.getByTestId("react-flow")).toHaveAttribute("data-edge-types", "semantic");
+    expect(screen.getByTestId("react-flow")).toHaveAttribute("data-default-edge-type", "semantic");
+    expect(screen.getByTestId("react-flow")).toHaveAttribute(
+      "data-edge-render-types",
+      '["semantic"]',
+    );
+    expect(screen.getByTestId("react-flow")).toHaveAttribute("data-edge-animated", "false");
   });
 
   it("defaults to the hand tool and uses the wheel for zoom", () => {

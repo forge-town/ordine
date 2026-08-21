@@ -5,7 +5,7 @@ import { useStore } from "zustand";
 import { useShallow } from "zustand/shallow";
 import { useCanvasPageStore, selectNodeRunState, selectNodePortCounts } from "../_store";
 import type { FileObjectNodeData } from "@repo/schemas";
-import { NodeCard } from "../NodeCard";
+import { NodeCard, useNodeCardActions } from "../NodeCard";
 import { FolderBrowserDialog } from "../../../components/FolderBrowserDialog/FolderBrowserDialog";
 
 export interface FileNodeProps {
@@ -19,6 +19,7 @@ const handleStopPropagation = (e: React.SyntheticEvent) => e.stopPropagation();
 export const FileNode = ({ id, data, selected }: FileNodeProps) => {
   const { t } = useTranslation();
   const store = useCanvasPageStore();
+  const nodeCardActions = useNodeCardActions(id);
   const {
     runStatus,
     dimmed,
@@ -73,8 +74,10 @@ export const FileNode = ({ id, data, selected }: FileNodeProps) => {
     <div className="group relative w-fit overflow-visible">
       <NodeCard
         rightHandle
+        actions={nodeCardActions}
         bodyClassName="space-y-2"
         compact={nodeCardMode === "compact"}
+        detail={data.language ?? t("canvas.nodeTypes.file.label")}
         description={t("canvas.nodeTypes.file.label")}
         dimmed={dimmed}
         icon={FileCode}
@@ -85,10 +88,10 @@ export const FileNode = ({ id, data, selected }: FileNodeProps) => {
         theme="orange"
         onLabelChange={handleLabelChange}
       >
-        <div className="flex items-center gap-1 rounded-md bg-surface-2 px-2 py-1 ring-1 ring-border">
+        <div className="flex items-center gap-1 rounded-md bg-surface-2 px-1.5 py-1 ring-1 ring-border">
           <input
             aria-label={t("nodes.codeFile.pathLabel")}
-            className="nodrag nopan min-w-0 flex-1 bg-transparent font-mono text-[11px] font-semibold text-foreground focus:outline-none"
+            className="nodrag nopan min-w-0 flex-1 truncate bg-transparent font-mono text-[9.5px] text-muted-foreground focus:outline-none focus:text-foreground"
             name={`${id}-filePath`}
             placeholder="src/file.tsx"
             value={data.filePath}
@@ -98,7 +101,7 @@ export const FileNode = ({ id, data, selected }: FileNodeProps) => {
             onMouseDown={handleStopPropagation}
           />
           <button
-            className="nodrag nopan shrink-0 rounded p-0.5 text-orange-500 transition-colors hover:bg-orange-500/10 hover:text-orange-700 dark:hover:text-orange-300"
+            className="nodrag nopan shrink-0 rounded p-0.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
             title={t("nodes.codeFile.browseFile")}
             type="button"
             onClick={handleBrowseButtonClick}
@@ -108,7 +111,7 @@ export const FileNode = ({ id, data, selected }: FileNodeProps) => {
           </button>
           <input
             aria-label={t("nodes.codeFile.languageLabel")}
-            className="nodrag nopan w-12 shrink-0 rounded bg-orange-500/10 px-1 py-0.5 text-right font-mono text-[10px] font-medium text-orange-700 focus:outline-none focus:bg-orange-500/15 dark:text-orange-300"
+            className="nodrag nopan w-12 shrink-0 truncate rounded bg-surface-2 px-1 py-0.5 text-right font-mono text-[9.5px] text-muted-foreground focus:bg-muted focus:outline-none focus:text-foreground"
             name={`${id}-language`}
             placeholder="ts"
             value={data.language ?? ""}

@@ -322,7 +322,7 @@ export const useAgentConversation = ({
             role: "user",
           });
           if (!persisted) {
-            throw new Error(t("canvas.agentPanel.error"));
+            throw new Error(t("canvas.agentPanel.requestFailed"));
           }
           await client.appendMessage(sessionId, {
             content: trimmedContent,
@@ -357,7 +357,7 @@ export const useAgentConversation = ({
           if (streamedTerminalEvent.current) {
             const persistedTerminal = await Promise.all(terminalPersistences);
             if (persistedTerminal.some((value) => !value)) {
-              throw new Error(t("canvas.agentPanel.error"));
+              throw new Error(t("canvas.agentPanel.requestFailed"));
             }
 
             return !streamFailed;
@@ -373,7 +373,7 @@ export const useAgentConversation = ({
               type: "proposal_ready",
             });
             if (!persistedProposal) {
-              throw new Error(t("canvas.agentPanel.error"));
+              throw new Error(t("canvas.agentPanel.requestFailed"));
             }
 
             return true;
@@ -386,7 +386,7 @@ export const useAgentConversation = ({
               type: "question",
             });
             if (!persistedQuestion) {
-              throw new Error(t("canvas.agentPanel.error"));
+              throw new Error(t("canvas.agentPanel.requestFailed"));
             }
           }
 

@@ -11,10 +11,16 @@ interface CanvasPageProps {
   // Pipeline id to load, read from the route's search params by each app.
   id?: string;
   embedded?: boolean;
+  showCanvasMiniSidebar?: boolean;
   onGeneratedPipeline?: (pipelineId: string) => Promise<void> | void;
 }
 
-export const CanvasPage = ({ embedded = false, id, onGeneratedPipeline }: CanvasPageProps) => {
+export const CanvasPage = ({
+  embedded = false,
+  id,
+  onGeneratedPipeline: handleGeneratedPipeline,
+  showCanvasMiniSidebar = true,
+}: CanvasPageProps) => {
   const { result: pipelineResult, query: pipelineQuery } = useOne<PipelineData>({
     resource: ResourceName.pipelines,
     id: id ?? "",
@@ -34,7 +40,10 @@ export const CanvasPage = ({ embedded = false, id, onGeneratedPipeline }: Canvas
     <CanvasLayout embedded={embedded}>
       <CanvasPageStoreProvider pipeline={pipeline}>
         <RunStateRestorer />
-        <CanvasPageContent onGeneratedPipeline={onGeneratedPipeline} />
+        <CanvasPageContent
+          showCanvasMiniSidebar={showCanvasMiniSidebar}
+          onGeneratedPipeline={handleGeneratedPipeline}
+        />
       </CanvasPageStoreProvider>
     </CanvasLayout>
   );

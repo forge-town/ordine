@@ -91,6 +91,8 @@
     "library": "库",
     "knowledge": "知识",
     "search": "搜索...",
+    "sidebarFilterPlaceholder": "筛选导航...",
+    "searchPipelinesHint": "搜索你的流水线工作区。",
     "newPipeline": "新建流水线",
     "preview": "预览",
     "plugins": "插件",
@@ -789,7 +791,8 @@
       "newCustomOperation": "新建自定义 Operation",
       "categories": {
         "input": "输入对象",
-        "operations": "Operation",
+        "operations": "工序",
+        "compound": "复合节点",
         "skills": "技能",
         "output": "输出"
       }
@@ -833,6 +836,24 @@
       },
       "operationDefinition": "Operation 定义"
     },
+    "edgeInspector": {
+      "clear": "清空",
+      "close": "关闭",
+      "condition": "条件",
+      "dropped": "不传递",
+      "flow": "流向",
+      "maxRetries": "最大重试",
+      "noMappings": "新连接 · 字段将在运行时推断。",
+      "noTransform": "暂无转换步骤。",
+      "onFail": "失败时",
+      "qualityGate": "质量门",
+      "qualityPlaceholder": "非空或必须包含的文本",
+      "sourceField": "源字段",
+      "targetInput": "目标输入",
+      "title": "数据契约",
+      "toggleHint": "点击字段切换是否向下游传递 · {{enabled}}/{{total}} 开启",
+      "transform": "转换"
+    },
     "collapseSidebar": "收起侧栏",
     "expandSidebar": "展开侧栏",
     "nodeLibrary": "节点库",
@@ -868,8 +889,14 @@
     "aiMode": "AI 模式",
     "agentPanel": {
       "toggle": "AI 助手",
-      "title": "AI 助手",
+      "title": "Agent",
       "welcome": "你好！我是你的 AI 助手。告诉我你想对 Pipeline 做什么，我会帮你生成操作建议。",
+      "empty": {
+        "intro": "新画布 — 告诉我要做什么，或拖入一个成品样本，我会逆向推导出生成它的 Pipeline。",
+        "suggestChangelog": "把 GitHub 仓库总结成 changelog",
+        "suggestQuiz": "把我的教材 PDF 变成 Notion 测验",
+        "suggestReverse": "上传成品样本 → 逆向工程"
+      },
       "thinking": "思考中...",
       "proposal": "操作建议",
       "proposalReceived": "已收到操作建议，请查看并决定是否应用。",
@@ -879,7 +906,7 @@
       "applied": "已应用操作建议。",
       "discarded": "已丢弃操作建议。",
       "diagnostics": "诊断信息",
-      "error": "请求失败，请稍后重试。",
+      "requestFailed": "请求失败，请稍后重试。",
       "errorTitle": "AI 助手错误",
       "close": "关闭 AI 助手",
       "resize": "调整 AI 助手宽度",
@@ -968,7 +995,7 @@
     },
     "emptyState": {
       "title": "从一个节点开始",
-      "description": "添加输入对象或 Operation，搭出第一条流水线。",
+      "description": "先放一个节点，再把输入、Operation 和输出连接成可运行的 Pipeline。",
       "quickAdd": "快速新建节点",
       "contextHint": "也可以在画布空白处右键创建节点。"
     },

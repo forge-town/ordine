@@ -9,13 +9,13 @@ import {
   HardDrive,
   MessageSquareText,
   Search,
+  Plus,
   Zap,
   X,
 } from "lucide-react";
 import { useStore } from "zustand";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
-import { cn } from "@repo/ui/lib/utils";
 import { SiGitHubIcon } from "../../../components/icons/SiGitHubIcon";
 import { ResourceName } from "../../../constants";
 import { useCanvasPageStore } from "../_store";
@@ -79,10 +79,10 @@ export const CanvasNodeCreationPalette = ({
   return (
     <div
       aria-label={t("canvas.quickAdd.title")}
-      className="absolute left-1/2 top-14 z-50 w-[min(28rem,calc(100vw-2rem))] -translate-x-1/2 rounded-lg border border-border bg-background shadow-lg"
+      className="absolute left-1/2 top-14 z-50 w-[min(28rem,calc(100vw-2rem))] -translate-x-1/2 rounded-2xl border border-border bg-surface p-2 shadow-float ring-1 ring-border"
       role="dialog"
     >
-      <div className="flex items-center gap-2 border-b px-3 py-2">
+      <div className="flex items-center gap-2 rounded-xl border-b border-border px-2 pb-2 pt-1">
         <Search className="size-4 shrink-0 text-muted-foreground" />
         <Input
           autoFocus
@@ -96,7 +96,7 @@ export const CanvasNodeCreationPalette = ({
         />
         <Button
           aria-label={t("canvas.quickAdd.close")}
-          className="size-7"
+          className="size-7 rounded-lg text-muted-foreground hover:bg-accent/60"
           size="icon"
           title={t("canvas.quickAdd.close")}
           variant="ghost"
@@ -107,10 +107,10 @@ export const CanvasNodeCreationPalette = ({
       </div>
 
       <div className="max-h-[calc(100vh-8rem)] overflow-y-auto overscroll-contain md:max-h-[22rem]">
-        <div className="space-y-3 p-2">
+        <div className="space-y-2.5 pt-2">
           {objectItems.length > 0 && (
             <section>
-              <div className="px-2 py-1 text-[11px] font-semibold uppercase text-muted-foreground">
+              <div className="px-2 pb-1 text-[9.5px] font-medium uppercase tracking-[0.1em] text-muted-foreground">
                 {t("canvas.quickAdd.objects")}
               </div>
               <div className="space-y-0.5">
@@ -124,21 +124,17 @@ export const CanvasNodeCreationPalette = ({
                   return (
                     <Button
                       key={type}
-                      className="flex h-auto w-full items-center justify-start gap-2 px-2 py-2 text-left text-sm font-normal"
+                      className="flex h-auto w-full items-center justify-start gap-2 rounded-lg px-2 py-1.5 text-left text-xs font-normal ring-1 ring-transparent transition-colors hover:bg-accent/60 hover:ring-border"
                       type="button"
                       variant="ghost"
                       onClick={() => handleCreateObjectNode(type, getCreateNodeScreenPosition())}
                     >
-                      <span
-                        className={cn(
-                          "flex size-6 shrink-0 items-center justify-center rounded",
-                          meta.iconBg,
-                        )}
-                      >
-                        <Icon className="size-3.5 text-white" />
+                      <span className="flex size-5 shrink-0 items-center justify-center rounded-md bg-surface-2">
+                        <Icon className="size-3 text-foreground/70" />
                       </span>
                       <span className="min-w-0 flex-1 truncate font-medium">{label}</span>
-                      <span className="text-xs text-muted-foreground">{shortLabel}</span>
+                      <span className="text-[10px] text-muted-foreground">{shortLabel}</span>
+                      <Plus className="size-3 text-muted-foreground/50" />
                     </Button>
                   );
                 })}
@@ -148,27 +144,28 @@ export const CanvasNodeCreationPalette = ({
 
           {operationItems.length > 0 && (
             <section>
-              <div className="px-2 py-1 text-[11px] font-semibold uppercase text-muted-foreground">
+              <div className="px-2 pb-1 text-[9.5px] font-medium uppercase tracking-[0.1em] text-muted-foreground">
                 {t("canvas.quickAdd.operations")}
               </div>
               <div className="space-y-0.5">
                 {operationItems.map((operation) => (
                   <Button
                     key={operation.id}
-                    className="flex h-auto w-full items-center justify-start gap-2 px-2 py-2 text-left text-sm font-normal"
+                    className="flex h-auto w-full items-center justify-start gap-2 rounded-lg px-2 py-1.5 text-left text-xs font-normal ring-1 ring-transparent transition-colors hover:bg-accent/60 hover:ring-border"
                     type="button"
                     variant="ghost"
                     onClick={() =>
                       handleCreateOperationNode(operation, getCreateNodeScreenPosition())
                     }
                   >
-                    <span className="flex size-6 shrink-0 items-center justify-center rounded bg-violet-500">
-                      <Zap className="size-3.5 text-white" />
+                    <span className="flex size-5 shrink-0 items-center justify-center rounded-md bg-surface-2">
+                      <Zap className="size-3 text-foreground/70" />
                     </span>
                     <span className="min-w-0 flex-1 truncate font-medium">{operation.name}</span>
-                    <span className="text-xs text-muted-foreground">
+                    <span className="text-[10px] text-muted-foreground">
                       {t("canvas.nodeTypes.operation.shortLabel")}
                     </span>
+                    <Plus className="size-3 text-muted-foreground/50" />
                   </Button>
                 ))}
               </div>
@@ -176,7 +173,7 @@ export const CanvasNodeCreationPalette = ({
           )}
 
           {!hasResults && (
-            <div className="px-2 py-8 text-center text-sm text-muted-foreground">
+            <div className="px-2 py-8 text-center text-xs text-muted-foreground">
               {t("canvas.quickAdd.noResults")}
             </div>
           )}

@@ -86,7 +86,7 @@ export const NotificationCenter = ({ className, variant = "sidebar" }: Notificat
         <PopoverTrigger
           aria-label={triggerLabel}
           className={cn(
-            "relative flex items-center text-muted-foreground outline-none transition-colors hover:bg-sidebar-accent hover:text-foreground focus-visible:ring-2 focus-visible:ring-sidebar-ring",
+            "relative flex items-center text-foreground/70 outline-none transition-colors hover:bg-sidebar-accent hover:text-foreground focus-visible:ring-2 focus-visible:ring-sidebar-ring",
             variant === "rail"
               ? "size-9 justify-center rounded-md"
               : "h-8 w-full gap-2 overflow-hidden rounded-md px-2 text-left text-sm group-data-[collapsible=icon]/sidebar:size-8! group-data-[collapsible=icon]/sidebar:p-2!",

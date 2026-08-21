@@ -1,28 +1,26 @@
-import { useEffect, useRef, useState, type DragEvent, type ElementType } from "react";
+import { Fragment, useEffect, useRef, useState, type DragEvent } from "react";
 import { Link } from "@tanstack/react-router";
 import { useList } from "@refinedev/core";
-import type { BuiltinNodeType, Operation, Skill } from "@repo/schemas";
+import type { Operation, Skill } from "@repo/schemas";
 import {
-  ChevronDown,
-  ChevronRight,
-  FileCode,
-  Folder,
-  FolderOutput,
+  Boxes,
+  File,
+  FolderGit2,
+  FolderOpen,
   HardDrive,
-  MessageSquareText,
+  MessageSquare,
   Plus,
   Search,
   Sparkles,
-  Zap,
+  Workflow,
+  X,
+  type LucideIcon,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
 import type { XYPosition } from "@xyflow/system";
-import { Badge } from "@repo/ui/badge";
-import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
 import { cn } from "@repo/ui/lib/utils";
-import { SiGitHubIcon } from "../../../components/icons/SiGitHubIcon";
 import { ResourceName } from "../../../constants";
 import { useCanvasPageStore, type CanvasComponentCategory } from "../_store";
 import {
@@ -36,16 +34,33 @@ interface CanvasComponentPanelProps {
   getCreateNodeScreenPosition: () => XYPosition;
 }
 
-const INPUT_NODE_TYPES: BuiltinNodeType[] = ["folder", "file", "github-project", "prompt"];
-const OUTPUT_NODE_TYPES: BuiltinNodeType[] = ["output-local-path", "output-project-path"];
+type PaletteObjectType =
+  | "file"
+  | "folder"
+  | "github-project"
+  | "prompt"
+  | "output-local-path"
+  | "output-project-path";
 
-const TYPE_ICONS: Record<string, ElementType> = {
-  file: FileCode,
-  folder: Folder,
-  "github-project": SiGitHubIcon,
-  prompt: MessageSquareText,
-  "output-project-path": FolderOutput,
+type PaletteEntry = {
+  icon: LucideIcon;
+  iconBg: string;
+  id: string;
+  label: string;
+  payload: CanvasComponentDragPayload;
+  shortLabel: string;
+};
+
+const INPUT_NODE_TYPES: PaletteObjectType[] = ["folder", "file", "github-project", "prompt"];
+const OUTPUT_NODE_TYPES: PaletteObjectType[] = ["output-local-path", "output-project-path"];
+
+const OBJECT_ICONS: Record<PaletteObjectType, LucideIcon> = {
+  file: File,
+  folder: FolderOpen,
+  "github-project": FolderGit2,
+  prompt: MessageSquare,
   "output-local-path": HardDrive,
+  "output-project-path": Boxes,
 };
 
 const normalizeSearch = (value: string) => value.trim().toLowerCase();
@@ -94,13 +109,20 @@ export const CanvasComponentPanel = ({
   const { t } = useTranslation();
   const searchInputRef = useRef<HTMLInputElement | null>(null);
   const [draggingComponentId, setDraggingComponentId] = useState<string | null>(null);
+  const [searchVisible, setSearchVisible] = useState(false);
   const store = useCanvasPageStore();
+  const isSidebarOpen = useStore(store, (state) => state.isSidebarOpen);
+  const sidebarPanel = useStore(store, (state) => state.sidebarPanel);
+  const agentPanelIsOpen = useStore(store, (state) => state.agentPanel.isOpen);
+  const handleToggleSidebar = useStore(store, (state) => state.handleToggleSidebar);
+  const handleSidebarPanelChange = useStore(store, (state) => state.handleSidebarPanelChange);
   const componentSearchQuery = useStore(store, (state) => state.componentSearchQuery);
   const collapsedComponentCategories = useStore(
     store,
     (state) => state.collapsedComponentCategories,
   );
   const handleComponentSearchChange = useStore(store, (state) => state.handleComponentSearchChange);
+  const setComponentSearchQuery = useStore(store, (state) => state.setComponentSearchQuery);
   const toggleComponentCategory = useStore(store, (state) => state.toggleComponentCategory);
   const handleCreateObjectNode = useStore(store, (state) => state.handleCreateObjectNode);
   const handleCreateOperationNode = useStore(store, (state) => state.handleCreateOperationNode);
@@ -142,6 +164,21 @@ export const CanvasComponentPanel = ({
   const newCustomOperationLabel = t("canvas.componentPanel.newCustomOperation", {
     defaultValue: "New Custom Operation",
   });
+  const compoundCategoryLabel = t("canvas.componentPanel.categories.compound", {
+    defaultValue: "Compound",
+  });
+  const compoundEntry: PaletteEntry = {
+    icon: Boxes,
+    iconBg: "bg-surface-2",
+    id: "object-compound",
+    label: getNodeTypeLabel(t, "compound"),
+    payload: { kind: "object", type: "compound" },
+    shortLabel: getNodeTypeShortLabel(t, "compound"),
+  };
+  const panelOpen = isSidebarOpen && sidebarPanel === "components";
+  const panelToggleLabel = panelOpen
+    ? t("canvas.operationsPanel.collapse")
+    : t("canvas.operationsPanel.expand");
 
   useEffect(() => {
     const handleSearchShortcut = (event: KeyboardEvent) => {
@@ -161,7 +198,7 @@ export const CanvasComponentPanel = ({
       }
 
       event.preventDefault();
-      searchInputRef.current?.focus();
+      setSearchVisible(true);
     };
 
     globalThis.addEventListener("keydown", handleSearchShortcut);
@@ -171,20 +208,26 @@ export const CanvasComponentPanel = ({
     };
   }, []);
 
+  useEffect(() => {
+    if (searchVisible) {
+      searchInputRef.current?.focus();
+    }
+  }, [searchVisible]);
+
   const handleCategoryHeaderClick = (category: CanvasComponentCategory) => () => {
     toggleComponentCategory(category);
   };
 
-  const handleNodeTypeItemClick = (type: BuiltinNodeType) => () => {
-    handleCreateObjectNode(type, getCreateNodeScreenPosition());
-  };
+  const handleEntryClick = (payload: CanvasComponentDragPayload) => () => {
+    const position = getCreateNodeScreenPosition();
 
-  const handleOperationItemClick = (operation: Operation) => () => {
-    handleCreateOperationNode(operation, getCreateNodeScreenPosition());
-  };
-
-  const handleSkillItemClick = (skill: Skill) => () => {
-    void handleCreateSkillOperationNode(skill, getCreateNodeScreenPosition());
+    if (payload.kind === "object") {
+      handleCreateObjectNode(payload.type, position);
+    } else if (payload.kind === "operation") {
+      handleCreateOperationNode(payload.operation, position);
+    } else {
+      void handleCreateSkillOperationNode(payload.skill, position);
+    }
   };
 
   const handleComponentDragStart =
@@ -218,215 +261,264 @@ export const CanvasComponentPanel = ({
   const handleComponentDragEnd = () => {
     setDraggingComponentId(null);
   };
+  const handleSearchClose = () => {
+    setComponentSearchQuery("");
+    setSearchVisible(false);
+  };
+  const handlePanelToggle = () => {
+    if (panelOpen) {
+      handleToggleSidebar();
 
-  const objectItems = INPUT_NODE_TYPES.filter((type) => {
+      return;
+    }
+    handleSidebarPanelChange("components");
+    if (!isSidebarOpen) {
+      handleToggleSidebar();
+    }
+  };
+
+  const createObjectEntry = (type: PaletteObjectType): PaletteEntry => {
+    const meta = getNodeMeta(type);
+    const label = getNodeTypeLabel(t, type);
+
+    return {
+      icon: OBJECT_ICONS[type],
+      iconBg: meta?.iconBg ?? "bg-surface-2",
+      id: `object-${type}`,
+      label,
+      payload: { kind: "object", type },
+      shortLabel: getNodeTypeShortLabel(t, type),
+    };
+  };
+
+  const objectItems: PaletteEntry[] = INPUT_NODE_TYPES.filter((type) => {
     const meta = getNodeMeta(type);
     const label = getNodeTypeLabel(t, type);
     const shortLabel = getNodeTypeShortLabel(t, type);
 
     return search === "" || includesSearch([label, shortLabel, meta?.label, type], search);
-  });
+  }).map(createObjectEntry);
 
-  const outputItems = OUTPUT_NODE_TYPES.filter((type) => {
+  const outputItems: PaletteEntry[] = OUTPUT_NODE_TYPES.filter((type) => {
     const meta = getNodeMeta(type);
     const label = getNodeTypeLabel(t, type);
     const shortLabel = getNodeTypeShortLabel(t, type);
 
     return search === "" || includesSearch([label, shortLabel, meta?.label, type], search);
-  });
+  }).map(createObjectEntry);
 
-  const operationItems = operations.filter((operation) =>
-    search === ""
-      ? true
-      : includesSearch([operation.name, operation.description, "operation"], search),
-  );
+  const operationItems: PaletteEntry[] = operations
+    .filter((operation) =>
+      search === ""
+        ? true
+        : includesSearch([operation.name, operation.description, "operation"], search),
+    )
+    .map((operation) => ({
+      icon: Workflow,
+      iconBg: "bg-violet-500",
+      id: `operation-${operation.id}`,
+      label: operation.name,
+      payload: { kind: "operation", operation },
+      shortLabel: operationShortLabel,
+    }));
 
-  const skillItems = skills.filter((skill) =>
-    search === ""
-      ? true
-      : includesSearch([skill.name, skill.label, skill.description, ...skill.tags], search),
-  );
+  const skillItems: PaletteEntry[] = skills
+    .filter((skill) =>
+      search === ""
+        ? true
+        : includesSearch([skill.name, skill.label, skill.description, ...skill.tags], search),
+    )
+    .map((skill) => ({
+      icon: Sparkles,
+      iconBg: "bg-amber-500",
+      id: `skill-${skill.id}`,
+      label: skill.label,
+      payload: { kind: "skill", skill },
+      shortLabel: skill.tags[0] ?? skillFallbackLabel,
+    }));
 
-  const renderCategoryHeader = (
-    category: CanvasComponentCategory,
-    label: string,
-    count: number,
-  ) => {
+  const compoundItems: PaletteEntry[] =
+    search === "" ||
+    includesSearch([compoundEntry.label, compoundEntry.shortLabel, "compound"], search)
+      ? [compoundEntry]
+      : [];
+
+  const groups: ReadonlyArray<{
+    category: CanvasComponentCategory;
+    entries: PaletteEntry[];
+    label: string;
+  }> = [
+    { category: "input", entries: objectItems, label: inputCategoryLabel },
+    { category: "operations", entries: operationItems, label: operationsCategoryLabel },
+    { category: "skills", entries: skillItems, label: skillsCategoryLabel },
+    { category: "output", entries: outputItems, label: outputCategoryLabel },
+  ];
+
+  const renderCategoryHeader = (category: CanvasComponentCategory, label: string) => {
     const collapsed = collapsedComponentCategories[category];
-    const ChevronIcon = collapsed ? ChevronRight : ChevronDown;
 
     return (
-      <Button
+      <button
         aria-expanded={!collapsed}
         aria-label={t("canvas.componentPanel.categoryAriaLabel", {
           label,
           defaultValue: "{{label}} category",
         })}
-        className="h-9 w-full justify-start gap-2 rounded-none border-t bg-surface-2/80 px-5 text-sm font-semibold hover:bg-surface-3"
+        className="px-1 pb-1 text-[9.5px] font-medium uppercase tracking-[0.1em] text-muted-foreground"
         type="button"
-        variant="ghost"
         onClick={handleCategoryHeaderClick(category)}
       >
-        <ChevronIcon className="size-3.5" />
-        <span className="flex-1 text-left">{label}</span>
-        <span className="text-xs text-muted-foreground">{count}</span>
-      </Button>
+        {label}
+      </button>
     );
   };
 
-  const renderNodeTypeItem = (type: BuiltinNodeType) => {
-    const Icon = TYPE_ICONS[type];
-    const meta = getNodeMeta(type);
-    const label = getNodeTypeLabel(t, type);
-    const shortLabel = getNodeTypeShortLabel(t, type);
-    if (!meta) return null;
-
-    return (
-      <Button
-        key={type}
-        draggable
-        className={cn(
-          "h-10 w-full cursor-grab justify-start gap-2 rounded-md px-2 text-left transition-[opacity,transform,background-color] active:cursor-grabbing",
-          draggingComponentId === type && "scale-[0.98] opacity-60",
-        )}
-        type="button"
-        variant="ghost"
-        onClick={handleNodeTypeItemClick(type)}
-        onDragEnd={handleComponentDragEnd}
-        onDragStart={handleComponentDragStart({
-          dragId: type,
-          iconBg: meta.iconBg,
-          label,
-          payload: { kind: "object", type },
-          shortLabel,
-        })}
-      >
-        <span
-          className={cn("flex size-6 shrink-0 items-center justify-center rounded", meta.iconBg)}
-        >
-          <Icon className="size-3.5 text-white" />
-        </span>
-        <span className="min-w-0 flex-1 truncate text-sm font-medium">{label}</span>
-        <span className="text-xs text-muted-foreground">{shortLabel}</span>
-        <Plus className="size-3 text-muted-foreground" />
-      </Button>
-    );
-  };
+  const renderEntry = (entry: PaletteEntry) => (
+    <button
+      key={entry.id}
+      draggable
+      className={cn(
+        "flex w-full cursor-grab items-center gap-2 rounded-lg px-2 py-1.5 text-left text-xs ring-1 ring-transparent transition-colors hover:bg-accent/60 hover:ring-border",
+        draggingComponentId === entry.id && "scale-[0.98] opacity-60",
+      )}
+      data-testid={
+        entry.payload.kind === "operation"
+          ? `canvas-operation-${entry.payload.operation.id}`
+          : entry.payload.kind === "skill"
+            ? `canvas-skill-${entry.payload.skill.id}`
+            : `canvas-component-${entry.id}`
+      }
+      type="button"
+      onClick={handleEntryClick(entry.payload)}
+      onDragEnd={handleComponentDragEnd}
+      onDragStart={handleComponentDragStart({
+        dragId: entry.id,
+        iconBg: entry.iconBg,
+        label: entry.label,
+        payload: entry.payload,
+        shortLabel: entry.shortLabel,
+      })}
+    >
+      <span className="flex size-5 shrink-0 items-center justify-center rounded-md bg-surface-2">
+        <entry.icon className="size-3 text-foreground/70" />
+      </span>
+      <span className="min-w-0 flex-1 truncate">{entry.label}</span>
+      <Plus className="size-3 text-muted-foreground/50" />
+    </button>
+  );
 
   return (
-    <div className="flex h-full min-h-0 flex-col bg-surface" data-testid="canvas-component-panel">
-      <div className="border-b p-4">
-        <div className="flex h-10 items-center gap-2 rounded-lg border bg-background px-3 shadow-none">
-          <Search className="size-4 text-muted-foreground" />
-          <Input
-            ref={searchInputRef}
-            aria-label={componentSearchLabel}
-            className="h-8 border-none bg-transparent px-0 shadow-none focus-visible:ring-0"
-            name="canvasComponentSearch"
-            placeholder={componentSearchPlaceholder}
-            value={componentSearchQuery}
-            onChange={handleComponentSearchChange}
-          />
-          <kbd className="rounded border bg-background px-1.5 py-0.5 text-[10px] text-muted-foreground">
-            /
-          </kbd>
-        </div>
-      </div>
-
-      <div className="min-h-0 flex-1 overflow-y-auto">
-        {renderCategoryHeader("input", inputCategoryLabel, objectItems.length)}
-        {!collapsedComponentCategories.input && (
-          <div className="space-y-1 p-3">{objectItems.map(renderNodeTypeItem)}</div>
+    <div
+      className={cn(
+        "pointer-events-auto absolute left-3 top-16 z-10",
+        agentPanelIsOpen && "max-[1180px]:hidden",
+      )}
+      data-testid="canvas-component-panel-root"
+    >
+      <button
+        aria-label={panelToggleLabel}
+        aria-pressed={panelOpen}
+        className={cn(
+          "flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs shadow-pill ring-1 transition-colors",
+          panelOpen
+            ? "bg-foreground text-background ring-foreground"
+            : "bg-surface ring-border hover:ring-border-strong",
         )}
+        data-testid="canvas-component-panel-toggle"
+        type="button"
+        onClick={handlePanelToggle}
+      >
+        <Boxes className="size-3.5" />
+        {t("nav.items.components")}
+      </button>
 
-        {renderCategoryHeader("operations", operationsCategoryLabel, operationItems.length)}
-        {!collapsedComponentCategories.operations && (
-          <div className="space-y-1 p-3">
-            {operationItems.map((operation) => (
-              <Button
-                key={operation.id}
-                draggable
-                className={cn(
-                  "h-10 w-full cursor-grab justify-start gap-2 rounded-md px-2 text-left transition-[opacity,transform,background-color] active:cursor-grabbing",
-                  draggingComponentId === operation.id && "scale-[0.98] opacity-60",
-                )}
-                data-testid={`canvas-operation-${operation.id}`}
-                type="button"
-                variant="ghost"
-                onClick={handleOperationItemClick(operation)}
-                onDragEnd={handleComponentDragEnd}
-                onDragStart={handleComponentDragStart({
-                  dragId: operation.id,
-                  iconBg: "bg-violet-500",
-                  label: operation.name,
-                  payload: { kind: "operation", operation },
-                  shortLabel: operationShortLabel,
-                })}
-              >
-                <span className="flex size-6 shrink-0 items-center justify-center rounded bg-violet-500">
-                  <Zap className="size-3.5 text-white" />
-                </span>
-                <span className="min-w-0 flex-1 truncate text-sm font-medium">
-                  {operation.name}
-                </span>
-                <Plus className="size-3 text-muted-foreground" />
-              </Button>
-            ))}
-          </div>
-        )}
-
-        {renderCategoryHeader("skills", skillsCategoryLabel, skillItems.length)}
-        {!collapsedComponentCategories.skills && (
-          <div className="space-y-1 p-3">
-            {skillItems.map((skill) => (
-              <Button
-                key={skill.id}
-                draggable
-                className={cn(
-                  "h-auto min-h-10 w-full cursor-grab justify-start gap-2 rounded-md px-2 py-2 text-left transition-[opacity,transform,background-color] active:cursor-grabbing",
-                  draggingComponentId === skill.id && "scale-[0.98] opacity-60",
-                )}
-                type="button"
-                variant="ghost"
-                onClick={handleSkillItemClick(skill)}
-                onDragEnd={handleComponentDragEnd}
-                onDragStart={handleComponentDragStart({
-                  dragId: skill.id,
-                  iconBg: "bg-amber-500",
-                  label: skill.label,
-                  payload: { kind: "skill", skill },
-                  shortLabel: skill.tags[0] ?? skillFallbackLabel,
-                })}
-              >
-                <span className="flex size-6 shrink-0 items-center justify-center rounded bg-amber-500">
-                  <Sparkles className="size-3.5 text-white" />
-                </span>
-                <span className="min-w-0 flex-1 truncate text-sm font-medium">{skill.label}</span>
-                {skill.tags.slice(0, 1).map((tag) => (
-                  <Badge key={tag} className="shrink-0 text-[10px]" variant="secondary">
-                    {tag}
-                  </Badge>
-                ))}
-              </Button>
-            ))}
-          </div>
-        )}
-
-        {renderCategoryHeader("output", outputCategoryLabel, outputItems.length)}
-        {!collapsedComponentCategories.output && (
-          <div className="space-y-1 p-3">{outputItems.map(renderNodeTypeItem)}</div>
-        )}
-      </div>
-
-      <div className="border-t p-3">
-        <Link
-          className="inline-flex h-9 w-full items-center justify-center gap-2 rounded-md border bg-background px-3 text-sm font-medium hover:bg-muted"
-          to="/pipelines/operations/new"
+      {panelOpen ? (
+        <div
+          className="mt-2 max-h-[60vh] w-[230px] overflow-y-auto rounded-2xl bg-surface p-2.5 shadow-float ring-1 ring-border"
+          data-testid="canvas-component-panel"
         >
-          <Plus className="size-4" />
-          {newCustomOperationLabel}
-        </Link>
-      </div>
+          <div className="mb-1.5 px-1 text-[10px] leading-snug text-muted-foreground">
+            {t("canvas.componentPanel.hint", {
+              defaultValue: "Click to place in the canvas center, or drag it in.",
+            })}
+          </div>
+
+          {searchVisible && (
+            <div className="mb-2 flex h-8 items-center gap-1.5 rounded-lg bg-surface-2 px-2 ring-1 ring-border">
+              <Search className="size-3 text-muted-foreground" />
+              <Input
+                ref={searchInputRef}
+                aria-label={componentSearchLabel}
+                className="h-7 min-w-0 border-none bg-transparent px-0 text-xs shadow-none focus-visible:ring-0"
+                name="canvasComponentSearch"
+                placeholder={componentSearchPlaceholder}
+                value={componentSearchQuery}
+                onChange={handleComponentSearchChange}
+              />
+              <button
+                aria-label={t("common.clearSearch")}
+                className="flex size-6 shrink-0 items-center justify-center rounded-full hover:bg-accent/60"
+                type="button"
+                onClick={handleSearchClose}
+              >
+                <X className="size-3" />
+              </button>
+            </div>
+          )}
+
+          <div className="pr-0.5">
+            {groups.map((group) => (
+              <Fragment key={group.category}>
+                <div className="mb-2 last:mb-0">
+                  {renderCategoryHeader(group.category, group.label)}
+                  {!collapsedComponentCategories[group.category] && (
+                    <div className="space-y-0.5">
+                      {group.entries.length === 0 ? (
+                        <div className="px-2 py-1 text-[11px] text-muted-foreground/70">
+                          {t("canvas.componentPanel.emptyGroup", {
+                            defaultValue: "No components",
+                          })}
+                        </div>
+                      ) : (
+                        group.entries.map(renderEntry)
+                      )}
+                    </div>
+                  )}
+                </div>
+                {group.category === "operations" && (
+                  <div className="mb-2 last:mb-0">
+                    <div
+                      className="px-1 pb-1 text-[9.5px] font-medium uppercase tracking-[0.1em] text-muted-foreground"
+                      data-testid="canvas-component-category-compound"
+                    >
+                      {compoundCategoryLabel}
+                    </div>
+                    <div className="space-y-0.5">
+                      {compoundItems.length === 0 ? (
+                        <div className="px-2 py-1 text-[11px] text-muted-foreground/70">
+                          {t("canvas.componentPanel.emptyGroup", {
+                            defaultValue: "No components",
+                          })}
+                        </div>
+                      ) : (
+                        compoundItems.map(renderEntry)
+                      )}
+                    </div>
+                  </div>
+                )}
+              </Fragment>
+            ))}
+          </div>
+
+          <Link
+            className="mt-1 flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-xs text-foreground/80 ring-1 ring-transparent transition-colors hover:bg-accent/60 hover:ring-border"
+            to="/pipelines/operations/new"
+          >
+            <Plus className="size-3" />
+            {newCustomOperationLabel}
+          </Link>
+        </div>
+      ) : null}
     </div>
   );
 };

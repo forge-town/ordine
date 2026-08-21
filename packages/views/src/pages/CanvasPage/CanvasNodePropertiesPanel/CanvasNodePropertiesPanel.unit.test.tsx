@@ -111,7 +111,26 @@ const renderPanel = (node: PipelineNode = fileNode) => {
 };
 
 describe("CanvasNodePropertiesPanel", () => {
-  it("edits selected file node data from the left panel", async () => {
+  it("renders the selected node in the Alan modal shell", () => {
+    renderPanel();
+
+    const modal = screen.getByTestId("canvas-v2-node-config");
+    const panel = screen.getByTestId("canvas-properties-panel");
+
+    expect(modal).toHaveClass("absolute", "inset-0", "z-40", "grid", "place-items-center", "p-6");
+    expect(panel).toHaveClass(
+      "relative",
+      "w-[440px]",
+      "max-w-[calc(100vw-3rem)]",
+      "rounded-2xl",
+      "bg-surface",
+    );
+    expect(screen.getByTestId("node-config-label")).toHaveValue("Source File");
+    expect(screen.getByTestId("node-config-close")).toBeInTheDocument();
+    expect(screen.getByTestId("node-config-done")).toBeInTheDocument();
+  });
+
+  it("edits the selected file node from the modal fields", async () => {
     const user = userEvent.setup();
     const store = renderPanel();
 
@@ -127,14 +146,39 @@ describe("CanvasNodePropertiesPanel", () => {
     );
   });
 
-  it("returns to the component panel from properties", async () => {
+  it("keeps the Alan header label editable through the current update action", async () => {
+    const user = userEvent.setup();
+    const store = renderPanel();
+    const labelInput = screen.getByTestId("node-config-label");
+
+    await user.clear(labelInput);
+    await user.type(labelInput, "Renamed Source");
+
+    expect(store.getState().nodes[0]?.data).toEqual(
+      expect.objectContaining({ label: "Renamed Source" }),
+    );
+  });
+
+  it("closes from the modal footer and clears the selected node", async () => {
     const user = userEvent.setup();
     const store = renderPanel();
 
-    await user.click(screen.getByRole("button", { name: /Back to components/i }));
+    await user.click(screen.getByTestId("node-config-done"));
 
     expect(store.getState().sidebarPanel).toBe("components");
     expect(store.getState().selectedNodeId).toBeNull();
+  });
+
+  it("closes from the header and backdrop", async () => {
+    const user = userEvent.setup();
+    const store = renderPanel();
+
+    await user.click(screen.getByTestId("node-config-close"));
+    expect(store.getState().selectedNodeId).toBeNull();
+
+    const backdropStore = renderPanel();
+    await user.click(screen.getByTestId("node-config-backdrop"));
+    expect(backdropStore.getState().selectedNodeId).toBeNull();
   });
 
   it("stores operation max loop count edits as a number", () => {

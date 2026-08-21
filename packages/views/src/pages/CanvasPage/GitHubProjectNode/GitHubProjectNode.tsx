@@ -5,7 +5,7 @@ import { useStore } from "zustand";
 import { useShallow } from "zustand/shallow";
 import { useCanvasPageStore, selectNodeRunState, selectNodePortCounts } from "../_store";
 import type { GithubProjectObjectNodeData } from "@repo/schemas";
-import { NodeCard } from "../NodeCard";
+import { NodeCard, useNodeCardActions } from "../NodeCard";
 import { FolderTreePreview } from "../FolderNode/FolderTreePreview";
 import { SiGitHubIcon } from "../../../components/icons/SiGitHubIcon";
 import { GitHubConnectDialog, type ConnectedRepoInfo } from "./GitHubConnectDialog";
@@ -26,6 +26,7 @@ const handleMouseDown = (e: React.MouseEvent) => e.stopPropagation();
 export const GitHubProjectNode = ({ id, data, selected }: GitHubProjectNodeProps) => {
   const { t } = useTranslation();
   const store = useCanvasPageStore();
+  const nodeCardActions = useNodeCardActions(id);
   const { runStatus, dimmed } = useStore(store, useShallow(selectNodeRunState(id)));
   const nodeCardMode = useStore(store, (s) => s.nodeCardMode);
   const [pickOpen, setPickOpen] = useState(false);
@@ -84,8 +85,10 @@ export const GitHubProjectNode = ({ id, data, selected }: GitHubProjectNodeProps
     <div className="group relative w-fit overflow-visible">
       <NodeCard
         rightHandle
+        actions={nodeCardActions}
         bodyClassName="space-y-2"
         compact={nodeCardMode === "compact"}
+        detail={data.sourceType ?? t("canvas.nodeTypes.github-project.label")}
         description={t("canvas.nodeTypes.github-project.label")}
         dimmed={dimmed}
         icon={SiGitHubIcon}
@@ -105,34 +108,34 @@ export const GitHubProjectNode = ({ id, data, selected }: GitHubProjectNodeProps
           isLocal ? (
             /* Local folder connected */
             <div
-              className="flex cursor-pointer items-center gap-1.5 rounded-md bg-surface-2 px-2.5 py-1.5 ring-1 ring-border transition-colors hover:bg-orange-500/10 hover:ring-orange-500/25"
+              className="flex cursor-pointer items-center gap-1.5 rounded-md bg-surface-2 px-1.5 py-1 ring-1 ring-border transition-colors hover:bg-muted hover:ring-border-strong"
               title={t("canvas.clickToSwitchLocalFolder")}
               onClick={handleLocalFolderOpen}
               onMouseDown={handleMouseDown}
             >
-              <FolderOpen className="h-3 w-3 shrink-0 text-orange-500" />
-              <span className="min-w-0 flex-1 truncate font-mono text-[11px] font-semibold text-foreground">
+              <FolderOpen className="h-3 w-3 shrink-0 text-muted-foreground" />
+              <span className="min-w-0 flex-1 truncate font-mono text-[9.5px] text-muted-foreground">
                 {data.localPath}
               </span>
             </div>
           ) : (
             /* GitHub repo connected */
             <div
-              className="flex cursor-pointer items-center gap-1.5 rounded-md bg-surface-2 px-2.5 py-1.5 ring-1 ring-border transition-colors hover:bg-orange-500/10 hover:ring-orange-500/25"
+              className="flex cursor-pointer items-center gap-1.5 rounded-md bg-surface-2 px-1.5 py-1 ring-1 ring-border transition-colors hover:bg-muted hover:ring-border-strong"
               title={t("canvas.clickToSwitchRepo")}
               onClick={handlePickOpen}
               onMouseDown={handleMouseDown}
             >
               {data.isPrivate ? (
-                <Lock className="h-3 w-3 shrink-0 text-orange-500" />
+                <Lock className="h-3 w-3 shrink-0 text-muted-foreground" />
               ) : (
                 <Globe className="h-3 w-3 shrink-0 text-muted-foreground" />
               )}
-              <span className="min-w-0 flex-1 truncate font-mono text-[11px] font-semibold text-foreground">
+              <span className="min-w-0 flex-1 truncate font-mono text-[9.5px] text-muted-foreground">
                 {data.owner}/{data.repo}
               </span>
               {data.branch && (
-                <span className="shrink-0 rounded bg-orange-500/10 px-1 py-0.5 font-mono text-[10px] font-medium text-orange-700 dark:text-orange-300">
+                <span className="shrink-0 rounded bg-surface-2 px-1 py-0.5 font-mono text-[9.5px] text-muted-foreground ring-1 ring-border">
                   {data.branch}
                 </span>
               )}
@@ -141,7 +144,7 @@ export const GitHubProjectNode = ({ id, data, selected }: GitHubProjectNodeProps
         ) : (
           <div className="space-y-1.5" onMouseDown={handleMouseDown}>
             <Button
-              className="nodrag nopan flex h-auto w-full items-center justify-center gap-1.5 rounded-md border border-orange-500/25 bg-orange-500/10 py-1.5 text-[11px] font-medium text-orange-700 transition-colors hover:bg-orange-500/15 dark:text-orange-300"
+              className="nodrag nopan flex h-auto w-full items-center justify-center gap-1.5 rounded-md border border-border bg-surface-2 py-1.5 text-[11px] font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
               type="button"
               variant="ghost"
               onClick={handlePickOpen}
@@ -185,7 +188,7 @@ export const GitHubProjectNode = ({ id, data, selected }: GitHubProjectNodeProps
         {/* Connected repo link */}
         {repoUrl && (
           <a
-            className="nodrag nopan flex items-center gap-1 text-[10px] text-muted-foreground transition-colors hover:text-orange-500"
+            className="nodrag nopan flex items-center gap-1 text-[10px] text-muted-foreground transition-colors hover:text-foreground"
             href={repoUrl}
             rel="noopener noreferrer"
             target="_blank"

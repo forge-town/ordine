@@ -4,7 +4,7 @@ import { useStore } from "zustand";
 import { useShallow } from "zustand/shallow";
 import { useCanvasPageStore, selectNodeRunState, selectNodePortCounts } from "../_store";
 import type { ProjectPathOutputNodeData } from "@repo/schemas";
-import { NodeCard } from "../NodeCard";
+import { NodeCard, useNodeCardActions } from "../NodeCard";
 import { Input } from "@repo/ui/input";
 import { Textarea } from "@repo/ui/textarea";
 
@@ -19,6 +19,7 @@ const handleMouseDown = (e: React.MouseEvent) => e.stopPropagation();
 export const OutputProjectPathNode = ({ id, data, selected }: OutputProjectPathNodeProps) => {
   const { t } = useTranslation();
   const store = useCanvasPageStore();
+  const nodeCardActions = useNodeCardActions(id);
   const { runStatus, dimmed } = useStore(store, useShallow(selectNodeRunState(id)));
   const nodeCardMode = useStore(store, (s) => s.nodeCardMode);
   const updateNodeData = useStore(store, (s) => s.updateNodeData);
@@ -42,8 +43,10 @@ export const OutputProjectPathNode = ({ id, data, selected }: OutputProjectPathN
     <div className="group relative w-fit overflow-visible">
       <NodeCard
         leftHandle
+        actions={nodeCardActions}
         bodyClassName="space-y-2"
         compact={nodeCardMode === "compact"}
+        detail={data.projectId ?? t("canvas.nodeTypes.output-project-path.label")}
         description={t("nodes.outputProjectPath.description")}
         dimmed={dimmed}
         icon={FolderOutput}
@@ -59,24 +62,24 @@ export const OutputProjectPathNode = ({ id, data, selected }: OutputProjectPathN
         onLabelChange={handleLabelChange}
       >
         <div className="space-y-1.5">
-          <div className="flex items-center gap-1 rounded-md bg-surface-2 px-2.5 py-1 ring-1 ring-border">
+          <div className="flex items-center gap-1 rounded-md bg-surface-2 px-1.5 py-1 ring-1 ring-border">
             <span className="shrink-0 text-[10px] font-medium text-muted-foreground">
               {t("nodes.outputProjectPath.projectIdLabel")}
             </span>
             <Input
-              className="nodrag nopan h-auto min-w-0 flex-1 border-none bg-transparent p-0 font-mono text-[11px] text-foreground shadow-none focus:outline-none"
+              className="nodrag nopan h-auto min-w-0 flex-1 truncate border-none bg-transparent p-0 font-mono text-[9.5px] text-muted-foreground shadow-none focus:outline-none focus:text-foreground"
               placeholder="project-id"
               value={data.projectId ?? ""}
               onChange={handleProjectIdChange}
               onMouseDown={handleMouseDown}
             />
           </div>
-          <div className="flex items-center gap-1 rounded-md bg-teal-500/10 px-2.5 py-1 ring-1 ring-teal-500/20">
-            <span className="shrink-0 text-[10px] font-medium text-teal-700 dark:text-teal-300">
+          <div className="flex items-center gap-1 rounded-md bg-surface-2 px-1.5 py-1 ring-1 ring-border">
+            <span className="shrink-0 text-[10px] font-medium text-muted-foreground">
               {t("nodes.outputProjectPath.pathLabel")}
             </span>
             <Input
-              className="nodrag nopan h-auto min-w-0 flex-1 border-none bg-transparent p-0 font-mono text-[11px] font-semibold text-foreground shadow-none focus:outline-none"
+              className="nodrag nopan h-auto min-w-0 flex-1 truncate border-none bg-transparent p-0 font-mono text-[9.5px] text-muted-foreground shadow-none focus:outline-none focus:text-foreground"
               placeholder="src/output/"
               value={data.path}
               onChange={handlePathChange}
