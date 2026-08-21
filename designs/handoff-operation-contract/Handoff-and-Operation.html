@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Handoff × Operation 契约</title>
+    <style>
+      :root {
+        --ink: #1b2421;
+        --muted: #61706a;
+        --paper: #f5f3eb;
+        --card: #ffffff;
+        --line: #d7ddd7;
+        --dark: #102b23;
+        --green: #badb75;
+        --orange: #b85d28;
+        --blue: #205e7b;
+      }
+      * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
+      body { margin: 0; color: var(--ink); background: var(--paper); font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Noto Sans SC", sans-serif; line-height: 1.65; }
+      .wrap { width: min(1120px, calc(100% - 40px)); margin: 0 auto; }
+      header { color: white; background: var(--dark); padding: 58px 0 40px; }
+      .kicker { color: var(--green); font: 700 12px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .14em; text-transform: uppercase; }
+      h1 { max-width: 800px; margin: 12px 0; font-size: clamp(38px, 6vw, 72px); line-height: 1.04; letter-spacing: -.06em; }
+      header p { max-width: 700px; margin: 0; color: #d1ded7; font-size: 17px; }
+      nav { border-bottom: 1px solid var(--line); background: #eceee6; }
+      nav .wrap { display: flex; gap: 24px; overflow-x: auto; }
+      nav a { padding: 12px 0; color: #405049; text-decoration: none; white-space: nowrap; font-size: 13px; }
+      main { padding: 38px 0 72px; }
+      section { margin-top: 52px; scroll-margin-top: 20px; }
+      h2 { margin: 0 0 9px; font-size: 28px; letter-spacing: -.04em; }
+      h3 { margin: 0; font-size: 16px; }
+      .lead { max-width: 850px; margin: 0; font-size: 18px; }
+      .status { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 20px; }
+      .box { background: var(--card); border: 1px solid var(--line); padding: 21px; }
+      .box .tag { font: 700 11px/1.3 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .08em; }
+      .current .tag { color: var(--orange); }
+      .target .tag { color: var(--blue); }
+      .box p { margin: 8px 0 0; }
+      .flow { display: flex; align-items: center; overflow: auto; padding: 20px; color: #ebf3ed; background: #13241e; min-width: 0; }
+      .flow-item { width: 205px; min-width: 205px; padding: 15px; border-top: 2px solid var(--green); background: #1d3b30; }
+      .flow-item small { display: block; margin-top: 5px; color: #bed0c4; line-height: 1.45; }
+      .arrow { padding: 0 13px; color: var(--green); font-size: 25px; }
+      .code-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+      .code-card { overflow: hidden; border: 1px solid #2c4138; background: #10201a; color: #e7f2e9; }
+      .code-head { display: flex; justify-content: space-between; gap: 12px; padding: 11px 15px; background: #193428; color: #d5e9d9; font: 12px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; }
+      pre { overflow: auto; margin: 0; padding: 17px; font: 12px/1.65 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; tab-size: 2; }
+      .kw { color: #d5a9ff; }.ty { color: #9ad8ff; }.fn { color: #d9ee83; }.st { color: #e9b676; }.cm { color: #9cb3a6; }
+      table { width: 100%; border-collapse: collapse; background: var(--card); border: 1px solid var(--line); font-size: 14px; }
+      th, td { padding: 11px 13px; border-bottom: 1px solid #e5e9e4; text-align: left; vertical-align: top; }
+      th { color: #5c6b63; font-size: 11px; letter-spacing: .07em; text-transform: uppercase; background: #f1f3ed; }
+      tr:last-child td { border-bottom: 0; }
+      code { color: #174f39; background: #eaf0e7; padding: 2px 4px; font: 12px/1.45 ui-monospace, SFMono-Regular, Menlo, monospace; overflow-wrap: anywhere; }
+      .field-groups { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+      .field { background: var(--card); border: 1px solid var(--line); padding: 18px; }
+      .field p { margin: 8px 0 0; color: var(--muted); font-size: 13px; }
+      .field ul { padding-left: 19px; margin: 10px 0 0; }
+      .field li { margin: 6px 0; }
+      .rule { margin-top: 16px; padding: 16px 18px; border-left: 4px solid var(--blue); background: #edf7f9; }
+      .rule p { margin: 4px 0 0; }
+      @media (max-width: 760px) { .wrap { width: min(100% - 28px, 1120px); } header { padding-top: 40px; } .status, .code-layout, .field-groups { grid-template-columns: 1fr; } }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="wrap">
+        <div class="kicker">File contract proposal · COD-353</div>
+        <h1>Handoff × Operation</h1>
+        <p>让 Operation 明确消费哪些文件、产出哪些文件；让节点之间传递可追踪的文件交接记录，而不是隐式把内容塞进边或 prompt。</p>
+      </div>
+    </header>
+    <nav><div class="wrap"><a href="#now">现在</a><a href="#target">要改成什么</a><a href="#fields">字段</a><a href="#code">代码文件</a></div></nav>
+    <main class="wrap">
+      <section id="now">
+        <h2>1. 它现在是什么情况</h2>
+        <p class="lead">现有 Operation 已有输入与输出，但它们描述的是对象类型和模板，不是一次运行中真正写出的文件；Pipeline edge 也没有文件产物、端口语义或存储位置。</p>
+        <div class="status">
+          <article class="box current"><div class="tag">CURRENT · Operation</div><h3>可复用操作，输入/输出偏抽象</h3><p><code>config.inputs</code> 是 <code>{ name, kind, required }</code>，<code>kind</code> 只允许 <code>file | folder | github-project | prompt</code>；<code>config.outputs</code> 是展示/模板项，不承诺真实文件。</p></article>
+          <article class="box current"><div class="tag">CURRENT · Edge</div><h3>只是节点连接，不是文件交接</h3><p><code>PipelineEdge</code> 只有 <code>source / target / sourceHandle / targetHandle</code>。handle 目前可以为 <code>null</code>；无法判断“哪个输出文件”喂给“哪个输入端口”。</p></article>
+        </div>
+        <div class="code-layout" style="margin-top:16px">
+          <article class="code-card"><div class="code-head"><span>packages/schemas/src/operation/OperationSchema.ts</span><span>现有</span></div><pre><span class="kw">export const</span> <span class="ty">OperationSchema</span> = z.object({
+  id: z.string(),
+  name: z.string(),
+  description: z.string().default(<span class="st">""</span>),
+  config: <span class="ty">OperationConfigSchema</span>,
+  acceptedObjectTypes: z.array(<span class="ty">ObjectNodeTypeSchema</span>),
+  sourceSkillId: z.string().optional(),
+  meta: <span class="ty">MetaSchema</span>.optional(),
+});
+
+<span class="cm">// config.inputs = InputPortSchema[]</span>
+<span class="cm">// config.outputs = OutputItemSchema[]</span></pre></article>
+          <article class="code-card"><div class="code-head"><span>packages/schemas/src/pipeline/edge/PipelineEdgeSchema.ts</span><span>现有</span></div><pre><span class="kw">export const</span> <span class="ty">PipelineEdgeSchema</span> = z.object({
+  id: z.string(),
+  source: z.string(),
+  target: z.string(),
+  sourceHandle: z.string().nullable().optional(),
+  targetHandle: z.string().nullable().optional(),
+  data: <span class="ty">PipelineEdgeDataSchema</span>.optional(),
+});
+
+<span class="cm">// 没有文件、端口 ID、media type 或血缘</span></pre></article>
+        </div>
+      </section>
+      <section id="target">
+        <h2>2. 我们的方案要改成什么样子</h2>
+        <p class="lead">新增“文件型 Operation 契约”。Operation 静态声明输入/输出端口；每次 node run 写出文件后产生 Handoff 元数据；边明确绑定 sourcePortId → targetPortId，并在运行前验证格式兼容。</p>
+        <div class="flow" style="margin-top:18px">
+          <div class="flow-item"><b>FileOperation</b><small>声明可复用的动词、文件端口和 harness。</small></div><div class="arrow">→</div>
+          <div class="flow-item"><b>Node run</b><small>在自己的 run 目录写出真实文件字节。</small></div><div class="arrow">→</div>
+          <div class="flow-item"><b>Handoff</b><small>只传文件元数据、来源与路径，不内嵌文件正文。</small></div><div class="arrow">→</div>
+          <div class="flow-item"><b>HandoffEdge</b><small>绑定 outputPortId 到 inputPortId，先做类型校验。</small></div>
+        </div>
+        <div class="rule"><h3>核心规则</h3><p>输出文件必须是具体 MIME type（如 <code>application/pdf</code>）；输入端口可以使用模式（如 <code>image/*</code>）。不兼容时必须插入一个可见的转换 Operation，例如 <code>text/markdown → application/pdf</code>，edge 不能暗中转换。</p></div>
+      </section>
+      <section id="fields">
+        <h2>3. 有什么字段</h2>
+        <div class="field-groups">
+          <article class="field"><h3>FileOperation</h3><ul><li><code>id</code>、<code>name</code>、<code>description</code></li><li><code>inputs[]</code>：已声明输入端口</li><li><code>outputs[]</code>：已声明输出端口</li><li><code>harness</code>：<code>kind</code>、<code>harnessId</code>、<code>allowedTools</code></li></ul><p>Operation 是“动词”。persona / system prompt / 业务 prompt 不放在这里。</p></article>
+          <article class="field"><h3>输入 / 输出端口</h3><ul><li>共同：<code>id</code>、<code>label</code>、<code>required</code>、<code>cardinality</code>、<code>description</code></li><li>输入：<code>accepts: MediaTypePattern[]</code></li><li>输出：<code>produces: ConcreteMediaType[]</code></li></ul><p><code>cardinality</code> 为 <code>one | many</code>。</p></article>
+          <article class="field"><h3>Handoff</h3><ul><li><code>handoffId</code>、<code>pipelineRunId</code></li><li><code>producer</code>：node / nodeRun / operation / outputPort</li><li><code>sourceFileIds[]</code>：读取过的文件血缘</li><li><code>files[]</code>：本次交付的实际文件</li></ul><p>文件字节在 node-run 目录，由运行记录 TTL 清理；JSON 只保存引用。</p></article>
+        </div>
+        <table style="margin-top:16px"><thead><tr><th>HandoffFile 字段</th><th>用途</th></tr></thead><tbody><tr><td><code>fileId</code> / <code>fileName</code></td><td>本次 pipeline run 内的文件身份与可读名称。</td></tr><tr><td><code>relativePath</code> / <code>storageUri</code></td><td>node-run 产物目录内相对路径与实际存储地址。</td></tr><tr><td><code>mediaType</code></td><td>具体 MIME type；不能使用通配符。</td></tr><tr><td><code>sizeBytes</code> / <code>sha256?</code></td><td>产物大小与可选完整性校验。</td></tr><tr><td><code>HandoffEdge.sourcePortId / targetPortId</code></td><td>将图连线绑定到明确的 Operation 输出端口和输入端口。</td></tr></tbody></table>
+      </section>
+      <section id="code">
+        <h2>代码文件</h2>
+        <p class="lead">以下是要落到 schema 层的核心文件形状。当前完整评审草案在 <code>docs/spikes/COD-353-file-handoff-contract.ts</code>；它尚未替换生产 <code>OperationSchema</code>。</p>
+        <div class="code-layout" style="margin-top:18px">
+          <article class="code-card"><div class="code-head"><span>proposal · operation/FileOperationSchema.ts</span><span>新增</span></div><pre><span class="kw">export const</span> <span class="ty">FileOperationSchema</span> = z.object({
+  id: z.string().min(1),
+  name: z.string().min(1),
+  description: z.string().default(<span class="st">""</span>),
+  inputs: z.array(<span class="ty">OperationInputPortSchema</span>).min(1),
+  outputs: z.array(<span class="ty">OperationOutputPortSchema</span>).min(1),
+  harness: <span class="ty">OperationHarnessSchema</span>,
+});
+
+<span class="kw">export const</span> <span class="ty">OperationInputPortSchema</span> = z.object({
+  id: z.string().min(1), label: z.string().min(1),
+  required: z.boolean().default(<span class="kw">true</span>),
+  cardinality: z.enum([<span class="st">"one"</span>, <span class="st">"many"</span>]).default(<span class="st">"one"</span>),
+  accepts: z.array(<span class="ty">MediaTypePatternSchema</span>).min(1),
+});
+
+<span class="kw">export const</span> <span class="ty">OperationOutputPortSchema</span> = z.object({
+  id: z.string().min(1), label: z.string().min(1),
+  required: z.boolean().default(<span class="kw">true</span>),
+  cardinality: z.enum([<span class="st">"one"</span>, <span class="st">"many"</span>]).default(<span class="st">"one"</span>),
+  produces: z.array(<span class="ty">ConcreteMediaTypeSchema</span>).min(1),
+});</pre></article>
+          <article class="code-card"><div class="code-head"><span>proposal · handoff/HandoffSchema.ts</span><span>新增</span></div><pre><span class="kw">export const</span> <span class="ty">HandoffFileSchema</span> = z.object({
+  fileId: z.string().min(1),
+  fileName: z.string().min(1),
+  relativePath: z.string().min(1),
+  storageUri: z.string().min(1),
+  mediaType: <span class="ty">ConcreteMediaTypeSchema</span>,
+  sizeBytes: z.number().int().nonnegative(),
+  sha256: z.string().regex(<span class="st">/^[a-f0-9]{64}$/i</span>).optional(),
+});
+
+<span class="kw">export const</span> <span class="ty">HandoffSchema</span> = z.object({
+  handoffId: z.string().min(1),
+  pipelineRunId: z.string().min(1),
+  producer: z.object({
+    nodeId: z.string().min(1),
+    nodeRunId: z.string().min(1),
+    operationId: z.string().min(1),
+    outputPortId: z.string().min(1),
+  }),
+  sourceFileIds: z.array(z.string()).default([]),
+  files: z.array(<span class="ty">HandoffFileSchema</span>).min(1),
+});
+
+<span class="kw">export const</span> <span class="ty">HandoffEdgeSchema</span> = z.object({
+  id: z.string().min(1), kind: z.literal(<span class="st">"handoff"</span>),
+  sourceNodeId: z.string().min(1), sourcePortId: z.string().min(1),
+  targetNodeId: z.string().min(1), targetPortId: z.string().min(1),
+});</pre></article>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

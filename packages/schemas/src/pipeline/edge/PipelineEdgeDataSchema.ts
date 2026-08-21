@@ -3,6 +3,7 @@ import { DataContractSchema } from "./DataContractSchema";
 import { EdgeConditionSchema } from "./EdgeConditionSchema";
 import { EdgeQualityGateSchema } from "./EdgeQualityGateSchema";
 import { EdgeTransformSchema } from "./EdgeTransformSchema";
+import { HandoffEdgeSchema } from "../handoff/HandoffEdgeSchema";
 
 /**
  * Semantic edge payload. Every field beyond `label` is optional so that
@@ -14,5 +15,7 @@ export const PipelineEdgeDataSchema = z.object({
   condition: EdgeConditionSchema.optional(),
   transform: EdgeTransformSchema.optional(),
   qualityGate: EdgeQualityGateSchema.optional(),
+  /** Semantic file-port binding; omitted on legacy/general-purpose graph edges. */
+  handoff: HandoffEdgeSchema.optional(),
 });
 export type PipelineEdgeData = z.infer<typeof PipelineEdgeDataSchema>;

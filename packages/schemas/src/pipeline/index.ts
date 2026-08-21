@@ -10,4 +10,5 @@ export * from "./WorkspaceCanvasRefSchema";
 export * from "./WorkspacePhaseSchema";
 export * from "./node";
 export * from "./edge";
+export * from "./handoff";
 export * from "./node-data";

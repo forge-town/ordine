@@ -31,6 +31,7 @@ import {
 import type { PipelineEngineDeps } from "../deps";
 import { PipelineCancelledError, ScriptExecutionError, type PipelineRunError } from "../errors";
 import { buildExecutionLevels, type CycleDetectedError } from "../dagScheduler";
+import { validateHandoffGraph } from "../handoff";
 import { expandTilde, safeReadInputFile } from "../infrastructure";
 import type {
   AgentInfo,
@@ -212,6 +213,19 @@ export class Pipeline {
 
     const { pipeline, jobId } = this.opts;
     const { nodes, edges } = pipeline;
+    const handoffIssues = validateHandoffGraph({
+      nodes,
+      edges,
+      operations: this.opts.operations,
+    });
+    if (handoffIssues.length > 0) {
+      return {
+        ok: false,
+        error: new ScriptExecutionError(
+          `Invalid file handoff: ${handoffIssues.map((issue) => issue.message).join(" ")}`,
+        ),
+      };
+    }
     const rootNodeIds = new Set(nodes.filter(isRootNode).map((node) => node.id));
     const rootNodes = nodes.filter((node) => rootNodeIds.has(node.id));
     const rootEdges = edges.filter(
