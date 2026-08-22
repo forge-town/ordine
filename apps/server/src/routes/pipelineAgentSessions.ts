@@ -38,9 +38,9 @@ const startRunBodySchema = runtimeSelectionBodySchema.extend({
   model: z.string().min(1).optional(),
   reasoningEffort: z.string().min(1).optional(),
   speed: z.string().min(1).optional(),
-  permissionMode: AgentRunPermissionModeSchema.default("workspace-write"),
+  permissionMode: AgentRunPermissionModeSchema.default("full-access"),
   networkAccess: z.boolean().default(true),
-  fullAccessConfirmed: z.boolean().default(false),
+  fullAccessConfirmed: z.boolean().default(true),
 });
 
 const encodeEvent = (event: string, data: unknown) =>

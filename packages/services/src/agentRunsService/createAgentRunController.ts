@@ -33,7 +33,8 @@ const deliverEvent = async (
   }
 };
 
-export const createAgentRunController = (agentRunsService: AgentRunsService): AgentRunController =>
+export const createAgentRunController =
+  (agentRunsService: AgentRunsService): AgentRunController =>
   async (options): Promise<AgentRunOutcome> => {
     if (!PRODUCT_RUNTIMES.has(options.agent) || options.ssh) {
       return agentEngine.runDirect(options);
@@ -43,7 +44,9 @@ export const createAgentRunController = (agentRunsService: AgentRunsService): Ag
       {
         owner: {
           type: options.jobId ? "job-agent" : "agent-engine",
-          id: options.jobId ? `${options.jobId}:${options.agentId ?? options.agent}` : (options.agentId ?? crypto.randomUUID()),
+          id: options.jobId
+            ? `${options.jobId}:${options.agentId ?? options.agent}`
+            : (options.agentId ?? crypto.randomUUID()),
         },
         runtimeConfigId,
         cwd: options.cwd,
@@ -52,9 +55,9 @@ export const createAgentRunController = (agentRunsService: AgentRunsService): Ag
         prompt: options.userPrompt,
         rebuildPrompt: options.rebuildPrompt ?? options.userPrompt,
         ...(options.resumeFromRunId ? { resumeFromRunId: options.resumeFromRunId } : {}),
-        permissionMode: options.permissionMode ?? "workspace-write",
+        permissionMode: options.permissionMode ?? "full-access",
         networkAccess: options.networkAccess ?? true,
-        fullAccessConfirmed: options.fullAccessConfirmed ?? false,
+        fullAccessConfirmed: options.fullAccessConfirmed ?? true,
         allowedTools: [...(options.allowedTools ?? [])],
       },
       {

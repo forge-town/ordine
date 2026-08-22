@@ -9,7 +9,8 @@ import { beforeAll, describe, expect, it } from "vitest";
 import { createAgentRunsService } from "./createAgentRunsService";
 
 const execFileAsync = promisify(execFile);
-const enabled = process.platform === "win32" && process.env["ORDINE_WINDOWS_RUNTIME_ACCEPTANCE"] === "1";
+const enabled =
+  process.platform === "win32" && process.env["ORDINE_WINDOWS_RUNTIME_ACCEPTANCE"] === "1";
 const selectedRuntime = process.env["ORDINE_WINDOWS_RUNTIME"];
 const runtimes = (["codex", "claude-code", "opencode"] as const).filter(
   (runtime) => !selectedRuntime || runtime === selectedRuntime,
@@ -134,7 +135,7 @@ beforeAll(async () => {
 
 describe.skipIf(!enabled)("COD-369 Windows runtime acceptance", () => {
   it.each(runtimes)(
-    "%s supports workspace write, native resume, durable events, and cancellation",
+    "%s supports default full access, native resume, durable events, and cancellation",
     async (runtime) => {
       const runtimeEvidence: RuntimeEvidence = {
         runtime,
@@ -159,12 +160,13 @@ describe.skipIf(!enabled)("COD-369 Windows runtime acceptance", () => {
           owner: { type: "cod369-windows-acceptance", id: runtime },
           runtimeConfigId: `local-${runtime}`,
           cwd: runtimeEvidence.cwd,
-          systemPrompt: "You are running an ORDINE runtime acceptance test. Follow the file instruction exactly.",
+          systemPrompt:
+            "You are running an ORDINE runtime acceptance test. Follow the file instruction exactly.",
           prompt: firstPrompt,
           rebuildPrompt: firstPrompt,
-          permissionMode: "workspace-write",
+          permissionMode: "full-access",
           networkAccess: true,
-          fullAccessConfirmed: false,
+          fullAccessConfirmed: true,
           allowedTools: [],
         });
         const firstRun = await service.wait(firstStarted.runId);
@@ -187,13 +189,14 @@ describe.skipIf(!enabled)("COD-369 Windows runtime acceptance", () => {
           owner: { type: "cod369-windows-acceptance", id: runtime },
           runtimeConfigId: `local-${runtime}`,
           cwd: runtimeEvidence.cwd,
-          systemPrompt: "You are running an ORDINE runtime acceptance test. Follow the file instruction exactly.",
+          systemPrompt:
+            "You are running an ORDINE runtime acceptance test. Follow the file instruction exactly.",
           prompt: resumePrompt,
           rebuildPrompt: `${firstPrompt}\n\nAssistant confirmed the file creation.\n\n${resumePrompt}`,
           resumeFromRunId: firstRun.id,
-          permissionMode: "workspace-write",
+          permissionMode: "full-access",
           networkAccess: true,
-          fullAccessConfirmed: false,
+          fullAccessConfirmed: true,
           allowedTools: [],
         });
         const resumeRun = await service.wait(resumeStarted.runId);
@@ -219,9 +222,9 @@ describe.skipIf(!enabled)("COD-369 Windows runtime acceptance", () => {
           systemPrompt: "Use an appropriate Windows shell command when asked to wait.",
           prompt: cancelPrompt,
           rebuildPrompt: cancelPrompt,
-          permissionMode: "workspace-write",
+          permissionMode: "full-access",
           networkAccess: true,
-          fullAccessConfirmed: false,
+          fullAccessConfirmed: true,
           allowedTools: ["Bash"],
         });
 
@@ -242,7 +245,8 @@ describe.skipIf(!enabled)("COD-369 Windows runtime acceptance", () => {
         expect(runtimeEvidence.cancelRun.processIds.length).toBeGreaterThan(0);
         expect(runtimeEvidence.cancelRun.processTreeCleaned).toBe(true);
       } catch (error) {
-        runtimeEvidence.error = error instanceof Error ? error.stack ?? error.message : String(error);
+        runtimeEvidence.error =
+          error instanceof Error ? (error.stack ?? error.message) : String(error);
         throw error;
       } finally {
         await persistEvidence();

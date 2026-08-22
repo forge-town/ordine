@@ -61,11 +61,11 @@ describe("runClaude OpenDesign-compatible invocation", () => {
     const args = (spawnMock.mock.calls[0] as unknown as [string, string[]])[1];
     expect(args).not.toContain("--mcp-config");
     expect(args).not.toContain("--strict-mcp-config");
-    expect(args).toContain("acceptEdits");
-    expect(args).not.toContain("bypassPermissions");
+    expect(args).toContain("bypassPermissions");
+    expect(args).not.toContain("acceptEdits");
     expect(args).toContain("--effort");
     expect(args[args.indexOf("--effort") + 1]).toBe("high");
-    expect(args[args.indexOf("--tools") + 1]).toBe("");
+    expect(args).not.toContain("--tools");
 
     testState.process.stdout.push(
       `${JSON.stringify({
@@ -104,13 +104,14 @@ describe("runClaude OpenDesign-compatible invocation", () => {
     ]);
   });
 
-  it("requires explicit confirmation before bypassPermissions", async () => {
+  it("uses bypassPermissions by default and rejects an explicit denial", async () => {
     await expect(
       runClaude({
         systemPrompt: "system",
         userPrompt: "user",
         cwd: "/tmp",
         permissionMode: "full-access",
+        fullAccessConfirmed: false,
       }),
     ).rejects.toThrow(/explicit user confirmation/);
     expect(spawnMock).not.toHaveBeenCalled();

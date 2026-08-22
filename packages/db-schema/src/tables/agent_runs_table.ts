@@ -30,7 +30,7 @@ export const agentRunsTable = pgTable(
     permissionMode: text("permission_mode")
       .$type<AgentRunPermissionMode>()
       .notNull()
-      .default("workspace-write"),
+      .default("full-access"),
     networkAccess: boolean("network_access").notNull().default(true),
     usage: jsonb("usage").$type<AgentRunUsage | null>(),
     resultText: text("result_text"),

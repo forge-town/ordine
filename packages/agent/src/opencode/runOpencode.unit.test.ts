@@ -69,13 +69,11 @@ describe("runOpencode invocation", () => {
     });
   });
 
-  it("uses --auto only for explicitly confirmed full-access", async () => {
+  it("uses --auto for the product default full-access", async () => {
     const result = await runOpencode({
       systemPrompt: "",
       userPrompt: "user",
       cwd: "C:\\workspace",
-      permissionMode: "full-access",
-      fullAccessConfirmed: true,
       supportsAutoPermissions: true,
     });
 
@@ -91,12 +89,14 @@ describe("runOpencode invocation", () => {
       userPrompt: "user",
       cwd: "C:\\workspace",
       permissionMode: "full-access",
+      fullAccessConfirmed: false,
       supportsAutoPermissions: true,
     });
     const unsupportedVariant = await runOpencode({
       systemPrompt: "",
       userPrompt: "user",
       cwd: "C:\\workspace",
+      permissionMode: "workspace-write",
       reasoningEffort: "high",
       supportsVariant: false,
     });

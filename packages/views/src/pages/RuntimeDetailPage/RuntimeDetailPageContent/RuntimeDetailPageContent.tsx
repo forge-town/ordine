@@ -343,7 +343,7 @@ export const RuntimeDetailPageContent = () => {
             <div className="rounded-lg bg-surface-2 p-3 text-xs leading-5 text-muted-foreground">
               Isolation:{" "}
               {runtime.type === "codex"
-                ? "native Codex sandbox (workspace-write by default; full access requires explicit confirmation)"
+                ? "native Codex sandbox (full access by default; read-only and workspace-write remain available)"
                 : runtime.type === "claude-code"
                   ? "Claude Code permission mode and explicit tool policy (best-effort isolation)"
                   : "OpenCode permission policy with explicit external-directory and dangerous-command denies (best-effort isolation)"}

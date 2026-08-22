@@ -202,7 +202,7 @@ const runCodexDirect = async (opts: AgentRunOptions): Promise<DriverResult> => {
     onTextDelta: toAsyncTextDelta(opts.onTextDelta),
     connectorInjection,
     sandbox:
-      opts.permissionMode === "full-access"
+      (opts.permissionMode ?? "full-access") === "full-access"
         ? "danger-full-access"
         : opts.permissionMode === "read-only"
           ? "read-only"

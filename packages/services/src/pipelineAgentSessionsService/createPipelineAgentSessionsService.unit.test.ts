@@ -976,9 +976,9 @@ describe("createPipelineAgentSessionsService", () => {
         model: "anthropic/claude-sonnet-4-5",
         reasoningEffort: "high",
         speed: "priority",
-        permissionMode: "workspace-write",
+        permissionMode: "full-access",
         networkAccess: true,
-        fullAccessConfirmed: false,
+        fullAccessConfirmed: true,
       }),
     );
   });
