@@ -100,8 +100,16 @@ describe("runMigrations", () => {
       `SELECT name FROM _ordine_migrations ORDER BY name`,
     );
     expect(applied).toHaveLength(10);
+    const [permissionColumn] = await db.unsafe<{ column_default: string | null }[]>(
+      `SELECT column_default
+         FROM information_schema.columns
+         WHERE table_schema = 'public'
+           AND table_name = 'agent_runs'
+           AND column_name = 'permission_mode'`,
+    );
+    expect(permissionColumn?.column_default).toContain("full-access");
     await db.end();
-  });
+  }, 15_000);
 
   it("upgrades a complete legacy schema without migration tracking", async () => {
     const db = postgres(resolvedDatabaseUrl, { onnotice: () => {} });
