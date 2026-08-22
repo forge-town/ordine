@@ -1144,6 +1144,8 @@ export const createPipelineAgentSessionsService = (
       input?: {
         runtimeId?: string;
         model?: string;
+        reasoningEffort?: string;
+        speed?: string;
         permissionMode?: "read-only" | "workspace-write" | "full-access";
         networkAccess?: boolean;
         fullAccessConfirmed?: boolean;
@@ -1159,12 +1161,14 @@ export const createPipelineAgentSessionsService = (
         agentRuntimesDao.findMany(),
       ]);
       const selectedRuntime = input?.runtimeId
-        ? runtimes.find((runtime) => runtime.id === input.runtimeId) ?? null
-        : runtimes.find((runtime) => runtime.type === settings.defaultAgentRuntime) ??
+        ? (runtimes.find((runtime) => runtime.id === input.runtimeId) ?? null)
+        : (runtimes.find((runtime) => runtime.id === settings.defaultAgentRuntimeConfigId) ??
+          runtimes.find((runtime) => runtime.type === settings.defaultAgentRuntime) ??
           runtimes[0] ??
-          null;
+          null);
       const runtimeId = input?.runtimeId ?? selectedRuntime?.id;
       if (!runtimeId) throw createRuntimeNotFoundError(input?.runtimeId);
+      const runtimePreference = settings.agentRuntimePreferences?.[runtimeId];
       const rebuildPrompt = buildPlanningPrompt({
         artifacts,
         messages,
@@ -1177,16 +1181,15 @@ export const createPipelineAgentSessionsService = (
         .reverse()
         .find((message) => message.role === "user")?.content;
       const agentRunsService = getAgentRunsService();
-      const previous = await agentRunsService.getLatestByOwner(
-        "pipeline-agent-session",
-        sessionId,
-      );
+      const previous = await agentRunsService.getLatestByOwner("pipeline-agent-session", sessionId);
       await sessionsDao.update(sessionId, { status: "analyzing" });
       const started = await agentRunsService.start({
         owner: { type: "pipeline-agent-session", id: sessionId },
         runtimeConfigId: runtimeId,
         cwd: process.cwd(),
-        model: input?.model ?? settings.defaultModel ?? undefined,
+        model: input?.model ?? runtimePreference?.model ?? settings.defaultModel ?? undefined,
+        reasoningEffort: input?.reasoningEffort ?? runtimePreference?.reasoningEffort,
+        speed: input?.speed ?? runtimePreference?.speed,
         systemPrompt: "You are a fast planning assistant. Return only valid JSON.",
         prompt: latestUserMessage ?? rebuildPrompt,
         rebuildPrompt,

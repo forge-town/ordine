@@ -1,68 +1,66 @@
-import { useCreate, useDataProvider, useDelete, useList, useUpdate } from "@refinedev/core";
-import { useStore } from "zustand";
+import { useCustom, useCustomMutation } from "@refinedev/core";
 import { CircleAlert, Cpu, Loader2, Radar, RefreshCw, TerminalSquare } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { AGENT_RUNTIME_ENUM, type AgentRuntimeConfig } from "@repo/schemas";
+import { useStore } from "zustand";
+import type { AgentRuntimeCatalogEntry } from "@repo/schemas";
 import { Button } from "@repo/ui/button";
 import { Skeleton } from "@repo/ui/skeleton";
 import { PageHeader } from "../../../components/PageHeader";
 import { PageState } from "../../../components/PageState";
 import { LocalAgentCard } from "../LocalAgentCard";
-import { ScanDiffModal } from "../ScanDiffModal";
-import { type DetectedRuntime, useRuntimesPageStore } from "../_store";
-
-const SUPPORTED_RUNTIME_COUNT = Object.keys(AGENT_RUNTIME_ENUM).length;
+import { RuntimeConnectionTestSheet } from "../RuntimeConnectionTestSheet";
+import { useRuntimesPageStore } from "../_store";
 
 export const RuntimesPageContent = () => {
   const { t } = useTranslation();
   const store = useRuntimesPageStore();
-  const isScanning = useStore(store, (s) => s.isScanning);
-  const scanFailed = useStore(store, (s) => s.scanFailed);
-  const handleScanButtonClick = useStore(store, (s) => s.handleScanButtonClick);
-  const handleConfirmSyncButtonClick = useStore(store, (s) => s.handleConfirmSyncButtonClick);
-  const getDataProvider = useDataProvider();
-  const { mutateAsync: createRuntime } = useCreate();
-  const { mutateAsync: updateRuntime } = useUpdate();
-  const { mutateAsync: deleteRuntime } = useDelete();
-
-  const { result: runtimesResult, query: runtimesQuery } = useList<AgentRuntimeConfig>({
-    resource: "agentRuntimes",
+  const connectionTestRuntimeConfigId = useStore(
+    store,
+    (state) => state.connectionTestRuntimeConfigId,
+  );
+  const isScanning = useStore(store, (state) => state.isScanning);
+  const scanFailed = useStore(store, (state) => state.scanFailed);
+  const handleConnectionTestOpenChange = useStore(
+    store,
+    (state) => state.handleConnectionTestOpenChange,
+  );
+  const handleRescanButtonClick = useStore(store, (state) => state.handleRescanButtonClick);
+  const { result, query: catalogQuery } = useCustom<AgentRuntimeCatalogEntry[]>({
+    method: "get",
+    url: "agentRuntimes/getCatalog",
   });
-  const runtimes = runtimesResult.data;
-  const localRuntimes = runtimes.filter((runtime) => runtime.connection.mode === "local");
+  const { mutateAsync: rescanCatalog } = useCustomMutation();
+  const catalog = result?.data ?? [];
+  const orderedCatalog = [...catalog].sort((left, right) => {
+    const supportOrder = { supported: 0, experimental: 1, unsupported: 2 } as const;
+
+    return (
+      supportOrder[left.compatibility.supportLevel] - supportOrder[right.compatibility.supportLevel]
+    );
+  });
+  const supported = catalog.filter((entry) => entry.compatibility.supportLevel === "supported");
+  const launchable = supported.filter((entry) => entry.availability === "launchable");
+  const connectionTestEntry = catalog.find(
+    (entry) => entry.runtimeConfigId === connectionTestRuntimeConfigId,
+  );
 
   const handleScan = () => {
-    const dataProvider = getDataProvider();
-    void handleScanButtonClick(runtimes, async () => {
-      const result = await dataProvider.custom!<DetectedRuntime[]>({
-        method: "get",
-        url: "settings/scanRuntimes",
+    void handleRescanButtonClick(async () => {
+      const response = await rescanCatalog({
+        method: "post",
+        url: "agentRuntimes/rescanCatalog",
+        values: {},
       });
+      await catalogQuery.refetch();
 
-      return result.data;
+      return response.data as AgentRuntimeCatalogEntry[];
     });
   };
-
-  const handleConfirmSync = async () => {
-    await handleConfirmSyncButtonClick({
-      createRuntime: (values) =>
-        createRuntime({
-          resource: "agentRuntimes",
-          values,
-        }),
-      updateRuntime: (values) =>
-        updateRuntime({
-          resource: "agentRuntimes",
-          id: values.id,
-          values,
-        }),
-      deleteRuntime: (id) =>
-        deleteRuntime({
-          resource: "agentRuntimes",
-          id,
-        }),
-    });
-    await runtimesQuery.refetch();
+  const handleCatalogRetry = () => {
+    void catalogQuery.refetch();
+  };
+  const handleConnectionSheetOpenChange = (open: boolean) => {
+    if (!open) handleConnectionTestOpenChange(null);
   };
 
   return (
@@ -78,7 +76,11 @@ export const RuntimesPageContent = () => {
             {isScanning ? t("localAgents.scanning") : t("localAgents.rescan")}
           </Button>
         }
-        badge={<span className="text-xs text-muted-foreground">{runtimes.length}</span>}
+        badge={
+          <span className="text-xs text-muted-foreground">
+            {launchable.length}/{supported.length}
+          </span>
+        }
         eyebrow={t("nav.groups.capabilities")}
         icon={<Cpu className="size-[18px] text-muted-foreground" />}
         sub={t("localAgents.subtitle")}
@@ -111,16 +113,16 @@ export const RuntimesPageContent = () => {
           </div>
         )}
 
-        {runtimesQuery.isLoading ? (
+        {catalogQuery.isLoading ? (
           <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <Skeleton key={i} className="h-[190px] w-full rounded-lg" />
+            {Array.from({ length: 4 }).map((_, index) => (
+              <Skeleton key={index} className="h-[230px] w-full rounded-lg" />
             ))}
           </div>
-        ) : runtimesQuery.isError ? (
+        ) : catalogQuery.isError ? (
           <PageState
             action={
-              <Button size="sm" variant="outline" onClick={() => runtimesQuery.refetch()}>
+              <Button size="sm" variant="outline" onClick={handleCatalogRetry}>
                 <RefreshCw className="size-3.5" />
                 {t("common.retry")}
               </Button>
@@ -129,7 +131,7 @@ export const RuntimesPageContent = () => {
             icon={<Radar />}
             title={t("common.notFound")}
           />
-        ) : runtimes.length === 0 ? (
+        ) : catalog.length === 0 ? (
           <PageState
             description={t("localAgents.emptyHint")}
             icon={<Cpu />}
@@ -137,8 +139,12 @@ export const RuntimesPageContent = () => {
           />
         ) : (
           <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
-            {runtimes.map((runtime) => (
-              <LocalAgentCard key={runtime.id} runtime={runtime} />
+            {orderedCatalog.map((entry) => (
+              <LocalAgentCard
+                key={entry.runtime}
+                entry={entry}
+                onConnectionTest={handleConnectionTestOpenChange}
+              />
             ))}
           </div>
         )}
@@ -147,14 +153,18 @@ export const RuntimesPageContent = () => {
           <Radar className="size-3.5 shrink-0" />
           <span>
             {t("localAgents.detected", {
-              count: localRuntimes.length,
-              total: SUPPORTED_RUNTIME_COUNT,
+              count: launchable.length,
+              total: supported.length,
             })}
           </span>
         </div>
       </div>
 
-      <ScanDiffModal onConfirm={handleConfirmSync} />
+      <RuntimeConnectionTestSheet
+        entry={connectionTestEntry ?? null}
+        open={connectionTestEntry !== undefined}
+        onOpenChange={handleConnectionSheetOpenChange}
+      />
     </div>
   );
 };

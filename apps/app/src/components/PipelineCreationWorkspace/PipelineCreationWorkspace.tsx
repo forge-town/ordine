@@ -13,7 +13,12 @@ import { AlertCircle, CheckCircle2, ExternalLink, Loader2, Play, Plus } from "lu
 import { Badge } from "@repo/ui/badge";
 import { Button } from "@repo/ui/button";
 import { cn } from "@repo/ui/lib/utils";
-import type { PipelineAgentProposal, PipelineData } from "@repo/schemas";
+import type {
+  AgentExecutionChoice,
+  AgentRuntimeCatalogEntry,
+  PipelineAgentProposal,
+  PipelineData,
+} from "@repo/schemas";
 import { sidebarStore as sharedSidebarStore } from "@repo/views/store/sidebarStore";
 import { dataProvider, ResourceName } from "@/integrations/refine/dataProvider";
 import { materializeGeneratedPipeline } from "@/lib/materializeGeneratedPipeline";
@@ -51,7 +56,13 @@ export interface PipelineCreationWorkspaceProps {
   runtimeId?: string;
   runtimeLabel?: string;
   runtimeOptions?: PipelineCreationRuntimeOption[];
+  executionCatalog?: AgentRuntimeCatalogEntry[];
+  executionChoice?: AgentExecutionChoice | null;
+  executionLoading?: boolean;
   onRuntimeChange?: (runtimeId: string | null) => void;
+  onExecutionChoiceChange?: (choice: AgentExecutionChoice) => void;
+  onExecutionRuntimeChange?: (runtimeConfigId: string) => void;
+  onOpenRuntimeSettings?: () => void;
   onClose?: () => void;
 }
 
@@ -64,7 +75,13 @@ export const PipelineCreationWorkspace = ({
   runtimeId,
   runtimeLabel,
   runtimeOptions,
+  executionCatalog,
+  executionChoice,
+  executionLoading,
   onRuntimeChange: handleRuntimeChange,
+  onExecutionChoiceChange: handleExecutionChoiceChange,
+  onExecutionRuntimeChange: handleExecutionRuntimeChange,
+  onOpenRuntimeSettings: handleOpenRuntimeSettings,
   onClose: handleClose,
 }: PipelineCreationWorkspaceProps) => {
   const { t } = useTranslation();
@@ -324,7 +341,8 @@ export const PipelineCreationWorkspace = ({
           kind: "diagnostic",
           title: event.code,
           detail: event.message,
-          tone: event.level === "error" ? "error" : event.level === "warning" ? "warning" : "default",
+          tone:
+            event.level === "error" ? "error" : event.level === "warning" ? "warning" : "default",
         },
       ]);
 
@@ -460,7 +478,10 @@ export const PipelineCreationWorkspace = ({
         return;
       }
 
-      savePendingPipelinePrompt(text, runtimeId);
+      savePendingPipelinePrompt(
+        text,
+        executionChoice ?? (runtimeId ? { runtimeConfigId: runtimeId } : null),
+      );
       setInputValue("");
       void router.navigate({ to: "/canvas", search: { id: createResult.value.data.id } });
 
@@ -497,6 +518,11 @@ export const PipelineCreationWorkspace = ({
         const streamedTerminalEvent = { current: false };
         await client.planSessionStream(sessionId, {
           runtimeId,
+          ...(executionChoice?.model ? { model: executionChoice.model } : {}),
+          ...(executionChoice?.reasoningEffort
+            ? { reasoningEffort: executionChoice.reasoningEffort }
+            : {}),
+          ...(executionChoice?.speed ? { speed: executionChoice.speed } : {}),
           signal: controller.signal,
           onEvent: (event) => {
             if (
@@ -917,6 +943,9 @@ export const PipelineCreationWorkspace = ({
       )}
 
       <PipelineCreationComposer
+        executionCatalog={executionCatalog}
+        executionChoice={executionChoice}
+        executionLoading={executionLoading}
         fileInputRef={fileInputRef}
         hasConversation={hasConversation}
         inputValue={inputValue}
@@ -933,8 +962,11 @@ export const PipelineCreationWorkspace = ({
         onApprove={handleApprove}
         onCancel={handleCancel}
         onClose={handleClose}
+        onExecutionChoiceChange={handleExecutionChoiceChange}
+        onExecutionRuntimeChange={handleExecutionRuntimeChange}
         onInputChange={handleMessageInputChange}
         onInputKeyDown={handleInputKeyDown}
+        onOpenRuntimeSettings={handleOpenRuntimeSettings}
         onReject={handleReject}
         onRevise={handleRevise}
         onRuntimeChange={handleRuntimeChange}

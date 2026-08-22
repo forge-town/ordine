@@ -164,8 +164,9 @@ const terminalRunStatuses = [
   "interrupted",
 ] as const;
 type TerminalRunStatus = (typeof terminalRunStatuses)[number];
-const isTerminalRunStatus = (status: z.infer<typeof AgentRunSchema>["status"]): status is TerminalRunStatus =>
-  terminalRunStatuses.includes(status as TerminalRunStatus);
+const isTerminalRunStatus = (
+  status: z.infer<typeof AgentRunSchema>["status"],
+): status is TerminalRunStatus => terminalRunStatuses.includes(status as TerminalRunStatus);
 
 const activeAgentRunStorageKey = (sessionId: string) =>
   `ordine.pipeline-agent.active-run.${sessionId}`;
@@ -554,6 +555,9 @@ export const pipelineAgentSessionsClient = {
     sessionId: string,
     input: {
       runtimeId?: string;
+      model?: string;
+      reasoningEffort?: string;
+      speed?: string;
       signal?: AbortSignal;
       onEvent: (event: PipelineAgentPlanEvent) => void;
     },
@@ -565,9 +569,12 @@ export const pipelineAgentSessionsClient = {
     };
 
     if (activeRunState.runId) {
-      const storedResponse = await fetch(`${agentRunsBaseUrl}/${encodeURIComponent(activeRunState.runId)}`, {
-        signal: input.signal,
-      });
+      const storedResponse = await fetch(
+        `${agentRunsBaseUrl}/${encodeURIComponent(activeRunState.runId)}`,
+        {
+          signal: input.signal,
+        },
+      );
       const stored = storedResponse.ok
         ? await readResponseJson(storedResponse, AgentRunSchema)
         : null;
@@ -582,7 +589,12 @@ export const pipelineAgentSessionsClient = {
       const startResponse = await fetch(`${pipelineAgentSessionsBaseUrl}/${sessionId}/runs`, {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify(input.runtimeId ? { runtimeId: input.runtimeId } : {}),
+        body: JSON.stringify({
+          ...(input.runtimeId ? { runtimeId: input.runtimeId } : {}),
+          ...(input.model ? { model: input.model } : {}),
+          ...(input.reasoningEffort ? { reasoningEffort: input.reasoningEffort } : {}),
+          ...(input.speed ? { speed: input.speed } : {}),
+        }),
         signal: input.signal,
       });
       const started = await readResponseJson(startResponse, AgentRunStartResponseSchema);
@@ -674,8 +686,7 @@ export const pipelineAgentSessionsClient = {
       input.onEvent({
         type: "error",
         code: run.errorCode ?? streamControl.terminalStatus ?? "AGENT_RUN_FAILED",
-        message:
-          run.errorMessage ?? `Agent run ended with status ${streamControl.terminalStatus}`,
+        message: run.errorMessage ?? `Agent run ended with status ${streamControl.terminalStatus}`,
       });
 
       return;

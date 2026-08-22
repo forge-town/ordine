@@ -1,139 +1,73 @@
-import { Boxes, ChevronRight, Clock, FileCode2, Sparkles } from "lucide-react";
+import { Boxes, ChevronRight, Clock, FileCode2, PlugZap, ShieldCheck } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import type { AgentRuntimeConfig } from "@repo/schemas";
+import type { AgentRuntimeCatalogEntry } from "@repo/schemas";
 import { Button } from "@repo/ui/button";
 import { surfaceCardVariants } from "@repo/ui/card";
 import { cn } from "@repo/ui/lib/utils";
 import { Mono, StatusPill, Tag } from "../../components/primitives";
 
-const RUNTIME_META: Record<
-  AgentRuntimeConfig["type"],
-  { capabilities: string[]; label: string; mono: string; models: string }
-> = {
-  "claude-code": {
-    capabilities: ["File edit", "Shell", "Web"],
-    label: "Claude Code",
-    mono: "CC",
-    models: "Sonnet / Opus via local CLI",
-  },
-  codex: {
-    capabilities: ["File edit", "Shell"],
-    label: "Codex",
-    mono: "Cx",
-    models: "OpenAI coding models",
-  },
-  hermes: {
-    capabilities: ["Local model", "Classification"],
-    label: "Hermes",
-    mono: "He",
-    models: "Local inference runtime",
-  },
-  mastra: {
-    capabilities: ["Tool use", "Workflow"],
-    label: "Mastra",
-    mono: "Ma",
-    models: "Framework runtime",
-  },
-  openclaw: {
-    capabilities: ["Shell", "Artifacts"],
-    label: "OpenClaw",
-    mono: "OC",
-    models: "OpenClaw runtime",
-  },
-  "pi-agent": {
-    capabilities: ["File edit", "Shell"],
-    label: "Pi Agent",
-    mono: "Pi",
-    models: "Multi-provider via local CLI",
-  },
-  opencode: {
-    capabilities: ["File edit", "Shell"],
-    label: "OpenCode",
-    mono: "Oc",
-    models: "Multi-provider via local CLI",
-  },
-  "kimi-code": {
-    capabilities: ["File edit", "Shell"],
-    label: "Kimi Code",
-    mono: "Ki",
-    models: "Moonshot models via local CLI",
-  },
-  "deepseek-harness": {
-    capabilities: ["Native profile", "Tool events", "MCP protocol"],
-    label: "DeepSeek Harness",
-    mono: "DS",
-    models: "DeepSeek Harness profile models",
-  },
-  "mistral-vibe": {
-    capabilities: ["ACP", "Tool events", "MCP protocol"],
-    label: "Mistral Vibe",
-    mono: "Vi",
-    models: "Mistral Vibe ACP models",
-  },
-  "deepseek-reasonix": {
-    capabilities: ["ACP", "Thinking", "MCP protocol"],
-    label: "DeepSeek Reasonix",
-    mono: "Rx",
-    models: "Reasonix ACP models",
-  },
-  kiro: {
-    capabilities: ["ACP", "Tool events", "Session resume"],
-    label: "Kiro CLI",
-    mono: "Kr",
-    models: "Kiro ACP models",
-  },
-  trae: {
-    capabilities: ["ACP", "Tool events", "MCP protocol"],
-    label: "Trae CLI",
-    mono: "Tr",
-    models: "Trae ACP models",
-  },
+const RUNTIME_MONO: Record<AgentRuntimeCatalogEntry["runtime"], string> = {
+  "claude-code": "CC",
+  codex: "Cx",
+  hermes: "He",
+  mastra: "Ma",
+  openclaw: "OC",
+  "pi-agent": "Pi",
+  opencode: "Oc",
+  "kimi-code": "Ki",
+  "deepseek-harness": "DS",
+  "mistral-vibe": "Vi",
+  "deepseek-reasonix": "Rx",
+  kiro: "Kr",
+  trae: "Tr",
 };
 
-export const LocalAgentCard = ({ runtime }: { runtime: AgentRuntimeConfig }) => {
+interface LocalAgentCardProps {
+  entry: AgentRuntimeCatalogEntry;
+  onConnectionTest?: (runtimeConfigId: string) => void;
+}
+
+export const LocalAgentCard = ({ entry, onConnectionTest }: LocalAgentCardProps) => {
   const { t } = useTranslation();
-  const meta = RUNTIME_META[runtime.type];
-  const connection = runtime.connection;
-  const isLocal = connection.mode === "local";
-  const executable = connection.mode === "local" ? connection.path : connection.host;
-  const version = connection.mode === "local" ? connection.version : undefined;
-  const detected = connection.mode === "local" && Boolean(connection.path);
-  const models = connection.mode === "local" ? (connection.models ?? []) : [];
-  const compatibility = runtime.compatibility;
-  const capabilities = compatibility
-    ? [
-        `Stream: ${compatibility.capabilities.textStreaming}`,
-        ...(compatibility.capabilities.thinking ? ["Thinking"] : []),
-        ...(compatibility.capabilities.toolEvents ? ["Tool events"] : []),
-        ...(compatibility.capabilities.usage ? ["Usage"] : []),
-        `MCP: ${compatibility.capabilities.mcpInjection}`,
-        `Cancel: ${compatibility.capabilities.cancellation}`,
-      ]
-    : meta.capabilities;
+  const capabilities = [
+    `Stream: ${entry.compatibility.capabilities.textStreaming}`,
+    ...(entry.compatibility.capabilities.thinking ? ["Thinking"] : []),
+    ...(entry.compatibility.capabilities.toolEvents ? ["Tool events"] : []),
+    ...(entry.compatibility.capabilities.usage ? ["Usage"] : []),
+    `MCP: ${entry.compatibility.capabilities.mcpInjection}`,
+    `Cancel: ${entry.compatibility.capabilities.cancellation}`,
+  ];
+  const status =
+    entry.availability === "launchable"
+      ? { label: t("localAgents.launchableStatus"), tone: "ready" as const }
+      : entry.availability === "detected"
+        ? { label: t("localAgents.detectedOnlyStatus"), tone: "idle" as const }
+        : { label: t("localAgents.notDetectedStatus"), tone: "idle" as const };
+  const supportsConnectionTest =
+    entry.compatibility.supportLevel === "supported" && entry.runtimeConfigId !== null;
+  const handleConnectionTestClick = () => {
+    if (entry.runtimeConfigId) onConnectionTest?.(entry.runtimeConfigId);
+  };
 
   return (
-    <article className={cn(surfaceCardVariants(), "flex min-h-[190px] flex-col p-4")}>
+    <article className={cn(surfaceCardVariants(), "flex min-h-[210px] flex-col p-4")}>
       <div className="flex items-center gap-3">
-        <Mono className={isLocal ? "bg-foreground text-primary-foreground" : undefined}>
-          {meta.mono}
+        <Mono className={entry.path ? "bg-foreground text-primary-foreground" : undefined}>
+          {RUNTIME_MONO[entry.runtime]}
         </Mono>
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <span className="truncate text-sm font-semibold">{runtime.name || meta.label}</span>
-            <span className="font-mono text-[10.5px] text-muted-foreground">
-              {runtime.connection.mode}
-            </span>
-            {compatibility && <Tag>{compatibility.supportLevel}</Tag>}
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="truncate text-sm font-semibold">{entry.displayName}</span>
+            <Tag>{entry.compatibility.supportLevel}</Tag>
           </div>
-          <div className="truncate text-[11.5px] text-muted-foreground">{meta.models}</div>
+          <div className="truncate text-[11px] text-muted-foreground">
+            {entry.authenticationStatus} · models {entry.modelsSource}
+          </div>
         </div>
-        <StatusPill
-          label={t(detected ? "localAgents.detectedStatus" : "localAgents.configuredStatus")}
-          status={detected ? "ready" : "idle"}
-        />
+        <StatusPill label={status.label} status={status.tone} />
       </div>
 
-      <div className="mt-3.5 flex flex-wrap gap-1.5">
+      <div className="mt-3 flex flex-wrap gap-1.5">
         {capabilities.map((capability) => (
           <Tag key={capability}>{capability}</Tag>
         ))}
@@ -143,18 +77,18 @@ export const LocalAgentCard = ({ runtime }: { runtime: AgentRuntimeConfig }) => 
         <div className="flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
           <Boxes className="size-3.5" />
           <span>{t("localAgents.models")}</span>
-          <span className="ml-auto normal-case tracking-normal">{models.length}</span>
+          <span className="ml-auto normal-case tracking-normal">{entry.models.length}</span>
         </div>
         <div className="mt-1.5 flex flex-wrap gap-1.5">
-          {models.length > 0 ? (
-            models.slice(0, 5).map((model) => <Tag key={model.id}>{model.displayName}</Tag>)
+          {entry.models.length > 0 ? (
+            entry.models.slice(0, 5).map((model) => <Tag key={model.id}>{model.displayName}</Tag>)
           ) : (
             <span className="text-[10.5px] text-muted-foreground">
               {t("localAgents.modelsNotDetected")}
             </span>
           )}
-          {models.length > 5 && (
-            <span className="text-[10.5px] text-muted-foreground">+{models.length - 5}</span>
+          {entry.models.length > 5 && (
+            <span className="text-[10.5px] text-muted-foreground">+{entry.models.length - 5}</span>
           )}
         </div>
       </div>
@@ -166,41 +100,52 @@ export const LocalAgentCard = ({ runtime }: { runtime: AgentRuntimeConfig }) => 
             <div className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
               {t("localAgents.executable")}
             </div>
-            <div
-              className="mt-0.5 break-all font-mono text-[10.5px] leading-4 text-foreground"
-              title={executable}
-            >
-              {executable ?? t("localAgents.notDetectedPath")}
+            <div className="mt-0.5 break-all font-mono text-[10.5px] leading-4 text-foreground">
+              {entry.path ?? t("localAgents.notDetectedPath")}
             </div>
           </div>
         </div>
-        {version && (
+        {entry.version && (
           <div className="line-clamp-2 whitespace-pre-line pl-[22px] text-[10.5px] leading-4 text-muted-foreground">
-            {version}
+            {entry.version}
           </div>
         )}
       </div>
 
-      <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-border/70 pt-3 text-[11px] text-muted-foreground">
+      <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-border/70 pt-3 text-[11px] text-muted-foreground">
         <span className="inline-flex items-center gap-1">
-          <Sparkles className="size-3" />
-          {t("localAgents.assembled")}
+          <ShieldCheck className="size-3" />
+          {entry.runtime === "codex"
+            ? t("localAgents.nativeSandbox")
+            : t("localAgents.bestEffortPolicy")}
         </span>
         <span className="inline-flex items-center gap-1">
           <Clock className="size-3" />
-          {compatibility?.streamFormat ??
-            (runtime.connection.mode === "local" ? "localhost" : runtime.connection.host)}
+          {entry.authenticationStatus}
         </span>
-        <Button
-          className="ml-auto h-7 gap-1 px-2 text-xs"
-          nativeButton={false}
-          render={<a href={`/runtimes/${runtime.id}`} />}
-          size="sm"
-          variant="ghost"
-        >
-          {t("localAgents.configure")}
-          <ChevronRight className="size-3" />
-        </Button>
+        {supportsConnectionTest && onConnectionTest && entry.runtimeConfigId && (
+          <Button
+            className="ml-auto h-7 gap-1 px-2 text-xs"
+            size="sm"
+            variant="outline"
+            onClick={handleConnectionTestClick}
+          >
+            <PlugZap className="size-3" />
+            {t("localAgents.connectionTest")}
+          </Button>
+        )}
+        {entry.runtimeConfigId && (
+          <Button
+            className={cn("h-7 gap-1 px-2 text-xs", !supportsConnectionTest && "ml-auto")}
+            nativeButton={false}
+            render={<a href={`/runtimes/${entry.runtimeConfigId}`} />}
+            size="sm"
+            variant="ghost"
+          >
+            {t("localAgents.configure")}
+            <ChevronRight className="size-3" />
+          </Button>
+        )}
       </div>
     </article>
   );

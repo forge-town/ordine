@@ -15,6 +15,8 @@ import { Button } from "@repo/ui/button";
 import { cn } from "@repo/ui/lib/utils";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@repo/ui/select";
 import { Textarea } from "@repo/ui/textarea";
+import type { AgentExecutionChoice, AgentRuntimeCatalogEntry } from "@repo/schemas";
+import { AgentExecutionPicker } from "@repo/views/AgentExecutionPicker";
 
 export type PipelineCreationPhase =
   | "conversation"
@@ -42,7 +44,13 @@ interface PipelineCreationComposerProps {
   runtimeId?: string;
   runtimeLabel?: string;
   runtimeOptions?: PipelineCreationRuntimeOption[];
+  executionCatalog?: AgentRuntimeCatalogEntry[];
+  executionChoice?: AgentExecutionChoice | null;
+  executionLoading?: boolean;
   onRuntimeChange?: (runtimeId: string | null) => void;
+  onExecutionChoiceChange?: (choice: AgentExecutionChoice) => void;
+  onExecutionRuntimeChange?: (runtimeConfigId: string) => void;
+  onOpenRuntimeSettings?: () => void;
   onApprove: () => void;
   onCancel: () => void;
   onClose?: () => void;
@@ -70,7 +78,13 @@ export const PipelineCreationComposer = ({
   runtimeId,
   runtimeLabel,
   runtimeOptions,
+  executionCatalog,
+  executionChoice,
+  executionLoading,
   onRuntimeChange: handleRuntimeChange,
+  onExecutionChoiceChange: handleExecutionChoiceChange,
+  onExecutionRuntimeChange: handleExecutionRuntimeChange,
+  onOpenRuntimeSettings: handleOpenRuntimeSettings,
   onApprove: handleApprove,
   onCancel: handleCancel,
   onClose: handleClose,
@@ -162,7 +176,19 @@ export const PipelineCreationComposer = ({
             {!isHome && <span>{t("newPipelineDialog.upload")}</span>}
           </Button>
 
-          {isHome && runtimeConfigured === true && runtimeId && runtimeOptions?.length ? (
+          {isHome &&
+          executionCatalog &&
+          handleExecutionChoiceChange &&
+          handleExecutionRuntimeChange ? (
+            <AgentExecutionPicker
+              catalog={executionCatalog}
+              choice={executionChoice ?? null}
+              isLoading={executionLoading}
+              onChange={handleExecutionChoiceChange}
+              onOpenSettings={handleOpenRuntimeSettings}
+              onRuntimeChange={handleExecutionRuntimeChange}
+            />
+          ) : isHome && runtimeConfigured === true && runtimeId && runtimeOptions?.length ? (
             <Select value={runtimeId} onValueChange={handleRuntimeChange}>
               <SelectTrigger
                 aria-label={t("home.selectLocalAgent")}

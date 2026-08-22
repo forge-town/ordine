@@ -343,10 +343,10 @@ export const RuntimeDetailPageContent = () => {
             <div className="rounded-lg bg-surface-2 p-3 text-xs leading-5 text-muted-foreground">
               Isolation:{" "}
               {runtime.type === "codex"
-                ? "OpenDesign policy (native workspace sandbox on supported macOS/Linux; unrestricted on Windows/WSL)"
+                ? "native Codex sandbox (workspace-write by default; full access requires explicit confirmation)"
                 : runtime.type === "claude-code"
-                  ? "Claude Code bypassPermissions headless policy"
-                  : "OpenCode permission bypass only when advertised by run --help"}
+                  ? "Claude Code permission mode and explicit tool policy (best-effort isolation)"
+                  : "OpenCode permission policy with explicit external-directory and dangerous-command denies (best-effort isolation)"}
               . The probe performs one safe model request with the same local-agent invocation
               policy.
             </div>

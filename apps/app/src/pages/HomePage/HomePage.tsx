@@ -1,39 +1,38 @@
-import { useState } from "react";
-import { useList } from "@refinedev/core";
 import { AlertTriangle, Bot, ChevronRight, RefreshCw } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
-import type { AgentRuntimeConfig } from "@repo/schemas";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { Button } from "@repo/ui/button";
+import { useAgentExecutionChoice } from "@repo/views/AgentExecutionPicker";
 import { PipelineCreationWorkspace } from "@/components/PipelineCreationWorkspace";
 import { useSidebarStore } from "@/store/sidebarStore";
 
 export const HomePage = () => {
   const { t } = useTranslation();
-  const [selectedRuntimeId, setSelectedRuntimeId] = useState<string | null>(null);
+  const navigate = useNavigate();
   const sidebarStore = useSidebarStore();
   const workspaceVersion = useStore(sidebarStore, (state) => state.newPipelineWorkspaceVersion);
-  const { result, query } = useList<AgentRuntimeConfig>({
-    resource: "agentRuntimes",
-  });
-  const localRuntimes = result.data.filter((runtime) => runtime.connection.mode === "local");
-  const defaultRuntime =
-    localRuntimes.find((candidate) => candidate.type === "codex") ?? localRuntimes[0];
-  const runtime =
-    localRuntimes.find((candidate) => candidate.id === selectedRuntimeId) ?? defaultRuntime;
-  const runtimeLabel = query.isLoading
+  const {
+    catalog,
+    catalogQuery,
+    choice,
+    isLoading,
+    persistChoice: handleExecutionChoiceChange,
+    selectRuntime: handleExecutionRuntimeChange,
+  } = useAgentExecutionChoice();
+  const runtime = catalog.find(
+    (candidate) => candidate.runtimeConfigId === choice?.runtimeConfigId,
+  );
+  const runtimeLabel = isLoading
     ? t("home.checkingAgent")
-    : query.isError
+    : catalogQuery.isError
       ? t("home.agentQueryFailed")
       : runtime
-        ? localRuntimes.length > 1
-          ? t("home.localAgentCount", { name: runtime.name, count: localRuntimes.length - 1 })
-          : runtime.name
+        ? runtime.displayName
         : undefined;
-  const handleRuntimeRetry = () => void query.refetch();
-  const handleRuntimeValueChange = (runtimeId: string | null) => {
-    setSelectedRuntimeId(runtimeId);
+  const handleRuntimeRetry = () => void catalogQuery.refetch();
+  const handleOpenRuntimeSettings = () => {
+    void navigate({ to: "/runtimes" });
   };
 
   return (
@@ -47,7 +46,7 @@ export const HomePage = () => {
           <Link
             aria-label={t("home.manageLocalAgents")}
             className="flex min-w-0 max-w-[min(45vw,16rem)] items-center gap-2 rounded-lg px-2 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-surface-2 hover:text-foreground"
-            to="/local-agents"
+            to="/runtimes"
           >
             <span className="size-1.5 shrink-0 rounded-full bg-info" />
             <span className="truncate">{runtimeLabel}</span>
@@ -56,11 +55,11 @@ export const HomePage = () => {
         ) : (
           <Link
             className="inline-flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-surface-2 hover:text-foreground"
-            to="/local-agents"
+            to="/runtimes"
           >
             <Bot className="size-3.5" />
             <span className="hidden sm:inline">
-              {query.isError ? t("home.agentQueryFailed") : t("home.connectLocalAgent")}
+              {catalogQuery.isError ? t("home.agentQueryFailed") : t("home.connectLocalAgent")}
             </span>
             <ChevronRight className="size-3.5" />
           </Link>
@@ -75,7 +74,7 @@ export const HomePage = () => {
             </h1>
           </div>
 
-          {query.isError ? (
+          {catalogQuery.isError ? (
             <div
               className="mb-3 flex items-center gap-3 rounded-xl border border-destructive/30 bg-destructive/8 px-3 py-2.5 text-sm"
               role="alert"
@@ -94,12 +93,16 @@ export const HomePage = () => {
           <PipelineCreationWorkspace
             key={workspaceVersion}
             active
+            executionCatalog={catalog}
+            executionChoice={choice}
+            executionLoading={isLoading}
             presentation="home"
-            runtimeConfigured={query.isLoading ? undefined : Boolean(runtime)}
-            runtimeId={runtime?.id}
+            runtimeConfigured={isLoading ? undefined : Boolean(choice)}
+            runtimeId={choice?.runtimeConfigId}
             runtimeLabel={runtimeLabel}
-            runtimeOptions={localRuntimes.map(({ id, name }) => ({ id, name }))}
-            onRuntimeChange={handleRuntimeValueChange}
+            onExecutionChoiceChange={handleExecutionChoiceChange}
+            onExecutionRuntimeChange={handleExecutionRuntimeChange}
+            onOpenRuntimeSettings={handleOpenRuntimeSettings}
           />
         </div>
       </main>

@@ -88,7 +88,11 @@ describe("pipelineAgentSessionsClient.planSessionStream", () => {
       .mockResolvedValueOnce(sessionWithProposal()) as typeof fetch;
 
     await pipelineAgentSessionsClient.planSessionStream("session-1", {
+      model: "gpt-5.6",
       onEvent,
+      reasoningEffort: "high",
+      runtimeId: "local-codex",
+      speed: "priority",
     });
 
     expect(onEvent).toHaveBeenNthCalledWith(1, {
@@ -133,6 +137,13 @@ describe("pipelineAgentSessionsClient.planSessionStream", () => {
       "http://localhost:3000/api/pipeline-agent-sessions/session-1/runs",
       expect.objectContaining({ method: "POST" }),
     );
+    const startRequest = vi.mocked(globalThis.fetch).mock.calls[0]?.[1];
+    expect(JSON.parse(String(startRequest?.body))).toEqual({
+      runtimeId: "local-codex",
+      model: "gpt-5.6",
+      reasoningEffort: "high",
+      speed: "priority",
+    });
   });
 
   it("flushes a terminal event without a final delimiter and restores the saved question", async () => {
@@ -151,7 +162,12 @@ describe("pipelineAgentSessionsClient.planSessionStream", () => {
             mode: "generate",
             status: "awaiting_user",
             messages: [
-              { id: "message-1", role: "assistant", kind: "question", content: "Need one more answer?" },
+              {
+                id: "message-1",
+                role: "assistant",
+                kind: "question",
+                content: "Need one more answer?",
+              },
             ],
           }),
         ),

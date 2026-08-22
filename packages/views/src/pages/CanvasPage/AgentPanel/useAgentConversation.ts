@@ -26,6 +26,9 @@ export type AgentConversationSubmitInput = {
   content: string;
   metadata?: ConversationMessageMetadata;
   runtimeId: string;
+  model?: string;
+  reasoningEffort?: string;
+  speed?: string;
 };
 
 export const useAgentConversation = ({
@@ -259,9 +262,7 @@ export const useAgentConversation = ({
 
       if (event.type === "tool") {
         state.setConversationState("thinking");
-        state.setStreamingProgress(
-          `${event.name ?? "Tool"}: ${event.status ?? event.phase}`,
-        );
+        state.setStreamingProgress(`${event.name ?? "Tool"}: ${event.status ?? event.phase}`);
 
         return null;
       }
@@ -331,7 +332,14 @@ export const useAgentConversation = ({
   );
 
   const submitMessage = useCallback(
-    async ({ content, metadata, runtimeId }: AgentConversationSubmitInput) => {
+    async ({
+      content,
+      metadata,
+      runtimeId,
+      model,
+      reasoningEffort,
+      speed,
+    }: AgentConversationSubmitInput) => {
       const trimmedContent = content.trim();
       if (
         isLoading ||
@@ -380,6 +388,9 @@ export const useAgentConversation = ({
           let streamFailed = false;
           await client.planSessionStream(sessionId, {
             runtimeId,
+            ...(model ? { model } : {}),
+            ...(reasoningEffort ? { reasoningEffort } : {}),
+            ...(speed ? { speed } : {}),
             onEvent: (event) => {
               if (
                 event.type === "question" ||

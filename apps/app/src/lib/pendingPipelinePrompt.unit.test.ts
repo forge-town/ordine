@@ -7,11 +7,19 @@ describe("pendingPipelinePrompt", () => {
   });
 
   it("takes a saved prompt exactly once", () => {
-    savePendingPipelinePrompt("build a hackathon scout", "runtime-codex");
+    savePendingPipelinePrompt("build a hackathon scout", {
+      runtimeConfigId: "runtime-codex",
+      model: "gpt-5.6",
+      reasoningEffort: "high",
+      speed: "priority",
+    });
 
     expect(takePendingPipelinePrompt()).toEqual({
       prompt: "build a hackathon scout",
       runtimeId: "runtime-codex",
+      model: "gpt-5.6",
+      reasoningEffort: "high",
+      speed: "priority",
     });
     expect(takePendingPipelinePrompt()).toBeNull();
   });

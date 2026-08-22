@@ -475,6 +475,9 @@ export const createPipelineAgentSessionsClient = (platform: PipelineAgentSession
       sessionId: string,
       input: {
         runtimeId?: string;
+        model?: string;
+        reasoningEffort?: string;
+        speed?: string;
         signal?: AbortSignal;
         onEvent: (event: PipelineAgentPlanEvent) => void;
       },
@@ -506,7 +509,12 @@ export const createPipelineAgentSessionsClient = (platform: PipelineAgentSession
           {
             method: "POST",
             headers: { "content-type": "application/json" },
-            body: JSON.stringify(input.runtimeId ? { runtimeId: input.runtimeId } : {}),
+            body: JSON.stringify({
+              ...(input.runtimeId ? { runtimeId: input.runtimeId } : {}),
+              ...(input.model ? { model: input.model } : {}),
+              ...(input.reasoningEffort ? { reasoningEffort: input.reasoningEffort } : {}),
+              ...(input.speed ? { speed: input.speed } : {}),
+            }),
             signal: input.signal,
           },
         );
@@ -611,7 +619,9 @@ export const createPipelineAgentSessionsClient = (platform: PipelineAgentSession
       for (const _attempt of Array.from({ length: 50 })) {
         const session = await this.getSessionById(sessionId);
         const proposal =
-          (session.proposals ?? []).find((candidate) => candidate.id === session.latestProposalId) ??
+          (session.proposals ?? []).find(
+            (candidate) => candidate.id === session.latestProposalId,
+          ) ??
           (session.proposals ?? []).at(-1) ??
           null;
         const question = [...(session.messages ?? [])]
