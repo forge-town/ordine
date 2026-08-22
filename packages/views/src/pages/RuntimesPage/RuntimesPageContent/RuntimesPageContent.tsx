@@ -7,6 +7,7 @@ import { Button } from "@repo/ui/button";
 import { Skeleton } from "@repo/ui/skeleton";
 import { PageHeader } from "../../../components/PageHeader";
 import { PageState } from "../../../components/PageState";
+import { getAgentRuntimeCatalogData } from "../../../components/AgentExecutionPicker";
 import { LocalAgentCard } from "../LocalAgentCard";
 import { RuntimeConnectionTestSheet } from "../RuntimeConnectionTestSheet";
 import { useRuntimesPageStore } from "../_store";
@@ -30,7 +31,7 @@ export const RuntimesPageContent = () => {
     url: "agentRuntimes/getCatalog",
   });
   const { mutateAsync: rescanCatalog } = useCustomMutation();
-  const catalog = result?.data ?? [];
+  const catalog = getAgentRuntimeCatalogData(result?.data);
   const orderedCatalog = [...catalog].sort((left, right) => {
     const supportOrder = { supported: 0, experimental: 1, unsupported: 2 } as const;
 

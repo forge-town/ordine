@@ -13,6 +13,7 @@ import {
   resolveAgentExecutionChoice,
   runtimeCatalogEntryIsSelectable,
 } from "./agentExecutionChoice";
+import { getAgentRuntimeCatalogData } from "./agentRuntimeCatalogData";
 
 interface UseAgentExecutionChoiceOptions {
   requestedRuntimeConfigId?: string | null;
@@ -32,7 +33,10 @@ export const useAgentExecutionChoice = ({
   const { mutate: updateSettings, mutation: updateMutation } = useUpdate();
   const [localChoice, setLocalChoice] = useState<AgentExecutionChoice | null>(null);
   const preferencesRef = useRef<AgentRuntimePreferences>({});
-  const catalog = useMemo(() => catalogResult?.data ?? [], [catalogResult?.data]);
+  const catalog = useMemo(
+    () => getAgentRuntimeCatalogData(catalogResult?.data),
+    [catalogResult?.data],
+  );
   useEffect(() => {
     if (!updateMutation.isPending) {
       preferencesRef.current = settings?.agentRuntimePreferences ?? {};

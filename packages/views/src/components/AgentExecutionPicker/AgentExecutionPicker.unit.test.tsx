@@ -107,5 +107,8 @@ describe("AgentExecutionPicker", () => {
     await waitFor(() =>
       expect(screen.queryByTestId("agent-execution-model-search")).not.toBeInTheDocument(),
     );
+
+    await user.click(screen.getByTestId("agent-execution-model-trigger"));
+    await waitFor(() => expect(screen.getByTestId("agent-execution-model-search")).toHaveFocus());
   });
 });

@@ -1,6 +1,8 @@
 import {
   useId,
+  useEffect,
   useMemo,
+  useRef,
   useState,
   type ChangeEvent,
   type KeyboardEvent,
@@ -35,6 +37,7 @@ export const SearchableModelSelect = ({
   const listboxId = useId();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const searchInputRef = useRef<HTMLInputElement | null>(null);
   const options = useMemo(
     () =>
       value && !models.some((model) => model.id === value)
@@ -54,6 +57,10 @@ export const SearchableModelSelect = ({
     customCandidate.length > 0 &&
     !options.some((model) => model.id.toLowerCase() === customCandidate.toLowerCase());
   const selected = options.find((model) => model.id === value);
+  const shouldShowSearch = options.length >= 8 || supportsCustomModel;
+  useEffect(() => {
+    if (open && shouldShowSearch) searchInputRef.current?.focus({ preventScroll: true });
+  }, [open, shouldShowSearch]);
   const handleOpenChange = (nextOpen: boolean) => {
     setOpen(nextOpen);
     if (!nextOpen) setQuery("");
@@ -95,11 +102,11 @@ export const SearchableModelSelect = ({
         <ChevronsUpDown className="size-3 shrink-0" />
       </PopoverTrigger>
       <PopoverContent align="start" className="w-[min(24rem,calc(100vw-1.5rem))] p-2">
-        {(options.length >= 8 || supportsCustomModel) && (
+        {shouldShowSearch && (
           <div className="relative mb-2">
             <Search className="pointer-events-none absolute left-2.5 top-2.5 size-3.5 text-muted-foreground" />
             <Input
-              autoFocus
+              ref={searchInputRef}
               aria-label={t("agentExecutionPicker.modelSearchLabel")}
               className="h-8 pl-8 text-xs"
               data-testid="agent-execution-model-search"
