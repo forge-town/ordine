@@ -23,7 +23,7 @@ export default defineConfig({
       BETTER_AUTH_SECRET: "ordine-playwright-local-secret-for-e2e-tests",
       NODE_OPTIONS: `--localstorage-file=/tmp/ordine-playwright-${playwrightPort}-localstorage`,
       ORDINE_LOCAL_MODE: "true",
-      ORDINE_EXTRA_RUNTIMES: "claude-code:node,codex:node,hermes:node",
+      ORDINE_EXTRA_RUNTIMES: "claude-code:node,codex:node,opencode:node",
       DATABASE_URL:
         process.env.PLAYWRIGHT_DATABASE_URL ??
         "postgresql://postgres:postgres@localhost:5432/ordine_playwright",

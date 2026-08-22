@@ -92,7 +92,7 @@ export const AgentExecutionPicker = ({
       </PopoverTrigger>
       <PopoverContent
         align="start"
-        className="max-h-[calc(100vh-2rem)] w-[min(32rem,calc(100vw-1.5rem))] space-y-3 overflow-y-auto p-3"
+        className="max-h-[45dvh] w-[min(32rem,calc(100vw-1.5rem))] space-y-3 overflow-y-auto p-3 sm:max-h-[calc(100dvh-2rem)]"
         data-testid="agent-execution-picker-popover"
         sideOffset={8}
       >
