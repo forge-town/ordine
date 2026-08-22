@@ -18,7 +18,10 @@ export interface RunCodexOptions {
   userPrompt: string;
   cwd: string;
   sandbox?: "read-only" | "workspace-write" | "danger-full-access";
+  fullAccessConfirmed?: boolean;
   model?: string;
+  reasoningEffort?: string;
+  speed?: string;
   timeoutMs?: number;
   onProgress?: (line: string) => Promise<void>;
   onTextDelta?: (text: string) => Promise<void> | void;
@@ -138,21 +141,9 @@ export const codexOpenDesignShellEnvironmentArgs = (
   ];
 };
 
-export const codexNeedsDangerFullAccessSandbox = (
-  platform: NodeJS.Platform = process.platform,
-  env: NodeJS.ProcessEnv = process.env,
-): boolean =>
-  env.OD_CODEX_SANDBOX?.trim() === "danger-full-access" ||
-  env.ORDINE_CODEX_SANDBOX?.trim() === "danger-full-access" ||
-  platform === "win32" ||
-  Boolean(env.WSL_DISTRO_NAME?.trim());
-
 export const resolveCodexSandbox = (
   requested: NonNullable<RunCodexOptions["sandbox"]>,
-  platform: NodeJS.Platform = process.platform,
-  env: NodeJS.ProcessEnv = process.env,
-): NonNullable<RunCodexOptions["sandbox"]> =>
-  codexNeedsDangerFullAccessSandbox(platform, env) ? "danger-full-access" : requested;
+): NonNullable<RunCodexOptions["sandbox"]> => requested;
 
 const TOML_KEY_RE = /^[A-Za-z0-9_-]+$/;
 
@@ -301,7 +292,10 @@ export const runCodex = async ({
   userPrompt,
   cwd,
   sandbox = "read-only",
+  fullAccessConfirmed = false,
   model,
+  reasoningEffort,
+  speed,
   timeoutMs = 10 * 60 * 1000,
   onProgress,
   onTextDelta,
@@ -312,6 +306,12 @@ export const runCodex = async ({
   executablePath = CODEX_BIN,
   networkAccess = true,
 }: RunCodexOptions): Promise<string> => {
+  if (sandbox === "danger-full-access" && !fullAccessConfirmed) {
+    throw new Error("Codex danger-full-access requires explicit user confirmation");
+  }
+  if (sandbox === "danger-full-access" && !networkAccess) {
+    throw new Error("Codex cannot enforce network isolation in danger-full-access mode");
+  }
   const MAX_INPUT_CHARS = 50_000;
   const truncatedPrompt =
     userPrompt.length > MAX_INPUT_CHARS
@@ -360,6 +360,12 @@ export const runCodex = async ({
   if (model && model !== "default") {
     args.push("--model", model);
   }
+  if (reasoningEffort && reasoningEffort !== "default") {
+    args.push("-c", `model_reasoning_effort=${JSON.stringify(reasoningEffort)}`);
+  }
+  if (speed && speed !== "default" && speed !== "standard") {
+    args.push("-c", `service_tier=${JSON.stringify(speed)}`);
+  }
   if (resumeSessionId) args.push(parsedResumeHandle?.threadId ?? resumeSessionId);
 
   logger.info({ cwd, requestedSandbox: sandbox, effectiveSandbox }, "runCodex: starting");
@@ -407,10 +413,7 @@ export const runCodex = async ({
         type: "diagnostic",
         level: "info",
         code: "CODEX_EFFECTIVE_SANDBOX",
-        message:
-          sandbox === effectiveSandbox
-            ? `Codex sandbox: ${effectiveSandbox}`
-            : `Codex sandbox: ${effectiveSandbox} (OpenDesign Windows/WSL policy; requested ${sandbox})`,
+        message: `Codex sandbox: ${effectiveSandbox}; network request: ${networkAccess ? "enabled" : "disabled"}`,
       });
       if (child.pid) {
         runtimeEvents.emit({

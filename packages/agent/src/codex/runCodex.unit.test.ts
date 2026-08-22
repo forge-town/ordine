@@ -84,6 +84,9 @@ describe("runCodex", () => {
       systemPrompt: "You are a linter",
       userPrompt: "Check this code",
       cwd: "/tmp/test",
+      model: "gpt-5.6-sol",
+      reasoningEffort: "high",
+      speed: "priority",
     };
 
     const promise = runCodex(opts);
@@ -114,6 +117,9 @@ describe("runCodex", () => {
     expect(args).toContain("--sandbox");
     expect(args).toContain(resolveCodexSandbox("read-only"));
     expect(args).toContain("--json");
+    expect(args).toContain("gpt-5.6-sol");
+    expect(args).toContain('model_reasoning_effort="high"');
+    expect(args).toContain('service_tier="priority"');
     expect(args).toContain('shell_environment_policy.inherit="all"');
     expect(spawnOpts.cwd).toBe("/tmp/test");
   });
@@ -612,11 +618,21 @@ describe("CODEX_SANDBOX_MODES", () => {
     expect(CODEX_SANDBOX_MODES.fullAccess).toBe("danger-full-access");
   });
 
-  it("uses OpenDesign's unrestricted Codex sandbox on Windows and WSL", () => {
-    expect(resolveCodexSandbox("workspace-write", "win32", {})).toBe("danger-full-access");
-    expect(resolveCodexSandbox("workspace-write", "linux", { WSL_DISTRO_NAME: "Ubuntu" })).toBe(
-      "danger-full-access",
-    );
-    expect(resolveCodexSandbox("workspace-write", "linux", {})).toBe("workspace-write");
+  it("never silently upgrades the requested sandbox on Windows or WSL", () => {
+    expect(resolveCodexSandbox("workspace-write")).toBe("workspace-write");
+    expect(resolveCodexSandbox("read-only")).toBe("read-only");
+  });
+
+  it("requires explicit confirmation before danger-full-access", async () => {
+    spawnMock.mockClear();
+    await expect(
+      runCodex({
+        systemPrompt: "sys",
+        userPrompt: "user",
+        cwd: "/tmp",
+        sandbox: "danger-full-access",
+      }),
+    ).rejects.toThrow(/explicit user confirmation/);
+    expect(spawnMock).not.toHaveBeenCalled();
   });
 });

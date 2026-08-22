@@ -9,11 +9,11 @@ vi.mock("../runtime/runJsonEventStream", () => ({
 
 import {
   buildOpenCodeMcpConfigContent,
-  OPENCODE_SKIP_PERMISSIONS_FLAG,
+  buildOpenCodeRunConfigContent,
   runOpencode,
 } from "./runOpencode";
 
-describe("runOpencode OpenDesign-compatible invocation", () => {
+describe("runOpencode invocation", () => {
   beforeEach(() => {
     runJsonEventStreamMock.mockReset();
     runJsonEventStreamMock.mockResolvedValue(
@@ -21,15 +21,17 @@ describe("runOpencode OpenDesign-compatible invocation", () => {
     );
   });
 
-  it("adds the permission bypass only after the exact help capability was detected", async () => {
+  it("passes the model variant and a workspace-write policy without dangerous legacy flags", async () => {
     const result = await runOpencode({
       systemPrompt: "system",
       userPrompt: "user",
       cwd: "C:\\workspace",
       executablePath: "C:\\bin\\opencode.exe",
-      supportsPermissionBypass: true,
+      permissionMode: "workspace-write",
+      supportsVariant: true,
       resumeSessionId: "ses_123",
       model: "provider/model",
+      reasoningEffort: "high",
     });
 
     expect(result.isOk()).toBe(true);
@@ -40,42 +42,102 @@ describe("runOpencode OpenDesign-compatible invocation", () => {
           "run",
           "--format",
           "json",
-          OPENCODE_SKIP_PERMISSIONS_FLAG,
           "-s",
           "ses_123",
           "-m",
           "provider/model",
+          "--variant",
+          "high",
         ],
         stdin: "system\n\n---\n\nuser",
+        env: expect.objectContaining({
+          OPENCODE_CONFIG_CONTENT: expect.any(String),
+        }),
       }),
     );
+    const options = runJsonEventStreamMock.mock.calls[0]?.[0] as {
+      args: string[];
+      env: Record<string, string>;
+    };
+    expect(options.args.join(" ")).not.toContain("dangerously-skip-permissions");
+    expect(JSON.parse(options.env.OPENCODE_CONFIG_CONTENT ?? "{}")).toMatchObject({
+      permission: {
+        edit: "allow",
+        external_directory: "deny",
+        bash: { "git push*": "deny", "rm -rf *": "deny" },
+      },
+    });
   });
 
-  it("does not synthesize unsupported permission flags", async () => {
-    await runOpencode({
+  it("uses --auto only for explicitly confirmed full-access", async () => {
+    const result = await runOpencode({
       systemPrompt: "",
       userPrompt: "user",
       cwd: "C:\\workspace",
-      supportsPermissionBypass: false,
+      permissionMode: "full-access",
+      fullAccessConfirmed: true,
+      supportsAutoPermissions: true,
     });
 
-    const options = runJsonEventStreamMock.mock.calls[0]?.[0] as { args: string[] };
-    expect(options.args).not.toContain(OPENCODE_SKIP_PERMISSIONS_FLAG);
+    expect(result.isOk()).toBe(true);
+    expect(runJsonEventStreamMock.mock.calls[0]?.[0]).toMatchObject({
+      args: ["run", "--format", "json", "--auto"],
+    });
   });
 
-  it("leaves OPENCODE_CONFIG_CONTENT unset without run-scoped MCP servers", () => {
+  it("rejects unconfirmed full-access and unsupported variants before spawn", async () => {
+    const unconfirmed = await runOpencode({
+      systemPrompt: "",
+      userPrompt: "user",
+      cwd: "C:\\workspace",
+      permissionMode: "full-access",
+      supportsAutoPermissions: true,
+    });
+    const unsupportedVariant = await runOpencode({
+      systemPrompt: "",
+      userPrompt: "user",
+      cwd: "C:\\workspace",
+      reasoningEffort: "high",
+      supportsVariant: false,
+    });
+
+    expect(unconfirmed.isErr() ? unconfirmed.error.message : "").toMatch(
+      /explicit user confirmation/,
+    );
+    expect(unsupportedVariant.isErr() ? unsupportedVariant.error.message : "").toMatch(/--variant/);
+    expect(runJsonEventStreamMock).not.toHaveBeenCalled();
+  });
+
+  it("builds a read-only policy that denies writes, external paths, and network tools", () => {
+    expect(JSON.parse(buildOpenCodeRunConfigContent(undefined, "read-only", false))).toMatchObject({
+      permission: {
+        edit: "deny",
+        external_directory: "deny",
+        webfetch: "deny",
+        websearch: "deny",
+        bash: { "*": "deny", "git status*": "allow" },
+      },
+    });
+  });
+
+  it("leaves the legacy MCP-only helper empty without run-scoped servers", () => {
     expect(buildOpenCodeMcpConfigContent(undefined)).toBeUndefined();
   });
 
-  it("injects only OpenDesign's MCP config shape", () => {
-    const content = buildOpenCodeMcpConfigContent({
-      mcpServers: {
-        ordine: { command: "node", args: ["ordine-mcp.js"], env: { TOKEN_FILE: "token" } },
+  it("merges MCP servers into the run-level permission config", () => {
+    const content = buildOpenCodeRunConfigContent(
+      {
+        mcpServers: {
+          ordine: { command: "node", args: ["ordine-mcp.js"], env: { TOKEN_FILE: "token" } },
+        },
+        toolNames: ["mcp__ordine__list_jobs"],
       },
-      toolNames: ["mcp__ordine__list_jobs"],
-    });
+      "workspace-write",
+      true,
+    );
 
-    expect(JSON.parse(content ?? "{}")).toEqual({
+    expect(JSON.parse(content)).toMatchObject({
+      permission: { external_directory: "deny" },
       mcp: {
         ordine: {
           type: "local",

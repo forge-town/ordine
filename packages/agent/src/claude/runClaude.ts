@@ -60,6 +60,50 @@ export const GH_TOOLS = [
   "Bash(gh:*)",
 ] as const satisfies readonly ToolName[];
 
+const CLAUDE_PERMISSION_MODES = {
+  "read-only": "plan",
+  "workspace-write": "acceptEdits",
+  "full-access": "bypassPermissions",
+} as const;
+
+const isReadOnlyTool = (tool: string, networkAccess: boolean): boolean =>
+  tool.startsWith("mcp__") ||
+  READ_ONLY_TOOLS.includes(tool as (typeof READ_ONLY_TOOLS)[number]) ||
+  (networkAccess && (tool === "WebSearch" || tool === "WebFetch" || tool === "Bash(curl:*)"));
+
+export const buildClaudePermissionArgs = ({
+  permissionMode,
+  allowedTools,
+  mcpToolNames,
+  networkAccess,
+}: {
+  permissionMode: keyof typeof CLAUDE_PERMISSION_MODES;
+  allowedTools: readonly string[] | undefined;
+  mcpToolNames: readonly string[] | undefined;
+  networkAccess: boolean;
+}): string[] => {
+  const hasExplicitToolSelection = allowedTools !== undefined || mcpToolNames !== undefined;
+  const requestedTools = [...new Set([...(allowedTools ?? []), ...(mcpToolNames ?? [])])];
+  const effectiveTools = requestedTools.filter(
+    (tool) =>
+      (permissionMode !== "read-only" || isReadOnlyTool(tool, networkAccess)) &&
+      (networkAccess || !["WebSearch", "WebFetch", "Bash(curl:*)"].includes(tool)),
+  );
+  const args = ["--permission-mode", CLAUDE_PERMISSION_MODES[permissionMode]];
+  if (hasExplicitToolSelection) {
+    const toolList = effectiveTools.join(",");
+    args.push("--tools", toolList);
+    if (toolList) args.push("--allowedTools", toolList);
+  }
+  const deniedTools = [
+    ...(permissionMode === "read-only" ? ["Edit", "Write"] : []),
+    ...(networkAccess ? [] : ["WebSearch", "WebFetch", "Bash(curl:*)", "Bash(wget:*)"]),
+  ];
+  if (deniedTools.length > 0) args.push("--disallowedTools", deniedTools.join(","));
+
+  return args;
+};
+
 const safeJsonParse = Result.fromThrowable(
   (text: string) => JSON.parse(text) as unknown,
   () => "invalid JSON",
@@ -116,6 +160,9 @@ export const runClaude = async ({
   userPrompt,
   cwd,
   model,
+  reasoningEffort,
+  speed,
+  allowedTools,
   executablePath = CLAUDE_BIN,
   timeoutMs = 20 * 60 * 1000,
   onProgress,
@@ -123,14 +170,26 @@ export const runClaude = async ({
   onRuntimeEvent,
   signal,
   permissionMode = "workspace-write",
+  fullAccessConfirmed = false,
   networkAccess = true,
   supportsPartialMessages = false,
+  supportsReasoningEffort = false,
   resumeSessionId,
   sessionId = crypto.randomUUID(),
   extraEnv,
   ssh,
   mcpConfigPath,
+  mcpToolNames,
 }: RunClaudeOptions): Promise<RunClaudeResult> => {
+  if (permissionMode === "full-access" && !fullAccessConfirmed) {
+    throw new Error("Claude Code full-access requires explicit user confirmation");
+  }
+  if (reasoningEffort && reasoningEffort !== "default" && !supportsReasoningEffort) {
+    throw new Error("Installed Claude Code CLI does not advertise --effort");
+  }
+  if (speed && speed !== "default" && speed !== "standard") {
+    throw new Error("Installed Claude Code CLI does not advertise a headless speed option");
+  }
   const MAX_INPUT_CHARS = 50_000;
   const sanitizedSystemPrompt = sanitizeSystemPrompt(systemPrompt);
   const truncatedPrompt =
@@ -153,9 +212,14 @@ export const runClaude = async ({
     "stream-json",
     ...(supportsPartialMessages ? ["--include-partial-messages"] : []),
     ...(model && model !== "default" ? ["--model", model] : []),
+    ...(reasoningEffort && reasoningEffort !== "default" ? ["--effort", reasoningEffort] : []),
     ...(mcpConfigPath ? ["--mcp-config", mcpConfigPath] : []),
-    "--permission-mode",
-    "bypassPermissions",
+    ...buildClaudePermissionArgs({
+      permissionMode,
+      allowedTools,
+      mcpToolNames,
+      networkAccess,
+    }),
     ...(resumeSessionId ? ["--resume", resumeSessionId] : ["--session-id", sessionId]),
   ];
 
@@ -170,7 +234,7 @@ export const runClaude = async ({
     type: "diagnostic",
     level: "info",
     code: "CLAUDE_EFFECTIVE_PERMISSION_MODE",
-    message: `Claude Code permission mode: bypassPermissions (OpenDesign headless policy; requested ${permissionMode}, network ${networkAccess ? "enabled" : "disabled request is not enforced by the CLI"})`,
+    message: `Claude Code permission mode: ${CLAUDE_PERMISSION_MODES[permissionMode]}; filesystem/network restrictions are CLI policy best-effort (${networkAccess ? "network allowed" : "network tools denied"})`,
   });
   await onProgress?.(`${label} Starting claude -p (cwd=${cwd})...`);
 

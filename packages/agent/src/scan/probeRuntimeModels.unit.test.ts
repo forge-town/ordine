@@ -71,7 +71,7 @@ describe("runtime model catalog parsers", () => {
         defaultSpeed: "standard",
         speeds: [
           { value: "standard", label: "Standard", isDefault: true },
-          { value: "fast", label: "Fast" },
+          { value: "priority", label: "Fast" },
         ],
         supportsImageInput: true,
       },

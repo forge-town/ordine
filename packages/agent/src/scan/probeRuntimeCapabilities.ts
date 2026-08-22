@@ -1,4 +1,5 @@
 import type { AgentRuntime } from "@repo/schemas";
+import { tmpdir } from "node:os";
 import { spawnCommand } from "../spawn/spawnCommand";
 
 export type RuntimeCliCapabilities = {
@@ -7,11 +8,15 @@ export type RuntimeCliCapabilities = {
   resume: boolean;
   sessionId: boolean;
   skipPermissions: boolean;
+  reasoningEffort: boolean;
+  variant: boolean;
+  autoPermissions: boolean;
 };
 
 const runHelp = (path: string, args: readonly string[]): Promise<string> =>
   new Promise((resolve) => {
     const child = spawnCommand(path, args, {
+      cwd: tmpdir(),
       stdio: ["pipe", "pipe", "pipe"],
       env: { ...process.env },
     });
@@ -51,7 +56,10 @@ export const probeRuntimeCapabilities = async ({
       partialMessages: help.includes("--include-partial-messages"),
       resume: help.includes("--resume"),
       sessionId: help.includes("--session-id"),
-      skipPermissions: false,
+      skipPermissions: help.includes("bypassPermissions"),
+      reasoningEffort: help.includes("--effort"),
+      variant: false,
+      autoPermissions: false,
     };
   }
   if (runtime === "codex") {
@@ -66,6 +74,9 @@ export const probeRuntimeCapabilities = async ({
       resume: resumeHelp.length > 0 && !/unrecognized|unexpected argument/i.test(resumeHelp),
       sessionId: false,
       skipPermissions: false,
+      reasoningEffort: true,
+      variant: false,
+      autoPermissions: false,
     };
   }
   if (runtime === "opencode") {
@@ -77,6 +88,9 @@ export const probeRuntimeCapabilities = async ({
       resume: help.includes("--session") || /(?:^|\s)-s(?:,|\s)/m.test(help),
       sessionId: false,
       skipPermissions: help.includes("--dangerously-skip-permissions"),
+      reasoningEffort: false,
+      variant: help.includes("--variant"),
+      autoPermissions: help.includes("--auto"),
     };
   }
 
@@ -86,5 +100,8 @@ export const probeRuntimeCapabilities = async ({
     resume: false,
     sessionId: false,
     skipPermissions: false,
+    reasoningEffort: false,
+    variant: false,
+    autoPermissions: false,
   };
 };

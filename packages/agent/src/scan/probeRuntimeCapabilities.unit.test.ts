@@ -36,14 +36,20 @@ const fakeHelpProcess = (help: string): ChildProcessWithoutNullStreams => {
 describe("probeRuntimeCapabilities", () => {
   beforeEach(() => spawnCommandMock.mockReset());
 
-  it("detects OpenCode's permission bypass only from the exact run help flag", async () => {
+  it("detects OpenCode's current variant and auto-permission flags from run help", async () => {
     spawnCommandMock.mockReturnValue(
-      fakeHelpProcess("--format json\n-s, --session <id>\n--dangerously-skip-permissions\n"),
+      fakeHelpProcess("--format json\n-s, --session <id>\n--variant <name>\n--auto\n"),
     );
 
     await expect(
       probeRuntimeCapabilities({ runtime: "opencode", path: "C:\\bin\\opencode.exe" }),
-    ).resolves.toMatchObject({ structuredOutput: true, resume: true, skipPermissions: true });
+    ).resolves.toMatchObject({
+      structuredOutput: true,
+      resume: true,
+      skipPermissions: false,
+      variant: true,
+      autoPermissions: true,
+    });
     expect(spawnCommandMock).toHaveBeenCalledWith(
       "C:\\bin\\opencode.exe",
       ["run", "--help"],
@@ -57,5 +63,22 @@ describe("probeRuntimeCapabilities", () => {
     await expect(
       probeRuntimeCapabilities({ runtime: "opencode", path: "C:\\bin\\opencode.exe" }),
     ).resolves.toMatchObject({ skipPermissions: false });
+  });
+
+  it("detects Claude effort and partial-message support from print-mode help", async () => {
+    spawnCommandMock.mockReturnValue(
+      fakeHelpProcess(
+        "--input-format stream-json\n--output-format stream-json\n--include-partial-messages\n--resume\n--session-id\n--effort <level>\nbypassPermissions\n",
+      ),
+    );
+
+    await expect(
+      probeRuntimeCapabilities({ runtime: "claude-code", path: "C:\\bin\\claude.cmd" }),
+    ).resolves.toMatchObject({
+      structuredOutput: true,
+      partialMessages: true,
+      reasoningEffort: true,
+      skipPermissions: true,
+    });
   });
 });

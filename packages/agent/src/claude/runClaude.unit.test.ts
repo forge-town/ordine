@@ -36,7 +36,7 @@ const createMockProcess = () => {
   return process;
 };
 
-import { runClaude } from "./runClaude";
+import { buildClaudePermissionArgs, runClaude } from "./runClaude";
 
 describe("runClaude OpenDesign-compatible invocation", () => {
   const testState = { process: createMockProcess() };
@@ -48,13 +48,24 @@ describe("runClaude OpenDesign-compatible invocation", () => {
   });
 
   it("leaves project and user MCP discovery untouched when no run config is injected", async () => {
-    const promise = runClaude({ systemPrompt: "system", userPrompt: "user", cwd: "/tmp" });
+    const promise = runClaude({
+      systemPrompt: "system",
+      userPrompt: "user",
+      cwd: "/tmp",
+      reasoningEffort: "high",
+      supportsReasoningEffort: true,
+      allowedTools: [],
+    });
 
     await vi.waitFor(() => expect(spawnMock).toHaveBeenCalledOnce());
     const args = (spawnMock.mock.calls[0] as unknown as [string, string[]])[1];
     expect(args).not.toContain("--mcp-config");
     expect(args).not.toContain("--strict-mcp-config");
-    expect(args).toContain("bypassPermissions");
+    expect(args).toContain("acceptEdits");
+    expect(args).not.toContain("bypassPermissions");
+    expect(args).toContain("--effort");
+    expect(args[args.indexOf("--effort") + 1]).toBe("high");
+    expect(args[args.indexOf("--tools") + 1]).toBe("");
 
     testState.process.stdout.push(
       `${JSON.stringify({
@@ -71,6 +82,38 @@ describe("runClaude OpenDesign-compatible invocation", () => {
     testState.process.emit("close", 0);
 
     await expect(promise).resolves.toMatchObject({ text: "done" });
+  });
+
+  it("maps read-only tools and network policy to explicit Claude CLI flags", () => {
+    expect(
+      buildClaudePermissionArgs({
+        permissionMode: "read-only",
+        allowedTools: ["Read", "Write", "WebSearch", "Bash(curl:*)"],
+        mcpToolNames: [],
+        networkAccess: false,
+      }),
+    ).toEqual([
+      "--permission-mode",
+      "plan",
+      "--tools",
+      "Read",
+      "--allowedTools",
+      "Read",
+      "--disallowedTools",
+      "Edit,Write,WebSearch,WebFetch,Bash(curl:*),Bash(wget:*)",
+    ]);
+  });
+
+  it("requires explicit confirmation before bypassPermissions", async () => {
+    await expect(
+      runClaude({
+        systemPrompt: "system",
+        userPrompt: "user",
+        cwd: "/tmp",
+        permissionMode: "full-access",
+      }),
+    ).rejects.toThrow(/explicit user confirmation/);
+    expect(spawnMock).not.toHaveBeenCalled();
   });
 });
 

@@ -122,10 +122,7 @@ const reportConnectorInjectionSkipped = async (
 const runLocalClaudeDirect = async (opts: AgentRunOptions): Promise<DriverResult> => {
   const extraEnv = opts.githubToken ? { GITHUB_TOKEN: opts.githubToken } : undefined;
   const selectedRuntimeTools = runtimeToolNames(opts);
-  const effectiveTools =
-    selectedRuntimeTools && selectedRuntimeTools.length > 0
-      ? (selectedRuntimeTools as ToolName[])
-      : undefined;
+  const effectiveTools = selectedRuntimeTools as ToolName[] | undefined;
 
   if (opts.ssh) {
     await reportConnectorInjectionSkipped(
@@ -151,15 +148,19 @@ const runLocalClaudeDirect = async (opts: AgentRunOptions): Promise<DriverResult
       userPrompt: opts.userPrompt,
       cwd: opts.cwd,
       model: opts.model,
-      ...(effectiveTools ? { allowedTools: effectiveTools } : {}),
+      reasoningEffort: opts.reasoningEffort,
+      speed: opts.speed,
+      ...(effectiveTools === undefined ? {} : { allowedTools: effectiveTools }),
       onProgress: toAsyncProgress(opts.onProgress),
       onTextDelta: toAsyncTextDelta(opts.onTextDelta),
       onRuntimeEvent: opts.onRuntimeEvent,
       signal: opts.signal,
       executablePath: opts.executablePath,
       permissionMode: opts.permissionMode,
+      fullAccessConfirmed: opts.fullAccessConfirmed,
       networkAccess: opts.networkAccess,
       supportsPartialMessages: opts.supportsPartialMessages,
+      supportsReasoningEffort: opts.supportsReasoningEffort,
       resumeSessionId: opts.resumeSessionId,
       extraEnv,
       ssh: opts.ssh,
@@ -195,6 +196,8 @@ const runCodexDirect = async (opts: AgentRunOptions): Promise<DriverResult> => {
     userPrompt: opts.userPrompt,
     cwd: opts.cwd,
     ...(opts.model ? { model: opts.model } : {}),
+    ...(opts.reasoningEffort ? { reasoningEffort: opts.reasoningEffort } : {}),
+    ...(opts.speed ? { speed: opts.speed } : {}),
     onProgress: toAsyncProgress(opts.onProgress),
     onTextDelta: toAsyncTextDelta(opts.onTextDelta),
     connectorInjection,
@@ -204,6 +207,7 @@ const runCodexDirect = async (opts: AgentRunOptions): Promise<DriverResult> => {
         : opts.permissionMode === "read-only"
           ? "read-only"
           : "workspace-write",
+    fullAccessConfirmed: opts.fullAccessConfirmed,
     signal: opts.signal,
     resumeSessionId: opts.resumeSessionId,
     onRuntimeEvent: opts.onRuntimeEvent,
@@ -305,6 +309,8 @@ const runOpencodeDirect = async (opts: AgentRunOptions): Promise<DriverResult> =
     userPrompt: opts.userPrompt,
     cwd: opts.cwd,
     model: opts.model,
+    reasoningEffort: opts.reasoningEffort,
+    speed: opts.speed,
     signal: opts.signal,
     resumeSessionId: opts.resumeSessionId,
     connectorInjection,
@@ -313,8 +319,10 @@ const runOpencodeDirect = async (opts: AgentRunOptions): Promise<DriverResult> =
     onRuntimeEvent: opts.onRuntimeEvent,
     executablePath: opts.executablePath,
     permissionMode: opts.permissionMode,
+    fullAccessConfirmed: opts.fullAccessConfirmed,
     networkAccess: opts.networkAccess,
-    supportsPermissionBypass: opts.supportsPermissionBypass,
+    supportsVariant: opts.supportsVariant,
+    supportsAutoPermissions: opts.supportsAutoPermissions,
   });
 
   if (result.isErr()) {

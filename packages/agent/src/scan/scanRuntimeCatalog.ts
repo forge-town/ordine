@@ -5,6 +5,7 @@ import {
   type RuntimeAuthenticationStatus,
   type RuntimeModel,
 } from "@repo/schemas";
+import { tmpdir } from "node:os";
 import { spawnCommand } from "../spawn/spawnCommand";
 import { RUNTIME_MANIFESTS } from "../runtime/runtimeManifestRegistry";
 import { getRuntimeBinaries, scanRuntimes } from "./scanRuntimes";
@@ -25,10 +26,21 @@ const CODEX_REASONING = ["none", "minimal", "low", "medium", "high", "xhigh"].ma
   label: value === "xhigh" ? "XHigh" : value[0]?.toUpperCase() + value.slice(1),
 }));
 
+const CODEX_SPEEDS = [
+  { value: "standard", label: "Standard", isDefault: true },
+  { value: "priority", label: "Fast" },
+];
+
 const FALLBACK_MODELS: Partial<Record<AgentRuntime, RuntimeModel[]>> = {
   codex: [
     { ...DEFAULT_MODEL, reasoningEfforts: CODEX_REASONING },
-    { id: "gpt-5.5", displayName: "gpt-5.5", reasoningEfforts: CODEX_REASONING },
+    {
+      id: "gpt-5.5",
+      displayName: "gpt-5.5",
+      reasoningEfforts: CODEX_REASONING,
+      defaultSpeed: "standard",
+      speeds: CODEX_SPEEDS,
+    },
     { id: "gpt-5.4", displayName: "gpt-5.4", reasoningEfforts: CODEX_REASONING },
     { id: "gpt-5.4-mini", displayName: "gpt-5.4-mini", reasoningEfforts: CODEX_REASONING },
     { id: "gpt-5.3-codex", displayName: "gpt-5.3-codex", reasoningEfforts: CODEX_REASONING },
@@ -52,7 +64,10 @@ const runProbe = (
   args: readonly string[],
 ): Promise<{ code: number | null; output: string }> =>
   new Promise((resolve) => {
-    const child = spawnCommand(path, [...args], { stdio: ["ignore", "pipe", "pipe"] });
+    const child = spawnCommand(path, [...args], {
+      cwd: tmpdir(),
+      stdio: ["ignore", "pipe", "pipe"],
+    });
     const chunks: Buffer[] = [];
     const state = { settled: false };
     const finish = (code: number | null): void => {

@@ -1,4 +1,5 @@
 import { execFile } from "node:child_process";
+import { tmpdir } from "node:os";
 import { query, type ModelInfo } from "@anthropic-ai/claude-agent-sdk";
 import type { DetectedRuntime, RuntimeModel, RuntimeModelCapabilityOption } from "@repo/schemas";
 import { Result, ResultAsync } from "neverthrow";
@@ -83,7 +84,7 @@ const normalizeCapabilityOptions = (
 
 const canonicalSpeed = (value: string | undefined): string | undefined => {
   if (!value || value === "default" || value === "standard") return "standard";
-  if (value === "priority" || value === "fast") return "fast";
+  if (value === "priority" || value === "fast") return "priority";
 
   return value;
 };
@@ -185,7 +186,6 @@ export const normalizeClaudeModels = (models: unknown[]): RuntimeModel[] =>
     const description = asString(model["description"]);
     const supportsEffort = asBoolean(model["supportsEffort"]);
     const reasoningEfforts = normalizeCapabilityOptions(model["supportedEffortLevels"]);
-    const supportsFastMode = asBoolean(model["supportsFastMode"]);
     const supportsImageInput =
       asBoolean(model["supportsVision"]) ?? asBoolean(model["supportsImageInput"]);
 
@@ -197,15 +197,6 @@ export const normalizeClaudeModels = (models: unknown[]): RuntimeModel[] =>
         ...(id === "default" ? { isDefault: true } : {}),
         ...(supportsEffort === true || Array.isArray(model["supportedEffortLevels"])
           ? { reasoningEfforts }
-          : {}),
-        ...(supportsFastMode === true
-          ? {
-              defaultSpeed: "standard",
-              speeds: [
-                { value: "standard", label: "Standard", isDefault: true },
-                { value: "fast", label: "Fast" },
-              ],
-            }
           : {}),
         ...(supportsImageInput === undefined ? {} : { supportsImageInput }),
       },
@@ -388,7 +379,10 @@ export const normalizeAcpModels = (value: unknown): RuntimeModel[] => {
 
 const probeAcpModels = (path: string, args: string[]): Promise<RuntimeModel[]> =>
   new Promise((resolve, reject) => {
-    const child = spawnCommand(path, args, { stdio: ["pipe", "pipe", "pipe"] });
+    const child = spawnCommand(path, args, {
+      cwd: tmpdir(),
+      stdio: ["pipe", "pipe", "pipe"],
+    });
     const state = { settled: false, buffer: "", expectedId: 1 };
     const timeout = setTimeout(() => {
       if (state.settled) return;
@@ -427,7 +421,7 @@ const probeAcpModels = (path: string, args: string[]): Promise<RuntimeModel[]> =
       if (!result) return;
       if (state.expectedId === 1) {
         state.expectedId = 2;
-        send(2, "session/new", { cwd: process.cwd(), mcpServers: [] });
+        send(2, "session/new", { cwd: tmpdir(), mcpServers: [] });
 
         return;
       }
@@ -462,7 +456,7 @@ const execFileStdout = (bin: string, args: string[]): Promise<string> =>
     execFile(
       command.bin,
       command.args,
-      { timeout: MODEL_PROBE_TIMEOUT_MS, maxBuffer: 16 * 1024 * 1024 },
+      { cwd: tmpdir(), timeout: MODEL_PROBE_TIMEOUT_MS, maxBuffer: 16 * 1024 * 1024 },
       (error, stdout, stderr) => {
         if (error) {
           reject(error);
@@ -480,6 +474,7 @@ const execFileStdout = (bin: string, args: string[]): Promise<string> =>
 const probeCodexModels = (path: string): Promise<RuntimeModel[]> =>
   new Promise((resolve, reject) => {
     const child = spawnCommand(path, ["app-server"], {
+      cwd: tmpdir(),
       stdio: ["pipe", "pipe", "ignore"],
     });
     const state = { settled: false, buffer: "" };
@@ -544,6 +539,7 @@ const probeClaudeModels = (path: string): Promise<RuntimeModel[]> => {
     prompt: (async function* () {})(),
     options: {
       pathToClaudeCodeExecutable: path,
+      cwd: tmpdir(),
       settingSources: ["user"],
       mcpServers: {},
     },
