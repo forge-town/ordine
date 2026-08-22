@@ -7,6 +7,12 @@ const manifests = [
     supportLevel: "supported",
     binaries: ["claude"],
     versionArgs: ["--version"],
+    installCommand: ["npm", "install", "-g", "@anthropic-ai/claude-code"],
+    docsUrl: "https://docs.anthropic.com/en/docs/claude-code/setup",
+    supportsCustomModel: true,
+    verification: [
+      { platform: "win32", version: "2.1.207", verifiedAt: "2026-08-22T13:00:00.000Z" },
+    ],
     streamFormat: "claude-stream-json",
     capabilities: {
       textStreaming: "delta",
@@ -25,6 +31,12 @@ const manifests = [
     supportLevel: "supported",
     binaries: ["codex"],
     versionArgs: ["--version"],
+    installCommand: ["npm", "install", "-g", "@openai/codex"],
+    docsUrl: "https://developers.openai.com/codex/cli",
+    supportsCustomModel: true,
+    verification: [
+      { platform: "win32", version: "0.149.0", verifiedAt: "2026-08-22T13:00:00.000Z" },
+    ],
     streamFormat: "json-event-stream",
     capabilities: {
       textStreaming: "message",
@@ -40,7 +52,7 @@ const manifests = [
   {
     runtime: "hermes",
     displayName: "Hermes Agent",
-    supportLevel: "supported",
+    supportLevel: "experimental",
     binaries: ["hermes"],
     versionArgs: ["--version"],
     streamFormat: "acp-json-rpc",
@@ -58,7 +70,7 @@ const manifests = [
   {
     runtime: "mastra",
     displayName: "Mastra",
-    supportLevel: "supported",
+    supportLevel: "experimental",
     binaries: ["mastra"],
     versionArgs: ["--version"],
     streamFormat: "plain",
@@ -76,7 +88,7 @@ const manifests = [
   {
     runtime: "openclaw",
     displayName: "OpenClaw",
-    supportLevel: "supported",
+    supportLevel: "experimental",
     binaries: ["openclaw"],
     versionArgs: ["--version"],
     streamFormat: "jsonl",
@@ -94,7 +106,7 @@ const manifests = [
   {
     runtime: "pi-agent",
     displayName: "Pi Agent",
-    supportLevel: "supported",
+    supportLevel: "experimental",
     binaries: ["pi"],
     versionArgs: ["--version"],
     streamFormat: "pi-rpc",
@@ -115,6 +127,12 @@ const manifests = [
     supportLevel: "supported",
     binaries: ["opencode", "opencode-cli"],
     versionArgs: ["--version"],
+    installCommand: ["npm", "install", "-g", "opencode-ai"],
+    docsUrl: "https://opencode.ai/docs/",
+    supportsCustomModel: true,
+    verification: [
+      { platform: "win32", version: "1.18.21", verifiedAt: "2026-08-22T13:00:00.000Z" },
+    ],
     streamFormat: "json-event-stream",
     capabilities: {
       textStreaming: "delta",
@@ -130,7 +148,7 @@ const manifests = [
   {
     runtime: "kimi-code",
     displayName: "Kimi CLI",
-    supportLevel: "supported",
+    supportLevel: "experimental",
     binaries: ["kimi"],
     versionArgs: ["--version"],
     streamFormat: "acp-json-rpc",
@@ -168,7 +186,7 @@ const manifests = [
   {
     runtime: "mistral-vibe",
     displayName: "Mistral Vibe CLI",
-    supportLevel: "supported",
+    supportLevel: "experimental",
     binaries: ["vibe-acp", "vibe"],
     versionArgs: ["--version"],
     streamFormat: "acp-json-rpc",
@@ -187,7 +205,7 @@ const manifests = [
   {
     runtime: "deepseek-reasonix",
     displayName: "DeepSeek Reasonix",
-    supportLevel: "supported",
+    supportLevel: "experimental",
     binaries: ["reasonix", "dsnix"],
     versionArgs: ["--version"],
     streamFormat: "acp-json-rpc",
@@ -205,7 +223,7 @@ const manifests = [
   {
     runtime: "kiro",
     displayName: "Kiro CLI",
-    supportLevel: "supported",
+    supportLevel: "experimental",
     binaries: ["kiro-cli"],
     versionArgs: ["--version"],
     streamFormat: "acp-json-rpc",
@@ -223,7 +241,7 @@ const manifests = [
   {
     runtime: "trae",
     displayName: "Trae CLI",
-    supportLevel: "supported",
+    supportLevel: "experimental",
     binaries: ["traecli"],
     versionArgs: ["--version"],
     streamFormat: "acp-json-rpc",

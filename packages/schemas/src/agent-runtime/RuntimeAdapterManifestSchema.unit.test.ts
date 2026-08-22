@@ -9,6 +9,16 @@ describe("RuntimeAdapterManifestSchema", () => {
       supportLevel: "supported",
       binaries: ["codex"],
       versionArgs: ["--version"],
+      installCommand: ["npm", "install", "-g", "@openai/codex"],
+      docsUrl: "https://developers.openai.com/codex/cli/",
+      supportsCustomModel: true,
+      verification: [
+        {
+          platform: "win32",
+          version: "0.149.0",
+          verifiedAt: "2026-08-22T00:00:00.000Z",
+        },
+      ],
       streamFormat: "codex-jsonl",
       capabilities: {
         textStreaming: "message",

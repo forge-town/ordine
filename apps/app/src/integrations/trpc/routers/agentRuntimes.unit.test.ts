@@ -12,6 +12,7 @@ const mocks = vi.hoisted(() => ({
   getAll: vi.fn(),
   harvest: vi.fn(),
   harvestOnce: vi.fn(),
+  scanRuntimeCatalog: vi.fn(),
   scanRuntimes: vi.fn(),
   syncAll: vi.fn(),
 }));
@@ -26,7 +27,10 @@ vi.mock("../services", () => ({
     harvestOnce: mocks.harvestOnce,
   },
 }));
-vi.mock("@repo/agent", () => ({ scanRuntimes: mocks.scanRuntimes }));
+vi.mock("@repo/agent", () => ({
+  scanRuntimeCatalog: mocks.scanRuntimeCatalog,
+  scanRuntimes: mocks.scanRuntimes,
+}));
 
 import { agentRuntimesRouter } from "./agentRuntimes";
 
@@ -44,6 +48,7 @@ describe("agentRuntimesRouter", () => {
     });
     mocks.harvest.mockResolvedValue(harvestResult);
     mocks.harvestOnce.mockResolvedValue(harvestResult);
+    mocks.scanRuntimeCatalog.mockResolvedValue([]);
   });
 
   it("auto-discovers and persists local Agents when the local database is empty", async () => {
@@ -88,6 +93,84 @@ describe("agentRuntimesRouter", () => {
     expect(mocks.scanRuntimes).not.toHaveBeenCalled();
     expect(mocks.syncAll).not.toHaveBeenCalled();
     expect(mocks.harvestOnce).toHaveBeenCalledWith({});
+  });
+
+  it("reads the full runtime catalog without mutating stored runtime configs", async () => {
+    const existing = [
+      {
+        id: "saved-opencode",
+        name: "OpenCode",
+        type: "opencode",
+        connection: { mode: "local" },
+      },
+    ];
+    mocks.getAll.mockResolvedValue(existing);
+    mocks.scanRuntimeCatalog.mockResolvedValue([
+      {
+        runtime: "opencode",
+        runtimeConfigId: "local-opencode",
+        availability: "launchable",
+      },
+    ]);
+
+    const result = await agentRuntimesRouter.createCaller({ session: null }).getCatalog();
+
+    expect(result).toEqual([
+      expect.objectContaining({ runtime: "opencode", runtimeConfigId: "saved-opencode" }),
+    ]);
+    expect(mocks.syncAll).not.toHaveBeenCalled();
+  });
+
+  it("rescans by upserting positive detections and preserves unavailable catalog entries", async () => {
+    mocks.scanRuntimeCatalog.mockResolvedValue([
+      {
+        runtime: "codex",
+        displayName: "Codex CLI",
+        runtimeConfigId: "local-codex",
+        availability: "launchable",
+        binaryName: "codex",
+        path: "C:/tools/codex.exe",
+        version: "0.149.0",
+        authenticationStatus: "authenticated",
+        authenticationMessage: null,
+        diagnostics: [],
+        models: [],
+        modelsSource: "none",
+        supportsCustomModel: true,
+        compatibility: { runtime: "codex" },
+      },
+      {
+        runtime: "opencode",
+        displayName: "OpenCode",
+        runtimeConfigId: null,
+        availability: "unavailable",
+        binaryName: "opencode",
+        path: null,
+        version: null,
+        authenticationStatus: "unknown",
+        authenticationMessage: null,
+        diagnostics: [],
+        models: [],
+        modelsSource: "none",
+        supportsCustomModel: true,
+        compatibility: { runtime: "opencode" },
+      },
+    ]);
+    mocks.syncAll.mockImplementation(async (runtimes) => runtimes);
+
+    const result = await agentRuntimesRouter.createCaller({ session: null }).rescanCatalog();
+
+    expect(mocks.syncAll).toHaveBeenCalledWith([
+      expect.objectContaining({
+        id: "local-codex",
+        connection: expect.objectContaining({ path: "C:/tools/codex.exe" }),
+      }),
+    ]);
+    expect(result).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ runtime: "opencode", availability: "unavailable" }),
+      ]),
+    );
   });
 
   it("harvests local runtime capabilities for an authenticated workspace request", async () => {

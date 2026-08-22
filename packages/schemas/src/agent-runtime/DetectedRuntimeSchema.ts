@@ -2,6 +2,7 @@ import { z } from "zod/v4";
 import { AgentRuntimeSchema } from "./AgentRuntimeSchema";
 import { RuntimeModelSchema } from "./RuntimeModelSchema";
 import { RuntimeAdapterManifestSchema } from "./RuntimeAdapterManifestSchema";
+import { RuntimeModelSourceSchema } from "./AgentRuntimeCatalogSchema";
 
 export const DetectedRuntimeSchema = z.object({
   type: AgentRuntimeSchema,
@@ -9,6 +10,7 @@ export const DetectedRuntimeSchema = z.object({
   path: z.string().min(1),
   version: z.string().min(1).optional(),
   models: z.array(RuntimeModelSchema).optional(),
+  modelsSource: RuntimeModelSourceSchema.optional(),
   compatibility: RuntimeAdapterManifestSchema.optional(),
 });
 export type DetectedRuntime = z.infer<typeof DetectedRuntimeSchema>;

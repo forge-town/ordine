@@ -94,7 +94,7 @@ describe("createAgentRuntimesService", () => {
     expect(mockDao.delete).toHaveBeenCalledWith("rt-1");
   });
 
-  it("syncAll creates new, updates existing, and deletes removed", async () => {
+  it("syncAll creates new and updates existing runtimes without deleting omitted entries", async () => {
     // existing: rt-1
     mockDao.findMany
       .mockResolvedValueOnce([
@@ -198,14 +198,18 @@ describe("createAgentRuntimesService", () => {
     expect(mockDao.delete).not.toHaveBeenCalled();
   });
 
-  it("syncAll deletes stale local- runtimes while keeping remote ones", async () => {
+  it("syncAll preserves stale local runtimes when a later scan omits them", async () => {
     mockDao.findMany
       .mockResolvedValueOnce([
         runtimeRecord("local-claude-code"),
         runtimeRecord("local-codex"),
         runtimeRecord("remote-team-shared"),
       ])
-      .mockResolvedValueOnce([runtimeRecord("local-codex"), runtimeRecord("remote-team-shared")]);
+      .mockResolvedValueOnce([
+        runtimeRecord("local-claude-code"),
+        runtimeRecord("local-codex"),
+        runtimeRecord("remote-team-shared"),
+      ]);
 
     const svc = createAgentRuntimesService({} as never);
     await svc.syncAll([
@@ -217,8 +221,7 @@ describe("createAgentRuntimesService", () => {
       },
     ]);
 
-    expect(mockDao.delete).toHaveBeenCalledTimes(1);
-    expect(mockDao.delete).toHaveBeenCalledWith("local-claude-code");
+    expect(mockDao.delete).not.toHaveBeenCalled();
   });
 
   it("syncAll with empty incoming deletes nothing (failed scan must not wipe the list)", async () => {

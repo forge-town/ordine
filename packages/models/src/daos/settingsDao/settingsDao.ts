@@ -36,7 +36,12 @@ export class SettingsDao {
     patch: Partial<
       Pick<
         SettingsRecord,
-        "defaultAgentRuntime" | "defaultApiKey" | "defaultModel" | "defaultOutputPath"
+        | "defaultAgentRuntime"
+        | "defaultAgentRuntimeConfigId"
+        | "agentRuntimePreferences"
+        | "defaultApiKey"
+        | "defaultModel"
+        | "defaultOutputPath"
       >
     >,
   ) {

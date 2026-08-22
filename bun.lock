@@ -204,6 +204,7 @@
       "dependencies": {
         "@hono/node-server": "^1.14.3",
         "@ordine/cli": "workspace:*",
+        "@repo/agent": "workspace:*",
         "@repo/agent-engine": "workspace:*",
         "@repo/db": "workspace:*",
         "@repo/schemas": "workspace:*",

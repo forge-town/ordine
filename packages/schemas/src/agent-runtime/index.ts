@@ -1,5 +1,7 @@
 export * from "./AgentRuntimeSchema";
 export * from "./AgentRuntimeConfigSchema";
+export * from "./AgentExecutionChoiceSchema";
+export * from "./AgentRuntimeCatalogSchema";
 export * from "./AgentRunSchema";
 export * from "./AgentRuntimeConnectionSchema";
 export * from "./AgentRunStatusSchema";
