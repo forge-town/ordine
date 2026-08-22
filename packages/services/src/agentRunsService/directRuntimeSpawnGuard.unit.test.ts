@@ -11,6 +11,8 @@ const BUSINESS_CALLERS = [
   "../pipelineRunnerService/promptExecutor/promptExecutor.ts",
   "../pipelineRunnerService/agentRunner/agentRunner.ts",
   "../pipelineRunnerService/agentRunner/runStructuredAgent.ts",
+  "../pipelinesService/createPipelinesService.ts",
+  "../pipelinesService/capabilityAssignment/planCapabilityAssignments.ts",
 ];
 
 describe("formal runtime spawn boundary", () => {
