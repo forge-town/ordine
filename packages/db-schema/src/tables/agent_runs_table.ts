@@ -19,6 +19,8 @@ export const agentRunsTable = pgTable(
     executableVersion: text("executable_version"),
     executableFingerprint: text("executable_fingerprint"),
     model: text("model"),
+    reasoningEffort: text("reasoning_effort"),
+    speed: text("speed"),
     cwd: text("cwd").notNull(),
     systemPrompt: text("system_prompt").notNull().default(""),
     prompt: text("prompt").notNull(),

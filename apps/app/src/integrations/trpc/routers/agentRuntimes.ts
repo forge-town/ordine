@@ -2,8 +2,14 @@ import { z } from "zod/v4";
 import { TRPCError } from "@trpc/server";
 import { authedProcedure, publicProcedure, router } from "../init";
 import { agentRuntimesService, capabilityHarvestService } from "../services";
-import { AgentRuntimeConfigSchema, getLocalAgentRuntimeId, type AgentRuntime } from "@repo/schemas";
-import { scanRuntimes } from "@repo/agent";
+import {
+  AgentRuntimeConfigSchema,
+  getLocalAgentRuntimeId,
+  type AgentRuntime,
+  type AgentRuntimeCatalogEntry,
+  type AgentRuntimeConfig,
+} from "@repo/schemas";
+import { scanRuntimeCatalog, scanRuntimes } from "@repo/agent";
 import { getServerEnv } from "@/integrations/server-env";
 import { unwrapResult } from "./result";
 
@@ -28,9 +34,42 @@ const toLocalRuntimeConfig = (runtime: Awaited<ReturnType<typeof scanRuntimes>>[
     path: runtime.path,
     version: runtime.version,
     ...(runtime.models === undefined ? {} : { models: runtime.models }),
+    ...(runtime.modelsSource === undefined ? {} : { modelsSource: runtime.modelsSource }),
     detectedAt: new Date().toISOString(),
   },
 });
+
+const toCatalogRuntimeConfig = (entry: AgentRuntimeCatalogEntry): AgentRuntimeConfig | null => {
+  if (!entry.path || entry.availability === "unavailable") return null;
+
+  return {
+    id: getLocalAgentRuntimeId(entry.runtime),
+    name: entry.displayName,
+    type: entry.runtime,
+    connection: {
+      mode: "local",
+      binaryName: entry.binaryName,
+      path: entry.path,
+      ...(entry.version ? { version: entry.version } : {}),
+      models: entry.models,
+      modelsSource: entry.modelsSource,
+      detectedAt: new Date().toISOString(),
+    },
+    compatibility: entry.compatibility,
+  };
+};
+
+const mergeCatalogRuntimeConfigIds = (
+  catalog: AgentRuntimeCatalogEntry[],
+  runtimes: AgentRuntimeConfig[],
+): AgentRuntimeCatalogEntry[] =>
+  catalog.map((entry) => ({
+    ...entry,
+    runtimeConfigId:
+      runtimes.find(
+        (runtime) => runtime.type === entry.runtime && runtime.connection.mode === "local",
+      )?.id ?? entry.runtimeConfigId,
+  }));
 
 export const agentRuntimesRouter = router({
   getMany: publicProcedure.query(async () => {
@@ -54,6 +93,16 @@ export const agentRuntimesRouter = router({
     .input(z.object({ id: z.string() }))
     .query(({ input }) => agentRuntimesService.getById(input.id)),
 
+  getCatalog: publicProcedure.query(async () => {
+    if (!localRuntimeScanEnabled) return [];
+    const [catalog, runtimes] = await Promise.all([
+      scanRuntimeCatalog(),
+      agentRuntimesService.getAll(),
+    ]);
+
+    return mergeCatalogRuntimeConfigIds(catalog, runtimes);
+  }),
+
   create: publicProcedure
     .input(AgentRuntimeConfigSchema)
     .mutation(({ input }) => agentRuntimesService.create(input)),
@@ -76,6 +125,19 @@ export const agentRuntimesRouter = router({
     const runtimes = detected.map(toLocalRuntimeConfig);
 
     return agentRuntimesService.syncAll(runtimes);
+  }),
+
+  rescanCatalog: publicProcedure.mutation(async () => {
+    if (!localRuntimeScanEnabled) return [];
+    const [catalog] = await Promise.all([scanRuntimeCatalog(), refreshGlobalCapabilities()]);
+    const detected = catalog.flatMap((entry) => {
+      const runtime = toCatalogRuntimeConfig(entry);
+
+      return runtime ? [runtime] : [];
+    });
+    const runtimes = await agentRuntimesService.syncAll(detected);
+
+    return mergeCatalogRuntimeConfigIds(catalog, runtimes);
   }),
 
   scanRuntimes: publicProcedure.query(() => (localRuntimeScanEnabled ? scanRuntimes() : [])),

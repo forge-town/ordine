@@ -3,11 +3,7 @@ import { AgentRuntimeSchema } from "./AgentRuntimeSchema";
 import { AgentRunStatusSchema } from "./AgentRunStatusSchema";
 import { RuntimeEventSchema } from "./RuntimeEventSchema";
 
-export const AgentRunPermissionModeSchema = z.enum([
-  "read-only",
-  "workspace-write",
-  "full-access",
-]);
+export const AgentRunPermissionModeSchema = z.enum(["read-only", "workspace-write", "full-access"]);
 export type AgentRunPermissionMode = z.infer<typeof AgentRunPermissionModeSchema>;
 
 export const AgentRunOwnerSchema = z.object({
@@ -22,6 +18,8 @@ export const AgentRunRequestSchema = z
     runtimeConfigId: z.string().min(1),
     cwd: z.string().min(1),
     model: z.string().min(1).optional(),
+    reasoningEffort: z.string().min(1).optional(),
+    speed: z.string().min(1).optional(),
     systemPrompt: z.string().default(""),
     prompt: z.string().min(1),
     rebuildPrompt: z.string().min(1),
@@ -60,6 +58,8 @@ export const AgentRunSchema = z.object({
   executableVersion: z.string().min(1).nullable(),
   executableFingerprint: z.string().min(1).nullable(),
   model: z.string().min(1).nullable(),
+  reasoningEffort: z.string().min(1).nullable(),
+  speed: z.string().min(1).nullable(),
   cwd: z.string().min(1),
   nativeSessionId: z.string().min(1).nullable(),
   resumeFromRunId: z.string().min(1).nullable(),

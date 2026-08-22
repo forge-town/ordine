@@ -93,6 +93,8 @@ const toPublicRun = (record: AgentRunRecord): AgentRun =>
     executableVersion: record.executableVersion,
     executableFingerprint: record.executableFingerprint,
     model: record.model,
+    reasoningEffort: record.reasoningEffort,
+    speed: record.speed,
     cwd: record.cwd,
     nativeSessionId: record.nativeSessionId,
     resumeFromRunId: record.resumeFromRunId,
@@ -461,6 +463,8 @@ export const createAgentRunsService = (
       ? await runsDao.findById(request.resumeFromRunId)
       : null;
     const normalizedModel = request.model ?? null;
+    const normalizedReasoningEffort = request.reasoningEffort ?? null;
+    const normalizedSpeed = request.speed ?? null;
     const resumeMismatch = previous
       ? [
           previous.ownerType !== request.owner.type ? "owner" : null,
@@ -470,6 +474,8 @@ export const createAgentRunsService = (
             ? "executable_fingerprint"
             : null,
           previous.model !== normalizedModel ? "model" : null,
+          previous.reasoningEffort !== normalizedReasoningEffort ? "reasoning_effort" : null,
+          previous.speed !== normalizedSpeed ? "speed" : null,
           resolve(previous.cwd) !== resolve(request.cwd) ? "cwd" : null,
           previous.status !== "completed" ? "terminal_status" : null,
           !previous.nativeSessionId ? "native_session" : null,
@@ -501,6 +507,8 @@ export const createAgentRunsService = (
           cwd: request.cwd,
           allowedTools: request.allowedTools,
           model: request.model,
+          reasoningEffort: request.reasoningEffort,
+          speed: request.speed,
           resumeSessionId: resumeId ?? undefined,
           executablePath: resolvedRuntime.path,
           permissionMode: request.permissionMode,
@@ -645,6 +653,8 @@ export const createAgentRunsService = (
       runtime: runtimeConfig.type,
       status: "queued",
       model: request.model ?? null,
+      reasoningEffort: request.reasoningEffort ?? null,
+      speed: request.speed ?? null,
       cwd: resolve(request.cwd),
       systemPrompt: redactSensitiveText(request.systemPrompt),
       prompt: redactSensitiveText(request.prompt),

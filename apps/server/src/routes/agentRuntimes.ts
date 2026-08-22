@@ -3,6 +3,8 @@ import { homedir } from "node:os";
 import { basename, dirname, extname, join } from "node:path";
 import { Result, ResultAsync } from "neverthrow";
 import { z } from "zod/v4";
+import { scanRuntimeCatalog } from "@repo/agent";
+import { getLocalAgentRuntimeId, type AgentRuntimeConfig } from "@repo/schemas";
 import {
   doctorMcpTarget,
   installMcpTarget,
@@ -17,6 +19,8 @@ import { getEnv } from "../integrations/env/index.js";
 
 const connectionTestBodySchema = z.object({
   model: z.string().min(1).optional(),
+  reasoningEffort: z.string().min(1).optional(),
+  speed: z.string().min(1).optional(),
   cwd: z.string().min(1).optional(),
 });
 const mcpActionBodySchema = z.object({
@@ -30,6 +34,59 @@ const parseOptionalJsonBody = (context: Context) =>
   );
 
 export const agentRuntimesRoutes = new Hono();
+
+const mergeRuntimeConfigIds = (
+  catalog: Awaited<ReturnType<typeof scanRuntimeCatalog>>,
+  runtimes: AgentRuntimeConfig[],
+) =>
+  catalog.map((entry) => ({
+    ...entry,
+    runtimeConfigId:
+      runtimes.find(
+        (runtime) => runtime.type === entry.runtime && runtime.connection.mode === "local",
+      )?.id ?? entry.runtimeConfigId,
+  }));
+
+const getCatalog = async () => {
+  const [catalog, runtimes] = await Promise.all([
+    scanRuntimeCatalog(),
+    agentRuntimesService.getAll(),
+  ]);
+
+  return mergeRuntimeConfigIds(catalog, runtimes);
+};
+
+const rescanCatalog = async () => {
+  const catalog = await scanRuntimeCatalog();
+  const configs = catalog.flatMap((entry): AgentRuntimeConfig[] => {
+    if (!entry.path || entry.availability === "unavailable") return [];
+
+    return [
+      {
+        id: getLocalAgentRuntimeId(entry.runtime),
+        name: entry.displayName,
+        type: entry.runtime,
+        connection: {
+          mode: "local",
+          binaryName: entry.binaryName,
+          path: entry.path,
+          ...(entry.version ? { version: entry.version } : {}),
+          models: entry.models,
+          modelsSource: entry.modelsSource,
+          detectedAt: new Date().toISOString(),
+        },
+        compatibility: entry.compatibility,
+      },
+    ];
+  });
+  const runtimes = await agentRuntimesService.syncAll(configs);
+
+  return mergeRuntimeConfigIds(catalog, runtimes);
+};
+
+agentRuntimesRoutes.get("/catalog", async (context) => context.json(await getCatalog()));
+
+agentRuntimesRoutes.post("/rescan", async (context) => context.json(await rescanCatalog()));
 
 export const resolveDesktopMcpSidecarPath = (
   configuredPath: string | undefined,
@@ -62,6 +119,8 @@ agentRuntimesRoutes.post("/:id/connection-tests", async (context) => {
       runtimeConfigId,
       cwd: parsed.data.cwd ?? process.cwd(),
       ...(parsed.data.model ? { model: parsed.data.model } : {}),
+      ...(parsed.data.reasoningEffort ? { reasoningEffort: parsed.data.reasoningEffort } : {}),
+      ...(parsed.data.speed ? { speed: parsed.data.speed } : {}),
       systemPrompt: "You are an ORDINE runtime connectivity probe.",
       prompt,
       rebuildPrompt: prompt,

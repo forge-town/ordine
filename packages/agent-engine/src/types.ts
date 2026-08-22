@@ -60,6 +60,8 @@ export interface AgentRunOptions {
   agentId?: string;
   apiKey?: string;
   model?: string;
+  reasoningEffort?: string;
+  speed?: string;
   resumeSessionId?: string;
   executablePath?: string;
   permissionMode?: AgentRunPermissionMode;

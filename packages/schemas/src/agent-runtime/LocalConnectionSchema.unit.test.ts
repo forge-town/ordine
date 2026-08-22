@@ -9,6 +9,7 @@ describe("LocalConnectionSchema", () => {
       path: "C:\\tools\\codex.exe",
       version: "codex-cli 1.2.3",
       detectedAt: "2026-08-12T08:00:00.000Z",
+      modelsSource: "live",
       models: [
         {
           id: "gpt-5.6-sol",

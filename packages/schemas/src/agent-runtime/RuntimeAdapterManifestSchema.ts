@@ -28,6 +28,13 @@ export const RuntimeCapabilitiesSchema = z.object({
 });
 export type RuntimeCapabilities = z.infer<typeof RuntimeCapabilitiesSchema>;
 
+export const RuntimeVerificationSchema = z.object({
+  platform: z.enum(["win32", "darwin", "linux"]),
+  version: z.string().min(1),
+  verifiedAt: z.iso.datetime(),
+});
+export type RuntimeVerification = z.infer<typeof RuntimeVerificationSchema>;
+
 export const RuntimeAdapterManifestSchema = z.object({
   runtime: AgentRuntimeSchema,
   displayName: z.string().min(1),
@@ -37,6 +44,10 @@ export const RuntimeAdapterManifestSchema = z.object({
   streamFormat: RuntimeStreamFormatSchema,
   capabilities: RuntimeCapabilitiesSchema,
   setupCommand: z.array(z.string().min(1)).optional(),
+  installCommand: z.array(z.string().min(1)).optional(),
+  docsUrl: z.url().optional(),
+  supportsCustomModel: z.boolean().optional(),
+  verification: z.array(RuntimeVerificationSchema).optional(),
   diagnostic: z.string().min(1).optional(),
 });
 export type RuntimeAdapterManifest = z.infer<typeof RuntimeAdapterManifestSchema>;

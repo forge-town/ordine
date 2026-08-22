@@ -201,6 +201,7 @@ const detectBinary = async (
     path,
     version,
     ...(models === undefined ? {} : { models }),
+    ...(models === undefined ? {} : { modelsSource: "live" as const }),
     compatibility: manifest,
   };
 };
