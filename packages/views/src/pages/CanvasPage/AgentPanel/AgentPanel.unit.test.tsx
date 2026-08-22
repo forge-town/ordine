@@ -11,11 +11,7 @@ import {
   type CanvasPageStore,
 } from "../_store";
 import { useRef, type ReactNode } from "react";
-import type {
-  AgentRuntimeConfig,
-  PipelineActionProposal,
-  PipelineActionDiagnostic,
-} from "@repo/schemas";
+import type { PipelineActionProposal, PipelineActionDiagnostic } from "@repo/schemas";
 import { ok } from "neverthrow";
 import { AgentBarStoreProvider } from "./_store";
 
@@ -40,6 +36,26 @@ const mockGetLatestReadyProposal = vi.fn();
 const mockGetLatestAssistantQuestion = vi.fn();
 const mockApproveProposal = vi.fn();
 const mockSupersedeProposal = vi.fn();
+const { mockUseAgentExecutionChoice } = vi.hoisted(() => ({
+  mockUseAgentExecutionChoice: vi.fn(),
+}));
+
+vi.mock("../../../components/AgentExecutionPicker", () => ({
+  AgentExecutionPicker: ({ choice }: { choice: { runtimeConfigId: string } | null }) => (
+    <button
+      aria-label="canvas.agentPanel.runtimeLabel"
+      className="h-auto w-fit rounded-none border-0 bg-transparent"
+      data-testid="canvas-agent-panel-runtime-context"
+      role="combobox"
+    >
+      {choice?.runtimeConfigId ?? "none"}
+    </button>
+  ),
+  changeExecutionRuntime: (_catalog: unknown, _settings: unknown, runtimeConfigId: string) => ({
+    runtimeConfigId,
+  }),
+  useAgentExecutionChoice: () => mockUseAgentExecutionChoice(),
+}));
 
 vi.mock("@repo/pipeline-engine/actions", () => ({
   applyPipelineActions: (...args: unknown[]) => mockApplyPipelineActions(...args),
@@ -197,6 +213,19 @@ describe("AgentPanel", () => {
       ],
       total: 1,
     });
+    mockUseAgentExecutionChoice.mockReturnValue({
+      catalog: [
+        {
+          runtime: "codex",
+          runtimeConfigId: "runtime-codex",
+        },
+      ],
+      choice: { runtimeConfigId: "runtime-codex" },
+      isLoading: false,
+      persistChoice: vi.fn(),
+      selectRuntime: vi.fn(),
+      settings: { defaultAgentRuntime: "codex" },
+    });
     mockCreateSession.mockResolvedValue({
       id: "session-1",
       entrypoint: "canvas-agent-panel",
@@ -324,7 +353,14 @@ describe("AgentPanel", () => {
   });
 
   it("uses a neutral status when no runtime is selected", async () => {
-    mockGetList.mockResolvedValueOnce({ data: [], total: 0 });
+    mockUseAgentExecutionChoice.mockReturnValue({
+      catalog: [],
+      choice: null,
+      isLoading: false,
+      persistChoice: vi.fn(),
+      selectRuntime: vi.fn(),
+      settings: { defaultAgentRuntime: "codex" },
+    });
 
     render(<AgentPanel />, { wrapper: wrapperWithState() });
 
@@ -368,9 +404,7 @@ describe("AgentPanel", () => {
 
     render(<AgentPanel />, { wrapper: wrapperWithState() });
     const input = screen.getByPlaceholderText("workspace.agentBar.composer.placeholder");
-    await waitFor(() => {
-      expect(mockGetList).toHaveBeenCalled();
-    });
+    await waitFor(() => expect(input).toBeEnabled());
 
     await userEvent.type(input, "Tighten the graph");
     await userEvent.keyboard("{Enter}");
@@ -399,36 +433,37 @@ describe("AgentPanel", () => {
     ).toHaveClass("text-[12px]");
   });
 
-  it("deduplicates submits while runtime validation is in flight", async () => {
-    render(<AgentPanel />, { wrapper: wrapperWithState() });
-    const input = screen.getByPlaceholderText("workspace.agentBar.composer.placeholder");
-    await waitFor(() => {
-      expect(mockGetList).toHaveBeenCalled();
-    });
-
-    let resolveRuntimeOptions!: (value: { data: AgentRuntimeConfig[]; total: number }) => void;
-    mockGetList.mockImplementationOnce(
+  it("deduplicates submits while session creation is in flight", async () => {
+    type SessionResult = {
+      id: string;
+      entrypoint: string;
+      mode: string;
+      status: string;
+    };
+    const sessionDeferred: { resolve: (value: SessionResult) => void } = {
+      resolve: () => undefined,
+    };
+    mockCreateSession.mockImplementationOnce(
       () =>
         new Promise((resolve) => {
-          resolveRuntimeOptions = resolve;
+          sessionDeferred.resolve = resolve;
         }),
     );
+
+    render(<AgentPanel />, { wrapper: wrapperWithState() });
+    const input = screen.getByPlaceholderText("workspace.agentBar.composer.placeholder");
+    await waitFor(() => expect(input).toBeEnabled());
 
     await userEvent.type(input, "Tighten the graph");
     fireEvent.keyDown(input, { key: "Enter" });
     fireEvent.keyDown(input, { key: "Enter" });
 
-    await waitFor(() => expect(mockGetList).toHaveBeenCalledTimes(2));
-    resolveRuntimeOptions({
-      data: [
-        {
-          id: "runtime-codex",
-          name: "Codex Local",
-          type: "codex",
-          connection: { mode: "local" },
-        },
-      ],
-      total: 1,
+    await waitFor(() => expect(mockCreateSession).toHaveBeenCalledTimes(1));
+    sessionDeferred.resolve({
+      id: "session-1",
+      entrypoint: "canvas-agent-panel",
+      mode: "edit",
+      status: "draft",
     });
 
     await waitFor(() => expect(mockCreateSession).toHaveBeenCalledTimes(1));
@@ -436,12 +471,10 @@ describe("AgentPanel", () => {
 
   it("uploads a file into the edit session context", async () => {
     render(<AgentPanel />, { wrapper: wrapperWithState() });
-    await waitFor(() => {
-      expect(mockGetList).toHaveBeenCalled();
-    });
 
     const file = new File(["hello"], "brief.txt", { type: "text/plain" });
     const input = screen.getByTestId("agent-composer-file-input") as HTMLInputElement;
+    await waitFor(() => expect(input).toBeEnabled());
     await userEvent.upload(input, file);
 
     await waitFor(() => {
@@ -614,9 +647,7 @@ describe("AgentPanel", () => {
 
     render(<AgentPanel />, { wrapper: wrapperWithState() });
     const input = screen.getByPlaceholderText("workspace.agentBar.composer.placeholder");
-    await waitFor(() => {
-      expect(mockGetList).toHaveBeenCalled();
-    });
+    await waitFor(() => expect(input).toBeEnabled());
     await userEvent.type(input, "Add a review step");
     await userEvent.keyboard("{Enter}");
 
@@ -656,7 +687,9 @@ describe("AgentPanel", () => {
     });
 
     render(<AgentPanel />, { wrapper: wrapperWithState() });
-    await waitFor(() => expect(mockGetList).toHaveBeenCalled());
+    await waitFor(() =>
+      expect(screen.getByPlaceholderText("workspace.agentBar.composer.placeholder")).toBeEnabled(),
+    );
     await userEvent.type(
       screen.getByPlaceholderText("workspace.agentBar.composer.placeholder"),
       "Prepare the exam pipeline",
@@ -707,9 +740,7 @@ describe("AgentPanel", () => {
 
     render(<AgentPanel />, { wrapper: wrapperWithState() });
     const input = screen.getByPlaceholderText("workspace.agentBar.composer.placeholder");
-    await waitFor(() => {
-      expect(mockGetList).toHaveBeenCalled();
-    });
+    await waitFor(() => expect(input).toBeEnabled());
     await userEvent.type(input, "Rename the test node");
     await userEvent.keyboard("{Enter}");
 
@@ -746,9 +777,9 @@ describe("AgentPanel", () => {
     });
 
     render(<AgentPanel />, { wrapper: wrapperWithState() });
-    await waitFor(() => {
-      expect(mockGetList).toHaveBeenCalled();
-    });
+    await waitFor(() =>
+      expect(screen.getByPlaceholderText("workspace.agentBar.composer.placeholder")).toBeEnabled(),
+    );
     await userEvent.type(
       screen.getByPlaceholderText("workspace.agentBar.composer.placeholder"),
       "Suggest an edit",
@@ -794,9 +825,9 @@ describe("AgentPanel", () => {
     });
 
     render(<AgentPanel />, { wrapper: wrapperWithState() });
-    await waitFor(() => {
-      expect(mockGetList).toHaveBeenCalled();
-    });
+    await waitFor(() =>
+      expect(screen.getByPlaceholderText("workspace.agentBar.composer.placeholder")).toBeEnabled(),
+    );
     await userEvent.type(
       screen.getByPlaceholderText("workspace.agentBar.composer.placeholder"),
       "Suggest an edit",
@@ -867,9 +898,7 @@ describe("AgentPanel", () => {
 
     render(<AgentPanel />, { wrapper: wrapperWithState() });
     const input = screen.getByPlaceholderText("workspace.agentBar.composer.placeholder");
-    await waitFor(() => {
-      expect(mockGetList).toHaveBeenCalled();
-    });
+    await waitFor(() => expect(input).toBeEnabled());
     await userEvent.type(input, "Rename a node");
     await userEvent.keyboard("{Enter}");
 
@@ -913,11 +942,9 @@ describe("AgentPanel", () => {
 
   it("starts a generate session when pipelineId is missing", async () => {
     render(<AgentPanel />, { wrapper: wrapperWithoutPipeline });
-    await waitFor(() => {
-      expect(mockGetList).toHaveBeenCalled();
-    });
 
     const input = screen.getByPlaceholderText("workspace.agentBar.composer.placeholder");
+    await waitFor(() => expect(input).toBeEnabled());
     await userEvent.type(input, "test");
     await userEvent.keyboard("{Enter}");
 

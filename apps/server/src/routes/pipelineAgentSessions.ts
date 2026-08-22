@@ -36,6 +36,8 @@ const runtimeSelectionBodySchema = z.object({
 
 const startRunBodySchema = runtimeSelectionBodySchema.extend({
   model: z.string().min(1).optional(),
+  reasoningEffort: z.string().min(1).optional(),
+  speed: z.string().min(1).optional(),
   permissionMode: AgentRunPermissionModeSchema.default("workspace-write"),
   networkAccess: z.boolean().default(true),
   fullAccessConfirmed: z.boolean().default(false),

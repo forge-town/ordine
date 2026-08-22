@@ -28,6 +28,8 @@ export const CustomEndpoint = {
   refinementsStart: "refinements/start",
   distillationsRun: "distillations/run",
   settingsScanRuntimes: "settings/scanRuntimes",
+  agentRuntimesGetCatalog: "agentRuntimes/getCatalog",
+  agentRuntimesRescanCatalog: "agentRuntimes/rescanCatalog",
   agentRuntimesSyncAll: "agentRuntimes/syncAll",
   agentRuntimesScanAndSync: "agentRuntimes/scanAndSync",
   operationsRun: "operations/run",
@@ -140,6 +142,9 @@ export const customEndpoints: Record<string, CustomHandler> = {
       payload as Input<typeof trpcClient.distillations.run.mutate>,
     ),
   [CustomEndpoint.settingsScanRuntimes]: () => trpcClient.agentRuntimes.scanRuntimes.query(),
+  [CustomEndpoint.agentRuntimesGetCatalog]: () => trpcClient.agentRuntimes.getCatalog.query(),
+  [CustomEndpoint.agentRuntimesRescanCatalog]: () =>
+    trpcClient.agentRuntimes.rescanCatalog.mutate(),
   [CustomEndpoint.agentRuntimesSyncAll]: (payload) =>
     trpcClient.agentRuntimes.syncAll.mutate(
       payload as Input<typeof trpcClient.agentRuntimes.syncAll.mutate>,

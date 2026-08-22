@@ -66,6 +66,11 @@ const mockPipelinesService = {
 };
 
 const mockRunAgent = vi.fn();
+const mockAgentRunsService = {
+  getLatestByOwner: vi.fn(),
+  start: vi.fn(),
+  wait: vi.fn(),
+};
 const mockExtractJsonFromText = vi.fn((raw: string) => raw);
 const createDeferred = <T>() => {
   const state: { resolve: (value: T | PromiseLike<T>) => void } = {
@@ -119,6 +124,9 @@ describe("createPipelineAgentSessionsService", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockDb.transaction.mockImplementation(async (callback) => callback({}));
+    mockAgentRunsService.getLatestByOwner.mockResolvedValue(null);
+    mockAgentRunsService.start.mockResolvedValue({ runId: "run-1" });
+    mockAgentRunsService.wait.mockReturnValue(new Promise(() => undefined));
 
     mockSessionsDao.create.mockImplementation(async (data) => ({
       id: data.id ?? "session-1",
@@ -926,6 +934,53 @@ describe("createPipelineAgentSessionsService", () => {
     await createPipelineAgentSessionsService({} as never).planSession("session-1");
 
     expect(mockRunAgent).toHaveBeenCalledWith(expect.objectContaining({ agent: "mastra" }));
+  });
+
+  it("starts durable planning with the selected runtime preference", async () => {
+    mockSettingsDao.get.mockResolvedValueOnce({
+      defaultAgentRuntime: "opencode",
+      defaultAgentRuntimeConfigId: "runtime-opencode",
+      defaultApiKey: "test-key",
+      defaultModel: "legacy-model",
+      agentRuntimePreferences: {
+        "runtime-opencode": {
+          model: "anthropic/claude-sonnet-4-5",
+          reasoningEffort: "high",
+          speed: "priority",
+        },
+      },
+    });
+    mockAgentRuntimesDao.findMany.mockResolvedValueOnce([
+      {
+        id: "runtime-codex",
+        name: "Codex Local",
+        type: "codex",
+        connection: { mode: "local" },
+      },
+      {
+        id: "runtime-opencode",
+        name: "OpenCode Local",
+        type: "opencode",
+        connection: { mode: "local" },
+      },
+    ]);
+    const service = createPipelineAgentSessionsServiceFactory(mockDb as never, {
+      agentRunsService: mockAgentRunsService as never,
+    });
+
+    await service.startPlanningRun("session-1");
+
+    expect(mockAgentRunsService.start).toHaveBeenCalledWith(
+      expect.objectContaining({
+        runtimeConfigId: "runtime-opencode",
+        model: "anthropic/claude-sonnet-4-5",
+        reasoningEffort: "high",
+        speed: "priority",
+        permissionMode: "workspace-write",
+        networkAccess: true,
+        fullAccessConfirmed: false,
+      }),
+    );
   });
 
   it("saves a generate proposal when planning returns a ready plan", async () => {

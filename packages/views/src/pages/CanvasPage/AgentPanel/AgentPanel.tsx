@@ -1,22 +1,18 @@
 import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "@tanstack/react-router";
 import { useStore } from "zustand";
 import { ChevronsRight, AlertCircle, AlertTriangle } from "lucide-react";
 import { Button } from "@repo/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@repo/ui/select";
 import { cn } from "@repo/ui/lib/utils";
 import { ResultAsync } from "neverthrow";
-import type { AgentRuntimeConfig, ProposeAttachment, WorkspaceCanvasRef } from "@repo/schemas";
+import type { AgentExecutionChoice, ProposeAttachment, WorkspaceCanvasRef } from "@repo/schemas";
 import { useCanvasPageStore } from "../_store";
-import { ResourceName } from "../../../constants";
-import { getCanvasDataProvider } from "../../../lib/canvasDataProvider";
+import {
+  AgentExecutionPicker,
+  changeExecutionRuntime,
+  useAgentExecutionChoice,
+} from "../../../components/AgentExecutionPicker";
 import { createPipelineAgentSessionsClient } from "../../../lib/pipelineAgentSessionsClient";
 import { usePlatform } from "../../../platform";
 import { toastStore } from "../../../store/toastStore";
@@ -29,20 +25,13 @@ import { loadGenerateSessionId } from "./generateSessionStorage";
 import { buildProposalItems } from "./proposalView";
 import { useAgentConversation } from "./useAgentConversation";
 
-interface RuntimeState {
-  runtimeOptions: AgentRuntimeConfig[];
-  suggestedRuntimeId: string | null;
-}
-
 interface AgentPanelProps {
   onGeneratedPipeline?: (pipelineId: string) => Promise<void> | void;
 }
 
-const formatRuntimeLabel = (runtime: AgentRuntimeConfig): string =>
-  runtime.name === runtime.type ? runtime.name : `${runtime.name} (${runtime.type})`;
-
 export const AgentPanel = ({ onGeneratedPipeline }: AgentPanelProps) => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const platform = usePlatform();
   const pipelineAgentSessionsClient = useMemo(
     () => createPipelineAgentSessionsClient(platform),
@@ -58,10 +47,16 @@ export const AgentPanel = ({ onGeneratedPipeline }: AgentPanelProps) => {
   const [composerDraft, setComposerDraft] = useState<string | null>(null);
   const [isPreparingSend, setIsPreparingSend] = useState(false);
   const [isPreparingUpload, setIsPreparingUpload] = useState(false);
-  const [isLoadingRuntimes, setIsLoadingRuntimes] = useState(true);
   const [needsRuntimeSetup, setNeedsRuntimeSetup] = useState(false);
-  const [runtimeOptions, setRuntimeOptions] = useState<AgentRuntimeConfig[]>([]);
-  const [selectedRuntimeId, setSelectedRuntimeId] = useState<string | null>(null);
+  const {
+    catalog,
+    choice: executionChoice,
+    isLoading: isLoadingRuntimes,
+    persistChoice: handleExecutionChoiceChange,
+    selectRuntime,
+    settings,
+  } = useAgentExecutionChoice();
+  const selectedRuntimeId = executionChoice?.runtimeConfigId ?? null;
   const addMessage = useAgentBarStore((state) => state.addMessage);
   const generateProposal = useAgentBarStore((state) => state.generateProposal);
   const {
@@ -141,56 +136,9 @@ export const AgentPanel = ({ onGeneratedPipeline }: AgentPanelProps) => {
     });
   }, []);
 
-  const fetchRuntimeState = useCallback(
-    () =>
-      ResultAsync.fromPromise(
-        Promise.all([
-          getCanvasDataProvider().getOne!({
-            resource: ResourceName.settings,
-            id: "default",
-          }),
-          getCanvasDataProvider().getList!({
-            resource: ResourceName.agentRuntimes,
-          }),
-        ]),
-        (error) => (error instanceof Error ? error : new Error(String(error))),
-      ).map(([settingsResult, runtimesResult]) => {
-        const settings = settingsResult.data as { defaultAgentRuntime?: string };
-        const nextRuntimeOptions = (runtimesResult.data as AgentRuntimeConfig[]) ?? [];
-        const preferredRuntime =
-          nextRuntimeOptions.find((runtime) => runtime.type === settings.defaultAgentRuntime) ??
-          nextRuntimeOptions[0] ??
-          null;
-
-        return {
-          runtimeOptions: nextRuntimeOptions,
-          suggestedRuntimeId: preferredRuntime?.id ?? null,
-        } satisfies RuntimeState;
-      }),
-    [],
-  );
-
   useEffect(() => {
-    setIsLoadingRuntimes(true);
-    void fetchRuntimeState().match(
-      ({ runtimeOptions: nextRuntimeOptions, suggestedRuntimeId }) => {
-        setRuntimeOptions(nextRuntimeOptions);
-        setSelectedRuntimeId((currentRuntimeId) =>
-          currentRuntimeId && nextRuntimeOptions.some((runtime) => runtime.id === currentRuntimeId)
-            ? currentRuntimeId
-            : suggestedRuntimeId,
-        );
-        setNeedsRuntimeSetup(nextRuntimeOptions.length === 0);
-        setIsLoadingRuntimes(false);
-      },
-      () => {
-        setRuntimeOptions([]);
-        setSelectedRuntimeId(null);
-        setNeedsRuntimeSetup(true);
-        setIsLoadingRuntimes(false);
-      },
-    );
-  }, [fetchRuntimeState]);
+    if (!isLoadingRuntimes) setNeedsRuntimeSetup(executionChoice === null);
+  }, [executionChoice, isLoadingRuntimes]);
 
   useEffect(() => {
     if (
@@ -228,22 +176,45 @@ export const AgentPanel = ({ onGeneratedPipeline }: AgentPanelProps) => {
 
       sendInFlightRef.current = true;
       setIsPreparingSend(true);
-      void submitMessage({ content: trimmedContent, metadata, runtimeId }).finally(() => {
+      void submitMessage({
+        content: trimmedContent,
+        metadata,
+        runtimeId,
+        ...(executionChoice?.runtimeConfigId === runtimeId && executionChoice.model
+          ? { model: executionChoice.model }
+          : {}),
+        ...(executionChoice?.runtimeConfigId === runtimeId && executionChoice.reasoningEffort
+          ? { reasoningEffort: executionChoice.reasoningEffort }
+          : {}),
+        ...(executionChoice?.runtimeConfigId === runtimeId && executionChoice.speed
+          ? { speed: executionChoice.speed }
+          : {}),
+      }).finally(() => {
         sendInFlightRef.current = false;
         setIsPreparingSend(false);
       });
     },
-    [agentPanel.isLoading, isHistoryLoading, isPreparingUpload, isSending, submitMessage],
+    [
+      agentPanel.isLoading,
+      executionChoice,
+      isHistoryLoading,
+      isPreparingUpload,
+      isSending,
+      submitMessage,
+    ],
   );
 
   const handleOpenRuntimeSettings = useCallback(() => {
-    setNeedsRuntimeSetup(true);
-  }, []);
+    void navigate({ to: "/runtimes" });
+  }, [navigate]);
 
-  const handleRuntimeValueChange = useCallback((runtimeId: string | null) => {
-    setSelectedRuntimeId(runtimeId);
-    setNeedsRuntimeSetup(false);
-  }, []);
+  const handleRuntimeValueChange = useCallback(
+    (runtimeId: string) => {
+      selectRuntime(runtimeId);
+      setNeedsRuntimeSetup(false);
+    },
+    [selectRuntime],
+  );
 
   const handleComposerSubmit = useCallback(
     async ({ content, metadata }: ComposerSubmitInput) => {
@@ -260,32 +231,7 @@ export const AgentPanel = ({ onGeneratedPipeline }: AgentPanelProps) => {
       sendInFlightRef.current = true;
       setIsPreparingSend(true);
       try {
-        const runtimeSetupResult = await fetchRuntimeState();
-        if (runtimeSetupResult.isErr()) {
-          addMessage({
-            content: t("canvas.agentPanel.requestFailed"),
-            id: `assistant-${Date.now()}`,
-            role: "assistant",
-          });
-          toastStore.getState().addToast({
-            type: "error",
-            title: t("canvas.agentPanel.errorTitle"),
-            description: runtimeSetupResult.error.message,
-          });
-          scrollToBottom();
-
-          return false;
-        }
-
-        const { runtimeOptions: nextRuntimeOptions, suggestedRuntimeId } = runtimeSetupResult.value;
-        setRuntimeOptions(nextRuntimeOptions);
-        const effectiveRuntimeId =
-          selectedRuntimeId &&
-          nextRuntimeOptions.some((runtime) => runtime.id === selectedRuntimeId)
-            ? selectedRuntimeId
-            : suggestedRuntimeId;
-        setSelectedRuntimeId(effectiveRuntimeId);
-        if (!effectiveRuntimeId) {
+        if (!executionChoice) {
           setNeedsRuntimeSetup(true);
           addMessage({
             content: t("canvas.agentPanel.runtimeNotConfigured"),
@@ -298,22 +244,29 @@ export const AgentPanel = ({ onGeneratedPipeline }: AgentPanelProps) => {
         }
 
         setNeedsRuntimeSetup(false);
-        return await submitMessage({ content, metadata, runtimeId: effectiveRuntimeId });
+        return await submitMessage({
+          content,
+          metadata,
+          runtimeId: executionChoice.runtimeConfigId,
+          ...(executionChoice.model ? { model: executionChoice.model } : {}),
+          ...(executionChoice.reasoningEffort
+            ? { reasoningEffort: executionChoice.reasoningEffort }
+            : {}),
+          ...(executionChoice.speed ? { speed: executionChoice.speed } : {}),
+        });
       } finally {
         sendInFlightRef.current = false;
         setIsPreparingSend(false);
       }
     },
     [
-      addMessage,
       agentPanel.isLoading,
-      fetchRuntimeState,
+      addMessage,
+      executionChoice,
       isHistoryLoading,
       isPreparingUpload,
       isSending,
-      pipelineId,
       scrollToBottom,
-      selectedRuntimeId,
       submitMessage,
       t,
     ],
@@ -324,7 +277,7 @@ export const AgentPanel = ({ onGeneratedPipeline }: AgentPanelProps) => {
       pendingPromptConsumedRef.current ||
       isHistoryLoading ||
       isLoadingRuntimes ||
-      runtimeOptions.length === 0 ||
+      catalog.length === 0 ||
       isSending ||
       agentPanel.isLoading ||
       sendInFlightRef.current
@@ -338,18 +291,33 @@ export const AgentPanel = ({ onGeneratedPipeline }: AgentPanelProps) => {
     }
     pendingPromptConsumedRef.current = true;
 
-    const effectiveRuntimeId =
-      runtimeOptions.find((runtime) => runtime.id === pending.runtimeId)?.id ?? selectedRuntimeId;
-    if (!effectiveRuntimeId) {
+    const pendingBaseChoice = pending.runtimeId
+      ? changeExecutionRuntime(catalog, settings, pending.runtimeId)
+      : executionChoice;
+    const pendingChoice: AgentExecutionChoice | null = pendingBaseChoice
+      ? {
+          ...pendingBaseChoice,
+          ...(pending.model ? { model: pending.model } : {}),
+          ...(pending.reasoningEffort ? { reasoningEffort: pending.reasoningEffort } : {}),
+          ...(pending.speed ? { speed: pending.speed } : {}),
+        }
+      : null;
+    if (!pendingChoice) {
       setComposerDraft(pending.prompt);
 
       return;
     }
 
-    setSelectedRuntimeId(effectiveRuntimeId);
+    handleExecutionChoiceChange(pendingChoice);
     sendInFlightRef.current = true;
     setIsPreparingSend(true);
-    void submitMessage({ content: pending.prompt, runtimeId: effectiveRuntimeId }).finally(() => {
+    void submitMessage({
+      content: pending.prompt,
+      runtimeId: pendingChoice.runtimeConfigId,
+      ...(pendingChoice.model ? { model: pendingChoice.model } : {}),
+      ...(pendingChoice.reasoningEffort ? { reasoningEffort: pendingChoice.reasoningEffort } : {}),
+      ...(pendingChoice.speed ? { speed: pendingChoice.speed } : {}),
+    }).finally(() => {
       sendInFlightRef.current = false;
       setIsPreparingSend(false);
     });
@@ -358,9 +326,10 @@ export const AgentPanel = ({ onGeneratedPipeline }: AgentPanelProps) => {
     isHistoryLoading,
     isLoadingRuntimes,
     isSending,
-    pipelineId,
-    runtimeOptions,
-    selectedRuntimeId,
+    catalog,
+    executionChoice,
+    handleExecutionChoiceChange,
+    settings,
     submitMessage,
   ]);
 
@@ -556,6 +525,9 @@ export const AgentPanel = ({ onGeneratedPipeline }: AgentPanelProps) => {
     [handleComposerSubmit],
   );
   const isConversationActive = isSending || agentPanel.isLoading;
+  const handleEditDraft = useCallback((draft: string) => setComposerDraft(draft), []);
+  const handleDraftConsumed = useCallback(() => setComposerDraft(null), []);
+  const handleProposalAskFix = hasBlockingDiagnostics ? handleAskFix : undefined;
 
   return (
     <aside className="flex h-full w-full flex-col bg-surface" data-testid="canvas-agent-panel">
@@ -578,31 +550,15 @@ export const AgentPanel = ({ onGeneratedPipeline }: AgentPanelProps) => {
           <span className="truncate text-[12px] font-semibold">{t("canvas.agentPanel.title")}</span>
           <span className="truncate text-[10.5px] text-muted-foreground">·</span>
           <span className="sr-only">{t("canvas.agentPanel.runtimeLabel")}</span>
-          <Select value={selectedRuntimeId} onValueChange={handleRuntimeValueChange}>
-            <SelectTrigger
-              aria-label={t("canvas.agentPanel.runtimeLabel")}
-              className="h-auto w-fit min-w-0 rounded-none border-0 bg-transparent p-0 text-[10.5px] font-normal text-muted-foreground shadow-none ring-0 focus-visible:border-transparent focus-visible:ring-0 [&>svg]:size-2.5"
-              data-testid="canvas-agent-panel-runtime-context"
-              disabled={isLoadingRuntimes || runtimeOptions.length === 0}
-            >
-              <SelectValue
-                placeholder={
-                  isLoadingRuntimes
-                    ? t("canvas.agentPanel.runtimeLoading")
-                    : t("canvas.agentPanel.runtimePlaceholder")
-                }
-              />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                {runtimeOptions.map((runtime) => (
-                  <SelectItem key={runtime.id} value={runtime.id}>
-                    {formatRuntimeLabel(runtime)}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
+          <AgentExecutionPicker
+            compact
+            catalog={catalog}
+            choice={executionChoice}
+            isLoading={isLoadingRuntimes}
+            onChange={handleExecutionChoiceChange}
+            onOpenSettings={handleOpenRuntimeSettings}
+            onRuntimeChange={handleRuntimeValueChange}
+          />
         </div>
         <Button
           aria-label={t("canvas.agentPanel.close")}
@@ -655,10 +611,10 @@ export const AgentPanel = ({ onGeneratedPipeline }: AgentPanelProps) => {
             isLast={index === messages.length - 1}
             isSending={isSending || isPreparingUpload || isHistoryLoading || agentPanel.isLoading}
             message={msg}
-            runtimeId={selectedRuntimeId}
             refs={canvasRefs}
+            runtimeId={selectedRuntimeId}
             visibleMessages={messages}
-            onEditDraft={setComposerDraft}
+            onEditDraft={handleEditDraft}
             onOpenSettings={handleOpenRuntimeSettings}
             onSubmit={handleMessageSubmit}
           />
@@ -709,21 +665,21 @@ export const AgentPanel = ({ onGeneratedPipeline }: AgentPanelProps) => {
                 {t("canvas.agentPanel.proposal")}
               </span>
               <ProposalCard
+                applyDisabled={proposalNeedsAnswer}
                 disabled={
                   isSending || isPreparingUpload || isHistoryLoading || agentPanel.isLoading
                 }
-                applyDisabled={proposalNeedsAnswer}
                 items={proposalItems}
-                onApply={handleApply}
-                onAskFix={hasBlockingDiagnostics ? handleAskFix : undefined}
-                onReject={handleDiscard}
-                onRevise={handleRevise}
                 subtitle={t(
                   proposalNeedsAnswer
                     ? "canvas.agentPanel.proposalDetails.needsAnswer"
                     : "canvas.agentPanel.proposalDetails.review",
                 )}
                 title={proposal?.summary ?? generateProposal?.purpose ?? ""}
+                onApply={handleApply}
+                onAskFix={handleProposalAskFix}
+                onReject={handleDiscard}
+                onRevise={handleRevise}
               />
             </div>
           </div>
@@ -752,14 +708,14 @@ export const AgentPanel = ({ onGeneratedPipeline }: AgentPanelProps) => {
           }
           draft={composerDraft}
           isSending={isSending}
-          onAttach={handleComposerAttach}
-          onDraftConsumed={() => setComposerDraft(null)}
-          onFocusRef={handleFocusRef}
-          onRemoveRef={handleRemoveRef}
-          onSubmit={handleComposerSubmit}
           refs={selectedRefs}
           resetKey={graphSignature}
           runtimeId={selectedRuntimeId}
+          onAttach={handleComposerAttach}
+          onDraftConsumed={handleDraftConsumed}
+          onFocusRef={handleFocusRef}
+          onRemoveRef={handleRemoveRef}
+          onSubmit={handleComposerSubmit}
         />
       </div>
     </aside>
