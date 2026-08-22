@@ -68,6 +68,9 @@ export interface AgentRunOptions {
   networkAccess?: boolean;
   supportsPartialMessages?: boolean;
   supportsPermissionBypass?: boolean;
+  supportsReasoningEffort?: boolean;
+  supportsVariant?: boolean;
+  supportsAutoPermissions?: boolean;
   runtimeConfigId?: string;
   resumeFromRunId?: string;
   rebuildPrompt?: string;

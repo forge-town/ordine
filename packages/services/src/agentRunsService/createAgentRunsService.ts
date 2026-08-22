@@ -62,6 +62,9 @@ type ResolvedRuntime = {
   fingerprint: string;
   supportsPartialMessages: boolean;
   supportsPermissionBypass: boolean;
+  supportsReasoningEffort: boolean;
+  supportsVariant: boolean;
+  supportsAutoPermissions: boolean;
   supportsResume: boolean;
 };
 
@@ -275,6 +278,9 @@ export const createAgentRunsService = (
       fingerprint,
       supportsPartialMessages: capabilities.partialMessages,
       supportsPermissionBypass: capabilities.skipPermissions,
+      supportsReasoningEffort: capabilities.reasoningEffort,
+      supportsVariant: capabilities.variant,
+      supportsAutoPermissions: capabilities.autoPermissions,
       supportsResume: capabilities.resume,
     };
   };
@@ -512,9 +518,13 @@ export const createAgentRunsService = (
           resumeSessionId: resumeId ?? undefined,
           executablePath: resolvedRuntime.path,
           permissionMode: request.permissionMode,
+          fullAccessConfirmed: request.fullAccessConfirmed,
           networkAccess: request.networkAccess,
           supportsPartialMessages: resolvedRuntime.supportsPartialMessages,
           supportsPermissionBypass: resolvedRuntime.supportsPermissionBypass,
+          supportsReasoningEffort: resolvedRuntime.supportsReasoningEffort,
+          supportsVariant: resolvedRuntime.supportsVariant,
+          supportsAutoPermissions: resolvedRuntime.supportsAutoPermissions,
           signal: active.controller.signal,
           ...transient,
           onRuntimeEvent: handleAdapterEvent,

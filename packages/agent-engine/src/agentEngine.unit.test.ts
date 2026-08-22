@@ -5,6 +5,7 @@ import {
   runHermes,
   runKimiCode,
   runMastra,
+  runOpencode,
   type ClaudeStreamEvent,
 } from "@repo/agent";
 
@@ -58,6 +59,10 @@ vi.mock("@repo/agent", () => ({
       value: "fake kimi output",
     };
   }),
+  runOpencode: vi.fn(async () => ({
+    isErr: () => false,
+    value: "fake opencode output",
+  })),
   runOpenclaw: vi.fn(async (opts: { onProgress?: (s: string) => Promise<void> }) => {
     await opts.onProgress?.("progress");
 
@@ -89,12 +94,17 @@ describe("agentEngine", () => {
       userPrompt: "Check this code",
       cwd: "/tmp/test",
       allowedTools: ["Read"],
+      reasoningEffort: "high",
+      supportsReasoningEffort: true,
     });
 
     expect(result.text).toBe("fake claude output");
     // The fake result event carries no modelUsage → usage is unavailable (null),
     // never a fabricated 0. (See the modelUsage tests below for reported totals.)
     expect(result.usage).toBeNull();
+    expect(runClaude).toHaveBeenCalledWith(
+      expect.objectContaining({ reasoningEffort: "high", supportsReasoningEffort: true }),
+    );
   });
 
   it("passes the native Claude runtime event callback through without a legacy bridge", async () => {
@@ -204,6 +214,8 @@ describe("agentEngine", () => {
       userPrompt: "Hello",
       cwd: "/tmp/test",
       model: "gpt-step",
+      reasoningEffort: "high",
+      speed: "priority",
       connectorInjection: {
         mcpServers: { linear: { type: "http", url: "https://mcp.linear.app/mcp" } },
         toolNames: ["mcp__linear"],
@@ -216,10 +228,38 @@ describe("agentEngine", () => {
     expect(runCodex).toHaveBeenCalledWith(
       expect.objectContaining({
         model: "gpt-step",
+        reasoningEffort: "high",
+        speed: "priority",
         connectorInjection: {
           mcpServers: { linear: { type: "http", url: "https://mcp.linear.app/mcp" } },
           toolNames: ["mcp__linear"],
         },
+      }),
+    );
+  });
+
+  it("passes OpenCode model variants and permission capability evidence", async () => {
+    const result = await agentEngine.run({
+      agent: "opencode",
+      mode: "direct",
+      systemPrompt: "Analyze this",
+      userPrompt: "Hello",
+      cwd: "/tmp/test",
+      model: "provider/model",
+      reasoningEffort: "max",
+      permissionMode: "workspace-write",
+      supportsVariant: true,
+      supportsAutoPermissions: true,
+    });
+
+    expect(result.text).toBe("fake opencode output");
+    expect(runOpencode).toHaveBeenCalledWith(
+      expect.objectContaining({
+        model: "provider/model",
+        reasoningEffort: "max",
+        permissionMode: "workspace-write",
+        supportsVariant: true,
+        supportsAutoPermissions: true,
       }),
     );
   });

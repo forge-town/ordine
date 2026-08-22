@@ -1,7 +1,7 @@
 import { execFile } from "node:child_process";
 import { constants } from "node:fs";
 import { access } from "node:fs/promises";
-import { homedir } from "node:os";
+import { homedir, tmpdir } from "node:os";
 import { isAbsolute, join } from "node:path";
 import { logger } from "@repo/logger";
 import { AgentRuntimeSchema, type DetectedRuntime } from "@repo/schemas";
@@ -111,7 +111,7 @@ export const versionCommand = (
 
 const execFileAsync = (bin: string, args: string[]): Promise<{ stdout: string; stderr: string }> =>
   new Promise((resolve, reject) => {
-    execFile(bin, args, { timeout: 10_000 }, (error, stdout, stderr) => {
+    execFile(bin, args, { cwd: tmpdir(), timeout: 10_000 }, (error, stdout, stderr) => {
       if (error) {
         reject(error);
 
