@@ -195,6 +195,85 @@ const emitCodexReasoning = (
   return true;
 };
 
+const codexStructuredTool = (
+  item: UnknownRecord,
+): { id: string; name: string; input: unknown; output: unknown; isError: boolean } | undefined => {
+  const id = asString(item["id"]);
+  if (!id) return undefined;
+  if (item["type"] === "file_change") {
+    return {
+      id,
+      name: "apply_patch",
+      input: { changes: item["changes"] ?? [] },
+      output: { changes: item["changes"] ?? [], status: item["status"] },
+      isError: item["status"] === "failed",
+    };
+  }
+  if (item["type"] === "mcp_tool_call") {
+    const server = asString(item["server"]) ?? "mcp";
+    const tool = asString(item["tool"]) ?? "tool";
+
+    return {
+      id,
+      name: `${server}.${tool}`,
+      input: item["arguments"],
+      output: item["error"] ?? item["result"],
+      isError: item["status"] === "failed" || item["error"] !== undefined,
+    };
+  }
+  if (item["type"] === "web_search") {
+    return {
+      id,
+      name: "web_search",
+      input: { query: item["query"] },
+      output: { query: item["query"] },
+      isError: item["status"] === "failed",
+    };
+  }
+
+  return undefined;
+};
+
+const emitCodexStructuredTool = (
+  event: UnknownRecord,
+  item: UnknownRecord,
+  state: JsonEventStreamState,
+  emit: (payload: RuntimeEventPayload) => unknown,
+): boolean => {
+  if (!["file_change", "mcp_tool_call", "web_search"].includes(String(item["type"]))) {
+    return false;
+  }
+  const tool = codexStructuredTool(item);
+  if (!tool) return true;
+  if (!state.tools.has(tool.id)) {
+    state.sawVisibleOutput = true;
+    state.tools.set(tool.id, { name: tool.name, completed: false });
+    emit({ type: "tool_start", id: tool.id, name: tool.name, input: tool.input });
+  }
+  const completed = event["type"] === "item.completed";
+  emit({
+    type: "tool_update",
+    id: tool.id,
+    name: tool.name,
+    status: completed ? (tool.isError ? "failed" : "completed") : "in_progress",
+    input: tool.input,
+    output: completed ? tool.output : undefined,
+  });
+  if (completed && !state.tools.get(tool.id)?.completed) {
+    const tracked = state.tools.get(tool.id);
+    if (tracked) tracked.completed = true;
+    emit({ type: "tool_result", id: tool.id, output: tool.output, isError: tool.isError });
+    if (item["type"] === "file_change" && !tool.isError && Array.isArray(item["changes"])) {
+      for (const change of item["changes"]) {
+        const path = asString(asRecord(change)?.["path"]);
+        if (path) emit({ type: "artifact", path });
+      }
+    }
+  }
+
+  return true;
+};
+
 const handleCodexEvent = (
   event: UnknownRecord,
   state: JsonEventStreamState,
@@ -247,6 +326,7 @@ const handleCodexEvent = (
   if (emitCodexReasoning(event, state, emit)) return;
 
   const item = asRecord(event["item"]);
+  if (item && emitCodexStructuredTool(event, item, state, emit)) return;
   if (event["type"] === "item.started" && item?.["type"] === "command_execution") {
     const id = asString(item["id"]);
     if (!id || state.tools.has(id)) return;

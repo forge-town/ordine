@@ -88,7 +88,7 @@ describe("runJsonEventStream", () => {
     expect(result._unsafeUnwrapErr().result.terminal.status).toBe("failed");
   });
 
-  it("normalizes Codex reasoning, command, message, usage, and thread id", async () => {
+  it("normalizes Codex reasoning, command, file, MCP, web, usage, and thread id", async () => {
     const child = fakeChild();
     const run = runJsonEventStream(
       {
@@ -117,6 +117,21 @@ describe("runJsonEventStream", () => {
       '{"type":"item.completed","item":{"type":"command_execution","id":"cmd1","aggregated_output":"cwd","exit_code":0}}\n',
     );
     (child.stdout as PassThrough).write(
+      '{"type":"item.started","item":{"type":"file_change","id":"file1","changes":[{"path":"C:\\\\workspace\\\\fixture.txt","kind":"add"}],"status":"in_progress"}}\n',
+    );
+    (child.stdout as PassThrough).write(
+      '{"type":"item.completed","item":{"type":"file_change","id":"file1","changes":[{"path":"C:\\\\workspace\\\\fixture.txt","kind":"add"}],"status":"completed"}}\n',
+    );
+    (child.stdout as PassThrough).write(
+      '{"type":"item.started","item":{"type":"mcp_tool_call","id":"mcp1","server":"ordine","tool":"list_jobs","arguments":{},"status":"in_progress"}}\n',
+    );
+    (child.stdout as PassThrough).write(
+      '{"type":"item.completed","item":{"type":"mcp_tool_call","id":"mcp1","server":"ordine","tool":"list_jobs","arguments":{},"result":{"content":[]},"status":"completed"}}\n',
+    );
+    (child.stdout as PassThrough).write(
+      '{"type":"item.completed","item":{"type":"web_search","id":"web1","query":"ORDINE","status":"completed"}}\n',
+    );
+    (child.stdout as PassThrough).write(
       '{"type":"item.completed","item":{"type":"agent_message","text":"answer"}}\n',
     );
     (child.stdout as PassThrough).write(
@@ -131,6 +146,11 @@ describe("runJsonEventStream", () => {
       expect.arrayContaining([
         expect.objectContaining({ type: "thinking_delta", text: "plan" }),
         expect.objectContaining({ type: "tool_result", id: "cmd1", isError: false }),
+        expect.objectContaining({ type: "tool_result", id: "file1", isError: false }),
+        expect.objectContaining({ type: "artifact", path: "C:\\workspace\\fixture.txt" }),
+        expect.objectContaining({ type: "tool_start", id: "mcp1", name: "ordine.list_jobs" }),
+        expect.objectContaining({ type: "tool_result", id: "mcp1", isError: false }),
+        expect.objectContaining({ type: "tool_result", id: "web1", isError: false }),
         expect.objectContaining({ type: "usage", cachedInputTokens: 3 }),
       ]),
     );
