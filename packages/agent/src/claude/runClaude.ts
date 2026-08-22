@@ -1,10 +1,15 @@
 import { spawn } from "node:child_process";
-import { mkdtemp, rm, writeFile } from "node:fs/promises";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
-import { Result, ResultAsync } from "neverthrow";
+import { Result } from "neverthrow";
 import { logger } from "@repo/logger";
+import type { RuntimeTerminalStatus } from "@repo/schemas";
+import { createRuntimeEventEmitter } from "../runtime/runtimeEventEmitter";
 import { spawnCommand } from "../spawn/spawnCommand";
+import { terminateRuntimeProcess } from "../runtime/terminateRuntimeProcess";
+import {
+  createClaudeRuntimeEventState,
+  flushClaudeRuntimeEventState,
+  mapClaudeRuntimeEvent,
+} from "./mapClaudeRuntimeEvent";
 import { ClaudeStreamEventSchema, type ClaudeStreamEvent } from "./schemas/ClaudeStreamEventSchema";
 import type { RunClaudeOptions } from "./schemas/RunClaudeOptionsSchema";
 import type { RunClaudeResult } from "./schemas/RunClaudeResultSchema";
@@ -16,7 +21,6 @@ const CLAUDE_BIN =
   process.env.CLAUDE_BIN ?? (process.platform === "win32" ? "claude.cmd" : "claude");
 const MAX_SYSTEM_PROMPT_CHARS = 10_000;
 const UNSAFE_SYSTEM_PROMPT_CONTROL_CHARS = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g;
-const EMPTY_MCP_CONFIG = JSON.stringify({ mcpServers: {} });
 
 const sanitizeSystemPrompt = (value: string) =>
   value.replace(UNSAFE_SYSTEM_PROMPT_CONTROL_CHARS, "").slice(0, MAX_SYSTEM_PROMPT_CHARS);
@@ -60,25 +64,6 @@ const safeJsonParse = Result.fromThrowable(
   (text: string) => JSON.parse(text) as unknown,
   () => "invalid JSON",
 );
-
-const createTemporarySystemPromptFile = async (prompt: string) => {
-  const directory = await mkdtemp(join(tmpdir(), "oc-"));
-  const filePath = join(directory, "p.txt");
-
-  const writeResult = await ResultAsync.fromPromise(
-    writeFile(filePath, prompt, { encoding: "utf8", mode: 0o600 }),
-    (error) => error,
-  );
-  if (writeResult.isErr()) {
-    await rm(directory, { recursive: true, force: true });
-    throw writeResult.error;
-  }
-
-  return {
-    filePath,
-    cleanup: () => rm(directory, { recursive: true, force: true }),
-  };
-};
 
 const extractTextDelta = (event: ClaudeStreamEvent): string | undefined => {
   if (event.type !== "stream_event") return undefined;
@@ -130,15 +115,21 @@ export const runClaude = async ({
   systemPrompt,
   userPrompt,
   cwd,
-  allowedTools = DEFAULT_READ_ONLY_TOOLS,
+  model,
+  executablePath = CLAUDE_BIN,
   timeoutMs = 20 * 60 * 1000,
-  maxBudgetUsd = 5,
   onProgress,
   onTextDelta,
+  onRuntimeEvent,
+  signal,
+  permissionMode = "workspace-write",
+  networkAccess = true,
+  supportsPartialMessages = false,
+  resumeSessionId,
+  sessionId = crypto.randomUUID(),
   extraEnv,
   ssh,
   mcpConfigPath,
-  mcpToolNames,
 }: RunClaudeOptions): Promise<RunClaudeResult> => {
   const MAX_INPUT_CHARS = 50_000;
   const sanitizedSystemPrompt = sanitizeSystemPrompt(systemPrompt);
@@ -147,37 +138,40 @@ export const runClaude = async ({
       ? `${userPrompt.slice(0, MAX_INPUT_CHARS)}\n\n... (truncated, ${userPrompt.length - MAX_INPUT_CHARS} chars omitted — use tools to explore the project)`
       : userPrompt;
 
-  // Connector tool names (mcp__server__tool) are merged with the built-in allowedTools.
-  const effectiveAllowedTools = [...allowedTools, ...(mcpToolNames ?? [])].join(",");
-
   const isSsh = !!ssh;
   const label = isSsh ? `[Claude SSH ${ssh.user}@${ssh.host}]` : "[Claude]";
-  const systemPromptFile =
-    !isSsh && process.platform === "win32"
-      ? await createTemporarySystemPromptFile(sanitizedSystemPrompt)
-      : null;
+  const composedPrompt = sanitizedSystemPrompt
+    ? `${sanitizedSystemPrompt}\n\n---\n\n${truncatedPrompt}`
+    : truncatedPrompt;
 
   const claudeArgs = [
     "-p",
     "--verbose",
+    "--input-format",
+    "stream-json",
     "--output-format",
     "stream-json",
-    "--include-partial-messages",
-    ...(systemPromptFile
-      ? ["--system-prompt-file", systemPromptFile.filePath]
-      : ["--system-prompt", sanitizedSystemPrompt]),
-    "--allowedTools",
-    effectiveAllowedTools,
-    "--mcp-config",
-    mcpConfigPath ?? EMPTY_MCP_CONFIG,
-    "--strict-mcp-config",
-    "--dangerously-skip-permissions",
-    "--no-session-persistence",
-    "--max-budget-usd",
-    String(maxBudgetUsd),
+    ...(supportsPartialMessages ? ["--include-partial-messages"] : []),
+    ...(model && model !== "default" ? ["--model", model] : []),
+    ...(mcpConfigPath ? ["--mcp-config", mcpConfigPath] : []),
+    "--permission-mode",
+    "bypassPermissions",
+    ...(resumeSessionId ? ["--resume", resumeSessionId] : ["--session-id", sessionId]),
   ];
 
   logger.info({ cwd, ssh: isSsh ? `${ssh?.user}@${ssh?.host}` : "local" }, "runClaude: starting");
+  const runtimeEvents = createRuntimeEventEmitter({
+    runtime: "claude-code",
+    onEvent: onRuntimeEvent,
+  });
+  const runtimeState = createClaudeRuntimeEventState();
+  runtimeEvents.emit({ type: "status", phase: "starting", message: "Starting Claude Code" });
+  runtimeEvents.emit({
+    type: "diagnostic",
+    level: "info",
+    code: "CLAUDE_EFFECTIVE_PERMISSION_MODE",
+    message: `Claude Code permission mode: bypassPermissions (OpenDesign headless policy; requested ${permissionMode}, network ${networkAccess ? "enabled" : "disabled request is not enforced by the CLI"})`,
+  });
   await onProgress?.(`${label} Starting claude -p (cwd=${cwd})...`);
 
   return new Promise<RunClaudeResult>((resolve, reject) => {
@@ -198,7 +192,7 @@ export const runClaude = async ({
         });
       }
 
-      return spawnCommand(CLAUDE_BIN, claudeArgs, {
+      return spawnCommand(executablePath, claudeArgs, {
         cwd,
         stdio: ["pipe", "pipe", "pipe"],
         env: extraEnv ? { ...process.env, ...extraEnv } : undefined,
@@ -208,13 +202,68 @@ export const runClaude = async ({
     const events: ClaudeStreamEvent[] = [];
     const streamState = { lineBuf: "" };
     const stderrChunks: Buffer[] = [];
+    const lifecycle = { settled: false };
     const { stdout, stderr, stdin } = child;
+    if (child.pid) {
+      runtimeEvents.emit({
+        type: "diagnostic",
+        level: "info",
+        code: "RUNTIME_PROCESS_STARTED",
+        message: `Started Claude Code with PID ${child.pid}`,
+        metadata: { pid: child.pid, executablePath },
+      });
+    }
+
+    const finishRuntime = async ({
+      status,
+      exitCode,
+      resultText,
+      message,
+    }: {
+      status: RuntimeTerminalStatus;
+      exitCode: number | null;
+      resultText: string;
+      message?: string;
+    }): Promise<void> => {
+      flushClaudeRuntimeEventState(runtimeState, runtimeEvents.emit);
+      if (message) {
+        runtimeEvents.emit({
+          type: "diagnostic",
+          level: "error",
+          code: "CLAUDE_EXEC_FAILED",
+          message,
+        });
+      }
+      runtimeEvents.emit({
+        type: "terminal",
+        status,
+        exitCode,
+        signal: null,
+        resultText,
+        sessionId: runtimeState.sessionId,
+      });
+      await runtimeEvents.delivered();
+    };
 
     if (!stdout || !stderr || !stdin) {
-      reject(new Error("claude process stdio streams are unavailable"));
+      lifecycle.settled = true;
+      const error = new Error("claude process stdio streams are unavailable");
+      void finishRuntime({
+        status: "failed",
+        exitCode: null,
+        resultText: "",
+        message: error.message,
+      }).then(() => reject(error));
 
       return;
     }
+
+    const stdinState = { closed: false };
+    const closeStdin = (): void => {
+      if (stdinState.closed) return;
+      stdinState.closed = true;
+      stdin.end();
+    };
 
     const processStreamLine = (line: string) => {
       if (!line.trim()) return;
@@ -230,8 +279,19 @@ export const runClaude = async ({
       }
 
       events.push(validated.data);
+      mapClaudeRuntimeEvent(validated.data, runtimeState, runtimeEvents.emit);
       const textDelta = extractTextDelta(validated.data);
       if (textDelta) void onTextDelta?.(textDelta);
+      const stopReason = validated.data.message?.stop_reason;
+      if (
+        validated.data.type === "result" ||
+        (validated.data.type === "assistant" &&
+          validated.data.parent_tool_use_id == null &&
+          stopReason &&
+          stopReason !== "tool_use")
+      ) {
+        closeStdin();
+      }
     };
 
     stdout.on("data", (chunk: Buffer) => {
@@ -243,33 +303,98 @@ export const runClaude = async ({
 
     stderr.on("data", (chunk: Buffer) => stderrChunks.push(chunk));
 
-    stdin.write(truncatedPrompt);
-    stdin.end();
+    stdin.write(
+      `${JSON.stringify({
+        type: "user",
+        message: {
+          role: "user",
+          content: [{ type: "text", text: composedPrompt }],
+        },
+      })}\n`,
+    );
+
+    const abort = () => {
+      if (lifecycle.settled) return;
+      lifecycle.settled = true;
+      clearTimeout(timer);
+      const message = "claude was cancelled";
+      void terminateRuntimeProcess(child).then(
+        () =>
+          finishRuntime({
+            status: "cancelled",
+            exitCode: null,
+            resultText: extractResultFromEvents(events),
+            message,
+          }).then(() => reject(new Error(message))),
+        (error: unknown) =>
+          finishRuntime({
+            status: "failed",
+            exitCode: null,
+            resultText: extractResultFromEvents(events),
+            message: error instanceof Error ? error.message : String(error),
+          }).then(() => reject(error)),
+      );
+    };
 
     const timer = setTimeout(() => {
-      child.kill("SIGTERM");
-      reject(new Error(`claude timed out after ${timeoutMs / 1000}s`));
+      if (lifecycle.settled) return;
+      lifecycle.settled = true;
+      const message = `claude timed out after ${timeoutMs / 1000}s`;
+      void terminateRuntimeProcess(child).then(
+        () =>
+          finishRuntime({
+            status: "timed_out",
+            exitCode: null,
+            resultText: extractResultFromEvents(events),
+            message,
+          }).then(() => reject(new Error(message))),
+        (error: unknown) =>
+          finishRuntime({
+            status: "failed",
+            exitCode: null,
+            resultText: extractResultFromEvents(events),
+            message: error instanceof Error ? error.message : String(error),
+          }).then(() => reject(error)),
+      );
     }, timeoutMs);
+    signal?.addEventListener("abort", abort, { once: true });
+    if (signal?.aborted) abort();
 
     child.on("error", (error) => {
+      if (lifecycle.settled) return;
+      lifecycle.settled = true;
       clearTimeout(timer);
+      signal?.removeEventListener("abort", abort);
       logger.error({ err: error.message }, "runClaude: spawn error");
       void onProgress?.(`${label} Spawn error: ${error.message}`);
-      reject(error);
+      void finishRuntime({
+        status: "failed",
+        exitCode: null,
+        resultText: extractResultFromEvents(events),
+        message: error.message,
+      }).then(() => reject(error));
     });
 
     child.on("close", (code) => {
+      if (lifecycle.settled) return;
+      lifecycle.settled = true;
       clearTimeout(timer);
+      signal?.removeEventListener("abort", abort);
       const stderr = Buffer.concat(stderrChunks).toString("utf8");
 
       // Flush remaining line buffer
       processStreamLine(streamState.lineBuf);
 
-      // stream-json may exit with non-zero on budget exceeded but still has valid events
-      if (code !== 0 && events.length === 0) {
+      if (code !== 0) {
         logger.error({ code, stderr: stderr.slice(0, 500) }, "runClaude: non-zero exit");
         void onProgress?.(`${label} Exit code ${code}: ${stderr.slice(0, 200)}`);
-        reject(new Error(`claude exited with code ${code}: ${stderr.slice(0, 500)}`));
+        const message = `claude exited with code ${code}: ${stderr.slice(0, 500)}`;
+        void finishRuntime({
+          status: "failed",
+          exitCode: code,
+          resultText: extractResultFromEvents(events),
+          message,
+        }).then(() => reject(new Error(message)));
 
         return;
       }
@@ -283,9 +408,11 @@ export const runClaude = async ({
 
       logger.info({ len: resultText.length, eventCount: events.length }, "runClaude: complete");
       void onProgress?.(`${label} Complete (${resultText.length} chars, ${events.length} events)`);
-      resolve({ text: resultText, events });
+      void finishRuntime({
+        status: "completed",
+        exitCode: code,
+        resultText,
+      }).then(() => resolve({ text: resultText, events }));
     });
-  }).finally(async () => {
-    await systemPromptFile?.cleanup();
   });
 };

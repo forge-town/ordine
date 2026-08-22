@@ -14,11 +14,23 @@
     "dist"
   ],
   "type": "module",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "bun": "./src/index.ts",
+      "default": "./dist/index.js"
+    },
+    "./mcp-manager": {
+      "types": "./src/mcp/manager.ts",
+      "bun": "./src/mcp/manager.ts",
+      "default": "./dist/manager.js"
+    }
+  },
   "publishConfig": {
     "access": "public"
   },
   "scripts": {
-    "build": "bun build ./src/index.ts --target=node --format=esm --outfile=./dist/index.js",
+    "build": "bun build ./src/index.ts ./src/mcp/manager.ts --target=node --format=esm --outdir=./dist --entry-naming=[name].js",
     "check-types": "tsc --noEmit",
     "lint": "oxlint --config ./.oxlintrc.json src/",
     "quality": "bun run check-types && bun run lint && bun run test",
@@ -26,6 +38,7 @@
     "prepublishOnly": "bun run build"
   },
   "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
     "commander": "^14.0.0",
     "neverthrow": "^8.2.0",
     "zod": "^4.3.6"

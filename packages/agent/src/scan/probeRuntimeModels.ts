@@ -1,13 +1,11 @@
-import { execFile, spawn } from "node:child_process";
-import { readFile } from "node:fs/promises";
-import { homedir } from "node:os";
-import { join } from "node:path";
+import { execFile } from "node:child_process";
 import { query, type ModelInfo } from "@anthropic-ai/claude-agent-sdk";
 import type { DetectedRuntime, RuntimeModel, RuntimeModelCapabilityOption } from "@repo/schemas";
 import { Result, ResultAsync } from "neverthrow";
 import { parse as parseToml } from "smol-toml";
+import { spawnCommand } from "../spawn/spawnCommand";
 
-const MODEL_PROBE_TIMEOUT_MS = 10_000;
+const MODEL_PROBE_TIMEOUT_MS = 15_000;
 const CODEX_INITIALIZE_REQUEST_ID = "1";
 const CODEX_MODEL_LIST_REQUEST_ID = "2";
 const PI_REASONING_EFFORTS = ["off", "minimal", "low", "medium", "high", "xhigh"];
@@ -329,11 +327,141 @@ export const parsePiModels = (stdout: string): RuntimeModel[] => {
   });
 };
 
+export const normalizeAcpModels = (value: unknown): RuntimeModel[] => {
+  const result = asRecord(value);
+  if (!result) return [];
+  const configOptions = Array.isArray(result["configOptions"]) ? result["configOptions"] : [];
+  const modelConfig = configOptions.find((rawOption) => {
+    const option = asRecord(rawOption);
+    const id = asString(option?.["id"])
+      ?.toLowerCase()
+      .replaceAll(/[\s_-]+/g, "");
+    const name = asString(option?.["name"])
+      ?.toLowerCase()
+      .replaceAll(/[\s_-]+/g, "");
+    const category = asString(option?.["category"])
+      ?.toLowerCase()
+      .replaceAll(/[\s_-]+/g, "");
+
+    return category === "model" || id === "model" || (!category && name === "model");
+  });
+  const config = asRecord(modelConfig);
+  const currentValue = asString(config?.["currentValue"]);
+  const configModels = (Array.isArray(config?.["options"]) ? config["options"] : []).flatMap(
+    (rawModel): RuntimeModel[] => {
+      const model = asRecord(rawModel);
+      const id = asString(model?.["value"]) ?? asString(model?.["id"]);
+      if (!id) return [];
+      const name = asString(model?.["name"]);
+
+      return [
+        {
+          id,
+          displayName: name && name !== id ? `${name} (${id})` : id,
+          ...(id === currentValue ? { isDefault: true } : {}),
+        },
+      ];
+    },
+  );
+  if (configModels.length > 0) return configModels;
+
+  const models = asRecord(result["models"]);
+  const currentModelId = asString(models?.["currentModelId"]);
+
+  return (Array.isArray(models?.["availableModels"]) ? models["availableModels"] : []).flatMap(
+    (rawModel): RuntimeModel[] => {
+      const model = asRecord(rawModel);
+      const id = asString(model?.["modelId"]);
+      if (!id) return [];
+      const name = asString(model?.["name"]);
+
+      return [
+        {
+          id,
+          displayName: name && name !== id ? `${name} (${id})` : id,
+          ...(id === currentModelId ? { isDefault: true } : {}),
+        },
+      ];
+    },
+  );
+};
+
+const probeAcpModels = (path: string, args: string[]): Promise<RuntimeModel[]> =>
+  new Promise((resolve, reject) => {
+    const child = spawnCommand(path, args, { stdio: ["pipe", "pipe", "pipe"] });
+    const state = { settled: false, buffer: "", expectedId: 1 };
+    const timeout = setTimeout(() => {
+      if (state.settled) return;
+      state.settled = true;
+      child.kill("SIGTERM");
+      reject(new Error("ACP model detection timed out"));
+    }, MODEL_PROBE_TIMEOUT_MS);
+    const finish = (models: RuntimeModel[]): void => {
+      if (state.settled) return;
+      state.settled = true;
+      clearTimeout(timeout);
+      child.stdin.end();
+      child.kill("SIGTERM");
+      resolve(models);
+    };
+    const fail = (message: string): void => {
+      if (state.settled) return;
+      state.settled = true;
+      clearTimeout(timeout);
+      child.kill("SIGTERM");
+      reject(new Error(message));
+    };
+    const send = (id: number, method: string, params: unknown): void => {
+      child.stdin.write(`${JSON.stringify({ jsonrpc: "2.0", id, method, params })}\n`);
+    };
+    const handleLine = (line: string): void => {
+      const message = asRecord(parseJson(line));
+      if (!message || Number(message["id"]) !== state.expectedId) return;
+      const error = asRecord(message["error"]);
+      if (error) {
+        fail(asString(error["message"]) ?? "ACP model detection failed");
+
+        return;
+      }
+      const result = asRecord(message["result"]);
+      if (!result) return;
+      if (state.expectedId === 1) {
+        state.expectedId = 2;
+        send(2, "session/new", { cwd: process.cwd(), mcpServers: [] });
+
+        return;
+      }
+      finish(normalizeAcpModels(result));
+    };
+    child.stdout.setEncoding("utf8");
+    child.stdout.on("data", (chunk: string) => {
+      state.buffer += chunk;
+      const lines = state.buffer.split(/\r?\n/);
+      state.buffer = lines.pop() ?? "";
+      for (const line of lines) {
+        if (line.trim()) handleLine(line);
+      }
+    });
+    child.once("error", (error) => fail(error.message));
+    child.once("close", (code) => {
+      if (!state.settled) fail(`ACP model detection exited before session/new (${code})`);
+    });
+    send(1, "initialize", {
+      protocolVersion: 1,
+      clientCapabilities: { terminal: false },
+      clientInfo: { name: "ordine-detect", version: "0.0.2" },
+    });
+  });
+
 const execFileStdout = (bin: string, args: string[]): Promise<string> =>
   new Promise((resolve, reject) => {
+    const command =
+      process.platform === "win32" && /\.(?:cmd|bat)$/i.test(bin)
+        ? { bin: "cmd.exe", args: ["/d", "/s", "/c", bin, ...args] }
+        : { bin, args };
     execFile(
-      bin,
-      args,
+      command.bin,
+      command.args,
       { timeout: MODEL_PROBE_TIMEOUT_MS, maxBuffer: 16 * 1024 * 1024 },
       (error, stdout, stderr) => {
         if (error) {
@@ -351,7 +479,9 @@ const execFileStdout = (bin: string, args: string[]): Promise<string> =>
 
 const probeCodexModels = (path: string): Promise<RuntimeModel[]> =>
   new Promise((resolve, reject) => {
-    const child = spawn(path, ["app-server"], { stdio: ["pipe", "pipe", "ignore"] });
+    const child = spawnCommand(path, ["app-server"], {
+      stdio: ["pipe", "pipe", "ignore"],
+    });
     const state = { settled: false, buffer: "" };
     const timeout = setTimeout(() => {
       if (state.settled) return;
@@ -458,10 +588,25 @@ const probeModels = async (
       );
     }
     case "kimi-code": {
-      return parseKimiModels(await readFile(join(homedir(), ".kimi", "config.toml"), "utf8"));
+      return probeAcpModels(runtime.path, ["acp"]);
     }
     case "pi-agent": {
       return parsePiModels(await execFileStdout(runtime.path, ["--list-models", "--offline"]));
+    }
+    case "hermes": {
+      return probeAcpModels(runtime.path, ["acp", "--accept-hooks"]);
+    }
+    case "mistral-vibe": {
+      return probeAcpModels(runtime.path, []);
+    }
+    case "deepseek-reasonix": {
+      return probeAcpModels(runtime.path, ["acp"]);
+    }
+    case "kiro": {
+      return probeAcpModels(runtime.path, ["acp"]);
+    }
+    case "trae": {
+      return probeAcpModels(runtime.path, ["acp", "serve"]);
     }
     default: {
       return undefined;

@@ -97,6 +97,22 @@ describe("agentEngine", () => {
     expect(result.usage).toBeNull();
   });
 
+  it("passes the native Claude runtime event callback through without a legacy bridge", async () => {
+    const onRuntimeEvent = vi.fn();
+
+    await agentEngine.run({
+      agent: "claude-code",
+      mode: "direct",
+      systemPrompt: "Analyze this",
+      userPrompt: "Hello",
+      cwd: "/tmp/test",
+      onRuntimeEvent,
+    });
+
+    expect(runClaude).toHaveBeenCalledWith(expect.objectContaining({ onRuntimeEvent }));
+    expect(onRuntimeEvent).not.toHaveBeenCalled();
+  });
+
   it("writes claude mcp config for connector injection", async () => {
     await agentEngine.run({
       agent: "claude-code",
@@ -221,6 +237,30 @@ describe("agentEngine", () => {
     });
 
     expect(onTextDelta).toHaveBeenCalledWith("partial codex output");
+  });
+
+  it("normalizes legacy runtime callbacks into ordered terminal-truth events", async () => {
+    const events: Array<{ type: string; sequence?: number; status?: string }> = [];
+
+    await agentEngine.run({
+      agent: "mastra",
+      mode: "direct",
+      systemPrompt: "Analyze this",
+      userPrompt: "Hello",
+      cwd: "/tmp/test",
+      onRuntimeEvent: (event) => {
+        events.push(event);
+      },
+    });
+
+    expect(events.map((event) => event.type)).toEqual([
+      "status",
+      "diagnostic",
+      "message",
+      "terminal",
+    ]);
+    expect(events.map((event) => event.sequence)).toEqual([0, 1, 2, 3]);
+    expect(events.at(-1)?.status).toBe("completed");
   });
 
   it("loads only the selected connector tools inside a supported adapter", async () => {

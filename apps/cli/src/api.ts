@@ -1,12 +1,17 @@
 import { ResultAsync } from "neverthrow";
+import { readFile } from "node:fs/promises";
 import { getEnv } from "./integrations/env";
 
 const getBaseUrl = (): string => getEnv().ORDINE_API_URL;
 
-const getHeaders = (): Record<string, string> => {
-  const { ORDINE_DESKTOP_AUTH_TOKEN } = getEnv();
+const getHeaders = async (): Promise<Record<string, string>> => {
+  const { ORDINE_DESKTOP_AUTH_TOKEN, ORDINE_DESKTOP_AUTH_TOKEN_FILE } = getEnv();
+  const tokenFromFile = ORDINE_DESKTOP_AUTH_TOKEN_FILE
+    ? await ResultAsync.fromPromise(readFile(ORDINE_DESKTOP_AUTH_TOKEN_FILE, "utf8"), () => undefined)
+    : null;
+  const token = tokenFromFile?.isOk() ? tokenFromFile.value.trim() : ORDINE_DESKTOP_AUTH_TOKEN;
 
-  return ORDINE_DESKTOP_AUTH_TOKEN ? { "X-Desktop-Token": ORDINE_DESKTOP_AUTH_TOKEN } : {};
+  return token ? { "X-Desktop-Token": token } : {};
 };
 
 interface ApiError {
@@ -24,7 +29,7 @@ type ApiResult<T> = ApiSuccess<T> | ApiError;
 
 const request = async <T>(method: string, path: string, body?: unknown): Promise<ApiResult<T>> => {
   const url = `${getBaseUrl()}${path}`;
-  const headers = getHeaders();
+  const headers = await getHeaders();
   const init: RequestInit = { method, headers };
 
   if (body !== undefined) {
@@ -48,7 +53,7 @@ const request = async <T>(method: string, path: string, body?: unknown): Promise
 
 const requestNoBody = async (method: string, path: string): Promise<ApiResult<void>> => {
   const url = `${getBaseUrl()}${path}`;
-  const res = await fetch(url, { method, headers: getHeaders() });
+  const res = await fetch(url, { method, headers: await getHeaders() });
 
   if (!res.ok) {
     const result = await ResultAsync.fromPromise(res.text(), () => undefined);
@@ -62,7 +67,7 @@ const requestNoBody = async (method: string, path: string): Promise<ApiResult<vo
 
 const requestBytes = async (path: string): Promise<ApiResult<Uint8Array>> => {
   const url = `${getBaseUrl()}${path}`;
-  const res = await fetch(url, { method: "GET", headers: getHeaders() });
+  const res = await fetch(url, { method: "GET", headers: await getHeaders() });
 
   if (!res.ok) {
     const result = await ResultAsync.fromPromise(res.text(), () => undefined);

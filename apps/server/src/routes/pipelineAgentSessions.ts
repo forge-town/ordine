@@ -3,12 +3,13 @@ import { ResultAsync } from "neverthrow";
 import { z } from "zod/v4";
 import {
   PipelineAgentEntrypointSchema,
+  AgentRunPermissionModeSchema,
   PipelineGraphSnapshotSchema,
   PipelineAgentMessageKindSchema,
   PipelineAgentMessageRoleSchema,
   PipelineAgentModeSchema,
 } from "@repo/schemas";
-import { pipelineAgentSessionsService } from "../services.js";
+import { agentRunsService, pipelineAgentSessionsService } from "../services.js";
 
 export const pipelineAgentSessionsRoutes = new Hono();
 
@@ -31,6 +32,13 @@ const approveProposalBodySchema = z.object({
 
 const runtimeSelectionBodySchema = z.object({
   runtimeId: z.string().optional(),
+});
+
+const startRunBodySchema = runtimeSelectionBodySchema.extend({
+  model: z.string().min(1).optional(),
+  permissionMode: AgentRunPermissionModeSchema.default("workspace-write"),
+  networkAccess: z.boolean().default(true),
+  fullAccessConfirmed: z.boolean().default(false),
 });
 
 const encodeEvent = (event: string, data: unknown) =>
@@ -219,57 +227,149 @@ pipelineAgentSessionsRoutes.delete("/:id/attachments/:attachmentId", async (c) =
   return c.body(null, 204);
 });
 
+pipelineAgentSessionsRoutes.post("/:id/runs", async (c) => {
+  const bodyResult = await parseOptionalJsonBody(c);
+  if (bodyResult.isErr()) {
+    return c.json({ code: "INVALID_REQUEST", error: "Invalid request body" }, 400);
+  }
+  const parsed = startRunBodySchema.safeParse(bodyResult.value);
+  if (!parsed.success) {
+    return c.json({ code: "INVALID_REQUEST", error: "Invalid request body" }, 400);
+  }
+  const started = await ResultAsync.fromPromise(
+    pipelineAgentSessionsService.startPlanningRun(c.req.param("id"), parsed.data),
+    (error) => (error instanceof Error ? error : new Error(String(error))),
+  );
+  if (started.isErr()) {
+    return c.json(serviceErrorPayload(started.error), serviceErrorStatus(started.error));
+  }
+
+  return c.json(started.value, 202);
+});
+
 pipelineAgentSessionsRoutes.post("/:id/plan", async (c) => {
   const bodyResult = await parseOptionalJsonBody(c);
   if (bodyResult.isErr()) {
     return c.json({ code: "INVALID_REQUEST", error: "Invalid request body" }, 400);
   }
 
-  const parsed = runtimeSelectionBodySchema.safeParse(bodyResult.value);
+  const parsed = startRunBodySchema.safeParse(bodyResult.value);
   if (!parsed.success) {
     return c.json({ code: "INVALID_REQUEST", error: "Invalid request body" }, 400);
   }
 
+  const started = await ResultAsync.fromPromise(
+    pipelineAgentSessionsService.startPlanningRun(c.req.param("id"), parsed.data),
+    (error) => (error instanceof Error ? error : new Error(String(error))),
+  );
+  if (started.isErr()) {
+    return new Response(
+      encodeEvent("error", {
+        code: serviceErrorCode(started.error),
+        message: "Pipeline agent request failed",
+      }),
+      { headers: { "content-type": "text/event-stream" } },
+    );
+  }
+  const runId = started.value.runId;
+
   const stream = new ReadableStream({
     start: async (controller) => {
       const encoder = new TextEncoder();
+      const state = {
+        closed: false,
+        lastSequence: 0,
+        replaying: true,
+        pending: new Map<number, Awaited<ReturnType<typeof agentRunsService.getEvents>>[number]>(),
+        unsubscribe: undefined as (() => void) | undefined,
+      };
       const send = (event: string, data: unknown) => {
+        if (state.closed) return;
         controller.enqueue(encoder.encode(encodeEvent(event, data)));
       };
 
-      send("phase", { phase: "planning" });
-
-      const planResult = await ResultAsync.fromPromise(
-        pipelineAgentSessionsService.planSession(c.req.param("id"), {
-          runtimeId: parsed.data.runtimeId,
-          onProgress: (message) => {
-            send("progress", { message });
-          },
-          onTextDelta: (text) => {
-            send("assistant_chunk", { text });
-          },
-        }),
-        (error) => (error instanceof Error ? error : new Error(String(error))),
-      );
-
-      if (planResult.isErr()) {
-        send("error", {
-          code: serviceErrorCode(planResult.error),
-          message: "Pipeline agent request failed",
-        });
+      const finishProjection = async () => {
+        if (state.closed) return;
+        await pipelineAgentSessionsService.waitForPlanningRun(runId);
+        const [run, session] = await Promise.all([
+          agentRunsService.getById(runId),
+          pipelineAgentSessionsService.getSessionById(c.req.param("id")),
+        ]);
+        if (run?.status !== "completed" || !session) {
+          send("error", {
+            code: run?.errorCode ?? "PIPELINE_AGENT_REQUEST_FAILED",
+            message: run?.errorMessage ?? "Pipeline agent request failed",
+          });
+        } else {
+          const proposal = session.proposals.find(
+            (candidate) => candidate.id === session.latestProposalId,
+          );
+          const question = [...session.messages]
+            .reverse()
+            .find((message) => message.role === "assistant" && message.kind === "question");
+          if (proposal) {
+            send("proposal_ready", {
+              type: "proposal",
+              proposal: proposal.proposal,
+              proposalId: proposal.id,
+            });
+          } else if (question) {
+            send("question", { type: "question", question: question.content });
+          } else {
+            send("error", {
+              code: "PIPELINE_AGENT_INVALID_STRUCTURE",
+              message: "Pipeline planning completed without a proposal or question",
+            });
+          }
+        }
+        send("done", { status: "ok", runId });
+        state.closed = true;
+        state.unsubscribe?.();
         controller.close();
+      };
 
-        return;
+      const projectEvent = (
+        envelope: Awaited<ReturnType<typeof agentRunsService.getEvents>>[number],
+      ) => {
+        if (state.closed || envelope.sequence <= state.lastSequence) return;
+        state.lastSequence = envelope.sequence;
+        const event = envelope.event;
+        if (event.type === "text_delta" || event.type === "message") {
+          send("assistant_chunk", { text: event.text, sequence: envelope.sequence });
+        } else if (event.type === "status") {
+          send("progress", {
+            message: event.message ?? event.phase,
+            sequence: envelope.sequence,
+          });
+        } else if (event.type === "diagnostic" || event.type === "retry") {
+          send("progress", {
+            message: event.type === "diagnostic" ? event.message : (event.message ?? event.phase),
+            sequence: envelope.sequence,
+          });
+        } else if (event.type === "terminal") {
+          void finishProjection();
+        }
+      };
+
+      send("phase", { phase: "planning", runId });
+      state.unsubscribe = agentRunsService.subscribe(runId, (envelope) => {
+        if (state.replaying) {
+          state.pending.set(envelope.sequence, envelope);
+
+          return;
+        }
+        projectEvent(envelope);
+      });
+      const replay = await agentRunsService.getEvents(runId, 0);
+      for (const envelope of replay) projectEvent(envelope);
+      while (!state.closed && state.pending.size > 0) {
+        const pending = [...state.pending.values()].sort(
+          (left, right) => left.sequence - right.sequence,
+        );
+        state.pending.clear();
+        for (const envelope of pending) projectEvent(envelope);
       }
-
-      if (planResult.value.type === "question") {
-        send("question", planResult.value);
-      } else {
-        send("proposal_ready", planResult.value);
-      }
-
-      send("done", { status: "ok" });
-      controller.close();
+      state.replaying = false;
     },
   });
 

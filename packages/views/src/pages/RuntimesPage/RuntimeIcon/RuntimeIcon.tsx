@@ -10,6 +10,11 @@ const ICON_MAP: Record<string, { icon: typeof Bot; color: string }> = {
   "pi-agent": { icon: Bot, color: "text-amber-500" },
   opencode: { icon: Cpu, color: "text-sky-500" },
   "kimi-code": { icon: Sparkles, color: "text-blue-500" },
+  "deepseek-harness": { icon: Cpu, color: "text-fuchsia-500" },
+  "mistral-vibe": { icon: Sparkles, color: "text-indigo-500" },
+  "deepseek-reasonix": { icon: Cpu, color: "text-teal-500" },
+  kiro: { icon: Bot, color: "text-lime-500" },
+  trae: { icon: Sparkles, color: "text-pink-500" },
 };
 
 export const RuntimeIcon = ({ type, className }: { type: string; className?: string }) => {

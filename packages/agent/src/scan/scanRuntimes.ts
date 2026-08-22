@@ -7,16 +7,22 @@ import { logger } from "@repo/logger";
 import { AgentRuntimeSchema, type DetectedRuntime } from "@repo/schemas";
 import { ResultAsync } from "neverthrow";
 import { probeRuntimeModels } from "./probeRuntimeModels";
+import { getRuntimeManifest } from "../runtime/runtimeManifestRegistry";
 
 const BUILTIN_RUNTIME_BINARIES: Record<string, string> = {
   "claude-code": "claude",
   codex: "codex",
+  "deepseek-harness": "dsh",
   hermes: "hermes",
   mastra: "mastra",
+  "mistral-vibe": "vibe-acp",
   openclaw: "openclaw",
   "pi-agent": "pi",
   opencode: "opencode",
   "kimi-code": "kimi",
+  "deepseek-reasonix": "reasonix",
+  kiro: "kiro-cli",
+  trae: "traecli",
 };
 
 /**
@@ -171,7 +177,10 @@ const detectBinary = async (
 ): Promise<DetectedRuntime | undefined> => {
   const parsedType = AgentRuntimeSchema.safeParse(type);
   if (!parsedType.success) return undefined;
-  const path = await resolveBinaryPath(binaryName);
+  const manifest = getRuntimeManifest(parsedType.data);
+  const candidates = [...new Set([binaryName, ...manifest.binaries])];
+  const resolvedCandidates = await Promise.all(candidates.map(resolveBinaryPath));
+  const path = resolvedCandidates.find((candidate) => candidate !== undefined);
   if (!path) {
     return undefined;
   }
@@ -192,6 +201,7 @@ const detectBinary = async (
     path,
     version,
     ...(models === undefined ? {} : { models }),
+    compatibility: manifest,
   };
 };
 

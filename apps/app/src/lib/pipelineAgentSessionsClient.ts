@@ -2,6 +2,8 @@ import { Result } from "neverthrow";
 import { z } from "zod/v4";
 import {
   OperationSchema,
+  AgentRunEventEnvelopeSchema,
+  AgentRunSchema,
   PipelineSchema,
   PipelineAgentAttachmentParseStatusSchema,
   PipelineAgentEntrypointSchema,
@@ -25,6 +27,7 @@ const pipelineAgentApiBaseUrl = resolveApiBaseUrl(
   globalThis.window === undefined ? undefined : globalThis.window.location,
 );
 const pipelineAgentSessionsBaseUrl = `${pipelineAgentApiBaseUrl}/pipeline-agent-sessions`;
+const agentRunsBaseUrl = `${pipelineAgentApiBaseUrl}/agent-runs`;
 
 interface PipelineAgentRequestOptions {
   signal?: AbortSignal;
@@ -100,6 +103,38 @@ const PipelineAgentPlanEventSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("phase"), phase: z.string().min(1) }),
   z.object({ type: z.literal("progress"), message: z.string() }),
   z.object({ type: z.literal("assistant_chunk"), text: z.string() }),
+  z.object({ type: z.literal("thinking"), text: z.string() }),
+  z.object({
+    type: z.literal("tool"),
+    phase: z.enum(["start", "update", "result"]),
+    id: z.string().min(1),
+    name: z.string().optional(),
+    status: z.string().optional(),
+    output: z.unknown().optional(),
+  }),
+  z.object({
+    type: z.literal("diagnostic"),
+    level: z.enum(["info", "warning", "error"]),
+    code: z.string().min(1),
+    message: z.string().min(1),
+  }),
+  z.object({
+    type: z.literal("retry"),
+    phase: z.enum(["starting", "succeeded", "failed", "exhausted"]),
+    attempt: z.number().int().positive().optional(),
+    message: z.string().optional(),
+  }),
+  z.object({
+    type: z.literal("usage"),
+    inputTokens: z.number().int().nonnegative().optional(),
+    outputTokens: z.number().int().nonnegative().optional(),
+    cachedInputTokens: z.number().int().nonnegative().optional(),
+    costUsd: z.number().nonnegative().optional(),
+  }),
+  z.object({
+    type: z.literal("terminal"),
+    status: z.enum(["completed", "failed", "cancelled", "timed_out", "interrupted"]),
+  }),
   z.object({ type: z.literal("question"), question: z.string().min(1) }),
   z.object({
     type: z.literal("proposal_ready"),
@@ -115,10 +150,49 @@ const PipelineAgentCreatedPipelineResponseSchema = z.object({
   pipelineId: z.string().min(1),
 });
 
-const parsePlanEvent = (value: unknown): PipelineAgentPlanEvent | null => {
-  const result = PipelineAgentPlanEventSchema.safeParse(value);
+const AgentRunStartResponseSchema = z.object({ runId: z.string().min(1) });
+const ActiveAgentRunSchema = z.object({
+  runId: z.string().min(1),
+  lastSequence: z.number().int().nonnegative(),
+});
 
-  return result.success ? result.data : null;
+const terminalRunStatuses = [
+  "completed",
+  "failed",
+  "cancelled",
+  "timed_out",
+  "interrupted",
+] as const;
+type TerminalRunStatus = (typeof terminalRunStatuses)[number];
+const isTerminalRunStatus = (status: z.infer<typeof AgentRunSchema>["status"]): status is TerminalRunStatus =>
+  terminalRunStatuses.includes(status as TerminalRunStatus);
+
+const activeAgentRunStorageKey = (sessionId: string) =>
+  `ordine.pipeline-agent.active-run.${sessionId}`;
+
+const readActiveAgentRun = (sessionId: string) => {
+  if (globalThis.window === undefined) return null;
+  const raw = globalThis.window.localStorage.getItem(activeAgentRunStorageKey(sessionId));
+  if (!raw) return null;
+  const parsed = Result.fromThrowable(
+    () => ActiveAgentRunSchema.parse(JSON.parse(raw)),
+    () => null,
+  )();
+
+  return parsed.unwrapOr(null);
+};
+
+const writeActiveAgentRun = (sessionId: string, runId: string, lastSequence: number) => {
+  if (globalThis.window === undefined) return;
+  globalThis.window.localStorage.setItem(
+    activeAgentRunStorageKey(sessionId),
+    JSON.stringify({ runId, lastSequence }),
+  );
+};
+
+const clearActiveAgentRun = (sessionId: string) => {
+  if (globalThis.window === undefined) return;
+  globalThis.window.localStorage.removeItem(activeAgentRunStorageKey(sessionId));
 };
 
 const parseEventPayload = (raw: string): Record<string, unknown> | null =>
@@ -156,73 +230,80 @@ const readResponseJson = async <T>(response: Response, schema: z.ZodType<T>): Pr
   return schema.parse(JSON.parse(body));
 };
 
-const parseSseMessage = (message: string): PipelineAgentPlanEvent | null => {
-  const lines = message
+const parseAgentRunSseMessage = (message: string) => {
+  const data = message
     .split(/\r?\n/)
-    .map((line) => line.trim())
-    .filter((line) => line.length > 0);
-  const eventLine = lines.find((line) => line.startsWith("event:"));
-  const dataLines = lines.filter((line) => line.startsWith("data:"));
-  if (dataLines.length === 0) {
-    return null;
+    .filter((line) => line.startsWith("data:"))
+    .map((line) => line.slice(5).trimStart())
+    .join("\n");
+  if (!data) return null;
+  const parsed = parseEventPayload(data);
+  const envelope = AgentRunEventEnvelopeSchema.safeParse(parsed);
+
+  return envelope.success ? envelope.data : null;
+};
+
+const mapAgentRunEvent = (
+  envelope: z.infer<typeof AgentRunEventEnvelopeSchema>,
+): PipelineAgentPlanEvent | null => {
+  const event = envelope.event;
+  if (event.type === "text_delta" || event.type === "message") {
+    return { type: "assistant_chunk", text: event.text };
+  }
+  if (event.type === "thinking_delta") return { type: "thinking", text: event.text };
+  if (event.type === "tool_start") {
+    return { type: "tool", phase: "start", id: event.id, name: event.name };
+  }
+  if (event.type === "tool_update") {
+    return {
+      type: "tool",
+      phase: "update",
+      id: event.id,
+      name: event.name,
+      status: event.status,
+      output: event.output,
+    };
+  }
+  if (event.type === "tool_result") {
+    return {
+      type: "tool",
+      phase: "result",
+      id: event.id,
+      status: event.isError ? "failed" : "completed",
+      output: event.output,
+    };
+  }
+  if (event.type === "diagnostic") {
+    return {
+      type: "diagnostic",
+      level: event.level,
+      code: event.code,
+      message: event.message,
+    };
+  }
+  if (event.type === "retry") {
+    return {
+      type: "retry",
+      phase: event.phase,
+      attempt: event.attempt,
+      message: event.message,
+    };
+  }
+  if (event.type === "usage") {
+    return {
+      type: "usage",
+      inputTokens: event.inputTokens,
+      outputTokens: event.outputTokens,
+      cachedInputTokens: event.cachedInputTokens,
+      costUsd: event.costUsd,
+    };
+  }
+  if (event.type === "terminal") return { type: "terminal", status: event.status };
+  if (event.type === "status") {
+    return { type: "progress", message: event.message ?? event.phase };
   }
 
-  const eventName = eventLine?.slice(6).trim() ?? "";
-  const parsed = parseEventPayload(dataLines.map((line) => line.slice(5).trimStart()).join("\n"));
-
-  if (!parsed || !isRecord(parsed)) {
-    return null;
-  }
-
-  switch (eventName) {
-    case "phase": {
-      return parsePlanEvent({
-        type: "phase",
-        phase: parsed.phase,
-      });
-    }
-    case "progress": {
-      return parsePlanEvent({
-        type: "progress",
-        message: parsed.message,
-      });
-    }
-    case "assistant_chunk": {
-      return parsePlanEvent({
-        type: "assistant_chunk",
-        text: parsed.text,
-      });
-    }
-    case "question": {
-      return parsePlanEvent({
-        type: "question",
-        question: parsed.question,
-      });
-    }
-    case "proposal_ready": {
-      return parsePlanEvent({
-        type: "proposal_ready",
-        proposal: parsed.proposal,
-        proposalId: parsed.proposalId,
-      });
-    }
-    case "done": {
-      return parsePlanEvent({
-        type: "done",
-        status: parsed.status,
-      });
-    }
-    case "error": {
-      return parsePlanEvent({
-        type: "error",
-        code: parsed.code,
-        message: parsed.message,
-      });
-    }
-    default: {
-      return parsePlanEvent(parsed);
-    }
-  }
+  return null;
 };
 
 export const pipelineAgentSessionsClient = {
@@ -477,52 +558,162 @@ export const pipelineAgentSessionsClient = {
       onEvent: (event: PipelineAgentPlanEvent) => void;
     },
   ) {
-    const response = await fetch(`${pipelineAgentSessionsBaseUrl}/${sessionId}/plan`, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify(input.runtimeId ? { runtimeId: input.runtimeId } : {}),
-      signal: input.signal,
-    });
-    if (!response.ok) {
-      throw await readResponseError(response);
+    const storedRun = readActiveAgentRun(sessionId);
+    const activeRunState = {
+      runId: storedRun?.runId ?? null,
+      lastSequence: storedRun?.lastSequence ?? 0,
+    };
+
+    if (activeRunState.runId) {
+      const storedResponse = await fetch(`${agentRunsBaseUrl}/${encodeURIComponent(activeRunState.runId)}`, {
+        signal: input.signal,
+      });
+      const stored = storedResponse.ok
+        ? await readResponseJson(storedResponse, AgentRunSchema)
+        : null;
+      if (!stored || isTerminalRunStatus(stored.status)) {
+        clearActiveAgentRun(sessionId);
+        activeRunState.runId = null;
+        activeRunState.lastSequence = 0;
+      }
     }
-    const reader = response.body?.getReader();
-    if (!reader) {
+
+    if (!activeRunState.runId) {
+      const startResponse = await fetch(`${pipelineAgentSessionsBaseUrl}/${sessionId}/runs`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(input.runtimeId ? { runtimeId: input.runtimeId } : {}),
+        signal: input.signal,
+      });
+      const started = await readResponseJson(startResponse, AgentRunStartResponseSchema);
+      activeRunState.runId = started.runId;
+      writeActiveAgentRun(sessionId, activeRunState.runId, 0);
+    }
+    const runId = activeRunState.runId;
+    if (!runId) throw new Error(`Agent run did not start for session ${sessionId}`);
+    const streamControl = {
+      lastSequence: activeRunState.lastSequence,
+      terminalStatus: null as z.infer<typeof AgentRunSchema>["status"] | null,
+    };
+
+    input.onEvent({
+      type: "phase",
+      phase: streamControl.lastSequence > 0 ? "reconnecting" : "analyzing",
+    });
+
+    while (!streamControl.terminalStatus && !input.signal?.aborted) {
+      const streamResponse = await fetch(
+        `${agentRunsBaseUrl}/${encodeURIComponent(runId)}/events?after=${streamControl.lastSequence}`,
+        {
+          headers: {
+            accept: "text/event-stream",
+            ...(streamControl.lastSequence > 0
+              ? { "Last-Event-ID": String(streamControl.lastSequence) }
+              : {}),
+          },
+          signal: input.signal,
+        },
+      );
+      if (!streamResponse.ok) throw await readResponseError(streamResponse);
+      const reader = streamResponse.body?.getReader();
+      if (!reader) throw new Error(`Agent run ${runId} did not return an event stream`);
+
+      const decoder = new TextDecoder();
+      const streamState = { buffer: "" };
+      const emitBufferedMessages = () => {
+        const messages = streamState.buffer.split(/\r?\n\r?\n/);
+        streamState.buffer = messages.pop() ?? "";
+        for (const message of messages) {
+          const envelope = parseAgentRunSseMessage(message);
+          if (!envelope || envelope.sequence <= streamControl.lastSequence) continue;
+          streamControl.lastSequence = envelope.sequence;
+          writeActiveAgentRun(sessionId, runId, streamControl.lastSequence);
+          const event = mapAgentRunEvent(envelope);
+          if (event) input.onEvent(event);
+          if (envelope.event.type === "terminal") {
+            streamControl.terminalStatus = envelope.event.status;
+          }
+        }
+      };
+
+      while (true) {
+        const chunk = await reader.read();
+        if (chunk.done) {
+          streamState.buffer += decoder.decode();
+          emitBufferedMessages();
+          const trailing = streamState.buffer.trim();
+          if (trailing) {
+            streamState.buffer = `${trailing}\n\n`;
+            emitBufferedMessages();
+          }
+          break;
+        }
+        streamState.buffer += decoder.decode(chunk.value, { stream: true });
+        emitBufferedMessages();
+      }
+
+      if (!streamControl.terminalStatus && !input.signal?.aborted) {
+        const runResponse = await fetch(`${agentRunsBaseUrl}/${encodeURIComponent(runId)}`, {
+          signal: input.signal,
+        });
+        const run = await readResponseJson(runResponse, AgentRunSchema);
+        if (isTerminalRunStatus(run.status)) {
+          streamControl.terminalStatus = run.status;
+          input.onEvent({ type: "terminal", status: run.status });
+        }
+      }
+    }
+
+    if (input.signal?.aborted) return;
+    clearActiveAgentRun(sessionId);
+    if (streamControl.terminalStatus !== "completed") {
+      const runResponse = await fetch(`${agentRunsBaseUrl}/${encodeURIComponent(runId)}`, {
+        signal: input.signal,
+      });
+      const run = await readResponseJson(runResponse, AgentRunSchema);
+      input.onEvent({
+        type: "error",
+        code: run.errorCode ?? streamControl.terminalStatus ?? "AGENT_RUN_FAILED",
+        message:
+          run.errorMessage ?? `Agent run ended with status ${streamControl.terminalStatus}`,
+      });
+
       return;
     }
 
-    const decoder = new TextDecoder();
-    const streamState = { buffer: "" };
-    const emitBufferedMessages = () => {
-      const messages = streamState.buffer.split(/\r?\n\r?\n/);
-      streamState.buffer = messages.pop() ?? "";
+    for (const _attempt of Array.from({ length: 50 })) {
+      const session = await this.getSessionById(sessionId, { signal: input.signal });
+      const proposal =
+        (session.proposals ?? []).find((candidate) => candidate.id === session.latestProposalId) ??
+        (session.proposals ?? []).at(-1) ??
+        null;
+      const question = [...(session.messages ?? [])]
+        .reverse()
+        .find((message) => message.role === "assistant" && message.kind === "question");
+      if (proposal?.status === "proposal_ready") {
+        input.onEvent({
+          type: "proposal_ready",
+          proposal: proposal.proposal,
+          proposalId: proposal.id,
+        });
+        input.onEvent({ type: "done", status: "proposal_ready" });
 
-      for (const message of messages) {
-        const parsed = parseSseMessage(message);
-        if (parsed) {
-          input.onEvent(parsed);
-        }
+        return;
       }
-    };
+      if (question) {
+        input.onEvent({ type: "question", question: question.content });
+        input.onEvent({ type: "done", status: "awaiting_user" });
 
-    while (true) {
-      const chunk = await reader.read();
-      if (chunk.done) {
-        streamState.buffer += decoder.decode();
-        emitBufferedMessages();
-        const trailingMessage = streamState.buffer.trim();
-        if (trailingMessage.length > 0) {
-          const parsed = parseSseMessage(trailingMessage);
-          if (parsed) {
-            input.onEvent(parsed);
-          }
-        }
-        break;
+        return;
       }
-
-      streamState.buffer += decoder.decode(chunk.value, { stream: true });
-      emitBufferedMessages();
+      await new Promise<void>((resolve) => globalThis.setTimeout(resolve, 200));
     }
+
+    input.onEvent({
+      type: "error",
+      code: "AGENT_RUN_PROJECTION_TIMEOUT",
+      message: "The run completed, but its pipeline-agent result was not persisted in time.",
+    });
   },
 
   async cancelSession(sessionId: string, options?: PipelineAgentRequestOptions): Promise<void> {

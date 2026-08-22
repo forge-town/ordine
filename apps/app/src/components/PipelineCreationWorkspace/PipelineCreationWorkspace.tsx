@@ -30,7 +30,11 @@ import {
   usePipelineCreationSessionRecovery,
 } from "./usePipelineCreationSessionRecovery";
 import { type PipelineCreationAttachment } from "./PipelineCreationAttachments";
-import { PipelineCreationMessages, type PipelineCreationMessage } from "./PipelineCreationMessages";
+import {
+  PipelineCreationMessages,
+  type PipelineCreationMessage,
+  type PipelineCreationRuntimeActivity,
+} from "./PipelineCreationMessages";
 import {
   PipelineCreationComposer,
   type PipelineCreationRuntimeOption,
@@ -60,7 +64,7 @@ export const PipelineCreationWorkspace = ({
   runtimeId,
   runtimeLabel,
   runtimeOptions,
-  onRuntimeChange,
+  onRuntimeChange: handleRuntimeChange,
   onClose: handleClose,
 }: PipelineCreationWorkspaceProps) => {
   const { t } = useTranslation();
@@ -78,9 +82,15 @@ export const PipelineCreationWorkspace = ({
   const [proposal, setProposal] = useState<PipelineAgentProposal | null>(null);
   const [proposalId, setProposalId] = useState<string | null>(null);
   const [streamingAssistantText, setStreamingAssistantText] = useState("");
+  const [runtimeActivity, setRuntimeActivity] = useState<PipelineCreationRuntimeActivity[]>([]);
   const sessionIdRef = useRef<string | null>(null);
   const activeRequestRef = useRef<AbortController | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const restoredPlanEventRef = useRef<(event: PipelineAgentPlanEvent) => void>(() => undefined);
+  const handleRestoredPlanEvent = useCallback(
+    (event: PipelineAgentPlanEvent) => restoredPlanEventRef.current(event),
+    [],
+  );
   const translationRef = useRef(t);
   translationRef.current = t;
   const isHome = presentation === "home";
@@ -126,6 +136,7 @@ export const PipelineCreationWorkspace = ({
       setProposal(null);
       setProposalId(null);
       setStreamingAssistantText("");
+      setRuntimeActivity([]);
     },
     [isHome],
   );
@@ -143,7 +154,8 @@ export const PipelineCreationWorkspace = ({
     messages.length > 0 ||
     streamingAssistantText.length > 0 ||
     attachments.length > 0 ||
-    proposal !== null;
+    proposal !== null ||
+    runtimeActivity.length > 0;
 
   useEffect(() => {
     if (!active) {
@@ -234,6 +246,7 @@ export const PipelineCreationWorkspace = ({
     onError: handleRestoreError,
     onMissing: handleMissingSession,
     onSessionDetail: applySessionDetail,
+    onPlanEvent: handleRestoredPlanEvent,
   });
 
   const handleMessageInputChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
@@ -264,6 +277,99 @@ export const PipelineCreationWorkspace = ({
 
     if (event.type === "assistant_chunk") {
       setStreamingAssistantText((current) => `${current}${event.text}`);
+
+      return;
+    }
+
+    if (event.type === "thinking") {
+      setRuntimeActivity((current) => [
+        ...current.slice(-39),
+        {
+          id: `thinking-${Date.now()}-${current.length}`,
+          kind: "thinking",
+          title: "Thinking",
+          detail: event.text,
+        },
+      ]);
+
+      return;
+    }
+
+    if (event.type === "tool") {
+      const detail =
+        typeof event.output === "string"
+          ? event.output
+          : event.output === undefined
+            ? undefined
+            : JSON.stringify(event.output);
+      setRuntimeActivity((current) => [
+        ...current.slice(-39),
+        {
+          id: `tool-${event.id}-${event.phase}-${Date.now()}`,
+          kind: "tool",
+          title: `${event.name ?? "Tool"} · ${event.phase}`,
+          detail,
+          tone: event.status === "failed" ? "error" : "default",
+        },
+      ]);
+
+      return;
+    }
+
+    if (event.type === "diagnostic") {
+      setRuntimeActivity((current) => [
+        ...current.slice(-39),
+        {
+          id: `diagnostic-${Date.now()}-${current.length}`,
+          kind: "diagnostic",
+          title: event.code,
+          detail: event.message,
+          tone: event.level === "error" ? "error" : event.level === "warning" ? "warning" : "default",
+        },
+      ]);
+
+      return;
+    }
+
+    if (event.type === "retry") {
+      setRuntimeActivity((current) => [
+        ...current.slice(-39),
+        {
+          id: `retry-${Date.now()}-${current.length}`,
+          kind: "retry",
+          title: `Retry ${event.phase}${event.attempt ? ` · ${event.attempt}` : ""}`,
+          detail: event.message,
+          tone: event.phase === "failed" || event.phase === "exhausted" ? "warning" : "default",
+        },
+      ]);
+
+      return;
+    }
+
+    if (event.type === "usage") {
+      setRuntimeActivity((current) => [
+        ...current.slice(-39),
+        {
+          id: `usage-${Date.now()}-${current.length}`,
+          kind: "usage",
+          title: "Usage",
+          detail: `input ${event.inputTokens ?? "—"} · output ${event.outputTokens ?? "—"}${event.costUsd === undefined ? "" : ` · $${event.costUsd.toFixed(4)}`}`,
+        },
+      ]);
+
+      return;
+    }
+
+    if (event.type === "terminal") {
+      setRuntimeActivity((current) => [
+        ...current.slice(-39),
+        {
+          id: `terminal-${Date.now()}`,
+          kind: "terminal",
+          title: `Run ${event.status}`,
+          tone: event.status === "completed" ? "default" : "error",
+        },
+      ]);
 
       return;
     }
@@ -300,6 +406,7 @@ export const PipelineCreationWorkspace = ({
       setPhase("conversation");
     }
   };
+  restoredPlanEventRef.current = handleEvent;
 
   const handleSend = async () => {
     const text = inputValue.trim();
@@ -803,6 +910,7 @@ export const PipelineCreationWorkspace = ({
           messages={messages}
           proposal={proposal}
           removingAttachmentId={removingAttachmentId}
+          runtimeActivity={runtimeActivity}
           streamingAssistantText={streamingAssistantText}
           onRemoveAttachment={handleAttachmentRemoveRequest}
         />
@@ -822,7 +930,6 @@ export const PipelineCreationWorkspace = ({
         runtimeId={runtimeId}
         runtimeLabel={runtimeLabel}
         runtimeOptions={runtimeOptions}
-        onRuntimeChange={onRuntimeChange}
         onApprove={handleApprove}
         onCancel={handleCancel}
         onClose={handleClose}
@@ -830,6 +937,7 @@ export const PipelineCreationWorkspace = ({
         onInputKeyDown={handleInputKeyDown}
         onReject={handleReject}
         onRevise={handleRevise}
+        onRuntimeChange={handleRuntimeChange}
         onSend={handleSend}
         onSuggestion={handleSuggestionClick}
         onUploadChange={handleUploadChange}

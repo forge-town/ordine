@@ -1,5 +1,7 @@
 export * from "./agentsDao";
 export * from "./agentRawExportsDao";
+export * from "./agentRunEventsDao";
+export * from "./agentRunsDao";
 export * from "./agentRuntimesDao";
 export * from "./agentSpansDao";
 export * from "./capabilityRiskOverridesDao";

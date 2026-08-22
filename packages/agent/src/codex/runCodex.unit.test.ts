@@ -1,10 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { ChildProcess } from "node:child_process";
 import { existsSync } from "node:fs";
-import { readFile, readdir } from "node:fs/promises";
+import { readFile, readdir, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { EventEmitter, Readable, Writable } from "node:stream";
+import { EventEmitter } from "node:events";
+import { Readable, Writable } from "node:stream";
+import type { RuntimeEvent } from "@repo/schemas";
 
 vi.mock("@repo/logger", () => ({
   logger: { info: vi.fn(), error: vi.fn(), warn: vi.fn(), debug: vi.fn() },
@@ -36,7 +38,12 @@ const createMockProcess = () => {
   return proc;
 };
 
-import { runCodex, CODEX_SANDBOX_MODES, type RunCodexOptions } from "./runCodex";
+import {
+  runCodex,
+  CODEX_SANDBOX_MODES,
+  resolveCodexSandbox,
+  type RunCodexOptions,
+} from "./runCodex";
 
 const waitForSpawn = async () => {
   while (spawnMock.mock.calls.length === 0) {
@@ -105,12 +112,13 @@ describe("runCodex", () => {
     }
     expect(args).toContain("exec");
     expect(args).toContain("--sandbox");
-    expect(args).toContain("read-only");
+    expect(args).toContain(resolveCodexSandbox("read-only"));
     expect(args).toContain("--json");
+    expect(args).toContain('shell_environment_policy.inherit="all"');
     expect(spawnOpts.cwd).toBe("/tmp/test");
   });
 
-  it("uses an isolated empty config when the job declares no MCP", async () => {
+  it("uses an isolated non-interactive runtime config when the job declares no MCP", async () => {
     const promise = runCodex({
       systemPrompt: "sys",
       userPrompt: "user",
@@ -122,7 +130,10 @@ describe("runCodex", () => {
       spawnMock.mock.calls[0] as unknown as [string, string[], { env: Record<string, string> }]
     )[2];
     const codexHome = codexHomeFromEnv(spawnOpts.env);
-    expect(await readFile(join(codexHome, "config.toml"), "utf8")).toBe("");
+    const config = await readFile(join(codexHome, "config.toml"), "utf8");
+    expect(config).toContain('approval_policy = "never"');
+    expect(config).not.toContain("[mcp_servers.");
+    expect(config).not.toContain("[windows]");
 
     testState.mockProc.stdout.push("ok");
     testState.mockProc.stdout.push(null);
@@ -152,14 +163,79 @@ describe("runCodex", () => {
 
     await vi.waitFor(() => {
       expect(onTextDelta).toHaveBeenNthCalledWith(1, "Inspecting input");
-      expect(onTextDelta).toHaveBeenNthCalledWith(2, "\n\nFinal answer");
+      expect(onTextDelta).toHaveBeenNthCalledWith(2, "\nFinal answer");
     });
 
     testState.mockProc.stdout.push(null);
     testState.mockProc.stderr.push(null);
     testState.mockProc.emit("close", 0);
 
-    await expect(promise).resolves.toBe("Final answer");
+    await expect(promise).resolves.toBe("Inspecting input\nFinal answer");
+  });
+
+  it("keeps a scrubbed session home and resumes through the durable ORDINE handle", async () => {
+    const events: RuntimeEvent[] = [];
+    const firstRun = runCodex({
+      systemPrompt: "sys",
+      userPrompt: "first",
+      cwd: "/tmp",
+      connectorInjection: {
+        mcpServers: { fs: { command: "fs-mcp", env: { TOKEN: "secret" } } },
+        toolNames: ["mcp__fs"],
+      },
+      onRuntimeEvent: (event) => {
+        events.push(event);
+      },
+    });
+
+    await waitForSpawn();
+    const firstSpawn = spawnMock.mock.calls[0] as unknown as [
+      string,
+      string[],
+      { env: Record<string, string> },
+    ];
+    const sessionHome = codexHomeFromEnv(firstSpawn[2].env);
+    testState.mockProc.stdout.push(
+      '{"type":"thread.started","thread_id":"thread-123"}\n' +
+        '{"type":"item.completed","item":{"type":"agent_message","text":"first done"}}\n',
+    );
+    testState.mockProc.emit("close", 0);
+    await firstRun;
+
+    const sessionEvent = events.find((event) => event.type === "session");
+    expect(sessionEvent?.type === "session" ? sessionEvent.id : undefined).toMatch(
+      /^ordine-codex:/,
+    );
+    expect(existsSync(sessionHome)).toBe(true);
+    const scrubbedConfig = await readFile(join(sessionHome, "config.toml"), "utf8");
+    expect(scrubbedConfig).toContain('approval_policy = "never"');
+    expect(scrubbedConfig).not.toContain("[mcp_servers.");
+
+    testState.mockProc = createMockProcess();
+    spawnMock.mockClear();
+    spawnMock.mockReturnValue(testState.mockProc);
+    const resumeHandle = sessionEvent?.type === "session" ? sessionEvent.id : "";
+    const resumed = runCodex({
+      systemPrompt: "sys",
+      userPrompt: "continue",
+      cwd: "/tmp",
+      resumeSessionId: resumeHandle,
+    });
+    await waitForSpawn();
+    const resumedSpawn = spawnMock.mock.calls[0] as unknown as [
+      string,
+      string[],
+      { env: Record<string, string> },
+    ];
+    expect(codexHomeFromEnv(resumedSpawn[2].env)).toBe(sessionHome);
+    expect(resumedSpawn[1]).toContain("thread-123");
+    expect(resumedSpawn[1]).not.toContain(resumeHandle);
+    testState.mockProc.stdout.push(
+      '{"type":"item.completed","item":{"type":"agent_message","text":"resumed"}}\n',
+    );
+    testState.mockProc.emit("close", 0);
+    await resumed;
+    await rm(sessionHome, { recursive: true, force: true });
   });
 
   it("returns stdout text on success", async () => {
@@ -235,7 +311,7 @@ describe("runCodex", () => {
     await promise;
 
     const args = (spawnMock.mock.calls[0] as unknown as [string, string[]])[1];
-    expect(args).toContain("workspace-write");
+    expect(args).toContain(resolveCodexSandbox("workspace-write"));
   });
 
   it("passes model flag when specified", async () => {
@@ -293,7 +369,8 @@ describe("runCodex", () => {
     const config = await readFile(configPath, "utf8");
 
     expect(bin).toBeDefined();
-    expect(args).not.toContain("-c");
+    expect(args).toContain("-c");
+    expect(args).toContain("shell_environment_policy.ignore_default_excludes=true");
     expect(args.join(" ")).not.toContain("secret");
     expect(config).toContain("[mcp_servers.linear]");
     expect(config).toContain('url = "https://mcp.linear.app/mcp"');
@@ -533,5 +610,13 @@ describe("CODEX_SANDBOX_MODES", () => {
     expect(CODEX_SANDBOX_MODES.readOnly).toBe("read-only");
     expect(CODEX_SANDBOX_MODES.workspaceWrite).toBe("workspace-write");
     expect(CODEX_SANDBOX_MODES.fullAccess).toBe("danger-full-access");
+  });
+
+  it("uses OpenDesign's unrestricted Codex sandbox on Windows and WSL", () => {
+    expect(resolveCodexSandbox("workspace-write", "win32", {})).toBe("danger-full-access");
+    expect(resolveCodexSandbox("workspace-write", "linux", { WSL_DISTRO_NAME: "Ubuntu" })).toBe(
+      "danger-full-access",
+    );
+    expect(resolveCodexSandbox("workspace-write", "linux", {})).toBe("workspace-write");
   });
 });

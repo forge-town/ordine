@@ -1,6 +1,6 @@
 import { sql } from "drizzle-orm";
 import { text, timestamp, pgTable, index, serial, integer, jsonb } from "drizzle-orm/pg-core";
-import type { AgentRunStatus, AgentRuntime } from "@repo/schemas";
+import type { AgentRawExportStatus, AgentRuntime } from "@repo/schemas";
 import { jobsTable } from "./jobs_table";
 
 export const agentRawExportsTable = pgTable(
@@ -17,7 +17,7 @@ export const agentRawExportsTable = pgTable(
     tokenInput: integer("token_input"),
     tokenOutput: integer("token_output"),
     durationMs: integer("duration_ms"),
-    status: text("status").$type<AgentRunStatus>().notNull().default("completed"),
+    status: text("status").$type<AgentRawExportStatus>().notNull().default("completed"),
     createdAt: timestamp("created_at")
       .notNull()
       .default(sql`now()`),

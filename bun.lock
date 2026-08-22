@@ -110,6 +110,7 @@
         "ordine": "dist/index.js",
       },
       "dependencies": {
+        "@modelcontextprotocol/sdk": "^1.29.0",
         "commander": "^14.0.0",
         "neverthrow": "^8.2.0",
         "zod": "^4.3.6",
@@ -202,6 +203,8 @@
       "version": "0.0.2-preview.10",
       "dependencies": {
         "@hono/node-server": "^1.14.3",
+        "@ordine/cli": "workspace:*",
+        "@repo/agent-engine": "workspace:*",
         "@repo/db": "workspace:*",
         "@repo/schemas": "workspace:*",
         "@repo/services": "workspace:*",
@@ -405,6 +408,7 @@
         "@repo/agent": "workspace:*",
         "@repo/agent-engine": "workspace:*",
         "@repo/db": "workspace:*",
+        "@repo/db-schema": "workspace:*",
         "@repo/logger": "workspace:*",
         "@repo/models": "workspace:*",
         "@repo/obs": "workspace:*",

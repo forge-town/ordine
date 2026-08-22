@@ -1,0 +1,99 @@
+{
+  "generatedAt": "2026-08-22T13:04:19.840Z",
+  "platform": "win32",
+  "architecture": "x64",
+  "database": "dedicated COD-369 acceptance database (credentials omitted)",
+  "runtimes": [
+    {
+      "runtime": "opencode",
+      "cwd": "D:\\Coding\\项目ORDINE\\.worktrees\\cod-369-runtime-mcp-compatibility\\.artifacts\\cod-369-windows-20260822T2100\\opencode\\opencode",
+      "firstRun": {
+        "runId": "9f3357c5-a363-42e3-bbae-ed9a7a84795a",
+        "status": "completed",
+        "executablePath": "C:\\Users\\woodfish\\.bun\\bin\\opencode.exe",
+        "executableVersion": "1.18.21",
+        "executableFingerprint": "59b379b53354da72d2c5262119fe70c44b4e473826ebbaa94d47a2d58a359b1a",
+        "nativeSessionId": "ses_fd66d68aeffeHC2xkREBQlL2V3",
+        "usage": {
+          "inputTokens": 156,
+          "outputTokens": 91,
+          "cachedInputTokens": 35584,
+          "costUsd": 0
+        },
+        "firstSequence": 1332,
+        "lastSequence": 1351,
+        "eventTypes": {
+          "status": 4,
+          "diagnostic": 2,
+          "session": 1,
+          "tool_start": 3,
+          "tool_update": 3,
+          "tool_result": 3,
+          "usage": 3,
+          "terminal": 1
+        },
+        "processIds": [54720],
+        "processTreeCleaned": true
+      },
+      "resumeRun": {
+        "runId": "ad6ec104-67b7-4f5b-ab95-c9adc08743a1",
+        "status": "completed",
+        "executablePath": "C:\\Users\\woodfish\\.bun\\bin\\opencode.exe",
+        "executableVersion": "1.18.21",
+        "executableFingerprint": "59b379b53354da72d2c5262119fe70c44b4e473826ebbaa94d47a2d58a359b1a",
+        "nativeSessionId": "ses_fd66d68aeffeHC2xkREBQlL2V3",
+        "usage": {
+          "inputTokens": 160,
+          "outputTokens": 38,
+          "cachedInputTokens": 36288,
+          "costUsd": 0
+        },
+        "firstSequence": 1352,
+        "lastSequence": 1368,
+        "eventTypes": {
+          "status": 4,
+          "diagnostic": 1,
+          "session": 1,
+          "tool_start": 2,
+          "tool_update": 2,
+          "tool_result": 2,
+          "usage": 3,
+          "text_delta": 1,
+          "terminal": 1
+        },
+        "processIds": [51600],
+        "processTreeCleaned": true
+      },
+      "filePath": "D:\\Coding\\项目ORDINE\\.worktrees\\cod-369-runtime-mcp-compatibility\\.artifacts\\cod-369-windows-20260822T2100\\opencode\\opencode\\acceptance.txt",
+      "fileSha256": "48b772f05316f72b102652bf8b44a908c7ee5c00a802d775bdd85bd3a3812d16",
+      "cancelRun": {
+        "runId": "b1dd3582-bb9a-4bdb-bc9b-238816c6b18f",
+        "status": "cancelled",
+        "executablePath": "C:\\Users\\woodfish\\.bun\\bin\\opencode.exe",
+        "executableVersion": "1.18.21",
+        "executableFingerprint": "59b379b53354da72d2c5262119fe70c44b4e473826ebbaa94d47a2d58a359b1a",
+        "nativeSessionId": "ses_fd66bf220ffe7Rkqr54JY37SYI",
+        "usage": {
+          "inputTokens": 14089,
+          "outputTokens": 67,
+          "cachedInputTokens": 21248,
+          "costUsd": 0
+        },
+        "firstSequence": 1369,
+        "lastSequence": 1379,
+        "eventTypes": {
+          "status": 3,
+          "diagnostic": 2,
+          "session": 1,
+          "tool_start": 1,
+          "tool_update": 1,
+          "tool_result": 1,
+          "usage": 1,
+          "terminal": 1
+        },
+        "processIds": [34208],
+        "processTreeCleaned": true
+      }
+    }
+  ]
+}

@@ -19,8 +19,9 @@ if (existsSync(LEGACY_PGLITE_DATA_DIR)) {
   process.exit(1);
 }
 
-// Generate per-launch auth token for desktop security
-const desktopAuthToken = randomBytes(32).toString("hex");
+// The desktop launcher may already own the token. Reuse it so the UI, server,
+// and MCP sidecar all authenticate with the same dynamically-read token file.
+const desktopAuthToken = process.env.DESKTOP_AUTH_TOKEN ?? randomBytes(32).toString("hex");
 const tokenPath = join(DATA_DIR, ".desktop-token");
 writeFileSync(tokenPath, desktopAuthToken, { mode: 0o600 });
 

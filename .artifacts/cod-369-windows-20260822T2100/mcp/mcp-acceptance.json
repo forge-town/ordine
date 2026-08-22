@@ -1,0 +1,235 @@
+{
+  "generatedAt": "2026-08-22T13:24:06.283Z",
+  "platform": "win32",
+  "serverName": "ordine-cod369-20260822-2124",
+  "launch": {
+    "command": "C:\\nvm4w\\nodejs\\node.exe",
+    "cliFile": "D:\\Coding\\项目ORDINE\\.worktrees\\cod-369-runtime-mcp-compatibility\\apps\\cli\\dist\\index.js",
+    "apiUrl": "http://127.0.0.1:19433",
+    "tokenTransport": "dynamic-file"
+  },
+  "targets": [
+    {
+      "target": "codex",
+      "install": {
+        "target": "codex",
+        "displayName": "Codex CLI",
+        "support": "supported",
+        "operation": "install",
+        "status": "installed",
+        "message": "ordine-cod369-20260822-2124 registered through codex.",
+        "command": "codex mcp add ordine-cod369-20260822-2124 --env ORDINE_DESKTOP_AUTH_TOKEN_FILE=D:\\Coding\\项目ORDINE\\.worktrees\\cod-369-runtime-mcp-compatibility\\.artifacts\\cod-369-windows-20260822T2100\\mcp\\.desktop-token --env ORDINE_API_URL=http://127.0.0.1:19433 -- C:\\nvm4w\\nodejs\\node.exe D:\\Coding\\项目ORDINE\\.worktrees\\cod-369-runtime-mcp-compatibility\\apps\\cli\\dist\\index.js mcp serve --policy safe"
+      },
+      "status": {
+        "target": "codex",
+        "displayName": "Codex CLI",
+        "support": "supported",
+        "operation": "status",
+        "status": "already-installed",
+        "message": "ordine-cod369-20260822-2124 is registered; protocol health was not tested.",
+        "evidence": {
+          "recognized": true,
+          "planned": true,
+          "registered": true,
+          "commandLaunchable": false,
+          "initialize": false,
+          "toolsList": false,
+          "safeToolCall": false
+        }
+      },
+      "doctor": {
+        "target": "codex",
+        "displayName": "Codex CLI",
+        "support": "supported",
+        "operation": "doctor",
+        "status": "healthy",
+        "message": "ordine-cod369-20260822-2124 is registered through codex. initialize, tools/list, and ordine.list_jobs all succeeded.",
+        "evidence": {
+          "recognized": true,
+          "planned": true,
+          "registered": true,
+          "commandLaunchable": true,
+          "initialize": true,
+          "toolsList": true,
+          "safeToolCall": true,
+          "toolCount": 21
+        }
+      },
+      "uninstall": {
+        "target": "codex",
+        "displayName": "Codex CLI",
+        "support": "supported",
+        "operation": "uninstall",
+        "status": "removed",
+        "message": "ordine-cod369-20260822-2124 removed through codex."
+      },
+      "finalStatus": {
+        "target": "codex",
+        "displayName": "Codex CLI",
+        "support": "supported",
+        "operation": "status",
+        "status": "absent",
+        "message": "ordine-cod369-20260822-2124 is not registered with the expected launch spec.",
+        "evidence": {
+          "recognized": true,
+          "planned": true,
+          "registered": false,
+          "commandLaunchable": false,
+          "initialize": false,
+          "toolsList": false,
+          "safeToolCall": false
+        }
+      }
+    },
+    {
+      "target": "claude",
+      "install": {
+        "target": "claude",
+        "displayName": "Claude Code",
+        "support": "supported",
+        "operation": "install",
+        "status": "installed",
+        "message": "ordine-cod369-20260822-2124 registered through claude.",
+        "command": "claude mcp add --scope user ordine-cod369-20260822-2124 -e ORDINE_DESKTOP_AUTH_TOKEN_FILE=D:\\Coding\\项目ORDINE\\.worktrees\\cod-369-runtime-mcp-compatibility\\.artifacts\\cod-369-windows-20260822T2100\\mcp\\.desktop-token -e ORDINE_API_URL=http://127.0.0.1:19433 -- C:\\nvm4w\\nodejs\\node.exe D:\\Coding\\项目ORDINE\\.worktrees\\cod-369-runtime-mcp-compatibility\\apps\\cli\\dist\\index.js mcp serve --policy safe"
+      },
+      "status": {
+        "target": "claude",
+        "displayName": "Claude Code",
+        "support": "supported",
+        "operation": "status",
+        "status": "already-installed",
+        "message": "ordine-cod369-20260822-2124 is registered; protocol health was not tested.",
+        "evidence": {
+          "recognized": true,
+          "planned": true,
+          "registered": true,
+          "commandLaunchable": false,
+          "initialize": false,
+          "toolsList": false,
+          "safeToolCall": false
+        }
+      },
+      "doctor": {
+        "target": "claude",
+        "displayName": "Claude Code",
+        "support": "supported",
+        "operation": "doctor",
+        "status": "healthy",
+        "message": "ordine-cod369-20260822-2124 is registered through claude. initialize, tools/list, and ordine.list_jobs all succeeded.",
+        "evidence": {
+          "recognized": true,
+          "planned": true,
+          "registered": true,
+          "commandLaunchable": true,
+          "initialize": true,
+          "toolsList": true,
+          "safeToolCall": true,
+          "toolCount": 21
+        }
+      },
+      "uninstall": {
+        "target": "claude",
+        "displayName": "Claude Code",
+        "support": "supported",
+        "operation": "uninstall",
+        "status": "removed",
+        "message": "ordine-cod369-20260822-2124 removed through claude."
+      },
+      "finalStatus": {
+        "target": "claude",
+        "displayName": "Claude Code",
+        "support": "supported",
+        "operation": "status",
+        "status": "absent",
+        "message": "ordine-cod369-20260822-2124 is not registered with the expected launch spec.",
+        "evidence": {
+          "recognized": true,
+          "planned": true,
+          "registered": false,
+          "commandLaunchable": false,
+          "initialize": false,
+          "toolsList": false,
+          "safeToolCall": false
+        }
+      }
+    },
+    {
+      "target": "opencode",
+      "install": {
+        "target": "opencode",
+        "displayName": "OpenCode",
+        "support": "supported",
+        "operation": "install",
+        "status": "installed",
+        "message": "ordine-cod369-20260822-2124 merged without replacing sibling config.",
+        "configPath": "C:\\Users\\woodfish\\.config\\opencode\\opencode.json",
+        "backupPath": "C:\\Users\\woodfish\\.config\\opencode\\opencode.json.ordine-backup-2026-08-22T13-24-40-245Z"
+      },
+      "status": {
+        "target": "opencode",
+        "displayName": "OpenCode",
+        "support": "supported",
+        "operation": "status",
+        "status": "already-installed",
+        "message": "ordine-cod369-20260822-2124 is registered; protocol health was not tested.",
+        "configPath": "C:\\Users\\woodfish\\.config\\opencode\\opencode.json",
+        "evidence": {
+          "recognized": true,
+          "planned": true,
+          "registered": true,
+          "commandLaunchable": false,
+          "initialize": false,
+          "toolsList": false,
+          "safeToolCall": false
+        }
+      },
+      "doctor": {
+        "target": "opencode",
+        "displayName": "OpenCode",
+        "support": "supported",
+        "operation": "doctor",
+        "status": "healthy",
+        "message": "ordine-cod369-20260822-2124 matches the expected config. initialize, tools/list, and ordine.list_jobs all succeeded.",
+        "configPath": "C:\\Users\\woodfish\\.config\\opencode\\opencode.json",
+        "evidence": {
+          "recognized": true,
+          "planned": true,
+          "registered": true,
+          "commandLaunchable": true,
+          "initialize": true,
+          "toolsList": true,
+          "safeToolCall": true,
+          "toolCount": 21
+        }
+      },
+      "uninstall": {
+        "target": "opencode",
+        "displayName": "OpenCode",
+        "support": "supported",
+        "operation": "uninstall",
+        "status": "removed",
+        "message": "ordine-cod369-20260822-2124 removed; sibling config was preserved.",
+        "configPath": "C:\\Users\\woodfish\\.config\\opencode\\opencode.json",
+        "backupPath": "C:\\Users\\woodfish\\.config\\opencode\\opencode.json.ordine-backup-2026-08-22T13-24-40-883Z"
+      },
+      "finalStatus": {
+        "target": "opencode",
+        "displayName": "OpenCode",
+        "support": "supported",
+        "operation": "status",
+        "status": "absent",
+        "message": "ordine-cod369-20260822-2124 is not registered with the expected launch spec.",
+        "configPath": "C:\\Users\\woodfish\\.config\\opencode\\opencode.json",
+        "evidence": {
+          "recognized": true,
+          "planned": true,
+          "registered": false,
+          "commandLaunchable": false,
+          "initialize": false,
+          "toolsList": false,
+          "safeToolCall": false
+        }
+      }
+    }
+  ]
+}

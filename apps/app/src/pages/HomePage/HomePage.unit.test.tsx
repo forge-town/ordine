@@ -45,7 +45,7 @@ vi.mock("@/components/PipelineCreationWorkspace", () => ({
     runtimeId,
     runtimeLabel,
     runtimeOptions,
-    onRuntimeChange,
+    onRuntimeChange: handleRuntimeChange,
   }: {
     presentation: string;
     runtimeConfigured?: boolean;
@@ -53,29 +53,34 @@ vi.mock("@/components/PipelineCreationWorkspace", () => ({
     runtimeLabel?: string;
     runtimeOptions?: Array<{ id: string; name: string }>;
     onRuntimeChange?: (runtimeId: string) => void;
-  }) => (
-    <div
-      data-connected={runtimeConfigured}
-      data-presentation={presentation}
-      data-runtime={runtimeLabel}
-      data-runtime-id={runtimeId}
-      data-testid="pipeline-creation-workspace"
-    >
-      {runtimeOptions?.length && runtimeId ? (
-        <select
-          aria-label="home.selectLocalAgent"
-          value={runtimeId}
-          onChange={(event) => onRuntimeChange?.(event.target.value)}
-        >
-          {runtimeOptions.map((option) => (
-            <option key={option.id} value={option.id}>
-              {option.name}
-            </option>
-          ))}
-        </select>
-      ) : null}
-    </div>
-  ),
+  }) => {
+    const handleRuntimeSelectChange = (event: React.ChangeEvent<HTMLSelectElement>) =>
+      handleRuntimeChange?.(event.target.value);
+
+    return (
+      <div
+        data-connected={runtimeConfigured}
+        data-presentation={presentation}
+        data-runtime={runtimeLabel}
+        data-runtime-id={runtimeId}
+        data-testid="pipeline-creation-workspace"
+      >
+        {runtimeOptions?.length && runtimeId ? (
+          <select
+            aria-label="home.selectLocalAgent"
+            value={runtimeId}
+            onChange={handleRuntimeSelectChange}
+          >
+            {runtimeOptions.map((option) => (
+              <option key={option.id} value={option.id}>
+                {option.name}
+              </option>
+            ))}
+          </select>
+        ) : null}
+      </div>
+    );
+  },
 }));
 
 const localRuntime: AgentRuntimeConfig = {

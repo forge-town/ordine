@@ -1,0 +1,12 @@
+{
+  "generatedAt": "2026-08-22T15:07:20.175Z",
+  "platform": "win32",
+  "architecture": "x64",
+  "database": "dedicated COD-369 acceptance database (credentials omitted)",
+  "runtimes": [
+    {
+      "runtime": "codex",
+      "cwd": "D:\\Coding\\项目ORDINE\\.worktrees\\cod-369-runtime-mcp-compatibility\\.artifacts\\cod-369-windows-20260822T2100\\codex\\codex"
+    }
+  ]
+}
