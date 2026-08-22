@@ -1,7 +1,27 @@
 import { describe, expect, it } from "vitest";
-import { AgentRunSchema } from "./AgentRunSchema";
+import { AgentRunRequestSchema, AgentRunSchema } from "./AgentRunSchema";
 
 describe("AgentRunSchema", () => {
+  it("defaults local execution to full access while allowing explicit downscoping", () => {
+    const request = AgentRunRequestSchema.parse({
+      owner: { type: "pipeline-agent-session", id: "session-1" },
+      runtimeConfigId: "local-codex",
+      cwd: "C:\\repo",
+      prompt: "Run the task",
+      rebuildPrompt: "Run the task",
+    });
+
+    expect(request.permissionMode).toBe("full-access");
+    expect(request.fullAccessConfirmed).toBe(true);
+    expect(
+      AgentRunRequestSchema.parse({
+        ...request,
+        permissionMode: "workspace-write",
+        fullAccessConfirmed: false,
+      }).permissionMode,
+    ).toBe("workspace-write");
+  });
+
   it("defaults execution choices for runs stored before the fields existed", () => {
     const run = AgentRunSchema.parse({
       id: "run-1",

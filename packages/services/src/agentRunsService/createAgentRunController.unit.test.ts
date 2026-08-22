@@ -3,7 +3,10 @@ import type { AgentRunEventEnvelope } from "@repo/schemas";
 import { createAgentRunController } from "./createAgentRunController";
 import type { createAgentRunsService } from "./createAgentRunsService";
 
-const envelope = (sequence: number, event: AgentRunEventEnvelope["event"]): AgentRunEventEnvelope => ({
+const envelope = (
+  sequence: number,
+  event: AgentRunEventEnvelope["event"],
+): AgentRunEventEnvelope => ({
   runId: "run-1",
   sequence,
   createdAt: "2026-08-22T00:00:00.000Z",
@@ -36,9 +39,11 @@ describe("createAgentRunController", () => {
     const service = {
       start: vi.fn().mockResolvedValue({ runId: "run-1" }),
       subscribe: vi.fn().mockReturnValue(() => undefined),
-      getEvents: vi.fn().mockImplementation((_runId: string, after: number) =>
-        Promise.resolve(events.filter((item) => item.sequence > after)),
-      ),
+      getEvents: vi
+        .fn()
+        .mockImplementation((_runId: string, after: number) =>
+          Promise.resolve(events.filter((item) => item.sequence > after)),
+        ),
       wait: vi.fn().mockResolvedValue({
         status: "completed",
         resultText: "done",
@@ -64,8 +69,9 @@ describe("createAgentRunController", () => {
       expect.objectContaining({
         owner: { type: "job-agent", id: "job-1:agent-1" },
         runtimeConfigId: "local-codex",
-        permissionMode: "workspace-write",
+        permissionMode: "full-access",
         networkAccess: true,
+        fullAccessConfirmed: true,
       }),
       expect.any(Object),
     );

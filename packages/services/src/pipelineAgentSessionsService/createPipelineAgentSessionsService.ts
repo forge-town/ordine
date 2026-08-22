@@ -1194,9 +1194,9 @@ export const createPipelineAgentSessionsService = (
         prompt: latestUserMessage ?? rebuildPrompt,
         rebuildPrompt,
         resumeFromRunId: previous?.status === "completed" ? previous.id : undefined,
-        permissionMode: input?.permissionMode ?? "workspace-write",
+        permissionMode: input?.permissionMode ?? "full-access",
         networkAccess: input?.networkAccess ?? true,
-        fullAccessConfirmed: input?.fullAccessConfirmed ?? false,
+        fullAccessConfirmed: input?.fullAccessConfirmed ?? true,
         allowedTools: [],
       });
       planningRuns.set(sessionId, { runId: started.runId, runtimeId });

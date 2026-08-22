@@ -144,9 +144,10 @@ export const buildOpenCodeRunConfigContent = (
 };
 
 export const runOpencode = (options: RunOpencodeOptions): ResultAsync<string, Error> => {
-  const permissionMode = options.permissionMode ?? "workspace-write";
+  const permissionMode = options.permissionMode ?? "full-access";
+  const fullAccessConfirmed = options.fullAccessConfirmed ?? true;
   const networkAccess = options.networkAccess ?? true;
-  if (permissionMode === "full-access" && !options.fullAccessConfirmed) {
+  if (permissionMode === "full-access" && !fullAccessConfirmed) {
     return errAsync(new Error("OpenCode full-access requires explicit user confirmation"));
   }
   if (permissionMode === "full-access" && !options.supportsAutoPermissions) {

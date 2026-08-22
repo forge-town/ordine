@@ -82,8 +82,10 @@ export const buildClaudePermissionArgs = ({
   mcpToolNames: readonly string[] | undefined;
   networkAccess: boolean;
 }): string[] => {
-  const hasExplicitToolSelection = allowedTools !== undefined || mcpToolNames !== undefined;
+  const toolSelectionWasProvided = allowedTools !== undefined || mcpToolNames !== undefined;
   const requestedTools = [...new Set([...(allowedTools ?? []), ...(mcpToolNames ?? [])])];
+  const hasExplicitToolSelection =
+    requestedTools.length > 0 || (permissionMode !== "full-access" && toolSelectionWasProvided);
   const effectiveTools = requestedTools.filter(
     (tool) =>
       (permissionMode !== "read-only" || isReadOnlyTool(tool, networkAccess)) &&
@@ -169,8 +171,8 @@ export const runClaude = async ({
   onTextDelta,
   onRuntimeEvent,
   signal,
-  permissionMode = "workspace-write",
-  fullAccessConfirmed = false,
+  permissionMode = "full-access",
+  fullAccessConfirmed = true,
   networkAccess = true,
   supportsPartialMessages = false,
   supportsReasoningEffort = false,

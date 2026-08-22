@@ -8,13 +8,13 @@ Every formal runtime invocation crosses the Agent Run control layer. A run is cr
 
 `GET /api/agent-runs/:id/events` supports `after=<sequence>` and `Last-Event-ID`. The UI stores the latest sequence, deduplicates replayed envelopes, and reconnects after refresh or a dropped stream. A server restart marks unfinished runs `interrupted`; ORDINE does not attach to an unknown old PID.
 
-| Runtime     | Structured mode          | Native resume | Default `workspace-write` isolation                                  | Network boundary                                      |
-| ----------- | ------------------------ | ------------- | -------------------------------------------------------------------- | ----------------------------------------------------- |
-| Codex CLI   | `codex exec --json`      | `exec resume` | Native Codex `workspace-write` sandbox                               | Native Codex sandbox/network configuration            |
-| Claude Code | stream-json input/output | `--resume`    | `acceptEdits` plus an explicit tool allow-list (CLI policy)          | Best-effort CLI policy; surfaced honestly in the UI   |
-| OpenCode    | `run --format json`      | `-s`          | Explicit permission rules deny external paths and dangerous commands | Best-effort CLI policy; `--auto` cannot override deny |
+| Runtime     | Structured mode          | Native resume | Default execution permission      | Network boundary                 |
+| ----------- | ------------------------ | ------------- | --------------------------------- | -------------------------------- |
+| Codex CLI   | `codex exec --json`      | `exec resume` | Native Codex `danger-full-access` | Unrestricted in the default mode |
+| Claude Code | stream-json input/output | `--resume`    | `bypassPermissions` CLI policy    | Unrestricted in the default mode |
+| OpenCode    | `run --format json`      | `-s`          | Allow-all policy plus `--auto`    | Unrestricted in the default mode |
 
-The runtime scanner, capability probe, connection test, and real invocation use the same absolute executable path. `workspace-write` is the default permission mode and network access is enabled by default. `full-access` is never inferred: it requires an explicit user confirmation for the individual run. Only that confirmed mode may select Codex's dangerous bypass, Claude Code's `bypassPermissions`, or an OpenCode `--auto` capability advertised by the installed CLI. OpenCode's generated policy keeps explicit `deny` rules authoritative, matching the [official permission semantics](https://opencode.ai/docs/permissions/).
+The runtime scanner, capability probe, connection test, and real invocation use the same absolute executable path. Local Agent runs default to `full-access` with network access enabled, per the product policy selected for ORDINE: Codex uses `danger-full-access`, Claude Code uses `bypassPermissions`, and OpenCode uses the installed CLI's advertised `--auto` capability with an allow-all run policy. Callers can still explicitly lower a run to `workspace-write` or `read-only`. OpenCode's lower-permission generated policies keep explicit `deny` rules authoritative, matching the [official permission semantics](https://opencode.ai/docs/permissions/).
 
 The execution picker is adapted from OpenDesign's local CLI and model selection flow: only launchable supported runtimes can be selected, each runtime keeps its own model/reasoning/speed preference, long model catalogs are searchable, and runtimes that advertise the capability accept an explicit custom model ID. Provider billing, account, campaign, and daemon UI from OpenDesign are intentionally outside ORDINE's local-runtime boundary.
 

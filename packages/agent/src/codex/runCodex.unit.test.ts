@@ -115,7 +115,7 @@ describe("runCodex", () => {
     }
     expect(args).toContain("exec");
     expect(args).toContain("--sandbox");
-    expect(args).toContain(resolveCodexSandbox("read-only"));
+    expect(args).toContain(resolveCodexSandbox("danger-full-access"));
     expect(args).toContain("--json");
     expect(args).toContain("gpt-5.6-sol");
     expect(args).toContain('model_reasoning_effort="high"');
@@ -623,7 +623,7 @@ describe("CODEX_SANDBOX_MODES", () => {
     expect(resolveCodexSandbox("read-only")).toBe("read-only");
   });
 
-  it("requires explicit confirmation before danger-full-access", async () => {
+  it("allows the product default danger-full-access and rejects an explicit denial", async () => {
     spawnMock.mockClear();
     await expect(
       runCodex({
@@ -631,6 +631,7 @@ describe("CODEX_SANDBOX_MODES", () => {
         userPrompt: "user",
         cwd: "/tmp",
         sandbox: "danger-full-access",
+        fullAccessConfirmed: false,
       }),
     ).rejects.toThrow(/explicit user confirmation/);
     expect(spawnMock).not.toHaveBeenCalled();

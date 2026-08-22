@@ -24,9 +24,9 @@ export const AgentRunRequestSchema = z
     prompt: z.string().min(1),
     rebuildPrompt: z.string().min(1),
     resumeFromRunId: z.string().min(1).optional(),
-    permissionMode: AgentRunPermissionModeSchema.default("workspace-write"),
+    permissionMode: AgentRunPermissionModeSchema.default("full-access"),
     networkAccess: z.boolean().default(true),
-    fullAccessConfirmed: z.boolean().default(false),
+    fullAccessConfirmed: z.boolean().default(true),
     allowedTools: z.array(z.string().min(1)).default([]),
   })
   .superRefine((value, context) => {
