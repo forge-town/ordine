@@ -79,7 +79,15 @@ const parseCandidate = (
   candidate: CapabilityConfigCandidate,
   workspacePath: string | undefined,
 ) => {
-  if (candidate.source === "mastra" || candidate.source === "pi-agent") {
+  if (
+    candidate.source === "mastra" ||
+    candidate.source === "pi-agent" ||
+    candidate.source === "deepseek-harness" ||
+    candidate.source === "mistral-vibe" ||
+    candidate.source === "deepseek-reasonix" ||
+    candidate.source === "kiro" ||
+    candidate.source === "trae"
+  ) {
     throw new Error(`MCP config candidate is not applicable to ${candidate.source}`);
   }
 

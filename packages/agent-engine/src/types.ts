@@ -1,4 +1,4 @@
-import { type AgentRuntime } from "@repo/schemas";
+import { type AgentRunPermissionMode, type AgentRuntime, type RuntimeEvent } from "@repo/schemas";
 import type {
   AgentInputAttachment as RuntimeAgentInputAttachment,
   ClaudeStreamEvent,
@@ -54,10 +54,22 @@ export interface AgentRunOptions {
   allowedTools?: readonly string[];
   onProgress?: (msg: string) => Promise<void> | void;
   onTextDelta?: (text: string) => Promise<void> | void;
+  onRuntimeEvent?: (event: RuntimeEvent) => Promise<void> | void;
+  signal?: AbortSignal;
   jobId?: string;
   agentId?: string;
   apiKey?: string;
   model?: string;
+  resumeSessionId?: string;
+  executablePath?: string;
+  permissionMode?: AgentRunPermissionMode;
+  networkAccess?: boolean;
+  supportsPartialMessages?: boolean;
+  supportsPermissionBypass?: boolean;
+  runtimeConfigId?: string;
+  resumeFromRunId?: string;
+  rebuildPrompt?: string;
+  fullAccessConfirmed?: boolean;
   githubToken?: string;
   ssh?: SshConnectionOptions;
   connectorInjection?: McpConnectorInjection;

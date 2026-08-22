@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   normalizeClaudeModels,
+  normalizeAcpModels,
   parseCodexModelListLine,
   parseKimiModels,
   parseOpenCodeModels,
@@ -8,6 +9,28 @@ import {
 } from "./probeRuntimeModels";
 
 describe("runtime model catalog parsers", () => {
+  it("normalizes ACP model config options and the active model", () => {
+    expect(
+      normalizeAcpModels({
+        configOptions: [
+          {
+            id: "model",
+            type: "select",
+            category: "model",
+            currentValue: "deepseek-v4-pro",
+            options: [
+              { value: "deepseek-v4-flash", name: "Flash" },
+              { value: "deepseek-v4-pro", name: "Pro" },
+            ],
+          },
+        ],
+      }),
+    ).toEqual([
+      { id: "deepseek-v4-flash", displayName: "Flash (deepseek-v4-flash)" },
+      { id: "deepseek-v4-pro", displayName: "Pro (deepseek-v4-pro)", isDefault: true },
+    ]);
+  });
+
   it("normalizes Codex model/list capabilities", () => {
     const models = parseCodexModelListLine(
       JSON.stringify({

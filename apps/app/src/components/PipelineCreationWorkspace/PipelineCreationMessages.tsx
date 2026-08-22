@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { CalendarClock, WandSparkles } from "lucide-react";
+import { Activity, CalendarClock, CircleAlert, Wrench, WandSparkles } from "lucide-react";
 import { Badge } from "@repo/ui/badge";
 import { cn } from "@repo/ui/lib/utils";
 import type { PipelineAgentProposal } from "@repo/schemas";
@@ -14,6 +14,14 @@ export interface PipelineCreationMessage {
   content: string;
 }
 
+export interface PipelineCreationRuntimeActivity {
+  id: string;
+  kind: "thinking" | "tool" | "diagnostic" | "retry" | "usage" | "terminal";
+  title: string;
+  detail?: string;
+  tone?: "default" | "warning" | "error";
+}
+
 interface PipelineCreationMessagesProps {
   attachments: PipelineCreationAttachment[];
   canRemoveAttachments: boolean;
@@ -21,6 +29,7 @@ interface PipelineCreationMessagesProps {
   messages: PipelineCreationMessage[];
   proposal: PipelineAgentProposal | null;
   removingAttachmentId: string | null;
+  runtimeActivity: PipelineCreationRuntimeActivity[];
   streamingAssistantText: string;
   onRemoveAttachment: (attachmentId: string) => void;
 }
@@ -32,6 +41,7 @@ export const PipelineCreationMessages = ({
   messages,
   proposal,
   removingAttachmentId,
+  runtimeActivity,
   streamingAssistantText,
   onRemoveAttachment: handleRemoveAttachment,
 }: PipelineCreationMessagesProps) => {
@@ -62,6 +72,39 @@ export const PipelineCreationMessages = ({
       {streamingAssistantText && (
         <div className="max-w-[88%] whitespace-pre-wrap break-words rounded-xl border border-dashed border-border bg-card px-3.5 py-2.5 text-sm leading-6 text-muted-foreground [overflow-wrap:anywhere]">
           {streamingAssistantText}
+        </div>
+      )}
+      {runtimeActivity.length > 0 && (
+        <div className="max-w-[92%] space-y-1.5 rounded-xl border border-border bg-surface-2 p-2.5">
+          {runtimeActivity.map((activity) => {
+            const Icon =
+              activity.kind === "tool"
+                ? Wrench
+                : activity.tone === "warning" || activity.tone === "error"
+                  ? CircleAlert
+                  : Activity;
+
+            return (
+              <div
+                key={activity.id}
+                className={cn(
+                  "flex items-start gap-2 rounded-lg px-2 py-1.5 text-xs text-muted-foreground",
+                  activity.tone === "warning" && "bg-amber-500/8 text-amber-700 dark:text-amber-300",
+                  activity.tone === "error" && "bg-destructive/8 text-destructive",
+                )}
+              >
+                <Icon className="mt-0.5 size-3.5 shrink-0" />
+                <div className="min-w-0">
+                  <p className="font-medium text-current">{activity.title}</p>
+                  {activity.detail && (
+                    <p className="mt-0.5 line-clamp-3 whitespace-pre-wrap break-all opacity-80">
+                      {activity.detail}
+                    </p>
+                  )}
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
       <PipelineCreationAttachments

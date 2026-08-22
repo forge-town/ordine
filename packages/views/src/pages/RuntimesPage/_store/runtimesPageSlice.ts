@@ -26,6 +26,11 @@ const makeDetectedRuntimeConfig = (
     ...(detected.models === undefined ? {} : { models: detected.models }),
     detectedAt: new Date().toISOString(),
   },
+  ...(detected.compatibility
+    ? { compatibility: detected.compatibility }
+    : existing?.compatibility
+      ? { compatibility: existing.compatibility }
+      : {}),
 });
 
 const hasDetectionChanged = (
@@ -43,6 +48,7 @@ const hasDetectionChanged = (
     existing.connection.binaryName !== detected.connection.binaryName ||
     existing.connection.path !== detected.connection.path ||
     existing.connection.version !== detected.connection.version ||
+    JSON.stringify(existing.compatibility) !== JSON.stringify(detected.compatibility) ||
     modelsChanged
   );
 };

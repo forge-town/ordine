@@ -9,9 +9,13 @@ const mocks = vi.hoisted(() => ({
   generatePipelineFromApprovedProposal: vi.fn(),
   getSessionById: vi.fn(),
   ingestAttachment: vi.fn(),
-  planSession: vi.fn(),
+  startPlanningRun: vi.fn(),
+  waitForPlanningRun: vi.fn(),
   removeAttachment: vi.fn(),
   supersedeProposal: vi.fn(),
+  getAgentRunById: vi.fn(),
+  getAgentRunEvents: vi.fn(),
+  subscribeAgentRun: vi.fn(),
 }));
 
 vi.mock("../../src/services.js", () => ({
@@ -23,9 +27,15 @@ vi.mock("../../src/services.js", () => ({
     generatePipelineFromApprovedProposal: mocks.generatePipelineFromApprovedProposal,
     getSessionById: mocks.getSessionById,
     ingestAttachment: mocks.ingestAttachment,
-    planSession: mocks.planSession,
+    startPlanningRun: mocks.startPlanningRun,
+    waitForPlanningRun: mocks.waitForPlanningRun,
     removeAttachment: mocks.removeAttachment,
     supersedeProposal: mocks.supersedeProposal,
+  },
+  agentRunsService: {
+    getById: mocks.getAgentRunById,
+    getEvents: mocks.getAgentRunEvents,
+    subscribe: mocks.subscribeAgentRun,
   },
 }));
 
@@ -41,6 +51,7 @@ const makeApp = () => {
 describe("pipelineAgentSessionsRoutes", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mocks.subscribeAgentRun.mockReturnValue(() => undefined);
   });
 
   it("creates a session from valid input", async () => {
@@ -299,13 +310,54 @@ describe("pipelineAgentSessionsRoutes", () => {
   });
 
   it("streams planning events for a session", async () => {
-    mocks.planSession.mockImplementation(async (_sessionId, input) => {
-      await input.onProgress?.("planner: started");
-      await input.onTextDelta?.("safe preview");
-      return {
-        type: "question",
-        question: "What output format do you want?",
-      };
+    mocks.startPlanningRun.mockResolvedValue({ runId: "run-1" });
+    mocks.waitForPlanningRun.mockResolvedValue(undefined);
+    mocks.getAgentRunById.mockResolvedValue({ status: "completed" });
+    mocks.getAgentRunEvents.mockResolvedValue([
+      {
+        runId: "run-1",
+        sequence: 1,
+        createdAt: "2026-08-22T00:00:00.000Z",
+        event: {
+          type: "status",
+          runtime: "codex",
+          timestamp: "2026-08-22T00:00:00.000Z",
+          phase: "running",
+          message: "planner: started",
+        },
+      },
+      {
+        runId: "run-1",
+        sequence: 2,
+        createdAt: "2026-08-22T00:00:01.000Z",
+        event: {
+          type: "message",
+          runtime: "codex",
+          timestamp: "2026-08-22T00:00:01.000Z",
+          text: "safe preview",
+        },
+      },
+      {
+        runId: "run-1",
+        sequence: 3,
+        createdAt: "2026-08-22T00:00:02.000Z",
+        event: {
+          type: "terminal",
+          runtime: "codex",
+          timestamp: "2026-08-22T00:00:02.000Z",
+          status: "completed",
+        },
+      },
+    ]);
+    mocks.getSessionById.mockResolvedValue({
+      messages: [
+        {
+          role: "assistant",
+          kind: "question",
+          content: "What output format do you want?",
+        },
+      ],
+      proposals: [],
     });
 
     const response = await makeApp().request("/pipeline-agent-sessions/session-1/plan", {
@@ -324,11 +376,10 @@ describe("pipelineAgentSessionsRoutes", () => {
     expect(body).toContain('"text":"safe preview"');
     expect(body).toContain("event: question");
     expect(body).toContain("What output format do you want?");
-    expect(mocks.planSession).toHaveBeenCalledWith(
+    expect(mocks.startPlanningRun).toHaveBeenCalledWith(
       "session-1",
       expect.objectContaining({
         runtimeId: "runtime-codex",
-        onProgress: expect.any(Function),
       }),
     );
   });
@@ -337,7 +388,7 @@ describe("pipelineAgentSessionsRoutes", () => {
     const runtimeError = Object.assign(new Error("No Agent runtime is configured"), {
       code: "PIPELINE_AGENT_RUNTIME_NOT_FOUND",
     });
-    mocks.planSession.mockRejectedValue(runtimeError);
+    mocks.startPlanningRun.mockRejectedValue(runtimeError);
 
     const response = await makeApp().request("/pipeline-agent-sessions/session-1/plan", {
       method: "POST",
@@ -363,7 +414,7 @@ describe("pipelineAgentSessionsRoutes", () => {
       code: "INVALID_REQUEST",
       error: "Invalid request body",
     });
-    expect(mocks.planSession).not.toHaveBeenCalled();
+    expect(mocks.startPlanningRun).not.toHaveBeenCalled();
   });
 
   it("generates a pipeline draft from an approved session", async () => {

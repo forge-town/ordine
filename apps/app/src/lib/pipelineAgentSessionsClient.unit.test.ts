@@ -26,19 +26,66 @@ const createStreamResponse = (chunks: string[]) => {
 describe("pipelineAgentSessionsClient.planSessionStream", () => {
   afterEach(() => {
     globalThis.fetch = originalFetch;
+    globalThis.window.localStorage.clear();
     vi.restoreAllMocks();
   });
 
-  it("maps proposal_ready SSE events from the event line instead of the JSON payload type", async () => {
+  const runtimeEvent = (sequence: number, event: Record<string, unknown>) =>
+    `id: ${sequence}\nevent: runtime_event\ndata: ${JSON.stringify({
+      runId: "run-1",
+      sequence,
+      createdAt: "2026-08-22T00:00:00.000Z",
+      event: {
+        runtime: "codex",
+        timestamp: "2026-08-22T00:00:00.000Z",
+        ...event,
+      },
+    })}\n\n`;
+
+  const sessionWithProposal = () =>
+    new Response(
+      JSON.stringify({
+        id: "session-1",
+        entrypoint: "new-pipeline-dialog",
+        mode: "generate",
+        status: "proposal_ready",
+        latestProposalId: "proposal-1",
+        proposals: [
+          {
+            id: "proposal-1",
+            mode: "generate",
+            status: "proposal_ready",
+            proposal: {
+              mode: "generate",
+              purpose: "Review repository code",
+              inputs: ["repo"],
+              outputs: ["report"],
+              majorOperations: ["review-code"],
+              executionFlow: ["repo -> review-code -> report"],
+              assumptions: [],
+              openQuestions: [],
+              readiness: "ready_for_generation",
+            },
+          },
+        ],
+      }),
+    );
+
+  it("starts a durable run, renders normalized events, and projects the saved proposal", async () => {
     const onEvent = vi.fn();
     globalThis.fetch = vi
       .fn()
-      .mockResolvedValue(
+      .mockResolvedValueOnce(new Response(JSON.stringify({ runId: "run-1" })))
+      .mockResolvedValueOnce(
         createStreamResponse([
-          'event: phase\ndata: {"phase":"planning"}\n\n',
-          'event: proposal_ready\ndata: {"type":"proposal","proposal":{"mode":"generate","purpose":"Review repository code","inputs":["repo"],"outputs":["report"],"majorOperations":["review-code"],"executionFlow":["repo -> review-code -> report"],"assumptions":[],"openQuestions":[],"readiness":"ready_for_generation"},"proposalId":"proposal-1"}\n\n',
+          runtimeEvent(1, { type: "message", text: "Inspecting" }),
+          runtimeEvent(2, { type: "tool_start", id: "tool-1", name: "shell" }),
+          runtimeEvent(2, { type: "tool_start", id: "tool-1", name: "shell" }),
+          runtimeEvent(3, { type: "usage", inputTokens: 10, outputTokens: 4 }),
+          runtimeEvent(4, { type: "terminal", status: "completed" }),
         ]),
-      ) as typeof fetch;
+      )
+      .mockResolvedValueOnce(sessionWithProposal()) as typeof fetch;
 
     await pipelineAgentSessionsClient.planSessionStream("session-1", {
       onEvent,
@@ -46,9 +93,26 @@ describe("pipelineAgentSessionsClient.planSessionStream", () => {
 
     expect(onEvent).toHaveBeenNthCalledWith(1, {
       type: "phase",
-      phase: "planning",
+      phase: "analyzing",
     });
     expect(onEvent).toHaveBeenNthCalledWith(2, {
+      type: "assistant_chunk",
+      text: "Inspecting",
+    });
+    expect(onEvent).toHaveBeenNthCalledWith(3, {
+      type: "tool",
+      phase: "start",
+      id: "tool-1",
+      name: "shell",
+    });
+    expect(onEvent).toHaveBeenCalledWith({
+      type: "usage",
+      inputTokens: 10,
+      outputTokens: 4,
+      cachedInputTokens: undefined,
+      costUsd: undefined,
+    });
+    expect(onEvent).toHaveBeenCalledWith({
       type: "proposal_ready",
       proposal: {
         mode: "generate",
@@ -63,16 +127,34 @@ describe("pipelineAgentSessionsClient.planSessionStream", () => {
       },
       proposalId: "proposal-1",
     });
+    expect(onEvent).toHaveBeenCalledTimes(7);
+    expect(globalThis.fetch).toHaveBeenNthCalledWith(
+      1,
+      "http://localhost:3000/api/pipeline-agent-sessions/session-1/runs",
+      expect.objectContaining({ method: "POST" }),
+    );
   });
 
-  it("flushes the trailing buffer when the stream closes without a final delimiter", async () => {
+  it("flushes a terminal event without a final delimiter and restores the saved question", async () => {
     const onEvent = vi.fn();
     globalThis.fetch = vi
       .fn()
-      .mockResolvedValue(
-        createStreamResponse([
-          'event: question\ndata: {"type":"question","question":"Need one more answer?"}',
-        ]),
+      .mockResolvedValueOnce(new Response(JSON.stringify({ runId: "run-1" })))
+      .mockResolvedValueOnce(
+        createStreamResponse([runtimeEvent(1, { type: "terminal", status: "completed" }).trim()]),
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            id: "session-1",
+            entrypoint: "new-pipeline-dialog",
+            mode: "generate",
+            status: "awaiting_user",
+            messages: [
+              { id: "message-1", role: "assistant", kind: "question", content: "Need one more answer?" },
+            ],
+          }),
+        ),
       ) as typeof fetch;
 
     await pipelineAgentSessionsClient.planSessionStream("session-1", {
@@ -85,26 +167,74 @@ describe("pipelineAgentSessionsClient.planSessionStream", () => {
     });
   });
 
-  it("ignores proposal_ready SSE events with invalid proposal payloads", async () => {
+  it("resumes from the saved sequence without duplicating replayed events", async () => {
     const onEvent = vi.fn();
+    globalThis.window.localStorage.setItem(
+      "ordine.pipeline-agent.active-run.session-1",
+      JSON.stringify({ runId: "run-1", lastSequence: 1 }),
+    );
     globalThis.fetch = vi
       .fn()
-      .mockResolvedValue(
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            id: "run-1",
+            owner: { type: "pipeline-agent-session", id: "session-1" },
+            runtimeConfigId: "local-codex",
+            runtime: "codex",
+            status: "running",
+            executablePath: "C:\\bin\\codex.exe",
+            executableVersion: "1.0.0",
+            executableFingerprint: "hash",
+            model: null,
+            cwd: "C:\\repo",
+            nativeSessionId: null,
+            resumeFromRunId: null,
+            permissionMode: "workspace-write",
+            networkAccess: true,
+            usage: null,
+            resultText: null,
+            errorCode: null,
+            errorMessage: null,
+            createdAt: "2026-08-22T00:00:00.000Z",
+            startedAt: "2026-08-22T00:00:00.000Z",
+            firstOutputAt: null,
+            lastActivityAt: null,
+            finishedAt: null,
+          }),
+        ),
+      )
+      .mockResolvedValueOnce(
         createStreamResponse([
-          'event: proposal_ready\ndata: {"proposal":{"mode":"generate","purpose":"Missing required fields"},"proposalId":"proposal-1"}\n\n',
+          runtimeEvent(1, { type: "message", text: "duplicate" }),
+          runtimeEvent(2, { type: "message", text: "new" }),
+          runtimeEvent(3, { type: "terminal", status: "completed" }),
         ]),
-      ) as typeof fetch;
+      )
+      .mockResolvedValueOnce(sessionWithProposal()) as typeof fetch;
 
     await pipelineAgentSessionsClient.planSessionStream("session-1", {
       onEvent,
     });
 
-    expect(onEvent).not.toHaveBeenCalled();
+    expect(onEvent).toHaveBeenCalledWith({ type: "phase", phase: "reconnecting" });
+    expect(onEvent).toHaveBeenCalledWith({ type: "assistant_chunk", text: "new" });
+    expect(onEvent).not.toHaveBeenCalledWith({ type: "assistant_chunk", text: "duplicate" });
+    expect(globalThis.fetch).toHaveBeenNthCalledWith(
+      2,
+      "http://localhost:3000/api/agent-runs/run-1/events?after=1",
+      expect.objectContaining({
+        headers: expect.objectContaining({ "Last-Event-ID": "1" }),
+      }),
+    );
   });
 
   it("passes an abort signal to the planning request", async () => {
     const controller = new AbortController();
-    globalThis.fetch = vi.fn().mockResolvedValue(createStreamResponse([])) as typeof fetch;
+    globalThis.fetch = vi
+      .fn()
+      .mockResolvedValue(new Response(JSON.stringify({ runId: "run-1" }))) as typeof fetch;
+    controller.abort();
 
     await pipelineAgentSessionsClient.planSessionStream("session-1", {
       onEvent: vi.fn(),
@@ -112,7 +242,7 @@ describe("pipelineAgentSessionsClient.planSessionStream", () => {
     });
 
     expect(globalThis.fetch).toHaveBeenCalledWith(
-      "http://localhost:3000/api/pipeline-agent-sessions/session-1/plan",
+      "http://localhost:3000/api/pipeline-agent-sessions/session-1/runs",
       expect.objectContaining({ signal: controller.signal }),
     );
   });

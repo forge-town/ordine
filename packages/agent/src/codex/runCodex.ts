@@ -1,10 +1,17 @@
-import { copyFile, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { copyFile, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { homedir, tmpdir } from "node:os";
-import { join } from "node:path";
+import { join, resolve as resolvePath } from "node:path";
 import { hasMcpConnectorInjection, type McpConnectorInjection } from "../mcp";
 import { logger } from "@repo/logger";
-import { Result } from "neverthrow";
+import type { RuntimeEvent, RuntimeTerminalStatus } from "@repo/schemas";
+import { Result, ResultAsync } from "neverthrow";
 import { spawnCommand } from "../spawn/spawnCommand";
+import {
+  createJsonEventStreamState,
+  handleJsonEventStreamLine,
+} from "../runtime/jsonEventStreamMapper";
+import { createRuntimeEventEmitter } from "../runtime/runtimeEventEmitter";
+import { terminateRuntimeProcess } from "../runtime/terminateRuntimeProcess";
 
 export interface RunCodexOptions {
   systemPrompt: string;
@@ -16,6 +23,11 @@ export interface RunCodexOptions {
   onProgress?: (line: string) => Promise<void>;
   onTextDelta?: (text: string) => Promise<void> | void;
   connectorInjection?: McpConnectorInjection;
+  signal?: AbortSignal;
+  resumeSessionId?: string;
+  onRuntimeEvent?: (event: RuntimeEvent) => Promise<void> | void;
+  executablePath?: string;
+  networkAccess?: boolean;
 }
 
 type CodexJsonEvent = {
@@ -32,12 +44,115 @@ const parseCodexJsonEvent = Result.fromThrowable(
 );
 
 const CODEX_BIN = process.platform === "win32" ? "codex.cmd" : "codex";
+const CODEX_RESUME_PREFIX = "ordine-codex:";
+
+type CodexResumeHandle = {
+  version: 1;
+  threadId: string;
+  codexHome: string;
+};
+
+const parseResumeHandleJson = Result.fromThrowable(
+  (encoded: string) => JSON.parse(Buffer.from(encoded, "base64url").toString("utf8")) as unknown,
+  () => null,
+);
+
+const encodeResumeHandle = (threadId: string, codexHome: string): string =>
+  `${CODEX_RESUME_PREFIX}${Buffer.from(
+    JSON.stringify({ version: 1, threadId, codexHome } satisfies CodexResumeHandle),
+  ).toString("base64url")}`;
+
+const decodeResumeHandle = (value: string): CodexResumeHandle | undefined => {
+  if (!value.startsWith(CODEX_RESUME_PREFIX) || value.length > 4096) return undefined;
+  const parsed = parseResumeHandleJson(value.slice(CODEX_RESUME_PREFIX.length));
+  if (parsed.isErr() || !parsed.value || typeof parsed.value !== "object") return undefined;
+  const candidate = parsed.value as Partial<CodexResumeHandle>;
+  const managedHomePrefix = resolvePath(tmpdir(), "ordine-codex-home-");
+  if (
+    candidate.version !== 1 ||
+    typeof candidate.threadId !== "string" ||
+    candidate.threadId.length === 0 ||
+    candidate.threadId.length > 512 ||
+    typeof candidate.codexHome !== "string" ||
+    !resolvePath(candidate.codexHome).startsWith(managedHomePrefix)
+  ) {
+    return undefined;
+  }
+
+  return candidate as CodexResumeHandle;
+};
 
 export const CODEX_SANDBOX_MODES = {
   readOnly: "read-only",
   workspaceWrite: "workspace-write",
   fullAccess: "danger-full-access",
 } as const;
+
+const CODEX_SHELL_ENVIRONMENT_INCLUDE_KEYS = [
+  "PATH",
+  "HOME",
+  "USER",
+  "LOGNAME",
+  "SHELL",
+  "TMPDIR",
+  "TMP",
+  "TEMP",
+  "LANG",
+  "LC_ALL",
+  "TERM",
+  "COLORTERM",
+  "SYSTEMROOT",
+  "COMSPEC",
+  "PATHEXT",
+  "USERPROFILE",
+  "APPDATA",
+  "LOCALAPPDATA",
+  "HOMEDRIVE",
+  "HOMEPATH",
+  "OD_BIN",
+  "OD_HYPERFRAMES_BIN",
+  "OD_NODE_BIN",
+  "OD_DAEMON_URL",
+  "OD_TOOL_TOKEN",
+  "OD_DATA_DIR",
+  "OD_PROJECT_ID",
+  "OD_PROJECT_DIR",
+] as const;
+
+export const codexOpenDesignShellEnvironmentArgs = (
+  extraKeys: readonly string[] = [],
+): string[] => {
+  const includeOnly = [...new Set([...CODEX_SHELL_ENVIRONMENT_INCLUDE_KEYS, ...extraKeys])]
+    .map((key) => JSON.stringify(key))
+    .join(",");
+
+  return [
+    "-c",
+    "allow_login_shell=false",
+    "-c",
+    'shell_environment_policy.inherit="all"',
+    "-c",
+    "shell_environment_policy.ignore_default_excludes=true",
+    "-c",
+    `shell_environment_policy.include_only=[${includeOnly}]`,
+  ];
+};
+
+export const codexNeedsDangerFullAccessSandbox = (
+  platform: NodeJS.Platform = process.platform,
+  env: NodeJS.ProcessEnv = process.env,
+): boolean =>
+  env.OD_CODEX_SANDBOX?.trim() === "danger-full-access" ||
+  env.ORDINE_CODEX_SANDBOX?.trim() === "danger-full-access" ||
+  platform === "win32" ||
+  Boolean(env.WSL_DISTRO_NAME?.trim());
+
+export const resolveCodexSandbox = (
+  requested: NonNullable<RunCodexOptions["sandbox"]>,
+  platform: NodeJS.Platform = process.platform,
+  env: NodeJS.ProcessEnv = process.env,
+): NonNullable<RunCodexOptions["sandbox"]> =>
+  codexNeedsDangerFullAccessSandbox(platform, env) ? "danger-full-access" : requested;
 
 const TOML_KEY_RE = /^[A-Za-z0-9_-]+$/;
 
@@ -131,18 +246,30 @@ const buildCodexMcpConfig = (
   return { configToml: lines.join("\n"), env };
 };
 
+const buildCodexRuntimeConfig = (mcpConfigToml: string): string =>
+  ['approval_policy = "never"', ...(mcpConfigToml ? ["", mcpConfigToml.trimEnd()] : []), ""].join(
+    "\n",
+  );
+
 const createIsolatedCodexHome = async (configToml: string): Promise<string> => {
   const isolatedHome = await mkdtemp(join(tmpdir(), "ordine-codex-home-"));
   const sourceHome = process.env.CODEX_HOME ?? join(homedir(), ".codex");
-  const setup = copyFile(join(sourceHome, "auth.json"), join(isolatedHome, "auth.json"))
-    .catch((error: NodeJS.ErrnoException) => {
-      if (error.code !== "ENOENT") throw error;
-    })
-    .then(() => writeFile(join(isolatedHome, "config.toml"), configToml, { mode: 0o600 }));
-  await setup.catch(async (error) => {
+  const copyResult = await ResultAsync.fromPromise(
+    copyFile(join(sourceHome, "auth.json"), join(isolatedHome, "auth.json")),
+    (error) => error as NodeJS.ErrnoException,
+  );
+  if (copyResult.isErr() && copyResult.error.code !== "ENOENT") {
     await rm(isolatedHome, { recursive: true, force: true });
-    throw error;
-  });
+    throw copyResult.error;
+  }
+  const configResult = await ResultAsync.fromPromise(
+    writeFile(join(isolatedHome, "config.toml"), configToml, { mode: 0o600 }),
+    (error) => error,
+  );
+  if (configResult.isErr()) {
+    await rm(isolatedHome, { recursive: true, force: true });
+    throw configResult.error;
+  }
 
   return isolatedHome;
 };
@@ -157,6 +284,18 @@ const cleanupPath = async (path: string, label: string): Promise<void> => {
   }
 };
 
+const scrubCodexConfig = async (codexHome: string, configToml: string): Promise<void> => {
+  const cleanup = await writeFile(join(codexHome, "config.toml"), configToml, {
+    mode: 0o600,
+  }).then(
+    () => null,
+    (error) => error,
+  );
+  if (cleanup) {
+    logger.debug({ err: String(cleanup) }, "runCodex: failed to scrub isolated config");
+  }
+};
+
 export const runCodex = async ({
   systemPrompt,
   userPrompt,
@@ -167,43 +306,69 @@ export const runCodex = async ({
   onProgress,
   onTextDelta,
   connectorInjection,
+  signal,
+  resumeSessionId,
+  onRuntimeEvent,
+  executablePath = CODEX_BIN,
+  networkAccess = true,
 }: RunCodexOptions): Promise<string> => {
   const MAX_INPUT_CHARS = 50_000;
   const truncatedPrompt =
     userPrompt.length > MAX_INPUT_CHARS
       ? `${userPrompt.slice(0, MAX_INPUT_CHARS)}\n\n... (truncated, ${userPrompt.length - MAX_INPUT_CHARS} chars omitted — use tools to explore the project)`
       : userPrompt;
-  const outputFile = join(
-    tmpdir(),
-    `ordine-codex-last-message-${Date.now()}-${Math.random().toString(36).slice(2)}.txt`,
-  );
   const codexMcpConfig = buildCodexMcpConfig(connectorInjection);
-  const isolatedCodexHome = await createIsolatedCodexHome(codexMcpConfig.configToml);
-
-  const args = [
-    "exec",
-    "--sandbox",
-    sandbox,
-    "--ephemeral",
-    "--skip-git-repo-check",
-    "--json",
-    "-C",
-    cwd,
-    "--output-last-message",
-    outputFile,
-  ];
-
-  if (model) {
-    args.push("--model", model);
+  const scrubbedCodexConfig = buildCodexRuntimeConfig("");
+  const activeCodexConfig = buildCodexRuntimeConfig(codexMcpConfig.configToml);
+  const parsedResumeHandle = resumeSessionId ? decodeResumeHandle(resumeSessionId) : undefined;
+  const isManagedResume = Boolean(resumeSessionId?.startsWith(CODEX_RESUME_PREFIX));
+  if (isManagedResume && !parsedResumeHandle) {
+    throw new Error("invalid ORDINE Codex resume handle");
+  }
+  if (resumeSessionId && !parsedResumeHandle && hasMcpConnectorInjection(connectorInjection)) {
+    throw new Error("legacy Codex session ids cannot be resumed with job-scoped MCP injection");
+  }
+  const managesCodexHome = !resumeSessionId || Boolean(parsedResumeHandle);
+  const isolatedCodexHome = parsedResumeHandle
+    ? parsedResumeHandle.codexHome
+    : resumeSessionId
+      ? (process.env.CODEX_HOME ?? join(homedir(), ".codex"))
+      : await createIsolatedCodexHome(activeCodexConfig);
+  if (parsedResumeHandle) {
+    await writeFile(join(isolatedCodexHome, "config.toml"), activeCodexConfig, {
+      mode: 0o600,
+    });
+  }
+  const sessionState = { capturedThreadId: parsedResumeHandle?.threadId };
+  const effectiveSandbox = resolveCodexSandbox(sandbox);
+  const sandboxArgs = resumeSessionId
+    ? ["-c", `sandbox_mode=${JSON.stringify(effectiveSandbox)}`]
+    : ["--sandbox", effectiveSandbox];
+  if (effectiveSandbox === "workspace-write") {
+    sandboxArgs.push("-c", `sandbox_workspace_write.network_access=${networkAccess}`);
   }
 
-  logger.info({ cwd, sandbox }, "runCodex: starting");
+  const args = resumeSessionId
+    ? ["exec", "resume", "--json", "--skip-git-repo-check", ...sandboxArgs]
+    : ["exec", "--json", "--skip-git-repo-check", ...sandboxArgs];
+
+  args.push(...codexOpenDesignShellEnvironmentArgs(Object.keys(codexMcpConfig.env)));
+  if (!resumeSessionId) {
+    args.push("-C", cwd);
+  }
+
+  if (model && model !== "default") {
+    args.push("--model", model);
+  }
+  if (resumeSessionId) args.push(parsedResumeHandle?.threadId ?? resumeSessionId);
+
+  logger.info({ cwd, requestedSandbox: sandbox, effectiveSandbox }, "runCodex: starting");
 
   const execution = async (): Promise<string> => {
-    await onProgress?.(`[Codex] Starting codex exec (cwd=${cwd}, sandbox=${sandbox})...`);
+    await onProgress?.(`[Codex] Starting codex exec (cwd=${cwd}, sandbox=${effectiveSandbox})...`);
 
     return new Promise<string>((resolve, reject) => {
-      const child = spawnCommand(CODEX_BIN, args, {
+      const child = spawnCommand(executablePath, args, {
         cwd,
         stdio: ["pipe", "pipe", "pipe"],
         env: {
@@ -216,6 +381,46 @@ export const runCodex = async ({
       const stdoutChunks: Buffer[] = [];
       const stderrChunks: Buffer[] = [];
       const completion = { settled: false };
+      const jsonEventState = createJsonEventStreamState("codex");
+      const runtimeEvents = createRuntimeEventEmitter({
+        runtime: "codex",
+        onEvent: async (event) => {
+          const forwardedEvent =
+            event.type === "session"
+              ? (() => {
+                  sessionState.capturedThreadId = event.id;
+
+                  return {
+                    ...event,
+                    phase: resumeSessionId ? ("loaded" as const) : event.phase,
+                    id: encodeResumeHandle(event.id, isolatedCodexHome),
+                  };
+                })()
+              : event;
+          if (event.type === "message" || event.type === "text_delta") {
+            await onTextDelta?.(event.text);
+          }
+          await onRuntimeEvent?.(forwardedEvent);
+        },
+      });
+      runtimeEvents.emit({
+        type: "diagnostic",
+        level: "info",
+        code: "CODEX_EFFECTIVE_SANDBOX",
+        message:
+          sandbox === effectiveSandbox
+            ? `Codex sandbox: ${effectiveSandbox}`
+            : `Codex sandbox: ${effectiveSandbox} (OpenDesign Windows/WSL policy; requested ${sandbox})`,
+      });
+      if (child.pid) {
+        runtimeEvents.emit({
+          type: "diagnostic",
+          level: "info",
+          code: "RUNTIME_PROCESS_STARTED",
+          message: `Started Codex with PID ${child.pid}`,
+          metadata: { pid: child.pid, executablePath },
+        });
+      }
       const streamState = {
         lineBuffer: "",
         parsedEventCount: 0,
@@ -226,6 +431,8 @@ export const runCodex = async ({
 
       const processStreamLine = (line: string) => {
         if (!line.trim()) return;
+
+        handleJsonEventStreamLine(line.trim(), jsonEventState, runtimeEvents.emit);
 
         const parsed = parseCodexJsonEvent(line.trim());
         if (parsed.isErr()) return;
@@ -241,17 +448,8 @@ export const runCodex = async ({
           return;
         }
 
-        const textDelta = streamState.emittedAgentMessage
-          ? `\n\n${event.item.text}`
-          : event.item.text;
         streamState.emittedAgentMessage = true;
         streamState.lastAgentMessage = event.item.text;
-        streamState.delivery = streamState.delivery
-          .then(() => onTextDelta?.(textDelta))
-          .then(() => undefined)
-          .catch((error) => {
-            logger.warn({ err: String(error) }, "runCodex: text delta callback failed");
-          });
       };
 
       child.stdout.on("data", (chunk: Buffer) => {
@@ -263,57 +461,112 @@ export const runCodex = async ({
       });
       child.stderr.on("data", (chunk: Buffer) => stderrChunks.push(chunk));
 
-      const prompt = `<system>${systemPrompt}</system>\n\n${truncatedPrompt}`;
+      const prompt = systemPrompt
+        ? `${systemPrompt}\n\n---\n\n${truncatedPrompt}`
+        : truncatedPrompt;
       child.stdin.write(prompt);
       child.stdin.end();
+
+      const emitTerminal = async (
+        status: RuntimeTerminalStatus,
+        code: number | null,
+        message?: string,
+      ): Promise<void> => {
+        if (message) {
+          runtimeEvents.emit({
+            type: "diagnostic",
+            level: "error",
+            code: "CODEX_EXEC_FAILED",
+            message,
+          });
+        }
+        runtimeEvents.emit({
+          type: "terminal",
+          status,
+          exitCode: code,
+          signal: null,
+          resultText: jsonEventState.textParts.join(""),
+          sessionId: jsonEventState.sessionId
+            ? encodeResumeHandle(jsonEventState.sessionId, isolatedCodexHome)
+            : resumeSessionId,
+        });
+        await runtimeEvents.delivered();
+      };
+
+      const abort = (): void => {
+        if (completion.settled) return;
+        completion.settled = true;
+        clearTimeout(timer);
+        const message = "codex was cancelled";
+        void terminateRuntimeProcess(child).then(
+          () => emitTerminal("cancelled", null, message).then(() => reject(new Error(message))),
+          (error: unknown) =>
+            emitTerminal(
+              "failed",
+              null,
+              error instanceof Error ? error.message : String(error),
+            ).then(() => reject(error)),
+        );
+      };
 
       const timer = setTimeout(() => {
         if (completion.settled) return;
         completion.settled = true;
-        child.kill("SIGTERM");
-        reject(new Error(`codex timed out after ${timeoutMs / 1000}s`));
+        const message = `codex timed out after ${timeoutMs / 1000}s`;
+        void terminateRuntimeProcess(child).then(
+          () => emitTerminal("timed_out", null, message).then(() => reject(new Error(message))),
+          (error: unknown) =>
+            emitTerminal(
+              "failed",
+              null,
+              error instanceof Error ? error.message : String(error),
+            ).then(() => reject(error)),
+        );
       }, timeoutMs);
+      signal?.addEventListener("abort", abort, { once: true });
+      if (signal?.aborted) abort();
 
       child.on("error", (error) => {
         if (completion.settled) return;
         completion.settled = true;
         clearTimeout(timer);
+        signal?.removeEventListener("abort", abort);
         logger.error({ err: error.message }, "runCodex: spawn error");
         void onProgress?.(`[Codex] Spawn error: ${error.message}`);
-        reject(error);
+        void emitTerminal("failed", null, error.message).then(() => reject(error));
       });
 
       const handleCompletion = (code: number | null) => {
         if (completion.settled) return;
         completion.settled = true;
         clearTimeout(timer);
+        signal?.removeEventListener("abort", abort);
         const stdout = Buffer.concat(stdoutChunks).toString("utf8");
         const stderr = Buffer.concat(stderrChunks).toString("utf8");
         void (async () => {
           processStreamLine(streamState.lineBuffer);
           await streamState.delivery;
-          const output = await readFile(outputFile, "utf8").then(
-            (fileOutput) => fileOutput,
-            () =>
-              streamState.lastAgentMessage || (streamState.parsedEventCount === 0 ? stdout : ""),
-          );
+          await runtimeEvents.delivered();
+          const output =
+            jsonEventState.textParts.join("") ||
+            streamState.lastAgentMessage ||
+            (streamState.parsedEventCount === 0 ? stdout : "");
 
-          if (code !== 0 && output.trim().length === 0) {
-            logger.error({ code, stderr: stderr.slice(0, 500) }, "runCodex: non-zero exit");
-            void onProgress?.(`[Codex] Exit code ${code}: ${stderr.slice(0, 200)}`);
-            reject(new Error(`codex exited with code ${code}: ${stderr.slice(0, 500)}`));
+          if (jsonEventState.fatalMessage) {
+            await emitTerminal("failed", code, jsonEventState.fatalMessage);
+            reject(new Error(jsonEventState.fatalMessage));
 
             return;
           }
 
           if (code !== 0) {
-            logger.warn(
-              { code, outputLen: output.length, stderr: stderr.slice(0, 300) },
-              "runCodex: non-zero exit but output present, using output",
-            );
-            void onProgress?.(
-              `[Codex] Exit code ${code} (non-fatal, ${output.length} chars captured)`,
-            );
+            logger.error({ code, stderr: stderr.slice(0, 500) }, "runCodex: non-zero exit");
+            void onProgress?.(`[Codex] Exit code ${code}: ${stderr.slice(0, 200)}`);
+            const message = `codex exited with code ${code}: ${stderr.slice(0, 500)}`;
+            await emitTerminal("failed", code, message);
+            reject(new Error(message));
+
+            return;
           }
 
           if (stderr) {
@@ -322,6 +575,7 @@ export const runCodex = async ({
 
           logger.info({ len: output.length }, "runCodex: complete");
           void onProgress?.(`[Codex] Complete (${output.length} chars)`);
+          await emitTerminal("completed", code);
           resolve(output);
         })();
       };
@@ -336,7 +590,11 @@ export const runCodex = async ({
   };
 
   return execution().finally(async () => {
-    await cleanupPath(outputFile, "output file");
-    await cleanupPath(isolatedCodexHome, "isolated home");
+    if (!managesCodexHome) return;
+    if (sessionState.capturedThreadId) {
+      await scrubCodexConfig(isolatedCodexHome, scrubbedCodexConfig);
+    } else {
+      await cleanupPath(isolatedCodexHome, "isolated home");
+    }
   });
 };

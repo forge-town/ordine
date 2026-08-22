@@ -39,7 +39,6 @@ import {
   scanRuntimes,
   versionCommand,
 } from "./scanRuntimes";
-import type { DetectedRuntime } from "@repo/schemas";
 
 const LOCATE_BIN = locateBinaryCommand();
 
@@ -160,7 +159,7 @@ describe("scanRuntimes", () => {
 
     const results = await scanRuntimes();
 
-    expect(results.length).toBeGreaterThanOrEqual(8);
+    expect(results.length).toBeGreaterThanOrEqual(10);
     const types = results.map((r) => r.type);
 
     expect(types).toContain("claude-code");
@@ -171,6 +170,8 @@ describe("scanRuntimes", () => {
     expect(types).toContain("pi-agent");
     expect(types).toContain("opencode");
     expect(types).toContain("kimi-code");
+    expect(types).toContain("deepseek-harness");
+    expect(types).toContain("mistral-vibe");
   });
 
   it("detects hermes when the binary exists", async () => {
@@ -193,12 +194,13 @@ describe("scanRuntimes", () => {
     const results = await scanRuntimes();
     const hermes = results.find((r) => r.type === "hermes");
 
-    expect(hermes).toEqual({
+    expect(hermes).toMatchObject({
       type: "hermes",
       binaryName: "hermes",
       path: "/usr/local/bin/hermes",
       version: "hermes 0.1.0",
-    } satisfies DetectedRuntime);
+      compatibility: { runtime: "hermes", streamFormat: "acp-json-rpc" },
+    });
   });
 
   it("prefers exe paths when Windows where returns multiple matches", () => {
@@ -249,12 +251,17 @@ describe("scanRuntimes", () => {
 
     const results = await scanRuntimes();
 
-    expect(results).toContainEqual({
-      type: "hermes",
-      binaryName: absoluteBinary,
-      path: absoluteBinary,
-      version: "hermes 0.16.0",
-    });
+    expect(results).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          type: "hermes",
+          binaryName: absoluteBinary,
+          path: absoluteBinary,
+          version: "hermes 0.16.0",
+          compatibility: expect.objectContaining({ runtime: "hermes" }),
+        }),
+      ]),
+    );
     expect(execFileMock).not.toHaveBeenCalledWith(
       LOCATE_BIN,
       [absoluteBinary],

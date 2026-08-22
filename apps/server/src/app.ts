@@ -2,6 +2,8 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
 import { agentsRoutes } from "./routes/agents";
+import { agentRunsRoutes } from "./routes/agentRuns";
+import { agentRuntimesRoutes } from "./routes/agentRuntimes";
 import { connectorsRoutes } from "./routes/connectors";
 import { conversationsRoutes } from "./routes/conversations";
 import { distillationsRoutes } from "./routes/distillations";
@@ -42,6 +44,8 @@ if (env.DESKTOP_MODE) {
 }
 
 app.route("/api/agents", agentsRoutes);
+app.route("/api/agent-runs", agentRunsRoutes);
+app.route("/api/agent-runtimes", agentRuntimesRoutes);
 app.route("/api/connectors", connectorsRoutes);
 app.route("/api/conversations", conversationsRoutes);
 app.route("/api/distillations", distillationsRoutes);

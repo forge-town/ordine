@@ -4,6 +4,7 @@ import { sidebarStore as sharedSidebarStore } from "@repo/views/store/sidebarSto
 import type { materializeGeneratedPipeline } from "@/lib/materializeGeneratedPipeline";
 import type {
   pipelineAgentSessionsClient,
+  PipelineAgentPlanEvent,
   PipelineAgentSessionClientDetail,
 } from "@/lib/pipelineAgentSessionsClient";
 
@@ -20,20 +21,8 @@ interface UsePipelineCreationSessionRecoveryOptions {
   onError: (error: Error) => void;
   onMissing: () => void;
   onSessionDetail: (session: PipelineAgentSessionClientDetail) => void;
+  onPlanEvent: (event: PipelineAgentPlanEvent) => void;
 }
-
-const waitForPollingInterval = (signal: AbortSignal) =>
-  new Promise<void>((resolvePromise) => {
-    const handleAbort = () => {
-      globalThis.clearTimeout(timeoutId);
-      resolvePromise();
-    };
-    const timeoutId = globalThis.setTimeout(() => {
-      signal.removeEventListener("abort", handleAbort);
-      resolvePromise();
-    }, 750);
-    signal.addEventListener("abort", handleAbort, { once: true });
-  });
 
 export const usePipelineCreationSessionRecovery = ({
   active,
@@ -46,6 +35,7 @@ export const usePipelineCreationSessionRecovery = ({
   onError,
   onMissing,
   onSessionDetail,
+  onPlanEvent,
 }: UsePipelineCreationSessionRecoveryOptions) => {
   const [isRestoring, setIsRestoring] = useState(false);
 
@@ -72,8 +62,10 @@ export const usePipelineCreationSessionRecovery = ({
           if (currentSession.status !== "analyzing") {
             return currentSession;
           }
-
-          await waitForPollingInterval(controller.signal);
+          await client.planSessionStream(savedSessionId, {
+            signal: controller.signal,
+            onEvent: onPlanEvent,
+          });
           if (controller.signal.aborted) {
             throw new DOMException("The operation was aborted", "AbortError");
           }
@@ -158,6 +150,7 @@ export const usePipelineCreationSessionRecovery = ({
     onCompleted,
     onError,
     onMissing,
+    onPlanEvent,
     onSessionDetail,
     sessionIdRef,
   ]);

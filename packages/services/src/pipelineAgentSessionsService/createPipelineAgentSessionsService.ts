@@ -40,6 +40,7 @@ import {
 } from "@repo/schemas";
 import { getNextCronRunAt } from "@repo/utils";
 import { runAgent } from "../pipelineRunnerService/agentRunner/agentRunner";
+import { createAgentRunsService } from "../agentRunsService/createAgentRunsService";
 import { createPipelinesService } from "../pipelinesService/createPipelinesService";
 import { createPlanningPreviewStreamer } from "./streamPlanningPreview";
 
@@ -136,7 +137,14 @@ const runAbortable = <T>(promise: Promise<T>, signal: AbortSignal, sessionId: st
     );
   });
 
-export const createPipelineAgentSessionsService = (db: DbConnection) => {
+type PipelineAgentSessionsServiceDependencies = {
+  agentRunsService?: ReturnType<typeof createAgentRunsService>;
+};
+
+export const createPipelineAgentSessionsService = (
+  db: DbConnection,
+  dependencies: PipelineAgentSessionsServiceDependencies = {},
+) => {
   const agentRuntimesDao = createAgentRuntimesDao(db);
   const operationsDao = createOperationsDao(db);
   const pipelinesService = createPipelinesService(db);
@@ -147,6 +155,18 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
   const contextArtifactsDao = createPipelineAgentContextArtifactsDao(db);
   const proposalsDao = createPipelineAgentProposalsDao(db);
   const settingsDao = createSettingsDao(db);
+  const agentRunsServiceState = {
+    local: undefined as ReturnType<typeof createAgentRunsService> | undefined,
+  };
+  const getAgentRunsService = () => {
+    if (dependencies.agentRunsService) return dependencies.agentRunsService;
+
+    agentRunsServiceState.local ??= createAgentRunsService(db);
+
+    return agentRunsServiceState.local;
+  };
+  const planningRuns = new Map<string, { runId: string; runtimeId: string }>();
+  const planningCompletions = new Map<string, Promise<void>>();
   const activeActivities = new Map<string, PipelineAgentActivity>();
   const beginActivity = (sessionId: string, kind: PipelineAgentActivityKind) => {
     activeActivities.get(sessionId)?.controller.abort();
@@ -272,6 +292,129 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
       "",
       "Return JSON only.",
     ].join("\n");
+  };
+
+  const persistPlanningOutput = async (
+    sessionId: string,
+    raw: string,
+    runtimeId?: string,
+  ): Promise<
+    | { type: "question"; question: string }
+    | { type: "proposal"; proposal: PipelineAgentProposal; proposalId: string }
+  > => {
+    const session = await sessionsDao.findById(sessionId);
+    if (!session) throw new Error(`Pipeline agent session not found: ${sessionId}`);
+    const parsed = (
+      session.mode === "edit"
+        ? RelaxedCanvasEditPlanningResultSchema
+        : PipelineAgentPlanningResultSchema
+    ).parse(JSON.parse(extractJsonFromText(raw)));
+
+    if (parsed.type === "question") {
+      await db.transaction(async (transaction) => {
+        await createPipelineAgentMessagesDao(transaction).create({
+          id: crypto.randomUUID(),
+          sessionId,
+          role: "assistant",
+          kind: "question",
+          content: parsed.question,
+        });
+        await createPipelineAgentSessionsDao(transaction).update(sessionId, {
+          status: "awaiting_user",
+        });
+      });
+
+      return parsed;
+    }
+
+    if (parsed.proposal.readiness !== "ready_for_generation") {
+      const question =
+        parsed.proposal.openQuestions
+          .map((item) => item.trim())
+          .filter(Boolean)
+          .join("\n") || "Please provide the missing details before I continue.";
+      await db.transaction(async (transaction) => {
+        await createPipelineAgentMessagesDao(transaction).create({
+          id: crypto.randomUUID(),
+          sessionId,
+          role: "assistant",
+          kind: "question",
+          content: question,
+        });
+        await createPipelineAgentSessionsDao(transaction).update(sessionId, {
+          status: "awaiting_user",
+        });
+      });
+
+      return { type: "question", question };
+    }
+
+    const proposal: PipelineAgentProposal =
+      session.mode === "edit"
+        ? await (async () => {
+            const editProposal = (
+              parsed as Extract<RelaxedCanvasEditPlanningResult, { type: "proposal" }>
+            ).proposal;
+            if (!session.snapshot) {
+              throw new Error(`Edit session ${sessionId} is missing a graph snapshot`);
+            }
+            const actionRequest = [
+              editProposal.summary,
+              editProposal.targetGraphIntent
+                ? `Target intent: ${editProposal.targetGraphIntent}`
+                : null,
+              editProposal.majorChanges.length > 0
+                ? `Requested changes: ${editProposal.majorChanges.join("; ")}`
+                : null,
+              editProposal.assumptions.length > 0
+                ? `Assumptions: ${editProposal.assumptions.join("; ")}`
+                : null,
+            ]
+              .filter(Boolean)
+              .join("\n");
+            const actionProposalResult = await pipelinesService.proposeActions({
+              snapshot: session.snapshot,
+              message: actionRequest,
+              pipelineId: session.pipelineId ?? undefined,
+              runtimeId,
+            });
+            if (!actionProposalResult.proposal) {
+              throw new Error("Failed to generate executable canvas edit actions");
+            }
+
+            return {
+              mode: "edit",
+              summary: editProposal.summary,
+              targetGraphIntent: editProposal.targetGraphIntent ?? editProposal.summary,
+              majorChanges: editProposal.majorChanges,
+              assumptions: editProposal.assumptions,
+              openQuestions: editProposal.openQuestions,
+              actions: actionProposalResult.proposal.actions,
+              diagnosticsPreview: actionProposalResult.diagnostics,
+              readiness: editProposal.readiness,
+              pendingOperations: actionProposalResult.pendingOperations ?? [],
+            };
+          })()
+        : (parsed.proposal as Extract<PipelineAgentProposal, { mode: "generate" }>);
+
+    const saved = await db.transaction(async (transaction) => {
+      const persistedProposal = await createPipelineAgentProposalsDao(transaction).create({
+        id: crypto.randomUUID(),
+        sessionId,
+        mode: session.mode,
+        status: "proposal_ready",
+        proposal,
+        approvedAt: null,
+      });
+      await createPipelineAgentSessionsDao(transaction).update(sessionId, {
+        latestProposalId: persistedProposal.id,
+        status: "proposal_ready",
+      });
+
+      return persistedProposal;
+    });
+
+    return { type: "proposal", proposal, proposalId: saved.id };
   };
 
   const buildGenerationDescription = (
@@ -922,7 +1065,9 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
       }
 
       const session =
-        storedSession.status === "analyzing" && !activeActivities.has(sessionId)
+        storedSession.status === "analyzing" &&
+        !activeActivities.has(sessionId) &&
+        !planningRuns.has(sessionId)
           ? {
               ...storedSession,
               ...(await sessionsDao.update(sessionId, { status: "awaiting_user" })),
@@ -954,6 +1099,14 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
 
       const activity = activeActivities.get(sessionId);
       activity?.controller.abort();
+      const planningRun = planningRuns.get(sessionId);
+      if (planningRun) {
+        await getAgentRunsService().cancel(planningRun.runId);
+        planningRuns.delete(sessionId);
+        await sessionsDao.update(sessionId, { status: "awaiting_user" });
+
+        return { status: "awaiting_user" as const };
+      }
 
       if (activity?.kind === "planning" || session.status === "analyzing") {
         await sessionsDao.update(sessionId, { status: "awaiting_user" });
@@ -984,6 +1137,103 @@ export const createPipelineAgentSessionsService = (db: DbConnection) => {
       }
 
       return { status: session.status };
+    },
+
+    startPlanningRun: async (
+      sessionId: string,
+      input?: {
+        runtimeId?: string;
+        model?: string;
+        permissionMode?: "read-only" | "workspace-write" | "full-access";
+        networkAccess?: boolean;
+        fullAccessConfirmed?: boolean;
+      },
+    ): Promise<{ runId: string }> => {
+      const session = await sessionsDao.findById(sessionId);
+      if (!session) throw new Error(`Pipeline agent session not found: ${sessionId}`);
+      const [messages, artifacts, settings, operations, runtimes] = await Promise.all([
+        messagesDao.findManyBySessionId(sessionId),
+        contextArtifactsDao.findManyBySessionId(sessionId),
+        settingsDao.get(),
+        operationsDao.findMany(),
+        agentRuntimesDao.findMany(),
+      ]);
+      const selectedRuntime = input?.runtimeId
+        ? runtimes.find((runtime) => runtime.id === input.runtimeId) ?? null
+        : runtimes.find((runtime) => runtime.type === settings.defaultAgentRuntime) ??
+          runtimes[0] ??
+          null;
+      const runtimeId = input?.runtimeId ?? selectedRuntime?.id;
+      if (!runtimeId) throw createRuntimeNotFoundError(input?.runtimeId);
+      const rebuildPrompt = buildPlanningPrompt({
+        artifacts,
+        messages,
+        mode: session.mode,
+        operations,
+        pipelineId: session.pipelineId,
+        snapshot: session.snapshot,
+      });
+      const latestUserMessage = [...messages]
+        .reverse()
+        .find((message) => message.role === "user")?.content;
+      const agentRunsService = getAgentRunsService();
+      const previous = await agentRunsService.getLatestByOwner(
+        "pipeline-agent-session",
+        sessionId,
+      );
+      await sessionsDao.update(sessionId, { status: "analyzing" });
+      const started = await agentRunsService.start({
+        owner: { type: "pipeline-agent-session", id: sessionId },
+        runtimeConfigId: runtimeId,
+        cwd: process.cwd(),
+        model: input?.model ?? settings.defaultModel ?? undefined,
+        systemPrompt: "You are a fast planning assistant. Return only valid JSON.",
+        prompt: latestUserMessage ?? rebuildPrompt,
+        rebuildPrompt,
+        resumeFromRunId: previous?.status === "completed" ? previous.id : undefined,
+        permissionMode: input?.permissionMode ?? "workspace-write",
+        networkAccess: input?.networkAccess ?? true,
+        fullAccessConfirmed: input?.fullAccessConfirmed ?? false,
+        allowedTools: [],
+      });
+      planningRuns.set(sessionId, { runId: started.runId, runtimeId });
+      const completion = agentRunsService.wait(started.runId).then(
+        async (run) => {
+          const active = planningRuns.get(sessionId);
+          if (active?.runId !== run.id) return;
+          planningRuns.delete(sessionId);
+          if (run.status !== "completed" || run.resultText === null) {
+            await sessionsDao.update(sessionId, {
+              status: run.status === "cancelled" ? "awaiting_user" : "failed",
+            });
+
+            return;
+          }
+          const persisted = await ResultAsync.fromPromise(
+            persistPlanningOutput(sessionId, run.resultText, runtimeId),
+            (error) => (error instanceof Error ? error : new Error(String(error))),
+          );
+          if (persisted.isErr()) await sessionsDao.update(sessionId, { status: "failed" });
+        },
+        async () => {
+          if (planningRuns.get(sessionId)?.runId === started.runId) {
+            planningRuns.delete(sessionId);
+            await sessionsDao.update(sessionId, { status: "failed" });
+          }
+        },
+      );
+      planningCompletions.set(started.runId, completion);
+      void completion.then(
+        () => planningCompletions.delete(started.runId),
+        () => planningCompletions.delete(started.runId),
+      );
+
+      return started;
+    },
+
+    waitForPlanningRun: async (runId: string): Promise<void> => {
+      const completion = planningCompletions.get(runId);
+      if (completion) await completion;
     },
 
     planSession: async (

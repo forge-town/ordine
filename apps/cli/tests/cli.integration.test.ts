@@ -215,4 +215,15 @@ describe("Codex-facing CLI", () => {
       desktopToken: "test-desktop-token-that-is-long-enough",
     });
   });
+
+  it("prints absolute runtime and CLI paths instead of a bare ordine PATH command", async () => {
+    const result = await runCli(["--json", "mcp", "print-config", "claude-code"]);
+    const planned = JSON.parse(result.stdout) as { command: string };
+
+    expect(result.exitCode).toBe(0);
+    expect(planned.command).toContain("claude mcp add");
+    expect(planned.command).toMatch(/src[\\/]index\.ts/);
+    expect(planned.command).not.toMatch(/-- ordine mcp serve/);
+    expect(planned.command).toContain("ORDINE_DESKTOP_AUTH_TOKEN_FILE=");
+  });
 });

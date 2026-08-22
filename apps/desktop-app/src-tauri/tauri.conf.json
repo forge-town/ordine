@@ -27,7 +27,7 @@
   "bundle": {
     "active": true,
     "targets": ["dmg", "app"],
-    "externalBin": ["binaries/ordine-server"],
+    "externalBin": ["binaries/ordine-server", "binaries/ordine-mcp"],
     "resources": ["resources/server/server-bundle.mjs", "resources/server/migrations/*.sql"],
     "icon": [
       "icons/32x32.png",

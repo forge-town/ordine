@@ -104,6 +104,20 @@ bun dev
 | Main app   | http://localhost:9430 |
 | API server | http://localhost:9433 |
 
+### Connect a coding agent through MCP
+
+ORDINE ships a stdio MCP server plus deletion-safe, product-supported installers for Codex CLI, Claude Code, and OpenCode:
+
+```sh
+ordine mcp install codex
+ordine mcp install claude
+ordine mcp install opencode
+ordine mcp status codex
+ordine mcp doctor
+```
+
+The default MCP policy is read-only safe mode; full access requires an explicit `--policy yolo`. See the [runtime and MCP compatibility guide](docs/runtime-mcp-compatibility.md) for durable runs, evidence-layered diagnostics, backup, and uninstall behavior.
+
 > **💡 Local Mode (self-hosted, single-user):**
 > Set `ORDINE_LOCAL_MODE=true` in `apps/app/.env` to skip the login page entirely.
 > A default local user is auto-created and logged in on first visit.

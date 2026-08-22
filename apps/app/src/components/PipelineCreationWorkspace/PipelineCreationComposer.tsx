@@ -70,7 +70,7 @@ export const PipelineCreationComposer = ({
   runtimeId,
   runtimeLabel,
   runtimeOptions,
-  onRuntimeChange,
+  onRuntimeChange: handleRuntimeChange,
   onApprove: handleApprove,
   onCancel: handleCancel,
   onClose: handleClose,
@@ -163,7 +163,7 @@ export const PipelineCreationComposer = ({
           </Button>
 
           {isHome && runtimeConfigured === true && runtimeId && runtimeOptions?.length ? (
-            <Select value={runtimeId} onValueChange={onRuntimeChange}>
+            <Select value={runtimeId} onValueChange={handleRuntimeChange}>
               <SelectTrigger
                 aria-label={t("home.selectLocalAgent")}
                 className="h-8 min-w-0 max-w-40 border-0 px-2 text-xs text-muted-foreground shadow-none hover:bg-surface-2 hover:text-foreground"

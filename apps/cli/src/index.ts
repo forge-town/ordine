@@ -37,6 +37,7 @@ import {
   browseFilesystem,
 } from "./commands";
 import { startDaemon } from "./daemon";
+import { registerAgentSetupCommands, registerMcpCommands } from "./mcp/cliCommands";
 
 const program = new Command();
 
@@ -85,6 +86,11 @@ program
       json: outputOptions().json,
     }),
   );
+
+// ─── MCP / Runtime Compatibility ────────────────────────────────────
+
+registerMcpCommands(program, outputOptions);
+registerAgentSetupCommands(program);
 
 // ─── Rules ───────────────────────────────────────────────────────────
 
@@ -237,9 +243,12 @@ program
 
 // ─── Parse ───────────────────────────────────────────────────────────
 
-program.parseAsync().catch((error: unknown) => {
-  const message = error instanceof Error ? error.message : String(error);
-  console.error(message);
-  // eslint-disable-next-line unicorn/no-process-exit -- CLI entry point
-  process.exit(1);
-});
+void program.parseAsync().then(
+  () => undefined,
+  (error: unknown) => {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error(message);
+    // eslint-disable-next-line unicorn/no-process-exit -- CLI entry point
+    process.exit(1);
+  },
+);

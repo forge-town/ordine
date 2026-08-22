@@ -10,7 +10,8 @@ export type {
   McpConnectorInjectionProvider,
 } from "./types";
 
-const supportsImageAttachments = (agent: AgentRunOptions["agent"]) => agent === "mastra";
+const supportsImageAttachments = (agent: AgentRunOptions["agent"]) =>
+  agent === "mastra" || agent === "pi-agent";
 
 const rejectUnsupportedAttachments = (opts: AgentRunOptions) => {
   const hasImageAttachments = opts.attachments?.some((attachment) => attachment.kind === "image");
@@ -24,7 +25,7 @@ const rejectUnsupportedAttachments = (opts: AgentRunOptions) => {
  * accounting only. Driver adapters live in ./drivers; observability assembly
  * lives in ./obs/observability.
  */
-const run = async (opts: AgentRunOptions): Promise<AgentRunOutcome> => {
+const runDirect = async (opts: AgentRunOptions): Promise<AgentRunOutcome> => {
   const driver = DRIVERS[opts.agent];
   if (!driver) {
     throw new Error(`Unsupported agent backend: "${opts.agent}"`);
@@ -54,4 +55,15 @@ const run = async (opts: AgentRunOptions): Promise<AgentRunOutcome> => {
   return { text: result.text, usage };
 };
 
-export const agentEngine = { run };
+export type AgentRunController = (opts: AgentRunOptions) => Promise<AgentRunOutcome>;
+
+const controllerState = { current: null as AgentRunController | null };
+
+const run = (opts: AgentRunOptions): Promise<AgentRunOutcome> =>
+  controllerState.current ? controllerState.current(opts) : runDirect(opts);
+
+const setRunController = (controller: AgentRunController | null): void => {
+  controllerState.current = controller;
+};
+
+export const agentEngine = { run, runDirect, setRunController };

@@ -1,5 +1,6 @@
 export * from "./agentsService";
 export * from "./agentRuntimesService";
+export * from "./agentRunsService";
 export * from "./capabilityHarvestService";
 export * from "./capabilityCatalogService";
 export * from "./connectorsService";

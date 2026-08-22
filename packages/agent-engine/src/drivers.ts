@@ -5,18 +5,24 @@ import {
   hasMcpConnectorInjection,
   runClaude,
   runCodex,
+  runDeepSeekHarness,
+  runDeepSeekReasonix,
   runHermes,
   runKimiCode,
+  runKiro,
   runMastra,
+  runMistralVibe,
   runOpenclaw,
   runOpencode,
   runPiAgent,
+  runTrae,
   type McpConnectorInjection,
   type ToolName,
 } from "@repo/agent";
 import { logger } from "@repo/logger";
 import type { AgentRuntime } from "@repo/schemas";
 import type { AgentRunOptions, DriverResult } from "./types";
+import { withLegacyRuntimeEvents } from "./runtimeEventBridge";
 
 type DriverFn = (opts: AgentRunOptions) => Promise<DriverResult>;
 
@@ -144,9 +150,17 @@ const runLocalClaudeDirect = async (opts: AgentRunOptions): Promise<DriverResult
       systemPrompt: opts.systemPrompt,
       userPrompt: opts.userPrompt,
       cwd: opts.cwd,
+      model: opts.model,
       ...(effectiveTools ? { allowedTools: effectiveTools } : {}),
       onProgress: toAsyncProgress(opts.onProgress),
       onTextDelta: toAsyncTextDelta(opts.onTextDelta),
+      onRuntimeEvent: opts.onRuntimeEvent,
+      signal: opts.signal,
+      executablePath: opts.executablePath,
+      permissionMode: opts.permissionMode,
+      networkAccess: opts.networkAccess,
+      supportsPartialMessages: opts.supportsPartialMessages,
+      resumeSessionId: opts.resumeSessionId,
       extraEnv,
       ssh: opts.ssh,
       mcpConfigPath: preparedMcp?.configPath,
@@ -184,6 +198,17 @@ const runCodexDirect = async (opts: AgentRunOptions): Promise<DriverResult> => {
     onProgress: toAsyncProgress(opts.onProgress),
     onTextDelta: toAsyncTextDelta(opts.onTextDelta),
     connectorInjection,
+    sandbox:
+      opts.permissionMode === "full-access"
+        ? "danger-full-access"
+        : opts.permissionMode === "read-only"
+          ? "read-only"
+          : "workspace-write",
+    signal: opts.signal,
+    resumeSessionId: opts.resumeSessionId,
+    onRuntimeEvent: opts.onRuntimeEvent,
+    executablePath: opts.executablePath,
+    networkAccess: opts.networkAccess,
   });
 
   return { text, events: [] };
@@ -209,17 +234,17 @@ const runMastraDirect = async (opts: AgentRunOptions): Promise<DriverResult> => 
 };
 
 const runHermesDirect = async (opts: AgentRunOptions): Promise<DriverResult> => {
-  await reportConnectorInjectionSkipped(
-    opts,
-    "runtime adapter does not yet support run-level MCP injection",
-  );
+  const connectorInjection = await loadConnectorInjection(opts);
 
   const result = await runHermes({
     systemPrompt: opts.systemPrompt,
     userPrompt: opts.userPrompt,
     cwd: opts.cwd,
     allowedTools: runtimeToolNames(opts),
-    onProgress: toAsyncProgress(opts.onProgress),
+    signal: opts.signal,
+    connectorInjection,
+    resumeSessionId: opts.resumeSessionId,
+    onRuntimeEvent: opts.onRuntimeEvent,
   });
 
   if (result.isErr()) {
@@ -257,6 +282,10 @@ const runPiAgentDirect = async (opts: AgentRunOptions): Promise<DriverResult> =>
     userPrompt: opts.userPrompt,
     cwd: opts.cwd,
     model: opts.model,
+    signal: opts.signal,
+    attachments: opts.attachments,
+    resumeSessionId: opts.resumeSessionId,
+    onRuntimeEvent: opts.onRuntimeEvent,
     onProgress: toAsyncProgress(opts.onProgress),
   });
 
@@ -269,17 +298,23 @@ const runPiAgentDirect = async (opts: AgentRunOptions): Promise<DriverResult> =>
 };
 
 const runOpencodeDirect = async (opts: AgentRunOptions): Promise<DriverResult> => {
-  await reportConnectorInjectionSkipped(
-    opts,
-    "runtime adapter does not yet support run-level MCP injection",
-  );
+  const connectorInjection = await loadConnectorInjection(opts);
 
   const result = await runOpencode({
     systemPrompt: opts.systemPrompt,
     userPrompt: opts.userPrompt,
     cwd: opts.cwd,
     model: opts.model,
+    signal: opts.signal,
+    resumeSessionId: opts.resumeSessionId,
+    connectorInjection,
     onProgress: toAsyncProgress(opts.onProgress),
+    onTextDelta: toAsyncTextDelta(opts.onTextDelta),
+    onRuntimeEvent: opts.onRuntimeEvent,
+    executablePath: opts.executablePath,
+    permissionMode: opts.permissionMode,
+    networkAccess: opts.networkAccess,
+    supportsPermissionBypass: opts.supportsPermissionBypass,
   });
 
   if (result.isErr()) {
@@ -305,6 +340,9 @@ const runKimiCodeDirect = async (opts: AgentRunOptions): Promise<DriverResult> =
     model: opts.model,
     onProgress: toAsyncProgress(opts.onProgress),
     connectorInjection,
+    signal: opts.signal,
+    resumeSessionId: opts.resumeSessionId,
+    onRuntimeEvent: opts.onRuntimeEvent,
   });
 
   if (result.isErr()) {
@@ -315,13 +353,100 @@ const runKimiCodeDirect = async (opts: AgentRunOptions): Promise<DriverResult> =
   return { text: result.value, events: [] };
 };
 
+const runDeepSeekReasonixDirect = async (opts: AgentRunOptions): Promise<DriverResult> => {
+  const result = await runDeepSeekReasonix({
+    systemPrompt: opts.systemPrompt,
+    userPrompt: opts.userPrompt,
+    cwd: opts.cwd,
+    model: opts.model,
+    signal: opts.signal,
+    connectorInjection: await loadConnectorInjection(opts),
+    resumeSessionId: opts.resumeSessionId,
+    onRuntimeEvent: opts.onRuntimeEvent,
+  });
+  if (result.isErr()) throw result.error;
+
+  return { text: result.value, events: [] };
+};
+
+const runKiroDirect = async (opts: AgentRunOptions): Promise<DriverResult> => {
+  const result = await runKiro({
+    systemPrompt: opts.systemPrompt,
+    userPrompt: opts.userPrompt,
+    cwd: opts.cwd,
+    model: opts.model,
+    signal: opts.signal,
+    connectorInjection: await loadConnectorInjection(opts),
+    resumeSessionId: opts.resumeSessionId,
+    onRuntimeEvent: opts.onRuntimeEvent,
+  });
+  if (result.isErr()) throw result.error;
+
+  return { text: result.value, events: [] };
+};
+
+const runTraeDirect = async (opts: AgentRunOptions): Promise<DriverResult> => {
+  const result = await runTrae({
+    systemPrompt: opts.systemPrompt,
+    userPrompt: opts.userPrompt,
+    cwd: opts.cwd,
+    model: opts.model,
+    signal: opts.signal,
+    connectorInjection: await loadConnectorInjection(opts),
+    resumeSessionId: opts.resumeSessionId,
+    onRuntimeEvent: opts.onRuntimeEvent,
+  });
+  if (result.isErr()) throw result.error;
+
+  return { text: result.value, events: [] };
+};
+
+const runDeepSeekHarnessDirect = async (opts: AgentRunOptions): Promise<DriverResult> => {
+  const connectorInjection = await loadConnectorInjection(opts);
+  const result = await runDeepSeekHarness({
+    systemPrompt: opts.systemPrompt,
+    userPrompt: opts.userPrompt,
+    cwd: opts.cwd,
+    model: opts.model,
+    signal: opts.signal,
+    connectorInjection,
+    resumeSessionId: opts.resumeSessionId,
+    onRuntimeEvent: opts.onRuntimeEvent,
+  });
+  if (result.isErr()) throw result.error;
+
+  return { text: result.value, events: [] };
+};
+
+const runMistralVibeDirect = async (opts: AgentRunOptions): Promise<DriverResult> => {
+  const connectorInjection = await loadConnectorInjection(opts);
+  const result = await runMistralVibe({
+    systemPrompt: opts.systemPrompt,
+    userPrompt: opts.userPrompt,
+    cwd: opts.cwd,
+    model: opts.model,
+    signal: opts.signal,
+    connectorInjection,
+    resumeSessionId: opts.resumeSessionId,
+    onRuntimeEvent: opts.onRuntimeEvent,
+  });
+  if (result.isErr()) throw result.error;
+
+  return { text: result.value, events: [] };
+};
+
 export const DRIVERS: Record<AgentRuntime, DriverFn> = {
   "claude-code": runLocalClaudeDirect,
   codex: runCodexDirect,
+  "deepseek-harness": runDeepSeekHarnessDirect,
+  "deepseek-reasonix": runDeepSeekReasonixDirect,
   hermes: runHermesDirect,
-  mastra: runMastraDirect,
-  openclaw: runOpenclawDirect,
+  kiro: runKiroDirect,
+  mastra: withLegacyRuntimeEvents("mastra", runMastraDirect),
+  "mistral-vibe": runMistralVibeDirect,
+  openclaw: withLegacyRuntimeEvents("openclaw", runOpenclawDirect),
   "pi-agent": runPiAgentDirect,
   opencode: runOpencodeDirect,
   "kimi-code": runKimiCodeDirect,
+  trae: runTraeDirect,
 };

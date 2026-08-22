@@ -1,0 +1,59 @@
+{
+  "generatedAt": "2026-08-22T15:20:16.147Z",
+  "platform": "win32",
+  "architecture": "x64",
+  "runtime": "codex",
+  "version": "codex-cli 0.149.0",
+  "quotaRecheck": {
+    "runId": "b28b3a3b-b1c2-4edd-a374-e2a1d840a863",
+    "status": "completed",
+    "response": "ORDINE_CODEX_QUOTA_RESTORED",
+    "nativeSessionCaptured": true,
+    "usage": {
+      "inputTokens": 19762,
+      "outputTokens": 14,
+      "cachedInputTokens": 11008
+    },
+    "firstSequence": 1387,
+    "lastSequence": 1393,
+    "eventCount": 7,
+    "terminal": "completed",
+    "processIds": [4708],
+    "processTreeCleaned": true
+  },
+  "workspaceWriteRecheck": {
+    "runId": "7f3feaa2-f997-4198-961c-e833145e9d81",
+    "status": "interrupted",
+    "firstSequence": 1380,
+    "lastSequence": 1386,
+    "lastModelMessage": "I'll create the acceptance file exactly as specified, then verify its bytes.",
+    "failureLayer": "Codex Windows code-mode host",
+    "observedBehavior": "The file-change tool remained in progress without creating the file until the 300 second acceptance-test timeout.",
+    "processTreeCleaned": true,
+    "terminal": "interrupted"
+  },
+  "directReproductions": [
+    {
+      "windowsSandbox": "not configured",
+      "result": "The model completed, but the file tool was rejected as read-only despite workspace-write argv."
+    },
+    {
+      "windowsSandbox": "unelevated",
+      "result": "The file_change event remained in_progress and codex-code-mode-host did not create the file."
+    },
+    {
+      "windowsSandbox": "elevated",
+      "result": "The same file_change in_progress hang reproduced; the preinstalled sandbox users and firewall rules were present."
+    },
+    {
+      "windowsSandbox": "elevated-ascii-path",
+      "result": "The same hang reproduced in a temporary ASCII-only Git repository, excluding Unicode paths as the cause."
+    }
+  ],
+  "securityBoundary": "No danger-full-access or sandbox bypass was used.",
+  "cleanup": {
+    "orphanProcesses": false,
+    "unfinishedRuns": false,
+    "temporaryAsciiRepositoryMovedToRecycleBin": true
+  }
+}

@@ -27,4 +27,10 @@ describe("spawnCommand", () => {
 
     expect(spawnMock).toHaveBeenCalledWith("npx", ["-y", "some-mcp-server"], { stdio: "pipe" });
   });
+
+  it("spawns native Windows executables directly", () => {
+    spawnCommand("C:\\tools\\hermes.exe", ["acp"], { stdio: "pipe" }, "win32");
+
+    expect(spawnMock).toHaveBeenCalledWith("C:\\tools\\hermes.exe", ["acp"], { stdio: "pipe" });
+  });
 });

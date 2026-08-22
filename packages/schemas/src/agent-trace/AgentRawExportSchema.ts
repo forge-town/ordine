@@ -1,6 +1,6 @@
 import { z } from "zod/v4";
 import { AgentRuntimeSchema } from "../agent-runtime/AgentRuntimeSchema";
-import { AgentRunStatusSchema } from "../agent-runtime/AgentRunStatusSchema";
+import { AgentRawExportStatusSchema } from "./AgentRawExportStatusSchema";
 
 export const AgentRawExportSchema = z.object({
   id: z.number(),
@@ -12,7 +12,7 @@ export const AgentRawExportSchema = z.object({
   tokenInput: z.number().nullable(),
   tokenOutput: z.number().nullable(),
   durationMs: z.number().nullable(),
-  status: AgentRunStatusSchema,
+  status: AgentRawExportStatusSchema,
   createdAt: z.coerce.date(),
 });
 export type AgentRawExport = z.infer<typeof AgentRawExportSchema>;

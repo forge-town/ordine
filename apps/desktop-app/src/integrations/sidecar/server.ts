@@ -60,7 +60,8 @@ export const startServer = (): ResultAsync<void, Error> => {
 
     const tokenBytes = new Uint8Array(32);
     crypto.getRandomValues(tokenBytes);
-    serverState.authToken = Array.from(tokenBytes, (b) => b.toString(16).padStart(2, "0")).join("");
+    const desktopAuthToken = Array.from(tokenBytes, (b) => b.toString(16).padStart(2, "0")).join("");
+    serverState.authToken = desktopAuthToken;
 
     return ResultAsync.fromPromise(
       resolveResource("resources/server/server-bundle.mjs"),
@@ -70,7 +71,7 @@ export const startServer = (): ResultAsync<void, Error> => {
         env: {
           NODE_ENV: "production",
           DESKTOP_MODE: "true",
-          DESKTOP_AUTH_TOKEN: serverState.authToken,
+          DESKTOP_AUTH_TOKEN: desktopAuthToken,
         },
       });
 

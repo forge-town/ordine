@@ -20,6 +20,6 @@ export const spawnCommand = (
   options: SpawnOptions,
   platform: NodeJS.Platform = process.platform,
 ): ChildProcessWithoutNullStreams =>
-  (platform === "win32"
+  (platform === "win32" && !/\.(?:exe|com)$/i.test(command)
     ? spawn("cmd.exe", ["/d", "/s", "/c", command, ...args], options)
     : spawn(command, [...args], options)) as ChildProcessWithoutNullStreams;

@@ -7,8 +7,10 @@ export const desktopRequest = createScopedRequest({
   baseUrl: DESKTOP_API_BASE,
   getHeaders: () => {
     const token = getDesktopAuthToken();
+    const headers: Record<string, string> = {};
+    if (token) headers["X-Desktop-Token"] = token;
 
-    return token ? { "X-Desktop-Token": token } : {};
+    return headers;
   },
 });
 

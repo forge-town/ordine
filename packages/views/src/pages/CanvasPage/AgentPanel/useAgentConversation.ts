@@ -250,6 +250,50 @@ export const useAgentConversation = ({
         return null;
       }
 
+      if (event.type === "thinking") {
+        state.setConversationState("thinking");
+        state.setStreamingProgress(event.text || "Thinking");
+
+        return null;
+      }
+
+      if (event.type === "tool") {
+        state.setConversationState("thinking");
+        state.setStreamingProgress(
+          `${event.name ?? "Tool"}: ${event.status ?? event.phase}`,
+        );
+
+        return null;
+      }
+
+      if (event.type === "diagnostic") {
+        state.setStreamingProgress(`${event.code}: ${event.message}`);
+
+        return null;
+      }
+
+      if (event.type === "retry") {
+        state.setConversationState("thinking");
+        state.setStreamingProgress(event.message ?? `Retry ${event.phase}`);
+
+        return null;
+      }
+
+      if (event.type === "usage") {
+        state.setStreamingProgress(
+          `Usage · input ${event.inputTokens ?? "—"} · output ${event.outputTokens ?? "—"}`,
+        );
+
+        return null;
+      }
+
+      if (event.type === "terminal") {
+        state.setStreamingProgress(`Run ${event.status}`);
+        if (event.status !== "completed") state.setConversationState("done");
+
+        return null;
+      }
+
       if (event.type === "question") {
         return finishWithAssistantMessage(event.question);
       }

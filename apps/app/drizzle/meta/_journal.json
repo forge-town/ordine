@@ -232,6 +232,13 @@
       "when": 1786613376495,
       "tag": "0032_capability_risk_overrides",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1787390400000,
+      "tag": "0033_agent_runs",
+      "breakpoints": true
     }
   ]
 }

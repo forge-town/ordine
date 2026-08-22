@@ -24,6 +24,7 @@ const ClaudeStreamInnerEventSchema = z
 export const ClaudeStreamEventSchema = z.object({
   type: z.string(),
   subtype: z.string().optional(),
+  session_id: z.string().optional(),
   message: ClaudeMessageSchema.optional(),
   delta: ClaudeStreamDeltaSchema.optional(),
   event: ClaudeStreamInnerEventSchema.optional(),

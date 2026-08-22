@@ -58,6 +58,36 @@ const RUNTIME_META: Record<
     mono: "Ki",
     models: "Moonshot models via local CLI",
   },
+  "deepseek-harness": {
+    capabilities: ["Native profile", "Tool events", "MCP protocol"],
+    label: "DeepSeek Harness",
+    mono: "DS",
+    models: "DeepSeek Harness profile models",
+  },
+  "mistral-vibe": {
+    capabilities: ["ACP", "Tool events", "MCP protocol"],
+    label: "Mistral Vibe",
+    mono: "Vi",
+    models: "Mistral Vibe ACP models",
+  },
+  "deepseek-reasonix": {
+    capabilities: ["ACP", "Thinking", "MCP protocol"],
+    label: "DeepSeek Reasonix",
+    mono: "Rx",
+    models: "Reasonix ACP models",
+  },
+  kiro: {
+    capabilities: ["ACP", "Tool events", "Session resume"],
+    label: "Kiro CLI",
+    mono: "Kr",
+    models: "Kiro ACP models",
+  },
+  trae: {
+    capabilities: ["ACP", "Tool events", "MCP protocol"],
+    label: "Trae CLI",
+    mono: "Tr",
+    models: "Trae ACP models",
+  },
 };
 
 export const LocalAgentCard = ({ runtime }: { runtime: AgentRuntimeConfig }) => {
@@ -69,6 +99,17 @@ export const LocalAgentCard = ({ runtime }: { runtime: AgentRuntimeConfig }) => 
   const version = connection.mode === "local" ? connection.version : undefined;
   const detected = connection.mode === "local" && Boolean(connection.path);
   const models = connection.mode === "local" ? (connection.models ?? []) : [];
+  const compatibility = runtime.compatibility;
+  const capabilities = compatibility
+    ? [
+        `Stream: ${compatibility.capabilities.textStreaming}`,
+        ...(compatibility.capabilities.thinking ? ["Thinking"] : []),
+        ...(compatibility.capabilities.toolEvents ? ["Tool events"] : []),
+        ...(compatibility.capabilities.usage ? ["Usage"] : []),
+        `MCP: ${compatibility.capabilities.mcpInjection}`,
+        `Cancel: ${compatibility.capabilities.cancellation}`,
+      ]
+    : meta.capabilities;
 
   return (
     <article className={cn(surfaceCardVariants(), "flex min-h-[190px] flex-col p-4")}>
@@ -82,6 +123,7 @@ export const LocalAgentCard = ({ runtime }: { runtime: AgentRuntimeConfig }) => 
             <span className="font-mono text-[10.5px] text-muted-foreground">
               {runtime.connection.mode}
             </span>
+            {compatibility && <Tag>{compatibility.supportLevel}</Tag>}
           </div>
           <div className="truncate text-[11.5px] text-muted-foreground">{meta.models}</div>
         </div>
@@ -92,7 +134,7 @@ export const LocalAgentCard = ({ runtime }: { runtime: AgentRuntimeConfig }) => 
       </div>
 
       <div className="mt-3.5 flex flex-wrap gap-1.5">
-        {meta.capabilities.map((capability) => (
+        {capabilities.map((capability) => (
           <Tag key={capability}>{capability}</Tag>
         ))}
       </div>
@@ -146,7 +188,8 @@ export const LocalAgentCard = ({ runtime }: { runtime: AgentRuntimeConfig }) => 
         </span>
         <span className="inline-flex items-center gap-1">
           <Clock className="size-3" />
-          {runtime.connection.mode === "local" ? "localhost" : runtime.connection.host}
+          {compatibility?.streamFormat ??
+            (runtime.connection.mode === "local" ? "localhost" : runtime.connection.host)}
         </span>
         <Button
           className="ml-auto h-7 gap-1 px-2 text-xs"
