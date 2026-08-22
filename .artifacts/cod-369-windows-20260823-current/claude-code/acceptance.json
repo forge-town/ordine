@@ -1,0 +1,108 @@
+{
+  "generatedAt": "2026-08-22T18:55:33.330Z",
+  "platform": "win32",
+  "architecture": "x64",
+  "database": "dedicated COD-369 acceptance database (credentials omitted)",
+  "runtimes": [
+    {
+      "runtime": "claude-code",
+      "cwd": "D:\\Coding\\项目ORDINE\\.worktrees\\cod-369-runtime-mcp-compatibility\\.artifacts\\cod-369-windows-20260823-current\\claude-code\\claude-code",
+      "firstRun": {
+        "runId": "4cea4795-4db7-45f8-8f80-8068b2940c31",
+        "status": "completed",
+        "executablePath": "C:\\Users\\woodfish\\AppData\\Roaming\\npm\\claude.cmd",
+        "executableVersion": "2.1.207 (Claude Code)",
+        "executableFingerprint": "7999fba95dbffe167d9e0a043f29057979a0518ebe89b60c4fcfc6401ea8c424",
+        "nativeSessionId": "0cb20eef-404f-4020-9433-32212f53afde",
+        "usage": {
+          "inputTokens": 88618,
+          "outputTokens": 309,
+          "costUsd": 0.270489
+        },
+        "firstSequence": 56,
+        "lastSequence": 151,
+        "eventTypes": {
+          "status": 2,
+          "diagnostic": 2,
+          "session": 1,
+          "thinking": 4,
+          "thinking_delta": 57,
+          "usage": 6,
+          "tool_start": 2,
+          "tool_update": 8,
+          "tool_result": 2,
+          "text_delta": 11,
+          "terminal": 1
+        },
+        "processIds": [
+          48252
+        ],
+        "processTreeCleaned": true
+      },
+      "resumeRun": {
+        "runId": "b1d8a4b0-5886-419b-9a0b-bf80cf36cc18",
+        "status": "completed",
+        "executablePath": "C:\\Users\\woodfish\\AppData\\Roaming\\npm\\claude.cmd",
+        "executableVersion": "2.1.207 (Claude Code)",
+        "executableFingerprint": "7999fba95dbffe167d9e0a043f29057979a0518ebe89b60c4fcfc6401ea8c424",
+        "nativeSessionId": "0cb20eef-404f-4020-9433-32212f53afde",
+        "usage": {
+          "inputTokens": 134089,
+          "outputTokens": 499,
+          "costUsd": 0.409752
+        },
+        "firstSequence": 152,
+        "lastSequence": 274,
+        "eventTypes": {
+          "status": 2,
+          "diagnostic": 2,
+          "session": 1,
+          "thinking": 6,
+          "thinking_delta": 78,
+          "usage": 7,
+          "tool_start": 2,
+          "tool_update": 8,
+          "tool_result": 2,
+          "text_delta": 14,
+          "terminal": 1
+        },
+        "processIds": [
+          21572
+        ],
+        "processTreeCleaned": true
+      },
+      "filePath": "D:\\Coding\\项目ORDINE\\.worktrees\\cod-369-runtime-mcp-compatibility\\.artifacts\\cod-369-windows-20260823-current\\claude-code\\claude-code\\acceptance.txt",
+      "fileSha256": "969c04fb78922d47fbaee8dc87675bfac6dffcabd50063944b0c126fa8cbd559",
+      "cancelRun": {
+        "runId": "ee2fda83-94cb-4a93-8f0c-1b78cdf8460f",
+        "status": "cancelled",
+        "executablePath": "C:\\Users\\woodfish\\AppData\\Roaming\\npm\\claude.cmd",
+        "executableVersion": "2.1.207 (Claude Code)",
+        "executableFingerprint": "7999fba95dbffe167d9e0a043f29057979a0518ebe89b60c4fcfc6401ea8c424",
+        "nativeSessionId": "e23b5c05-8c97-4090-b7dd-50251845ff0a",
+        "usage": {
+          "inputTokens": 12904,
+          "outputTokens": 0
+        },
+        "firstSequence": 275,
+        "lastSequence": 328,
+        "eventTypes": {
+          "status": 2,
+          "diagnostic": 3,
+          "session": 1,
+          "thinking": 2,
+          "thinking_delta": 37,
+          "usage": 2,
+          "tool_start": 1,
+          "tool_update": 4,
+          "tool_result": 1,
+          "terminal": 1
+        },
+        "processIds": [
+          56548
+        ],
+        "processTreeCleaned": true
+      }
+    }
+  ]
+}

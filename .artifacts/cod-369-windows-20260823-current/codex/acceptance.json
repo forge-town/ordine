@@ -1,0 +1,100 @@
+{
+  "generatedAt": "2026-08-22T18:53:59.112Z",
+  "platform": "win32",
+  "architecture": "x64",
+  "database": "dedicated COD-369 acceptance database (credentials omitted)",
+  "runtimes": [
+    {
+      "runtime": "codex",
+      "cwd": "D:\\Coding\\项目ORDINE\\.worktrees\\cod-369-runtime-mcp-compatibility\\.artifacts\\cod-369-windows-20260823-current\\codex\\codex",
+      "firstRun": {
+        "runId": "8275626a-5b5b-4349-b466-f5ead86af63e",
+        "status": "completed",
+        "executablePath": "C:\\Users\\woodfish\\AppData\\Roaming\\npm\\codex.cmd",
+        "executableVersion": "codex-cli 0.149.0",
+        "executableFingerprint": "c54db6755e710c39703f7c37512f9e35ed41042d8080558d2b84b8d2694323c3",
+        "nativeSessionId": "ordine-codex:eyJ2ZXJzaW9uIjoxLCJ0aHJlYWRJZCI6IjAxYTAyYWQyLWI5YmYtNzRkMy1iNTYzLWZkMWY1NjU4ZDYyYSIsImNvZGV4SG9tZSI6IkM6XFxVc2Vyc1xcd29vZGZpc2hcXEFwcERhdGFcXExvY2FsXFxUZW1wXFxvcmRpbmUtY29kZXgtaG9tZS10MGVEdzIifQ",
+        "usage": {
+          "inputTokens": 58889,
+          "outputTokens": 195,
+          "cachedInputTokens": 38400
+        },
+        "firstSequence": 10,
+        "lastSequence": 27,
+        "eventTypes": {
+          "diagnostic": 2,
+          "session": 1,
+          "status": 2,
+          "message": 2,
+          "tool_start": 2,
+          "tool_update": 4,
+          "tool_result": 2,
+          "artifact": 1,
+          "usage": 1,
+          "terminal": 1
+        },
+        "processIds": [
+          17152
+        ],
+        "processTreeCleaned": true
+      },
+      "resumeRun": {
+        "runId": "0df59620-249d-4c5c-9461-bdb3126b3678",
+        "status": "completed",
+        "executablePath": "C:\\Users\\woodfish\\AppData\\Roaming\\npm\\codex.cmd",
+        "executableVersion": "codex-cli 0.149.0",
+        "executableFingerprint": "c54db6755e710c39703f7c37512f9e35ed41042d8080558d2b84b8d2694323c3",
+        "nativeSessionId": "ordine-codex:eyJ2ZXJzaW9uIjoxLCJ0aHJlYWRJZCI6IjAxYTAyYWQyLWI5YmYtNzRkMy1iNTYzLWZkMWY1NjU4ZDYyYSIsImNvZGV4SG9tZSI6IkM6XFxVc2Vyc1xcd29vZGZpc2hcXEFwcERhdGFcXExvY2FsXFxUZW1wXFxvcmRpbmUtY29kZXgtaG9tZS10MGVEdzIifQ",
+        "usage": {
+          "inputTokens": 60398,
+          "outputTokens": 211,
+          "cachedInputTokens": 57600
+        },
+        "firstSequence": 28,
+        "lastSequence": 45,
+        "eventTypes": {
+          "diagnostic": 2,
+          "session": 1,
+          "status": 2,
+          "message": 2,
+          "tool_start": 2,
+          "tool_update": 4,
+          "tool_result": 2,
+          "artifact": 1,
+          "usage": 1,
+          "terminal": 1
+        },
+        "processIds": [
+          45184
+        ],
+        "processTreeCleaned": true
+      },
+      "filePath": "D:\\Coding\\项目ORDINE\\.worktrees\\cod-369-runtime-mcp-compatibility\\.artifacts\\cod-369-windows-20260823-current\\codex\\codex\\acceptance.txt",
+      "fileSha256": "3c1c8dfddcbc0bcab9ae62037a6cfde58f16fbcd54bc302f47969b38b77b2db4",
+      "cancelRun": {
+        "runId": "f315a4a7-b0d1-47b2-9a3f-fefb26263483",
+        "status": "cancelled",
+        "executablePath": "C:\\Users\\woodfish\\AppData\\Roaming\\npm\\codex.cmd",
+        "executableVersion": "codex-cli 0.149.0",
+        "executableFingerprint": "c54db6755e710c39703f7c37512f9e35ed41042d8080558d2b84b8d2694323c3",
+        "nativeSessionId": "ordine-codex:eyJ2ZXJzaW9uIjoxLCJ0aHJlYWRJZCI6IjAxYTAyYWQzLTY1YTAtN2E0MC1hMmQ1LTJiN2NhMjYxODcwMCIsImNvZGV4SG9tZSI6IkM6XFxVc2Vyc1xcd29vZGZpc2hcXEFwcERhdGFcXExvY2FsXFxUZW1wXFxvcmRpbmUtY29kZXgtaG9tZS1WUlk1Z0gifQ",
+        "usage": null,
+        "firstSequence": 46,
+        "lastSequence": 55,
+        "eventTypes": {
+          "diagnostic": 3,
+          "session": 1,
+          "status": 2,
+          "message": 1,
+          "tool_start": 1,
+          "tool_update": 1,
+          "terminal": 1
+        },
+        "processIds": [
+          600
+        ],
+        "processTreeCleaned": true
+      }
+    }
+  ]
+}
