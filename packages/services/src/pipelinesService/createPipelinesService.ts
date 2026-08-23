@@ -2,8 +2,6 @@ import "../text-imports.d.ts";
 
 import { homedir } from "node:os";
 import { join, win32 } from "node:path";
-import nodeTypesRef from "../../../../skills/ordine-create-pipeline/references/node-types.md" with { type: "text" };
-import pipelineAnatomyRef from "../../../../skills/ordine-create-pipeline/references/pipeline-anatomy.md" with { type: "text" };
 import {
   createAgentRuntimesDao,
   createConversationMessagesDao,
@@ -34,6 +32,7 @@ import {
   type CapabilityCatalogServiceOptions,
 } from "../capabilityCatalogService";
 import { ConflictError, NotFoundError, ServiceError, toServiceError } from "../serviceErrors";
+import { PIPELINE_CANVAS_SKILL_CONTEXT } from "./pipelineCanvasSkillContext";
 import { MAX_SNAPSHOT_CHARS, truncate } from "./promptText";
 import {
   CAPABILITY_ASSIGNMENT_SYSTEM_PROMPT,
@@ -82,7 +81,6 @@ const expandTildeInNodes = (nodes: PipelineData["nodes"]): PipelineData["nodes"]
     return node;
   });
 
-const SKILL_REFERENCES = [nodeTypesRef, pipelineAnatomyRef].filter(Boolean).join("\n\n---\n\n");
 const MAX_STRUCTURE_DIAGNOSTIC_ISSUES = 8;
 const MAX_STRUCTURE_SCHEMA_RETRIES = 1;
 const CAPABILITY_ASSIGNMENT_AGENT_ID = "pipeline-capability-assignment";
@@ -395,7 +393,7 @@ export const createPipelinesService = (db: DbExecutor, options: PipelinesService
         "Generate the optimized pipeline JSON now. Return ONLY the JSON.",
       ].join("\n");
 
-      const optimizePrompt = buildOptimizeSystemPrompt(SKILL_REFERENCES);
+      const optimizePrompt = buildOptimizeSystemPrompt(PIPELINE_CANVAS_SKILL_CONTEXT);
 
       const structured = await runStructuredAgent({
         agent: settings.defaultAgentRuntime,
@@ -749,7 +747,7 @@ export const createPipelinesService = (db: DbExecutor, options: PipelinesService
         "Generate the pipeline structure JSON now. Return ONLY the JSON with nodes and edges.",
       ].join("\n");
 
-      const systemPrompt = buildGenerateSystemPrompt(SKILL_REFERENCES);
+      const systemPrompt = buildGenerateSystemPrompt(PIPELINE_CANVAS_SKILL_CONTEXT);
 
       const NodesEdgesSchema = PipelineSchema.pick({ nodes: true, edges: true }).superRefine(
         ({ edges, nodes }, ctx) => {

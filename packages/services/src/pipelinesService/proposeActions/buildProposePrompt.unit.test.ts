@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { PipelineGraphSnapshot } from "@repo/schemas";
 import { buildProposeUserPrompt, resolveSelectedElements } from "./buildProposePrompt";
+import { DEFAULT_PROPOSE_SYSTEM_PROMPT } from "./runProposeAgent";
 
 const snapshot: PipelineGraphSnapshot = {
   nodes: [
@@ -34,6 +35,14 @@ const basePromptInput = {
   pipelineName: "Quiz pipeline",
   snapshot,
 };
+
+describe("default propose system prompt", () => {
+  it("includes the active Canvas skill and DAG topology guidance", () => {
+    expect(DEFAULT_PROPOSE_SYSTEM_PROMPT).toContain("## Active skill — ordine-create-pipeline");
+    expect(DEFAULT_PROPOSE_SYSTEM_PROMPT).toContain("根据真实数据依赖连边");
+    expect(DEFAULT_PROPOSE_SYSTEM_PROMPT).toContain("并行后汇总");
+  });
+});
 
 describe("resolveSelectedElements", () => {
   it("resolves a root node ref", () => {

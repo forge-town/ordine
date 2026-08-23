@@ -1,13 +1,13 @@
 ---
 name: ordine-create-pipeline
-description: Use when 需要在 Ordine 系统中创建新的 Pipeline（质量检查流水线），包括定义节点（folder/prompt/operation/output）和边（连接关系），通过 REST API 或 UI 完成。触发词：创建流水线、新建pipeline、设计工作流、构建检查流程。
+description: Use when 需要在 Ordine 系统中创建或编辑自动化 Pipeline，包括定义输入、Operation、输出和它们之间的 DAG 依赖关系，通过 Agent、REST API 或 UI 完成。触发词：创建流水线、新建pipeline、设计工作流、编辑画布、构建自动化流程。
 ---
 
 # 创建 Pipeline
 
 ## 概述
 
-Pipeline 是 Ordine 的核心概念——一个有向无环图 (DAG)，将输入源（文件夹/项目）、Operation（检查/修复动作）和输出（报告路径）串联成自动化质量检查流程。
+Pipeline 是 Ordine 的核心概念——一个有向无环图 (DAG)，将输入源、Operation 和输出连接成自动化流程。Pipeline 可以是串行、并行或分支汇合结构；不要把所有 Operation 默认串成一条直线。
 
 ## 工作流程
 
@@ -15,3 +15,12 @@ Pipeline 是 Ordine 的核心概念——一个有向无环图 (DAG)，将输入
 2. 阅读 [node-types.md](references/node-types.md) 了解所有节点类型和配置
 3. 按照 [creation-guide.md](references/creation-guide.md) 创建 Pipeline
 4. 使用 [checklist.md](references/checklist.md) 验证
+
+## 拓扑选择原则
+
+- 根据真实数据依赖连边，不要根据 Operation 在描述中的出现顺序机械连边
+- 后一步必须消费前一步结果时使用串行
+- 多个步骤只依赖同一个上游、彼此不依赖时使用并行分支
+- 汇总步骤需要多个分支的结果时，让这些分支共同连接到汇总节点
+- 不需要汇总时，每个并行分支可以连接到各自输出
+- 节点按依赖层级从左到右排列；同层并行节点使用相同 x，并在 y 方向错开

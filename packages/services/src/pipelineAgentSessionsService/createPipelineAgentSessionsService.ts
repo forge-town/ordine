@@ -42,8 +42,13 @@ import { getNextCronRunAt } from "@repo/utils";
 import { runAgent } from "../pipelineRunnerService/agentRunner/agentRunner";
 import { createAgentRunsService } from "../agentRunsService/createAgentRunsService";
 import { createPipelinesService } from "../pipelinesService/createPipelinesService";
+import { withPipelineCanvasSkill } from "../pipelinesService/pipelineCanvasSkillContext";
 import { parsePlanningResult } from "./parsePlanningResult";
 import { createPlanningPreviewStreamer } from "./streamPlanningPreview";
+
+const PIPELINE_PLANNING_SYSTEM_PROMPT = withPipelineCanvasSkill(
+  "You are a fast pipeline planning assistant. Do not use tools. Return exactly one valid JSON object matching the provided output format.",
+);
 
 const RelaxedCanvasEditPlanningResultSchema = z.discriminatedUnion("type", [
   z.object({
@@ -1194,8 +1199,7 @@ export const createPipelineAgentSessionsService = (
         model: input?.model ?? runtimePreference?.model ?? settings.defaultModel ?? undefined,
         reasoningEffort: input?.reasoningEffort ?? runtimePreference?.reasoningEffort,
         speed: input?.speed ?? runtimePreference?.speed,
-        systemPrompt:
-          "You are a fast pipeline planning assistant. Do not use tools. Return exactly one valid JSON object matching the provided output format.",
+        systemPrompt: PIPELINE_PLANNING_SYSTEM_PROMPT,
         prompt: canResumePreviousRun ? (latestUserMessage ?? rebuildPrompt) : rebuildPrompt,
         rebuildPrompt,
         resumeFromRunId: canResumePreviousRun ? previous.id : undefined,
@@ -1295,7 +1299,7 @@ export const createPipelineAgentSessionsService = (
           const raw = await runAbortable(
             runAgent({
               agent: effectiveRuntime,
-              systemPrompt: "You are a fast planning assistant. Return only valid JSON.",
+              systemPrompt: PIPELINE_PLANNING_SYSTEM_PROMPT,
               userPrompt: buildPlanningPrompt({
                 artifacts,
                 messages,
