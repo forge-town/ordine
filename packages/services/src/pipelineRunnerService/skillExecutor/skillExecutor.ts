@@ -84,6 +84,7 @@ type RunSkillExecutorOptions = EngineRunSkillOptions & {
   jobId?: string;
   ssh?: SshConnection;
   getMcpConnectorInjection?: McpConnectorInjectionProvider;
+  signal?: AbortSignal;
 };
 
 export const DEFAULT_SKILL_SYSTEM_PROMPT = [
@@ -219,6 +220,7 @@ const run = ({
   outputDir,
   runtimeContext,
   getMcpConnectorInjection,
+  signal,
 }: RunSkillExecutorOptions): ResultAsync<string, SkillExecutionError> => {
   const effectiveSystemPrompt = systemPrompt ?? DEFAULT_SKILL_SYSTEM_PROMPT;
   const userPrompt = buildSkillUserPrompt({
@@ -270,6 +272,7 @@ const run = ({
         executablePath,
         ssh,
         getMcpConnectorInjection,
+        signal,
       });
 
       if (raw.length === 0) {

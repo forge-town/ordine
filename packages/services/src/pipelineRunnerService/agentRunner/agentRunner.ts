@@ -31,6 +31,7 @@ export interface AgentRunnerOptions {
   githubToken?: string;
   ssh?: SshConnection;
   getMcpConnectorInjection?: McpConnectorInjectionProvider;
+  signal?: AbortSignal;
 }
 
 export const runAgent = async (opts: AgentRunnerOptions): Promise<string> => {
@@ -54,6 +55,7 @@ export const runAgent = async (opts: AgentRunnerOptions): Promise<string> => {
     executablePath,
     githubToken,
     getMcpConnectorInjection,
+    signal,
   } = opts;
 
   logger.info(
@@ -103,6 +105,7 @@ export const runAgent = async (opts: AgentRunnerOptions): Promise<string> => {
       githubToken,
       ssh: opts.ssh,
       getMcpConnectorInjection,
+      signal,
     }),
     (error) => error,
   );

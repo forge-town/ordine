@@ -57,10 +57,12 @@ describe("pipelineRunControl", () => {
   it("cancel while running raises the boundary cancel flag without clearing state", async () => {
     const jobId = "job-cancel-running";
     const control = pipelineRunControl.buildForJob(jobId);
+    const signal = pipelineRunControl.signal(jobId);
 
     const result = pipelineRunControl.cancel(jobId);
 
     expect(result).toEqual({ jobId, cancelled: true });
+    expect(signal.aborted).toBe(true);
     // The engine sees the cancel flag at the next node boundary and stops.
     expect(control.shouldCancelBeforeNode?.({ jobId, nodeId: "n2", reason: "pause" })).toBe(true);
     // A late waitForResume never parks on a cancelled run.

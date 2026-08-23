@@ -11,6 +11,7 @@ import { useAgentConversation } from "./useAgentConversation";
 const mocks = vi.hoisted(() => ({
   appendMessage: vi.fn(),
   approveProposal: vi.fn(),
+  cancelActiveRun: vi.fn(),
   createSession: vi.fn(),
   generatePipelineFromApprovedProposal: vi.fn(),
   getLatestAssistantQuestion: vi.fn(),
@@ -30,6 +31,7 @@ vi.mock("../../../lib/pipelineAgentSessionsClient", () => ({
   createPipelineAgentSessionsClient: () => ({
     appendMessage: (...args: unknown[]) => mocks.appendMessage(...args),
     approveProposal: (...args: unknown[]) => mocks.approveProposal(...args),
+    cancelActiveRun: (...args: unknown[]) => mocks.cancelActiveRun(...args),
     createSession: (...args: unknown[]) => mocks.createSession(...args),
     getLatestAssistantQuestion: (...args: unknown[]) => mocks.getLatestAssistantQuestion(...args),
     getLatestReadyProposal: (...args: unknown[]) => mocks.getLatestReadyProposal(...args),
@@ -59,9 +61,8 @@ const Wrapper = ({ children }: { children?: ReactNode }) => (
 );
 
 const Harness = () => {
-  const { conversationState, streamingAssistantText, submitMessage } = useAgentConversation({
-    pipelineId: "pipe-1",
-  });
+  const { conversationState, stopConversation, streamingAssistantText, submitMessage } =
+    useAgentConversation({ pipelineId: "pipe-1" });
 
   return (
     <div>
@@ -70,6 +71,9 @@ const Harness = () => {
         onClick={() => void submitMessage({ content: "Tighten graph", runtimeId: "runtime-1" })}
       >
         Send
+      </button>
+      <button type="button" onClick={() => void stopConversation()}>
+        Stop
       </button>
       <span data-testid="state">{conversationState}</span>
       <span data-testid="stream">{streamingAssistantText}</span>
@@ -148,6 +152,7 @@ describe("useAgentConversation", () => {
     });
     mocks.appendMessage.mockResolvedValue({ id: "message-1" });
     mocks.approveProposal.mockResolvedValue(undefined);
+    mocks.cancelActiveRun.mockResolvedValue(true);
     mocks.generatePipelineFromApprovedProposal.mockResolvedValue({ pipelineId: "pipeline-new" });
     mocks.getLatestAssistantQuestion.mockResolvedValue(null);
     mocks.getLatestReadyProposal.mockResolvedValue(null);
@@ -191,6 +196,35 @@ describe("useAgentConversation", () => {
         role: "assistant",
       });
     });
+  });
+
+  it("aborts the stream, cancels the persisted run, and records a stopped message", async () => {
+    mocks.planSessionStream.mockImplementation(
+      async (_sessionId: string, input: { signal?: AbortSignal }) =>
+        new Promise<void>((_resolve, reject) => {
+          input.signal?.addEventListener(
+            "abort",
+            () => reject(new DOMException("BodyStreamBuffer was aborted", "AbortError")),
+            { once: true },
+          );
+        }),
+    );
+
+    render(<Harness />, { wrapper: Wrapper });
+    await userEvent.click(screen.getByRole("button", { name: "Send" }));
+    await waitFor(() => expect(screen.getByTestId("state")).toHaveTextContent("thinking"));
+    await userEvent.click(screen.getByRole("button", { name: "Stop" }));
+
+    await waitFor(() => expect(mocks.cancelActiveRun).toHaveBeenCalledWith("session-1"));
+    await waitFor(() => expect(screen.getByTestId("state")).toHaveTextContent("done"));
+    expect(mocks.sendMessage).toHaveBeenCalledWith({
+      content: "canvas.agentPanel.runStopped",
+      phase: "done",
+      role: "assistant",
+    });
+    expect(mocks.sendMessage).not.toHaveBeenCalledWith(
+      expect.objectContaining({ content: "BodyStreamBuffer was aborted" }),
+    );
   });
 
   it("sends the serialized current context before the user message", async () => {

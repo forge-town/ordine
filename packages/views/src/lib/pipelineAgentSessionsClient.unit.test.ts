@@ -47,6 +47,51 @@ describe("createPipelineAgentSessionsClient", () => {
     );
   });
 
+  it("cancels the persisted active Agent run and clears its resume handle", async () => {
+    globalThis.window.localStorage.setItem(
+      "ordine.pipeline-agent.active-run.session-1",
+      JSON.stringify({ runId: "run-1", lastSequence: 3 }),
+    );
+    const request = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          id: "run-1",
+          ownerType: "pipeline-agent-session",
+          ownerId: "session-1",
+          runtimeConfigId: "local-codex",
+          runtime: "codex",
+          runtimeExecutablePath: "C:/codex.exe",
+          runtimeExecutableVersion: "1.0.0",
+          runtimeExecutableFingerprint: "fingerprint",
+          cwd: "C:/workspace",
+          permissionMode: "full-access",
+          networkAccess: true,
+          status: "cancelled",
+          lastSequence: 4,
+          createdAt: "2026-08-23T00:00:00.000Z",
+          startedAt: "2026-08-23T00:00:00.000Z",
+          finishedAt: "2026-08-23T00:00:01.000Z",
+        }),
+      ),
+    );
+    const client = createPipelineAgentSessionsClient({
+      apiBaseUrl: "http://127.0.0.1:9433/api",
+      request,
+    });
+
+    await expect(client.cancelActiveRun("session-1")).resolves.toBe(true);
+    expect(request).toHaveBeenCalledWith(
+      "http://127.0.0.1:9433/api/pipeline-agent-sessions/session-1/cancel",
+      { method: "POST" },
+    );
+    expect(request).toHaveBeenCalledWith("http://127.0.0.1:9433/api/agent-runs/run-1/cancel", {
+      method: "POST",
+    });
+    expect(
+      globalThis.window.localStorage.getItem("ordine.pipeline-agent.active-run.session-1"),
+    ).toBeNull();
+  });
+
   it("keeps polling while the completed run is still being projected", async () => {
     vi.useFakeTimers();
     const proposal = {

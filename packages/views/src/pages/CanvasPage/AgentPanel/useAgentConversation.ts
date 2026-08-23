@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ResultAsync } from "neverthrow";
 import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
@@ -114,6 +114,8 @@ export const useAgentConversation = ({
     graphSignature: string;
     promise: Promise<string>;
   } | null>(null);
+  const activeRequestAbortRef = useRef<AbortController | null>(null);
+  const [isStopping, setIsStopping] = useState(false);
   const {
     isLoading,
     isSending: isPersisting,
@@ -517,6 +519,8 @@ export const useAgentConversation = ({
       state.setConversationState("thinking");
       state.setStreamingAssistantText("");
       state.setStreamingProgress(null);
+      const abortController = new AbortController();
+      activeRequestAbortRef.current = abortController;
 
       const result = await ResultAsync.fromPromise(
         (async () => {
@@ -550,6 +554,7 @@ export const useAgentConversation = ({
             ...(model ? { model } : {}),
             ...(reasoningEffort ? { reasoningEffort } : {}),
             ...(speed ? { speed } : {}),
+            signal: abortController.signal,
             onEvent: (event) => {
               if (
                 event.type === "question" ||
@@ -567,6 +572,8 @@ export const useAgentConversation = ({
               }
             },
           });
+
+          if (abortController.signal.aborted) return false;
 
           if (streamedTerminalEvent.current) {
             const persistedTerminal = await Promise.all(terminalPersistences);
@@ -609,6 +616,12 @@ export const useAgentConversation = ({
         (error) => (error instanceof Error ? error : new Error(String(error))),
       );
 
+      if (activeRequestAbortRef.current === abortController) {
+        activeRequestAbortRef.current = null;
+      }
+
+      if (abortController.signal.aborted) return false;
+
       if (result.isErr()) {
         const persisted = await finishWithAssistantMessage(result.error.message);
         if (!persisted) {
@@ -649,6 +662,33 @@ export const useAgentConversation = ({
       t,
     ],
   );
+
+  const stopConversation = useCallback(async () => {
+    const state = agentBarStore.getState();
+    const sessionId = state.sessionId;
+    const activeRequest = activeRequestAbortRef.current;
+    const isActive =
+      state.conversationState === "thinking" || state.conversationState === "streaming";
+    if ((!activeRequest && !isActive) || isStopping) return false;
+
+    setIsStopping(true);
+    activeRequest?.abort();
+    const cancelResult = await ResultAsync.fromPromise(
+      sessionId ? client.cancelActiveRun(sessionId) : Promise.resolve(false),
+      (error) => (error instanceof Error ? error : new Error(String(error))),
+    );
+    if (cancelResult.isErr()) {
+      state.setStreamingProgress(cancelResult.error.message);
+      setIsStopping(false);
+
+      return false;
+    }
+    activeRequestAbortRef.current = null;
+    await finishWithAssistantMessage(t("canvas.agentPanel.runStopped"));
+    setIsStopping(false);
+
+    return true;
+  }, [agentBarStore, client, finishWithAssistantMessage, isStopping, t]);
 
   const applyProposal = useCallback(
     async (runtimeId?: string | null) => {
@@ -773,12 +813,14 @@ export const useAgentConversation = ({
     discardProposal,
     ensureSession,
     isLoading,
+    isStopping,
     isSending:
       isPersisting || conversationState === "thinking" || conversationState === "streaming",
     messages,
     resetSession: agentBarStore.getState().resetSession,
     streamingAssistantText,
     streamingProgress,
+    stopConversation,
     submitMessage,
   };
 };

@@ -66,10 +66,12 @@ export const AgentPanel = ({ onGeneratedPipeline }: AgentPanelProps) => {
     ensureSession,
     isLoading: isHistoryLoading,
     isSending: isConversationSending,
+    isStopping: isConversationStopping,
     messages,
     resetSession,
     streamingAssistantText,
     streamingProgress,
+    stopConversation,
     submitMessage,
   } = useAgentConversation({ onGeneratedPipeline, pipelineId });
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -708,6 +710,7 @@ export const AgentPanel = ({ onGeneratedPipeline }: AgentPanelProps) => {
           }
           draft={composerDraft}
           isSending={isSending}
+          isStopping={isConversationStopping}
           refs={selectedRefs}
           resetKey={graphSignature}
           runtimeId={selectedRuntimeId}
@@ -716,6 +719,7 @@ export const AgentPanel = ({ onGeneratedPipeline }: AgentPanelProps) => {
           onFocusRef={handleFocusRef}
           onRemoveRef={handleRemoveRef}
           onSubmit={handleComposerSubmit}
+          onStop={stopConversation}
         />
       </div>
     </aside>

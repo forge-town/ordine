@@ -121,6 +121,7 @@ export interface ActionsSlice {
   handleDragOverCompound: (draggedNodeId: string, position: { x: number; y: number }) => void;
   handleDragEndOnCompound: (draggedNodeId: string, isCompound: boolean) => void;
   handleRunTest: (executionChoice?: AgentExecutionChoice | null) => Promise<void>;
+  handleCancelRun: () => Promise<boolean>;
   addNodeAndAutoConnect: (node: PipelineNode) => void;
   createObjectNode: (type: BuiltinNodeType) => void;
   createOperationNode: (operation: Operation) => void;
@@ -559,6 +560,42 @@ export const createActionsSlice = (
     );
 
     set({ isRunning: false });
+  },
+
+  handleCancelRun: async () => {
+    const { activeJobId, isTestRunning, stopTestRun } = get();
+    const t = i18n.t.bind(i18n);
+    if (!activeJobId || !isTestRunning) return false;
+
+    const cancelResult = await ResultAsync.fromPromise(
+      getCanvasDataProvider().custom!({
+        url: "jobs/cancel",
+        method: "post",
+        payload: { jobId: activeJobId },
+      }),
+      () => t("canvas.runStopFailed"),
+    );
+
+    return cancelResult.match(
+      () => {
+        stopTestRun();
+        toastStore.getState().addToast({
+          type: "success",
+          title: t("canvas.runStopped"),
+        });
+
+        return true;
+      },
+      (error) => {
+        toastStore.getState().addToast({
+          type: "error",
+          title: t("canvas.runStopFailed"),
+          description: error,
+        });
+
+        return false;
+      },
+    );
   },
 
   addNodeAndAutoConnect: (node) => {

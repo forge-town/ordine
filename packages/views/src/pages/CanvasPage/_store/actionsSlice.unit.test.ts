@@ -247,6 +247,27 @@ describe("canvas run actions", () => {
       expect.objectContaining({ activeJobId: "job-1", isConsoleOpen: true, isRunning: false }),
     );
   });
+
+  it("cancels the active job and leaves its console available", async () => {
+    canvasDataProviderMocks.custom.mockClear();
+    const store = createCanvasPageStore([], [], "pipeline-1", "Cancelable pipeline");
+    store.setState({ activeJobId: "job-1", isConsoleOpen: true, isTestRunning: true });
+
+    await expect(store.getState().handleCancelRun()).resolves.toBe(true);
+
+    expect(canvasDataProviderMocks.custom).toHaveBeenCalledWith({
+      url: "jobs/cancel",
+      method: "post",
+      payload: { jobId: "job-1" },
+    });
+    expect(store.getState()).toEqual(
+      expect.objectContaining({
+        activeJobId: "job-1",
+        isConsoleOpen: true,
+        isTestRunning: false,
+      }),
+    );
+  });
 });
 
 describe("semantic node field actions", () => {

@@ -14,6 +14,7 @@ type DecisionWaiter = {
 type RunControlState = {
   pauseRequested: boolean;
   cancelRequested: boolean;
+  abortController: AbortController;
   waiters: ResumeWaiter[];
   decisionWaiters: Map<string, DecisionWaiter>;
 };
@@ -27,6 +28,7 @@ const getState = (jobId: string): RunControlState => {
   const state = {
     pauseRequested: false,
     cancelRequested: false,
+    abortController: new AbortController(),
     waiters: [],
     decisionWaiters: new Map(),
   };
@@ -57,13 +59,15 @@ const rejectDecisionWaiters = (state: RunControlState, jobId: string) => {
  * Semantics (product decisions for the runner):
  * - Pause is a node-boundary pause: the current node finishes, then the engine
  *   suspends before starting the next node until resume releases it.
- * - Cancel is a soft cancel: the cancel flag is set and every waiter is
- *   released/rejected so the engine stops at the next node boundary; a node
- *   that is already executing is never force-killed. State cleanup happens
- *   when the run settles (clear), not at cancel time.
+ * - Cancel aborts the active Agent process through a shared AbortSignal, sets
+ *   the boundary flag, and releases/rejects every waiter so non-Agent work also
+ *   stops at the next safe node boundary. State cleanup happens when the run
+ *   settles (clear), not at cancel time.
  * - Decision nodes suspend the engine until the user resolves the decision.
  */
 export const pipelineRunControl = {
+  signal: (jobId: string): AbortSignal => getState(jobId).abortController.signal,
+
   buildForJob: (jobId: string): PipelineRunControl => {
     // Register the state eagerly so a cancel that lands right after startRun
     // (before the engine's first boundary check) is not lost.
@@ -131,11 +135,9 @@ export const pipelineRunControl = {
   },
 
   /**
-   * Soft cancel: set the cancel flag, wake every parked resume waiter (the
-   * engine re-checks the cancel flag after waking and stops), and reject every
-   * pending decision waiter (the engine converts the rejection into a node
-   * failure so the run settles). Keeps the state alive until clear() runs on
-   * settle, so boundary checks keep seeing the cancel flag.
+   * Interrupt the active Agent process, set the cancel flag, wake every parked
+   * resume waiter, and reject every pending decision waiter. Keeps the state
+   * alive until clear() runs on settle, so boundary checks keep seeing cancel.
    */
   cancel: (jobId: string) => {
     // Only flag runs that are live in this process (registered by buildForJob).
@@ -145,6 +147,7 @@ export const pipelineRunControl = {
     if (state) {
       state.cancelRequested = true;
       state.pauseRequested = false;
+      state.abortController.abort();
       releaseWaiters(state);
       rejectDecisionWaiters(state, jobId);
     }

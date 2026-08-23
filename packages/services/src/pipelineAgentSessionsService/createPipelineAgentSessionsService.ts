@@ -306,10 +306,12 @@ export const createPipelineAgentSessionsService = (
     sessionId: string,
     raw: string,
     runtimeId?: string,
+    signal?: AbortSignal,
   ): Promise<
     | { type: "question"; question: string }
     | { type: "proposal"; proposal: PipelineAgentProposal; proposalId: string }
   > => {
+    if (signal?.aborted) throw createCancellationError(sessionId);
     const session = await sessionsDao.findById(sessionId);
     if (!session) throw new Error(`Pipeline agent session not found: ${sessionId}`);
     const parsed =
@@ -318,6 +320,7 @@ export const createPipelineAgentSessionsService = (
         : parsePlanningResult(raw, PipelineAgentPlanningResultSchema);
 
     if (parsed.type === "question") {
+      if (signal?.aborted) throw createCancellationError(sessionId);
       await db.transaction(async (transaction) => {
         await createPipelineAgentMessagesDao(transaction).create({
           id: crypto.randomUUID(),
@@ -340,6 +343,7 @@ export const createPipelineAgentSessionsService = (
           .map((item) => item.trim())
           .filter(Boolean)
           .join("\n") || "Please provide the missing details before I continue.";
+      if (signal?.aborted) throw createCancellationError(sessionId);
       await db.transaction(async (transaction) => {
         await createPipelineAgentMessagesDao(transaction).create({
           id: crypto.randomUUID(),
@@ -384,7 +388,9 @@ export const createPipelineAgentSessionsService = (
               message: actionRequest,
               pipelineId: session.pipelineId ?? undefined,
               runtimeId,
+              signal,
             });
+            if (signal?.aborted) throw createCancellationError(sessionId);
             if (!actionProposalResult.proposal) {
               throw new Error("Failed to generate executable canvas edit actions");
             }
@@ -405,6 +411,7 @@ export const createPipelineAgentSessionsService = (
           })()
         : (parsed.proposal as Extract<PipelineAgentProposal, { mode: "generate" }>);
 
+    if (signal?.aborted) throw createCancellationError(sessionId);
     const saved = await db.transaction(async (transaction) => {
       const persistedProposal = await createPipelineAgentProposalsDao(transaction).create({
         id: crypto.randomUUID(),
@@ -1123,12 +1130,14 @@ export const createPipelineAgentSessionsService = (
       if (planningRun) {
         await getAgentRunsService().cancel(planningRun.runId);
         planningRuns.delete(sessionId);
+        if (activity) finishActivity(sessionId, activity);
         await sessionsDao.update(sessionId, { status: "awaiting_user" });
 
         return { status: "awaiting_user" as const };
       }
 
       if (activity?.kind === "planning" || session.status === "analyzing") {
+        if (activity) finishActivity(sessionId, activity);
         await sessionsDao.update(sessionId, { status: "awaiting_user" });
 
         return { status: "awaiting_user" as const };
@@ -1173,6 +1182,7 @@ export const createPipelineAgentSessionsService = (
     ): Promise<{ runId: string }> => {
       const session = await sessionsDao.findById(sessionId);
       if (!session) throw new Error(`Pipeline agent session not found: ${sessionId}`);
+      const activity = beginActivity(sessionId, "planning");
       const [messages, artifacts, settings, operations, runtimes] = await Promise.all([
         messagesDao.findManyBySessionId(sessionId),
         contextArtifactsDao.findManyBySessionId(sessionId),
@@ -1180,6 +1190,7 @@ export const createPipelineAgentSessionsService = (
         operationsDao.findMany(),
         agentRuntimesDao.findMany(),
       ]);
+      assertActivityActive(sessionId, activity);
       const selectedRuntime = input?.runtimeId
         ? (runtimes.find((runtime) => runtime.id === input.runtimeId) ?? null)
         : (runtimes.find((runtime) => runtime.id === settings.defaultAgentRuntimeConfigId) ??
@@ -1187,7 +1198,10 @@ export const createPipelineAgentSessionsService = (
           runtimes[0] ??
           null);
       const runtimeId = input?.runtimeId ?? selectedRuntime?.id;
-      if (!runtimeId) throw createRuntimeNotFoundError(input?.runtimeId);
+      if (!runtimeId) {
+        finishActivity(sessionId, activity);
+        throw createRuntimeNotFoundError(input?.runtimeId);
+      }
       const runtimePreference = settings.agentRuntimePreferences?.[runtimeId];
       const rebuildPrompt = buildPlanningPrompt({
         artifacts,
@@ -1225,8 +1239,9 @@ export const createPipelineAgentSessionsService = (
         async (run) => {
           const active = planningRuns.get(sessionId);
           if (active?.runId !== run.id) return;
-          planningRuns.delete(sessionId);
           if (run.status !== "completed" || run.resultText === null) {
+            planningRuns.delete(sessionId);
+            finishActivity(sessionId, activity);
             await sessionsDao.update(sessionId, {
               status: run.status === "cancelled" ? "awaiting_user" : "failed",
             });
@@ -1234,14 +1249,21 @@ export const createPipelineAgentSessionsService = (
             return;
           }
           const persisted = await ResultAsync.fromPromise(
-            persistPlanningOutput(sessionId, run.resultText, runtimeId),
+            persistPlanningOutput(sessionId, run.resultText, runtimeId, activity.controller.signal),
             (error) => (error instanceof Error ? error : new Error(String(error))),
           );
-          if (persisted.isErr()) await sessionsDao.update(sessionId, { status: "failed" });
+          if (planningRuns.get(sessionId)?.runId === run.id) planningRuns.delete(sessionId);
+          finishActivity(sessionId, activity);
+          if (persisted.isErr()) {
+            await sessionsDao.update(sessionId, {
+              status: isCancellationError(persisted.error) ? "awaiting_user" : "failed",
+            });
+          }
         },
         async () => {
           if (planningRuns.get(sessionId)?.runId === started.runId) {
             planningRuns.delete(sessionId);
+            finishActivity(sessionId, activity);
             await sessionsDao.update(sessionId, { status: "failed" });
           }
         },

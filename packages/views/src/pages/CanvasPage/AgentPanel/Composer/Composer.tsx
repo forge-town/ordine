@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ChangeEvent, type KeyboardEvent } from "react";
-import { ArrowUp, X } from "lucide-react";
+import { ArrowUp, Square, X } from "lucide-react";
 import { ResultAsync } from "neverthrow";
 import { useTranslation } from "react-i18next";
 import type {
@@ -30,11 +30,13 @@ export type ComposerProps = {
   disabled?: boolean;
   draft?: string | null;
   isSending?: boolean;
+  isStopping?: boolean;
   onAttach?: (files: File[]) => ProposeAttachment[] | void | Promise<ProposeAttachment[] | void>;
   onDraftConsumed?: () => void;
   onFocusRef?: (ref: WorkspaceCanvasRef) => void;
   onRemoveRef: (id: string) => void;
   onSubmit?: (input: ComposerSubmitInput) => boolean | void | Promise<boolean | void>;
+  onStop?: () => boolean | void | Promise<boolean | void>;
   refs: WorkspaceCanvasRef[];
   resetKey?: string;
   runtimeId?: string | null;
@@ -59,11 +61,13 @@ export const Composer = ({
   disabled = false,
   draft = null,
   isSending = false,
+  isStopping = false,
   onAttach,
   onDraftConsumed,
   onFocusRef,
   onRemoveRef,
   onSubmit,
+  onStop,
   refs,
   resetKey,
   runtimeId,
@@ -104,6 +108,7 @@ export const Composer = ({
     !isDisabled &&
     !isSubmitting &&
     (trimmedText.length > 0 || attachments.length > 0);
+  const canStop = isSending && Boolean(onStop) && !isStopping;
   const placeholder =
     refs.length > 0
       ? t("workspace.agentBar.composer.placeholderWithRefs")
@@ -231,15 +236,30 @@ export const Composer = ({
             onKeyDown={handleKeyDown}
           />
           <Button
-            aria-label={t("workspace.agentBar.composer.send")}
+            aria-label={
+              isSending
+                ? t("workspace.agentBar.composer.stop")
+                : t("workspace.agentBar.composer.send")
+            }
             className="h-7 w-7 rounded-full"
             data-testid="agent-composer-send"
-            disabled={!canSend}
+            disabled={isSending ? !canStop : !canSend}
             size="icon"
             type="button"
-            onClick={() => void handleSubmit()}
+            onClick={() => {
+              if (isSending) {
+                void onStop?.();
+
+                return;
+              }
+              void handleSubmit();
+            }}
           >
-            <ArrowUp className="h-4 w-4" />
+            {isSending ? (
+              <Square className="h-3.5 w-3.5 fill-current" />
+            ) : (
+              <ArrowUp className="h-4 w-4" />
+            )}
           </Button>
         </div>
       </div>
