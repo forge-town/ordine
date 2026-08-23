@@ -16,6 +16,7 @@ export const RunSkillOptionsSchema = z.object({
   model: z.string().optional(),
   reasoningEffort: z.string().optional(),
   speed: z.string().optional(),
+  firstOutputTimeoutMs: z.number().int().min(0).max(3_600_000).optional(),
   runtimeConfigId: z.string().optional(),
   executablePath: z.string().optional(),
   outputItems: z.array(OutputItemSchema).optional(),
@@ -24,4 +25,5 @@ export const RunSkillOptionsSchema = z.object({
 export type RunSkillOptions = z.infer<typeof RunSkillOptionsSchema> & {
   onChunk?: (accumulated: string) => Promise<void>;
   onProgress?: (line: string) => Promise<void>;
+  onRuntimeEvent?: (event: import("@repo/schemas").RuntimeEvent) => Promise<void>;
 };

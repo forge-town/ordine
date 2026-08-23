@@ -533,6 +533,11 @@ export const createActionsSlice = (
                   ? { reasoningEffort: executionChoice.reasoningEffort }
                   : {}),
                 ...(executionChoice.speed ? { speed: executionChoice.speed } : {}),
+                ...(executionChoice.firstOutputTimeoutSeconds === undefined
+                  ? {}
+                  : {
+                      firstOutputTimeoutSeconds: executionChoice.firstOutputTimeoutSeconds,
+                    }),
               }
             : {}),
         },

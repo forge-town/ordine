@@ -14,6 +14,7 @@ export const RunPromptOptionsSchema = z.object({
   model: z.string().optional(),
   reasoningEffort: z.string().optional(),
   speed: z.string().optional(),
+  firstOutputTimeoutMs: z.number().int().min(0).max(3_600_000).optional(),
   runtimeConfigId: z.string().optional(),
   executablePath: z.string().optional(),
   allowedTools: z.array(z.string()).optional(),
@@ -25,4 +26,5 @@ export const RunPromptOptionsSchema = z.object({
 export type RunPromptOptions = z.infer<typeof RunPromptOptionsSchema> & {
   onChunk?: (accumulated: string) => Promise<void>;
   onProgress?: (line: string) => Promise<void>;
+  onRuntimeEvent?: (event: import("@repo/schemas").RuntimeEvent) => Promise<void>;
 };

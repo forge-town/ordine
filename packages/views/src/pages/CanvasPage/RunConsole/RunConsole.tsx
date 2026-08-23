@@ -12,7 +12,8 @@ import {
   type RunTimelineStatus,
 } from "./runTraceParser";
 import { ResourceName } from "../../../constants";
-import type { Job, JobStatus } from "@repo/schemas";
+import { RuntimeEventSchema, type Job, type JobStatus, type RuntimeEvent } from "@repo/schemas";
+import { runtimeEventToAgentActivity } from "../../../components/AgentActivityFeed";
 
 const POLL_INTERVAL = 1500;
 
@@ -61,6 +62,7 @@ const parseStructuredLogs = (
     onNodeDone: (nodeId: string) => void;
     onNodeFail: (nodeId: string) => void;
     onLlmContent: (nodeId: string, content: string) => void;
+    onAgentEvent: (nodeId: string, event: RuntimeEvent) => void;
   },
 ) => {
   for (const log of logs) {
@@ -77,6 +79,19 @@ const parseStructuredLogs = (
       const sepIdx = rest.indexOf("::");
       if (sepIdx !== -1) {
         callbacks.onLlmContent(rest.slice(0, sepIdx), rest.slice(sepIdx + 2));
+      }
+    } else if (msg.startsWith("@@AGENT_EVENT::")) {
+      const rest = msg.slice("@@AGENT_EVENT::".length);
+      const sepIdx = rest.indexOf("::");
+      if (sepIdx !== -1) {
+        let payload: unknown;
+        try {
+          payload = JSON.parse(rest.slice(sepIdx + 2)) as unknown;
+        } catch {
+          continue;
+        }
+        const parsed = RuntimeEventSchema.safeParse(payload);
+        if (parsed.success) callbacks.onAgentEvent(rest.slice(0, sepIdx), parsed.data);
       }
     }
   }
@@ -97,7 +112,7 @@ const timelineStatusLabelKeys: Record<RunTimelineStatus, string> = {
   failed: "canvas.runConsole.nodeStatusFailed",
 };
 
-export const RunConsole = () => {
+export const RunConsole = ({ visible = true }: { visible?: boolean }) => {
   const { t } = useTranslation();
   const store = useCanvasPageStore();
   const jobId = useStore(store, (s) => s.activeJobId);
@@ -108,6 +123,7 @@ export const RunConsole = () => {
   const markNodePassed = useStore(store, (s) => s.markNodePassed);
   const markNodeFailed = useStore(store, (s) => s.markNodeFailed);
   const applyNodeLlmContent = useStore(store, (s) => s.applyNodeLlmContent);
+  const applyNodeAgentActivity = useStore(store, (s) => s.applyNodeAgentActivity);
   const setNodeRunStatuses = useStore(store, (s) => s.setNodeRunStatuses);
   const stopTestRun = useStore(store, (s) => s.stopTestRun);
   const isConsoleCollapsed = useStore(store, (s) => s.isConsoleCollapsed);
@@ -136,6 +152,8 @@ export const RunConsole = () => {
         onNodeDone: markNodePassed,
         onNodeFail: markNodeFailed,
         onLlmContent: applyNodeLlmContent,
+        onAgentEvent: (nodeId, event) =>
+          applyNodeAgentActivity(nodeId, runtimeEventToAgentActivity(event)),
       });
 
       requestAnimationFrame(() => {
@@ -144,7 +162,7 @@ export const RunConsole = () => {
         }
       });
     },
-    [markNodeRunning, markNodePassed, markNodeFailed, applyNodeLlmContent],
+    [markNodeRunning, markNodePassed, markNodeFailed, applyNodeLlmContent, applyNodeAgentActivity],
   );
 
   const { query: jobQuery } = useOne<Job>({
@@ -222,6 +240,8 @@ export const RunConsole = () => {
     runTimeline.currentNodeId === null
       ? t("canvas.runConsole.currentStepIdle")
       : (nodeLabelById.get(runTimeline.currentNodeId) ?? runTimeline.currentNodeId);
+
+  if (!visible) return null;
 
   return (
     <div

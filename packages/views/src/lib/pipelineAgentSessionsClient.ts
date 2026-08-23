@@ -520,6 +520,7 @@ export const createPipelineAgentSessionsClient = (platform: PipelineAgentSession
         model?: string;
         reasoningEffort?: string;
         speed?: string;
+        firstOutputTimeoutSeconds?: number;
         signal?: AbortSignal;
         onEvent: (event: PipelineAgentPlanEvent) => void;
       },
@@ -556,6 +557,9 @@ export const createPipelineAgentSessionsClient = (platform: PipelineAgentSession
               ...(input.model ? { model: input.model } : {}),
               ...(input.reasoningEffort ? { reasoningEffort: input.reasoningEffort } : {}),
               ...(input.speed ? { speed: input.speed } : {}),
+              ...(input.firstOutputTimeoutSeconds === undefined
+                ? {}
+                : { firstOutputTimeoutSeconds: input.firstOutputTimeoutSeconds }),
             }),
             signal: input.signal,
           },
@@ -660,7 +664,57 @@ export const createPipelineAgentSessionsClient = (platform: PipelineAgentSession
 
       input.onEvent({ type: "phase", phase: "finalizing" });
       const projectionStartedAt = Date.now();
+      const streamedProjectionRunIds = new Set<string>();
+      const streamProjectionRun = async (projectionRunId: string) => {
+        const response = await platform.request(
+          `${agentRunsBaseUrl}/${encodeURIComponent(projectionRunId)}/events?after=0`,
+          {
+            headers: { accept: "text/event-stream" },
+            signal: input.signal,
+          },
+        );
+        if (!response.ok) throw await readResponseError(response);
+        const reader = response.body?.getReader();
+        if (!reader) return;
+        const decoder = new TextDecoder();
+        const state = { buffer: "", lastSequence: 0 };
+        const emitBufferedActivity = () => {
+          const messages = state.buffer.split(/\r?\n\r?\n/);
+          state.buffer = messages.pop() ?? "";
+          for (const message of messages) {
+            const envelope = parseAgentRunSseMessage(message);
+            if (!envelope || envelope.sequence <= state.lastSequence) continue;
+            state.lastSequence = envelope.sequence;
+            const event = mapAgentRunEvent(envelope);
+            if (event && event.type !== "assistant_chunk") input.onEvent(event);
+          }
+        };
+
+        while (!input.signal?.aborted) {
+          const chunk = await reader.read();
+          if (chunk.done) {
+            state.buffer += decoder.decode();
+            emitBufferedActivity();
+            break;
+          }
+          state.buffer += decoder.decode(chunk.value, { stream: true });
+          emitBufferedActivity();
+        }
+      };
       while (Date.now() - projectionStartedAt < PIPELINE_AGENT_PROJECTION_TIMEOUT_MS) {
+        const projectionRunResponse = await platform.request(
+          `${pipelineAgentSessionsBaseUrl}/${encodeURIComponent(sessionId)}/projection-run?afterRunId=${encodeURIComponent(runId)}`,
+          { signal: input.signal },
+        );
+        if (projectionRunResponse.ok && projectionRunResponse.status !== 204) {
+          const projectionRun = await readResponseJson(projectionRunResponse, AgentRunSchema);
+          if (!streamedProjectionRunIds.has(projectionRun.id)) {
+            streamedProjectionRunIds.add(projectionRun.id);
+            await streamProjectionRun(projectionRun.id);
+          }
+        } else if (!projectionRunResponse.ok) {
+          throw await readResponseError(projectionRunResponse);
+        }
         const session = await this.getSessionById(sessionId);
         const proposal =
           (session.proposals ?? []).find(

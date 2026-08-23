@@ -176,12 +176,18 @@
     "noModelsFound": "未找到模型",
     "reasoning": "推理强度",
     "speed": "速度",
+    "firstOutputTimeout": "首输出超时",
+    "firstOutputTimeoutHint": "慢模型可调大；设为 0 表示不限制首输出等待时间。",
+    "seconds": "秒",
     "detected": "已检测",
     "notLaunchable": "无法启动",
     "experimental": "实验性",
     "nativeSandbox": "Codex 使用原生沙箱；工作区写入与网络访问由 CLI 强制执行。",
     "bestEffortPolicy": "工作区与网络限制由 CLI 策略执行，属于尽力隔离。",
     "openSettings": "打开运行时设置"
+  },
+  "agentActivity": {
+    "title": "CLI 活动记录"
   },
   "usage": {
     "title": "用量",

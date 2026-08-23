@@ -1,4 +1,7 @@
 {
+  "agentActivity": {
+    "title": "CLI 活动记录"
+  },
   "common": {
     "startTime": "开始时间",
     "endTime": "结束时间",

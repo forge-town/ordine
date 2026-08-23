@@ -49,6 +49,7 @@ import { createPlanningPreviewStreamer } from "./streamPlanningPreview";
 const PIPELINE_PLANNING_SYSTEM_PROMPT = withPipelineCanvasSkill(
   "You are a fast pipeline planning assistant. Do not use tools. Return exactly one valid JSON object matching the provided output format.",
 );
+const PIPELINE_AGENT_PROJECTION_AGENT_ID = "pipeline-agent-projection";
 
 const RelaxedCanvasEditPlanningResultSchema = z.discriminatedUnion("type", [
   z.object({
@@ -305,13 +306,19 @@ export const createPipelineAgentSessionsService = (
   const persistPlanningOutput = async (
     sessionId: string,
     raw: string,
-    runtimeId?: string,
-    signal?: AbortSignal,
+    options: {
+      runtimeId?: string;
+      model?: string;
+      reasoningEffort?: string;
+      speed?: string;
+      firstOutputTimeoutMs?: number;
+      signal?: AbortSignal;
+    } = {},
   ): Promise<
     | { type: "question"; question: string }
     | { type: "proposal"; proposal: PipelineAgentProposal; proposalId: string }
   > => {
-    if (signal?.aborted) throw createCancellationError(sessionId);
+    if (options.signal?.aborted) throw createCancellationError(sessionId);
     const session = await sessionsDao.findById(sessionId);
     if (!session) throw new Error(`Pipeline agent session not found: ${sessionId}`);
     const parsed =
@@ -320,7 +327,7 @@ export const createPipelineAgentSessionsService = (
         : parsePlanningResult(raw, PipelineAgentPlanningResultSchema);
 
     if (parsed.type === "question") {
-      if (signal?.aborted) throw createCancellationError(sessionId);
+      if (options.signal?.aborted) throw createCancellationError(sessionId);
       await db.transaction(async (transaction) => {
         await createPipelineAgentMessagesDao(transaction).create({
           id: crypto.randomUUID(),
@@ -343,7 +350,7 @@ export const createPipelineAgentSessionsService = (
           .map((item) => item.trim())
           .filter(Boolean)
           .join("\n") || "Please provide the missing details before I continue.";
-      if (signal?.aborted) throw createCancellationError(sessionId);
+      if (options.signal?.aborted) throw createCancellationError(sessionId);
       await db.transaction(async (transaction) => {
         await createPipelineAgentMessagesDao(transaction).create({
           id: crypto.randomUUID(),
@@ -387,10 +394,16 @@ export const createPipelineAgentSessionsService = (
               snapshot: session.snapshot,
               message: actionRequest,
               pipelineId: session.pipelineId ?? undefined,
-              runtimeId,
-              signal,
+              runtimeId: options.runtimeId,
+              model: options.model,
+              reasoningEffort: options.reasoningEffort,
+              speed: options.speed,
+              firstOutputTimeoutMs: options.firstOutputTimeoutMs,
+              jobId: sessionId,
+              agentId: PIPELINE_AGENT_PROJECTION_AGENT_ID,
+              signal: options.signal,
             });
-            if (signal?.aborted) throw createCancellationError(sessionId);
+            if (options.signal?.aborted) throw createCancellationError(sessionId);
             if (!actionProposalResult.proposal) {
               throw new Error("Failed to generate executable canvas edit actions");
             }
@@ -411,7 +424,7 @@ export const createPipelineAgentSessionsService = (
           })()
         : (parsed.proposal as Extract<PipelineAgentProposal, { mode: "generate" }>);
 
-    if (signal?.aborted) throw createCancellationError(sessionId);
+    if (options.signal?.aborted) throw createCancellationError(sessionId);
     const saved = await db.transaction(async (transaction) => {
       const persistedProposal = await createPipelineAgentProposalsDao(transaction).create({
         id: crypto.randomUUID(),
@@ -1175,6 +1188,7 @@ export const createPipelineAgentSessionsService = (
         model?: string;
         reasoningEffort?: string;
         speed?: string;
+        firstOutputTimeoutSeconds?: number;
         permissionMode?: "read-only" | "workspace-write" | "full-access";
         networkAccess?: boolean;
         fullAccessConfirmed?: boolean;
@@ -1203,6 +1217,16 @@ export const createPipelineAgentSessionsService = (
         throw createRuntimeNotFoundError(input?.runtimeId);
       }
       const runtimePreference = settings.agentRuntimePreferences?.[runtimeId];
+      const effectiveFirstOutputTimeoutSeconds =
+        input?.firstOutputTimeoutSeconds ?? runtimePreference?.firstOutputTimeoutSeconds;
+      const effectiveModel =
+        input?.model ?? runtimePreference?.model ?? settings.defaultModel ?? undefined;
+      const effectiveReasoningEffort = input?.reasoningEffort ?? runtimePreference?.reasoningEffort;
+      const effectiveSpeed = input?.speed ?? runtimePreference?.speed;
+      const effectiveFirstOutputTimeoutMs =
+        effectiveFirstOutputTimeoutSeconds === undefined
+          ? undefined
+          : effectiveFirstOutputTimeoutSeconds * 1000;
       const rebuildPrompt = buildPlanningPrompt({
         artifacts,
         messages,
@@ -1222,9 +1246,10 @@ export const createPipelineAgentSessionsService = (
         owner: { type: "pipeline-agent-session", id: sessionId },
         runtimeConfigId: runtimeId,
         cwd: process.cwd(),
-        model: input?.model ?? runtimePreference?.model ?? settings.defaultModel ?? undefined,
-        reasoningEffort: input?.reasoningEffort ?? runtimePreference?.reasoningEffort,
-        speed: input?.speed ?? runtimePreference?.speed,
+        model: effectiveModel,
+        reasoningEffort: effectiveReasoningEffort,
+        speed: effectiveSpeed,
+        firstOutputTimeoutMs: effectiveFirstOutputTimeoutMs,
         systemPrompt: PIPELINE_PLANNING_SYSTEM_PROMPT,
         prompt: canResumePreviousRun ? (latestUserMessage ?? rebuildPrompt) : rebuildPrompt,
         rebuildPrompt,
@@ -1249,7 +1274,14 @@ export const createPipelineAgentSessionsService = (
             return;
           }
           const persisted = await ResultAsync.fromPromise(
-            persistPlanningOutput(sessionId, run.resultText, runtimeId, activity.controller.signal),
+            persistPlanningOutput(sessionId, run.resultText, {
+              runtimeId,
+              model: effectiveModel,
+              reasoningEffort: effectiveReasoningEffort,
+              speed: effectiveSpeed,
+              firstOutputTimeoutMs: effectiveFirstOutputTimeoutMs,
+              signal: activity.controller.signal,
+            }),
             (error) => (error instanceof Error ? error : new Error(String(error))),
           );
           if (planningRuns.get(sessionId)?.runId === run.id) planningRuns.delete(sessionId);
@@ -1280,6 +1312,21 @@ export const createPipelineAgentSessionsService = (
     waitForPlanningRun: async (runId: string): Promise<void> => {
       const completion = planningCompletions.get(runId);
       if (completion) await completion;
+    },
+
+    getProjectionRun: async (sessionId: string, afterRunId: string) => {
+      const [sourceRun, projectionRun] = await Promise.all([
+        getAgentRunsService().getById(afterRunId),
+        getAgentRunsService().getLatestByOwner(
+          "job-agent",
+          `${sessionId}:${PIPELINE_AGENT_PROJECTION_AGENT_ID}`,
+        ),
+      ]);
+      if (!sourceRun || !projectionRun || projectionRun.createdAt < sourceRun.createdAt) {
+        return null;
+      }
+
+      return projectionRun;
     },
 
     planSession: async (

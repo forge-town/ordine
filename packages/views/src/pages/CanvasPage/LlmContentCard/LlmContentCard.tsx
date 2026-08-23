@@ -5,6 +5,7 @@ import { Button } from "@repo/ui/button";
 import { ScrollArea } from "@repo/ui/scroll-area";
 import { useStore } from "zustand";
 import { useCanvasPageStore } from "../_store";
+import { AgentActivityFeed } from "../../../components/AgentActivityFeed";
 
 export const LlmContentCard = () => {
   const { t } = useTranslation();
@@ -12,12 +13,14 @@ export const LlmContentCard = () => {
   const inspectingNodeId = useStore(store, (s) => s.inspectingNodeId);
   const handleDismissInspection = useStore(store, (s) => s.handleDismissInspection);
   const nodeLlmContent = useStore(store, (s) => s.nodeLlmContent);
+  const nodeAgentActivities = useStore(store, (s) => s.nodeAgentActivities);
   const nodeRunStatuses = useStore(store, (s) => s.nodeRunStatuses);
   const nodes = useStore(store, (s) => s.nodes);
 
   if (!inspectingNodeId) return null;
 
   const content = nodeLlmContent[inspectingNodeId];
+  const activities = nodeAgentActivities[inspectingNodeId] ?? [];
   const status = nodeRunStatuses[inspectingNodeId];
   const node = nodes.find((n) => n.id === inspectingNodeId);
   const nodeLabel = (node?.data as Record<string, unknown>)?.label as string | undefined;
@@ -43,18 +46,20 @@ export const LlmContentCard = () => {
       </div>
       <ScrollArea className="max-h-[60vh] min-h-0">
         <div className="overflow-hidden p-4">
-          {status === "running" && !content && (
+          <AgentActivityFeed active={status === "running"} entries={activities} />
+          {status === "running" && !content && activities.length === 0 && (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Loader2 className="h-4 w-4 animate-spin" />
               <span>{t("canvas.llmContent.running")}</span>
             </div>
           )}
           {content ? (
-            <div className="prose prose-sm max-w-none overflow-hidden break-words text-xs leading-relaxed dark:prose-invert [&_pre]:overflow-x-auto [&_pre]:rounded [&_pre]:bg-surface-2 [&_pre]:p-2 [&_pre]:text-[10px] [&_code]:rounded [&_code]:bg-surface-2 [&_code]:px-1 [&_code]:py-0.5 [&_code]:text-[10px] [&_h1]:text-base [&_h2]:text-sm [&_h3]:text-xs [&_li]:my-0.5 [&_ol]:my-1.5 [&_p]:my-1.5 [&_ul]:my-1.5">
+            <div className="prose prose-sm mt-3 max-w-none overflow-hidden break-words border-t border-border pt-3 text-xs leading-relaxed dark:prose-invert [&_pre]:overflow-x-auto [&_pre]:rounded [&_pre]:bg-surface-2 [&_pre]:p-2 [&_pre]:text-[10px] [&_code]:rounded [&_code]:bg-surface-2 [&_code]:px-1 [&_code]:py-0.5 [&_code]:text-[10px] [&_h1]:text-base [&_h2]:text-sm [&_h3]:text-xs [&_li]:my-0.5 [&_ol]:my-1.5 [&_p]:my-1.5 [&_ul]:my-1.5">
               <Markdown>{content}</Markdown>
             </div>
           ) : (
-            status !== "running" && (
+            status !== "running" &&
+            activities.length === 0 && (
               <p className="text-sm text-muted-foreground">{t("canvas.llmContent.empty")}</p>
             )
           )}

@@ -14,6 +14,7 @@ export const pipelineRunnerEngineDeps = {
     model,
     reasoningEffort,
     speed,
+    firstOutputTimeoutMs,
     runtimeConfigId,
     executablePath,
     defaultAgent,
@@ -28,6 +29,7 @@ export const pipelineRunnerEngineDeps = {
     model?: string;
     reasoningEffort?: string;
     speed?: string;
+    firstOutputTimeoutMs?: number;
     runtimeConfigId?: string;
     executablePath?: string;
     defaultAgent?: AgentRuntime;
@@ -47,6 +49,7 @@ export const pipelineRunnerEngineDeps = {
           : (route.model ?? (usesDefaultRoute ? model : undefined)),
         ...(usesDefaultRoute && reasoningEffort ? { reasoningEffort } : {}),
         ...(usesDefaultRoute && speed ? { speed } : {}),
+        ...(usesDefaultRoute && firstOutputTimeoutMs !== undefined ? { firstOutputTimeoutMs } : {}),
         ...(usesDefaultRoute && runtimeConfigId ? { runtimeConfigId } : {}),
         ...(usesDefaultRoute && executablePath ? { executablePath } : {}),
         ...(usesDefaultRoute && ssh ? { ssh } : {}),

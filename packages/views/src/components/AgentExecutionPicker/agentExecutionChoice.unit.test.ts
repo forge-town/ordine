@@ -91,10 +91,12 @@ describe("agent execution choice", () => {
       model: "gpt-5.6",
       reasoningEffort: "high",
       speed: "priority",
+      firstOutputTimeoutSeconds: 45,
     });
     expect(changeExecutionRuntime(catalog, settings, "local-opencode")).toEqual({
       runtimeConfigId: "local-opencode",
       model: "anthropic/claude-sonnet-4-5",
+      firstOutputTimeoutSeconds: 45,
     });
   });
 
@@ -107,12 +109,14 @@ describe("agent execution choice", () => {
           model: "old",
           reasoningEffort: "high",
           speed: "priority",
+          firstOutputTimeoutSeconds: 180,
         },
         "anthropic/claude-sonnet-4-5",
       ),
     ).toEqual({
       runtimeConfigId: "local-opencode",
       model: "anthropic/claude-sonnet-4-5",
+      firstOutputTimeoutSeconds: 180,
     });
   });
 

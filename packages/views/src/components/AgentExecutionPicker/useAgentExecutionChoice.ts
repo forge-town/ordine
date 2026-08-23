@@ -64,6 +64,9 @@ export const useAgentExecutionChoice = ({
         ...(nextChoice.model ? { model: nextChoice.model } : {}),
         ...(nextChoice.reasoningEffort ? { reasoningEffort: nextChoice.reasoningEffort } : {}),
         ...(nextChoice.speed ? { speed: nextChoice.speed } : {}),
+        ...(nextChoice.firstOutputTimeoutSeconds === undefined
+          ? {}
+          : { firstOutputTimeoutSeconds: nextChoice.firstOutputTimeoutSeconds }),
       };
       const nextPreferences = {
         ...preferencesRef.current,
