@@ -1,0 +1,287 @@
+{
+  "generatedAt": "2026-08-23T13:34:07.344Z",
+  "platform": "win32",
+  "architecture": "x64",
+  "database": "dedicated COD-369 acceptance database (credentials omitted)",
+  "runtimes": [
+    {
+      "runtime": "codex",
+      "cwd": "D:\\Coding\\项目ORDINE\\.worktrees\\cod-369-runtime-mcp-compatibility\\.artifacts\\cod-369-luna-fixed-review-20260823\\runtime\\codex",
+      "firstRun": {
+        "runId": "026fb7cf-7490-422b-8454-2b44be16e951",
+        "status": "completed",
+        "executablePath": "C:\\Users\\woodfish\\AppData\\Roaming\\npm\\codex.cmd",
+        "executableVersion": "codex-cli 0.149.0",
+        "executableFingerprint": "c54db6755e710c39703f7c37512f9e35ed41042d8080558d2b84b8d2694323c3",
+        "nativeSessionId": "ordine-codex:eyJ2ZXJzaW9uIjoxLCJ0aHJlYWRJZCI6IjAxYTAyZWQ0LTNlMDEtN2VhMi04MzI5LTJhYWRhYmY5MDllOSIsImNvZGV4SG9tZSI6IkM6XFxVc2Vyc1xcd29vZGZpc2hcXEFwcERhdGFcXExvY2FsXFxUZW1wXFxvcmRpbmUtY29kZXgtaG9tZS1xd0h5U3kifQ",
+        "usage": {
+          "inputTokens": 59368,
+          "outputTokens": 292,
+          "cachedInputTokens": 38400
+        },
+        "firstSequence": 1081,
+        "lastSequence": 1098,
+        "eventTypes": {
+          "diagnostic": 2,
+          "session": 1,
+          "status": 2,
+          "message": 2,
+          "tool_start": 2,
+          "tool_update": 4,
+          "tool_result": 2,
+          "artifact": 1,
+          "usage": 1,
+          "terminal": 1
+        },
+        "processIds": [
+          16436
+        ],
+        "processTreeCleaned": true
+      },
+      "resumeRun": {
+        "runId": "caa2ded5-d830-4b8d-be5b-cbe1c670324d",
+        "status": "completed",
+        "executablePath": "C:\\Users\\woodfish\\AppData\\Roaming\\npm\\codex.cmd",
+        "executableVersion": "codex-cli 0.149.0",
+        "executableFingerprint": "c54db6755e710c39703f7c37512f9e35ed41042d8080558d2b84b8d2694323c3",
+        "nativeSessionId": "ordine-codex:eyJ2ZXJzaW9uIjoxLCJ0aHJlYWRJZCI6IjAxYTAyZWQ0LTNlMDEtN2VhMi04MzI5LTJhYWRhYmY5MDllOSIsImNvZGV4SG9tZSI6IkM6XFxVc2Vyc1xcd29vZGZpc2hcXEFwcERhdGFcXExvY2FsXFxUZW1wXFxvcmRpbmUtY29kZXgtaG9tZS1xd0h5U3kifQ",
+        "usage": {
+          "inputTokens": 61206,
+          "outputTokens": 373,
+          "cachedInputTokens": 57600
+        },
+        "firstSequence": 1099,
+        "lastSequence": 1116,
+        "eventTypes": {
+          "diagnostic": 2,
+          "session": 1,
+          "status": 2,
+          "message": 2,
+          "tool_start": 2,
+          "tool_update": 4,
+          "tool_result": 2,
+          "artifact": 1,
+          "usage": 1,
+          "terminal": 1
+        },
+        "processIds": [
+          20628
+        ],
+        "processTreeCleaned": true
+      },
+      "filePath": "D:\\Coding\\项目ORDINE\\.worktrees\\cod-369-runtime-mcp-compatibility\\.artifacts\\cod-369-luna-fixed-review-20260823\\runtime\\codex\\acceptance.txt",
+      "fileSha256": "3c1c8dfddcbc0bcab9ae62037a6cfde58f16fbcd54bc302f47969b38b77b2db4",
+      "cancelRun": {
+        "runId": "0be405a6-094d-44c2-9727-32048eee6529",
+        "status": "cancelled",
+        "executablePath": "C:\\Users\\woodfish\\AppData\\Roaming\\npm\\codex.cmd",
+        "executableVersion": "codex-cli 0.149.0",
+        "executableFingerprint": "c54db6755e710c39703f7c37512f9e35ed41042d8080558d2b84b8d2694323c3",
+        "nativeSessionId": "ordine-codex:eyJ2ZXJzaW9uIjoxLCJ0aHJlYWRJZCI6IjAxYTAyZWQ1LTVmOWYtN2I5MS04MWFhLWZhZmY4ZTczZjg1NCIsImNvZGV4SG9tZSI6IkM6XFxVc2Vyc1xcd29vZGZpc2hcXEFwcERhdGFcXExvY2FsXFxUZW1wXFxvcmRpbmUtY29kZXgtaG9tZS1weXpuTkkifQ",
+        "usage": null,
+        "firstSequence": 1117,
+        "lastSequence": 1123,
+        "eventTypes": {
+          "diagnostic": 3,
+          "session": 1,
+          "status": 2,
+          "terminal": 1
+        },
+        "processIds": [
+          48196
+        ],
+        "processTreeCleaned": true
+      }
+    },
+    {
+      "runtime": "claude-code",
+      "cwd": "D:\\Coding\\项目ORDINE\\.worktrees\\cod-369-runtime-mcp-compatibility\\.artifacts\\cod-369-luna-fixed-review-20260823\\runtime\\claude-code",
+      "firstRun": {
+        "runId": "0588d53c-d808-4aa6-9732-af0ceca993bf",
+        "status": "completed",
+        "executablePath": "C:\\Users\\woodfish\\AppData\\Roaming\\npm\\claude.cmd",
+        "executableVersion": "2.1.207 (Claude Code)",
+        "executableFingerprint": "7999fba95dbffe167d9e0a043f29057979a0518ebe89b60c4fcfc6401ea8c424",
+        "nativeSessionId": "78b3d682-e353-4e38-b069-fd7a9d615676",
+        "usage": {
+          "inputTokens": 43539,
+          "outputTokens": 336,
+          "costUsd": 0.16150019999999998
+        },
+        "firstSequence": 1124,
+        "lastSequence": 1303,
+        "eventTypes": {
+          "status": 2,
+          "diagnostic": 2,
+          "session": 1,
+          "thinking": 6,
+          "thinking_delta": 102,
+          "usage": 9,
+          "text_delta": 45,
+          "tool_start": 2,
+          "tool_update": 8,
+          "tool_result": 2,
+          "terminal": 1
+        },
+        "processIds": [
+          48848
+        ],
+        "processTreeCleaned": true
+      },
+      "resumeRun": {
+        "runId": "eb30bad8-89ff-4e35-9af3-3cc9638947f7",
+        "status": "completed",
+        "executablePath": "C:\\Users\\woodfish\\AppData\\Roaming\\npm\\claude.cmd",
+        "executableVersion": "2.1.207 (Claude Code)",
+        "executableFingerprint": "7999fba95dbffe167d9e0a043f29057979a0518ebe89b60c4fcfc6401ea8c424",
+        "nativeSessionId": "78b3d682-e353-4e38-b069-fd7a9d615676",
+        "usage": {
+          "inputTokens": 97965,
+          "outputTokens": 503,
+          "costUsd": 0.3113856
+        },
+        "firstSequence": 1304,
+        "lastSequence": 1497,
+        "eventTypes": {
+          "status": 2,
+          "diagnostic": 2,
+          "session": 1,
+          "thinking": 6,
+          "thinking_delta": 93,
+          "usage": 9,
+          "text_delta": 68,
+          "tool_start": 2,
+          "tool_update": 8,
+          "tool_result": 2,
+          "terminal": 1
+        },
+        "processIds": [
+          48544
+        ],
+        "processTreeCleaned": true
+      },
+      "filePath": "D:\\Coding\\项目ORDINE\\.worktrees\\cod-369-runtime-mcp-compatibility\\.artifacts\\cod-369-luna-fixed-review-20260823\\runtime\\claude-code\\acceptance.txt",
+      "fileSha256": "969c04fb78922d47fbaee8dc87675bfac6dffcabd50063944b0c126fa8cbd559",
+      "cancelRun": {
+        "runId": "017e32c1-4cdb-457d-8598-2fe12311b675",
+        "status": "cancelled",
+        "executablePath": "C:\\Users\\woodfish\\AppData\\Roaming\\npm\\claude.cmd",
+        "executableVersion": "2.1.207 (Claude Code)",
+        "executableFingerprint": "7999fba95dbffe167d9e0a043f29057979a0518ebe89b60c4fcfc6401ea8c424",
+        "nativeSessionId": "00fca45f-cb52-4ef3-986e-7f762b17a89c",
+        "usage": {
+          "inputTokens": 0,
+          "outputTokens": 0
+        },
+        "firstSequence": 1498,
+        "lastSequence": 1571,
+        "eventTypes": {
+          "status": 2,
+          "diagnostic": 3,
+          "session": 1,
+          "thinking": 2,
+          "thinking_delta": 41,
+          "usage": 3,
+          "text_delta": 15,
+          "tool_start": 1,
+          "tool_update": 4,
+          "tool_result": 1,
+          "terminal": 1
+        },
+        "processIds": [
+          41248
+        ],
+        "processTreeCleaned": true
+      }
+    },
+    {
+      "runtime": "opencode",
+      "cwd": "D:\\Coding\\项目ORDINE\\.worktrees\\cod-369-runtime-mcp-compatibility\\.artifacts\\cod-369-luna-fixed-review-20260823\\runtime\\opencode",
+      "firstRun": {
+        "runId": "ac24491c-a97d-42af-92bc-5163e9bb5f36",
+        "status": "completed",
+        "executablePath": "C:\\Users\\woodfish\\.bun\\bin\\opencode.exe",
+        "executableVersion": "1.18.21",
+        "executableFingerprint": "59b379b53354da72d2c5262119fe70c44b4e473826ebbaa94d47a2d58a359b1a",
+        "nativeSessionId": "ses_fd1292044ffedgwjlkNk5XeBEH",
+        "usage": {
+          "inputTokens": 152,
+          "outputTokens": 43,
+          "cachedInputTokens": 35712,
+          "costUsd": 0
+        },
+        "firstSequence": 1572,
+        "lastSequence": 1589,
+        "eventTypes": {
+          "status": 4,
+          "diagnostic": 2,
+          "session": 1,
+          "tool_start": 2,
+          "tool_update": 2,
+          "tool_result": 2,
+          "usage": 3,
+          "text_delta": 1,
+          "terminal": 1
+        },
+        "processIds": [
+          44188
+        ],
+        "processTreeCleaned": true
+      },
+      "resumeRun": {
+        "runId": "67eb0343-109c-404b-9067-c407946d6529",
+        "status": "completed",
+        "executablePath": "C:\\Users\\woodfish\\.bun\\bin\\opencode.exe",
+        "executableVersion": "1.18.21",
+        "executableFingerprint": "59b379b53354da72d2c5262119fe70c44b4e473826ebbaa94d47a2d58a359b1a",
+        "nativeSessionId": "ses_fd1292044ffedgwjlkNk5XeBEH",
+        "usage": {
+          "inputTokens": 316,
+          "outputTokens": 36,
+          "cachedInputTokens": 35840,
+          "costUsd": 0
+        },
+        "firstSequence": 1590,
+        "lastSequence": 1602,
+        "eventTypes": {
+          "status": 3,
+          "diagnostic": 2,
+          "session": 1,
+          "tool_start": 1,
+          "tool_update": 1,
+          "tool_result": 1,
+          "usage": 2,
+          "text_delta": 1,
+          "terminal": 1
+        },
+        "processIds": [
+          41052
+        ],
+        "processTreeCleaned": true
+      },
+      "filePath": "D:\\Coding\\项目ORDINE\\.worktrees\\cod-369-runtime-mcp-compatibility\\.artifacts\\cod-369-luna-fixed-review-20260823\\runtime\\opencode\\acceptance.txt",
+      "fileSha256": "18afc8f52c6db9ed4885f9eb7fb5f9fb34088bb176cde45465f45db98c6ec407",
+      "cancelRun": {
+        "runId": "d3965750-fcb0-42fb-aedd-ca22f6aed399",
+        "status": "cancelled",
+        "executablePath": "C:\\Users\\woodfish\\.bun\\bin\\opencode.exe",
+        "executableVersion": "1.18.21",
+        "executableFingerprint": "59b379b53354da72d2c5262119fe70c44b4e473826ebbaa94d47a2d58a359b1a",
+        "nativeSessionId": "ses_fd1283062ffePlTl391khXvj5Q",
+        "usage": null,
+        "firstSequence": 1603,
+        "lastSequence": 1610,
+        "eventTypes": {
+          "status": 3,
+          "diagnostic": 3,
+          "session": 1,
+          "terminal": 1
+        },
+        "processIds": [
+          18572
+        ],
+        "processTreeCleaned": true
+      }
+    }
+  ]
+}
