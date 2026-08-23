@@ -10,6 +10,7 @@ export const CAPABILITY_ASSIGNMENT_SYSTEM_PROMPT = [
   "Use capability reference values, not catalog row ids.",
   "skillId must reference kind=skill. allowedTools may reference only builtin-tool or mcp-tool.",
   "Grant the smallest capability set needed by the step.",
+  "Each operation receives only its immediate parent output. For an agent that organizes, revises, validates, corrects, formats, or exports an artifact, its prompt must require the complete resulting artifact and forbid summary-only output, placeholders, or references to omitted earlier content.",
   "assignmentReason is required inside executor, must be one line, and must explain the choice.",
   "If any selected capability is irreversible, assignmentReason must explicitly say why the irreversible action is necessary.",
 ].join("\n");

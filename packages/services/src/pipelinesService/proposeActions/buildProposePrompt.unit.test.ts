@@ -41,6 +41,8 @@ describe("default propose system prompt", () => {
     expect(DEFAULT_PROPOSE_SYSTEM_PROMPT).toContain("## Active skill — ordine-create-pipeline");
     expect(DEFAULT_PROPOSE_SYSTEM_PROMPT).toContain("根据真实数据依赖连边");
     expect(DEFAULT_PROPOSE_SYSTEM_PROMPT).toContain("并行后汇总");
+    expect(DEFAULT_PROPOSE_SYSTEM_PROMPT).toContain("只接收其直接父节点的输出");
+    expect(DEFAULT_PROPOSE_SYSTEM_PROMPT).toContain("完整成品正文");
   });
 });
 

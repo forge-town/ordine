@@ -177,6 +177,18 @@ describe("promptExecutor", () => {
     expect(callArgs.systemPrompt).toContain("@@USER_ACTION::");
   });
 
+  it("requires content-preserving operations to return a complete downstream artifact", async () => {
+    const result = await promptExecutor.run({ ...baseOpts, agent: "codex" });
+
+    expect(result.isOk()).toBe(true);
+    const callArgs = vi.mocked(agentEngine.run).mock.calls[0]![0];
+    expect(callArgs.systemPrompt).toContain("## Downstream data contract");
+    expect(callArgs.systemPrompt).toContain("return the COMPLETE resulting artifact");
+    expect(callArgs.systemPrompt).toContain(
+      "Do not replace usable input content with placeholders",
+    );
+  });
+
   it("forwards selected MCP tools for prompt operations", async () => {
     const result = await promptExecutor.run({
       ...baseOpts,
