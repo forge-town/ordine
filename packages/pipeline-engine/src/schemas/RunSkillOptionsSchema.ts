@@ -14,6 +14,10 @@ export const RunSkillOptionsSchema = z.object({
   agent: AgentRuntimeSchema.optional(),
   apiKey: z.string().optional(),
   model: z.string().optional(),
+  reasoningEffort: z.string().optional(),
+  speed: z.string().optional(),
+  runtimeConfigId: z.string().optional(),
+  executablePath: z.string().optional(),
   outputItems: z.array(OutputItemSchema).optional(),
   outputDir: z.string().optional(),
 });

@@ -26,6 +26,10 @@ export const loopEvaluator = {
         operationOutput,
         agent,
         model,
+        reasoningEffort,
+        speed,
+        runtimeConfigId,
+        executablePath,
         ssh,
       }: LoopEvaluatorOptions): Promise<boolean> => {
         if (!agent) throw new LoopEvaluatorRuntimeNotFoundError();
@@ -46,6 +50,10 @@ export const loopEvaluator = {
           allowedTools: [],
           apiKey,
           model,
+          reasoningEffort,
+          speed,
+          runtimeConfigId,
+          executablePath,
           ssh,
         });
 

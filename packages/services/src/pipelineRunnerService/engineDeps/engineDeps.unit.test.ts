@@ -122,6 +122,39 @@ describe("pipelineRunnerEngineDeps", () => {
     expect(call.ssh).toBeUndefined();
   });
 
+  it("uses the run-level execution choice instead of a stale operation route", () => {
+    const deps = pipelineRunnerEngineDeps.build({
+      evaluateLoopCondition,
+      jobId: "job-1",
+      defaultAgent: "codex",
+      model: "gpt-5.6-luna",
+      reasoningEffort: "xhigh",
+      speed: "priority",
+      runtimeConfigId: "local-codex",
+      executablePath: "C:\\Tools\\codex.cmd",
+      overrideOperationRoute: true,
+    });
+
+    deps.runPrompt({
+      prompt: "analyze",
+      inputContent: "content",
+      inputPath: "C:\\workspace",
+      agent: "codex",
+      model: "gpt-5",
+    });
+
+    expect(promptExecutor.run).toHaveBeenCalledWith(
+      expect.objectContaining({
+        agent: "codex",
+        model: "gpt-5.6-luna",
+        reasoningEffort: "xhigh",
+        speed: "priority",
+        runtimeConfigId: "local-codex",
+        executablePath: "C:\\Tools\\codex.cmd",
+      }),
+    );
+  });
+
   it("resolves the same default runtime and model for loop evaluation", async () => {
     const deps = pipelineRunnerEngineDeps.build({
       evaluateLoopCondition,

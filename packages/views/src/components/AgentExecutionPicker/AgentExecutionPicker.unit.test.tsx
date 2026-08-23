@@ -50,6 +50,24 @@ const catalogEntry = (
 });
 
 describe("AgentExecutionPicker", () => {
+  it("renders a compact model action for the Canvas toolbar", () => {
+    render(
+      <AgentExecutionPicker
+        catalog={[catalogEntry()]}
+        choice={{ runtimeConfigId: "local-codex", model: "gpt-5.6" }}
+        triggerVariant="button"
+        onChange={vi.fn()}
+        onRuntimeChange={vi.fn()}
+      />,
+    );
+
+    const trigger = screen.getByTestId("agent-execution-picker-trigger");
+    expect(trigger).toHaveTextContent("Model");
+    expect(trigger).not.toHaveTextContent("Codex Local");
+    expect(trigger).not.toHaveTextContent("GPT-5.6");
+    expect(trigger).toHaveClass("rounded-full", "shadow-pill", "ring-1");
+  });
+
   it("keeps experimental CLIs visible but unavailable for formal runs", async () => {
     const user = userEvent.setup();
     const handleChange = vi.fn();

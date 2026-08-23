@@ -12,7 +12,12 @@ export const pipelineRunnerEngineDeps = {
     jobId,
     apiKey,
     model,
+    reasoningEffort,
+    speed,
+    runtimeConfigId,
+    executablePath,
     defaultAgent,
+    overrideOperationRoute,
     ssh,
     getMcpConnectorInjection,
   }: {
@@ -20,17 +25,29 @@ export const pipelineRunnerEngineDeps = {
     jobId?: string;
     apiKey?: string;
     model?: string;
+    reasoningEffort?: string;
+    speed?: string;
+    runtimeConfigId?: string;
+    executablePath?: string;
     defaultAgent?: AgentRuntime;
+    overrideOperationRoute?: boolean;
     ssh?: SshConnection;
     getMcpConnectorInjection?: McpConnectorInjectionProvider;
   }): PipelineEngineDeps => {
     const resolveRoute = (route: Pick<LoopEvaluationOptions, "agent" | "model">) => {
-      const agent = route.agent ?? defaultAgent;
+      const agent = overrideOperationRoute ? defaultAgent : (route.agent ?? defaultAgent);
+      const usesDefaultRoute = overrideOperationRoute || agent === defaultAgent;
 
       return {
         agent,
-        model: route.model ?? (agent === defaultAgent ? model : undefined),
-        ...(agent === defaultAgent && ssh ? { ssh } : {}),
+        model: overrideOperationRoute
+          ? model
+          : (route.model ?? (usesDefaultRoute ? model : undefined)),
+        ...(usesDefaultRoute && reasoningEffort ? { reasoningEffort } : {}),
+        ...(usesDefaultRoute && speed ? { speed } : {}),
+        ...(usesDefaultRoute && runtimeConfigId ? { runtimeConfigId } : {}),
+        ...(usesDefaultRoute && executablePath ? { executablePath } : {}),
+        ...(usesDefaultRoute && ssh ? { ssh } : {}),
       };
     };
 
