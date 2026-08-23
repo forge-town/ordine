@@ -9,7 +9,7 @@ import {
   type AgentRuntimeCatalogEntry,
   type AgentRuntimeConfig,
 } from "@repo/schemas";
-import { scanRuntimeCatalog, scanRuntimes } from "@repo/agent";
+import { createRuntimeCatalogCache, scanRuntimeCatalog, scanRuntimes } from "@repo/agent";
 import { getServerEnv } from "@/integrations/server-env";
 import { unwrapResult } from "./result";
 
@@ -17,6 +17,18 @@ const UpdatePatchSchema = AgentRuntimeConfigSchema.omit({ id: true }).partial();
 
 const { ORDINE_LOCAL_MODE, RUNTIME_SCAN_MODE } = getServerEnv();
 const localRuntimeScanEnabled = RUNTIME_SCAN_MODE === "local" || ORDINE_LOCAL_MODE;
+const runtimeCatalogCache = createRuntimeCatalogCache({
+  load: scanRuntimeCatalog,
+  ttlMs: 60_000,
+});
+const getRuntimeCatalog = () =>
+  process.env.NODE_ENV === "test" ? scanRuntimeCatalog() : runtimeCatalogCache.get();
+const refreshRuntimeCatalog = () =>
+  process.env.NODE_ENV === "test" ? scanRuntimeCatalog() : runtimeCatalogCache.refresh();
+
+if (localRuntimeScanEnabled && process.env.NODE_ENV !== "test") {
+  runtimeCatalogCache.warm();
+}
 
 const harvestGlobalCapabilitiesOnce = async () =>
   unwrapResult(await capabilityHarvestService.harvestOnce({}));
@@ -96,7 +108,7 @@ export const agentRuntimesRouter = router({
   getCatalog: publicProcedure.query(async () => {
     if (!localRuntimeScanEnabled) return [];
     const [catalog, runtimes] = await Promise.all([
-      scanRuntimeCatalog(),
+      getRuntimeCatalog(),
       agentRuntimesService.getAll(),
     ]);
 
@@ -129,7 +141,7 @@ export const agentRuntimesRouter = router({
 
   rescanCatalog: publicProcedure.mutation(async () => {
     if (!localRuntimeScanEnabled) return [];
-    const [catalog] = await Promise.all([scanRuntimeCatalog(), refreshGlobalCapabilities()]);
+    const [catalog] = await Promise.all([refreshRuntimeCatalog(), refreshGlobalCapabilities()]);
     const detected = catalog.flatMap((entry) => {
       const runtime = toCatalogRuntimeConfig(entry);
 

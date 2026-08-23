@@ -28,6 +28,11 @@ vi.mock("../services", () => ({
   },
 }));
 vi.mock("@repo/agent", () => ({
+  createRuntimeCatalogCache: ({ load }: { load: () => Promise<unknown[]> }) => ({
+    get: load,
+    refresh: load,
+    warm: vi.fn(),
+  }),
   scanRuntimeCatalog: mocks.scanRuntimeCatalog,
   scanRuntimes: mocks.scanRuntimes,
 }));
