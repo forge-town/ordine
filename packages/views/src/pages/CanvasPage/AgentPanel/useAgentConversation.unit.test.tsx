@@ -1,16 +1,18 @@
 import { act, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { render } from "../../../test/test-wrapper";
 import { CanvasPageStoreContext, createCanvasPageStore } from "../_store";
 import type { PipelineAgentPlanEvent } from "../../../lib/pipelineAgentSessionsClient";
-import { AgentBarStoreProvider } from "./_store";
+import { AgentBarStoreProvider, useAgentBarStoreApi } from "./_store";
 import { useAgentConversation } from "./useAgentConversation";
 
 const mocks = vi.hoisted(() => ({
   appendMessage: vi.fn(),
+  approveProposal: vi.fn(),
   createSession: vi.fn(),
+  generatePipelineFromApprovedProposal: vi.fn(),
   getLatestAssistantQuestion: vi.fn(),
   getLatestReadyProposal: vi.fn(),
   isHistoryLoading: false,
@@ -25,10 +27,12 @@ vi.mock("react-i18next", () => ({
 vi.mock("../../../lib/pipelineAgentSessionsClient", () => ({
   createPipelineAgentSessionsClient: () => ({
     appendMessage: (...args: unknown[]) => mocks.appendMessage(...args),
-    approveProposal: vi.fn(),
+    approveProposal: (...args: unknown[]) => mocks.approveProposal(...args),
     createSession: (...args: unknown[]) => mocks.createSession(...args),
     getLatestAssistantQuestion: (...args: unknown[]) => mocks.getLatestAssistantQuestion(...args),
     getLatestReadyProposal: (...args: unknown[]) => mocks.getLatestReadyProposal(...args),
+    generatePipelineFromApprovedProposal: (...args: unknown[]) =>
+      mocks.generatePipelineFromApprovedProposal(...args),
     planSessionStream: (...args: unknown[]) => mocks.planSessionStream(...args),
     supersedeProposal: vi.fn(),
   }),
@@ -88,6 +92,45 @@ const EnsureSessionHarness = () => {
   );
 };
 
+const ApplyGenerateProposalHarness = ({
+  onGeneratedPipeline,
+}: {
+  onGeneratedPipeline: (pipelineId: string) => void;
+}) => {
+  const agentBarStore = useAgentBarStoreApi();
+  const { applyProposal, conversationState, streamingProgress } = useAgentConversation({
+    onGeneratedPipeline,
+    pipelineId: "pipe-1",
+  });
+
+  useEffect(() => {
+    const state = agentBarStore.getState();
+    state.setSession("session-generate", "graph-generate");
+    state.setProposalId("proposal-generate");
+    state.setGenerateProposal({
+      assumptions: [],
+      executionFlow: ["input -> output"],
+      inputs: ["input"],
+      majorOperations: ["generate"],
+      mode: "generate",
+      openQuestions: [],
+      outputs: ["output"],
+      purpose: "Generate a pipeline",
+      readiness: "ready_for_generation",
+    });
+  }, [agentBarStore]);
+
+  return (
+    <div>
+      <button type="button" onClick={() => void applyProposal("runtime-1")}>
+        Apply
+      </button>
+      <span data-testid="apply-state">{conversationState}</span>
+      <span data-testid="apply-progress">{streamingProgress}</span>
+    </div>
+  );
+};
+
 describe("useAgentConversation", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -99,6 +142,8 @@ describe("useAgentConversation", () => {
       status: "draft",
     });
     mocks.appendMessage.mockResolvedValue({ id: "message-1" });
+    mocks.approveProposal.mockResolvedValue(undefined);
+    mocks.generatePipelineFromApprovedProposal.mockResolvedValue({ pipelineId: "pipeline-new" });
     mocks.getLatestAssistantQuestion.mockResolvedValue(null);
     mocks.getLatestReadyProposal.mockResolvedValue(null);
     mocks.sendMessage.mockResolvedValue({ id: "persisted-message" });
@@ -199,5 +244,35 @@ describe("useAgentConversation", () => {
       expect(screen.getByTestId("session-b")).toHaveTextContent("session-1");
     });
     expect(mocks.createSession).toHaveBeenCalledTimes(1);
+  });
+
+  it("shows a specific generation status and clears it before opening the created pipeline", async () => {
+    let resolveGeneration: ((value: { pipelineId: string }) => void) | null = null;
+    mocks.generatePipelineFromApprovedProposal.mockImplementation(
+      () =>
+        new Promise<{ pipelineId: string }>((resolve) => {
+          resolveGeneration = resolve;
+        }),
+    );
+    const onGeneratedPipeline = vi.fn();
+
+    render(<ApplyGenerateProposalHarness onGeneratedPipeline={onGeneratedPipeline} />, {
+      wrapper: Wrapper,
+    });
+    await userEvent.click(screen.getByRole("button", { name: "Apply" }));
+
+    await waitFor(() => {
+      expect(screen.getByTestId("apply-state")).toHaveTextContent("thinking");
+      expect(screen.getByTestId("apply-progress")).toHaveTextContent(
+        "canvas.agentPanel.generatingPipeline",
+      );
+    });
+
+    act(() => resolveGeneration?.({ pipelineId: "pipeline-new" }));
+    await waitFor(() => {
+      expect(screen.getByTestId("apply-state")).toHaveTextContent("done");
+      expect(screen.getByTestId("apply-progress")).toBeEmptyDOMElement();
+      expect(onGeneratedPipeline).toHaveBeenCalledWith("pipeline-new");
+    });
   });
 });

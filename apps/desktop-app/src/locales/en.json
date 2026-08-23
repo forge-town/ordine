@@ -613,6 +613,7 @@
         "suggestReverse": "Upload a finished sample → reverse-engineer it"
       },
       "thinking": "Thinking...",
+      "generatingPipeline": "Creating the pipeline. This usually takes about a minute…",
       "proposal": "Proposed Operations",
       "proposalReceived": "I've received a proposal. Review it below and choose to apply or discard.",
       "noProposal": "I've processed your request but no operations were proposed.",
