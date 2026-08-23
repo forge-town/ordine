@@ -59,6 +59,7 @@ const RelaxedCanvasEditPlanningResultSchema = z.discriminatedUnion("type", [
     type: z.literal("proposal"),
     proposal: z.object({
       mode: z.literal("edit"),
+      assistantReply: z.string().min(1).optional(),
       summary: z.string().min(1),
       targetGraphIntent: z.string().optional(),
       majorChanges: z.array(z.string()).default([]),
@@ -266,8 +267,9 @@ export const createPipelineAgentSessionsService = (
       "",
       "=== OUTPUT FORMAT ===",
       input.mode === "edit"
-        ? '{"type":"question","question":"..."} OR {"type":"proposal","proposal":{"mode":"edit","summary":"...","targetGraphIntent":"...","majorChanges":["..."],"assumptions":[],"openQuestions":[],"actions":[],"diagnosticsPreview":[],"readiness":"needs_user_answer|ready_for_generation"}}'
-        : '{"type":"question","question":"..."} OR {"type":"proposal","proposal":{"mode":"generate","purpose":"...","inputs":["..."],"outputs":["..."],"majorOperations":["..."],"executionFlow":["..."],"assumptions":[],"openQuestions":[],"schedule":null|{"name":"...","cronExpression":"0 9 * * 1-5","enabled":true},"readiness":"needs_user_answer|ready_for_generation"}}',
+        ? '{"type":"question","question":"..."} OR {"type":"proposal","proposal":{"mode":"edit","assistantReply":"...","summary":"...","targetGraphIntent":"...","majorChanges":["..."],"assumptions":[],"openQuestions":[],"actions":[],"diagnosticsPreview":[],"readiness":"needs_user_answer|ready_for_generation"}}'
+        : '{"type":"question","question":"..."} OR {"type":"proposal","proposal":{"mode":"generate","assistantReply":"...","purpose":"...","inputs":["..."],"outputs":["..."],"majorOperations":["..."],"executionFlow":["..."],"assumptions":[],"openQuestions":[],"schedule":null|{"name":"...","cronExpression":"0 9 * * 1-5","enabled":true},"readiness":"needs_user_answer|ready_for_generation"}}',
+      "For every proposal, assistantReply is the user-facing chat response in the user's language. Make it substantive and scannable: usually 2-4 short paragraphs explaining what you understood, the proposed structure and dependency choices, important assumptions or open points, and what the user can do next. Do not reduce it to a single sentence, and do not duplicate the full proposal field list.",
       input.mode === "generate"
         ? "Only include schedule when the user explicitly requests recurring execution. A schedule is Pipeline metadata, never a majorOperation. Use a valid 5-field cron expression in the server's local timezone; ask a follow-up question when the requested time is ambiguous."
         : "",
@@ -389,6 +391,7 @@ export const createPipelineAgentSessionsService = (
 
             return {
               mode: "edit",
+              assistantReply: editProposal.assistantReply,
               summary: editProposal.summary,
               targetGraphIntent: editProposal.targetGraphIntent ?? editProposal.summary,
               majorChanges: editProposal.majorChanges,
@@ -410,6 +413,15 @@ export const createPipelineAgentSessionsService = (
         status: "proposal_ready",
         proposal,
         approvedAt: null,
+      });
+      await createPipelineAgentMessagesDao(transaction).create({
+        id: crypto.randomUUID(),
+        sessionId,
+        role: "assistant",
+        kind: "proposal_summary",
+        content:
+          proposal.assistantReply ??
+          (proposal.mode === "generate" ? proposal.purpose : proposal.summary),
       });
       await createPipelineAgentSessionsDao(transaction).update(sessionId, {
         latestProposalId: persistedProposal.id,
@@ -1385,6 +1397,7 @@ export const createPipelineAgentSessionsService = (
 
             const finalEditProposal: PipelineAgentProposal = {
               mode: "edit",
+              assistantReply: editProposal.assistantReply,
               summary: editProposal.summary,
               targetGraphIntent: editProposal.targetGraphIntent ?? editProposal.summary,
               majorChanges: editProposal.majorChanges,
@@ -1398,6 +1411,7 @@ export const createPipelineAgentSessionsService = (
             const saved = await db.transaction(async (tx) => {
               assertActivityActive(sessionId, activity);
               const transactionalProposalsDao = createPipelineAgentProposalsDao(tx);
+              const transactionalMessagesDao = createPipelineAgentMessagesDao(tx);
               const transactionalSessionsDao = createPipelineAgentSessionsDao(tx);
               const persistedProposal = await transactionalProposalsDao.create({
                 id: crypto.randomUUID(),
@@ -1406,6 +1420,14 @@ export const createPipelineAgentSessionsService = (
                 status: "proposal_ready",
                 proposal: finalEditProposal,
                 approvedAt: null,
+              });
+              assertActivityActive(sessionId, activity);
+              await transactionalMessagesDao.create({
+                id: crypto.randomUUID(),
+                sessionId,
+                role: "assistant",
+                kind: "proposal_summary",
+                content: finalEditProposal.assistantReply ?? finalEditProposal.summary,
               });
               assertActivityActive(sessionId, activity);
               await transactionalSessionsDao.update(sessionId, {
@@ -1431,6 +1453,7 @@ export const createPipelineAgentSessionsService = (
           const saved = await db.transaction(async (tx) => {
             assertActivityActive(sessionId, activity);
             const transactionalProposalsDao = createPipelineAgentProposalsDao(tx);
+            const transactionalMessagesDao = createPipelineAgentMessagesDao(tx);
             const transactionalSessionsDao = createPipelineAgentSessionsDao(tx);
             const persistedProposal = await transactionalProposalsDao.create({
               id: crypto.randomUUID(),
@@ -1439,6 +1462,14 @@ export const createPipelineAgentSessionsService = (
               status: "proposal_ready",
               proposal: generateProposal,
               approvedAt: null,
+            });
+            assertActivityActive(sessionId, activity);
+            await transactionalMessagesDao.create({
+              id: crypto.randomUUID(),
+              sessionId,
+              role: "assistant",
+              kind: "proposal_summary",
+              content: generateProposal.assistantReply ?? generateProposal.purpose,
             });
             assertActivityActive(sessionId, activity);
             await transactionalSessionsDao.update(sessionId, {

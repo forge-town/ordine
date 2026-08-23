@@ -227,6 +227,8 @@ describe("PipelineCreationWorkspace", () => {
         type: "proposal_ready",
         proposal: {
           mode: "generate",
+          assistantReply:
+            "我会把试卷创建拆成需求输入、试题生成和成品输出。\n\n生成步骤消费命题要求，完成后再汇总为试卷；你可以先查看拟议操作再确认。",
           purpose: "Generate an English exam",
           inputs: ["exam requirements"],
           outputs: ["exam paper"],
@@ -257,6 +259,7 @@ describe("PipelineCreationWorkspace", () => {
     await user.click(screen.getByRole("button", { name: "newPipelineDialog.send" }));
 
     expect(await screen.findByText("Generate an English exam")).toBeInTheDocument();
+    expect(screen.getByText(/我会把试卷创建拆成需求输入/)).toBeInTheDocument();
     expect(client.planSessionStream).toHaveBeenCalledWith(
       "session-1",
       expect.objectContaining({ runtimeId: "local-codex" }),

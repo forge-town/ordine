@@ -18,6 +18,7 @@ export type PipelineGenerationSchedule = z.infer<typeof PipelineGenerationSchedu
 
 export const PipelineGenerationPlanSchema = z.object({
   mode: z.literal("generate"),
+  assistantReply: z.string().min(1).optional(),
   purpose: z.string().min(1),
   inputs: z.array(z.string()).default([]),
   outputs: z.array(z.string()).default([]),
