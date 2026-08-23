@@ -8,6 +8,10 @@ import type {
 } from "@repo/schemas";
 import type { CanvasPageStoreSlice } from "./canvasPageStore";
 import { DEFAULT_CANVAS_VIEWPORT } from "../utils/canvasViewport";
+import {
+  appendAgentActivity,
+  type AgentActivityEntry,
+} from "../../../components/AgentActivityFeed";
 
 export type SidebarPanel = "components" | "properties" | null;
 
@@ -105,6 +109,7 @@ export interface UISlice {
   runningNodeId: string | null;
   nodeRunStatuses: Record<string, NodeRunStatus>;
   nodeLlmContent: Record<string, string>;
+  nodeAgentActivities: Record<string, AgentActivityEntry[]>;
   inspectingNodeId: string | null;
 
   // Agent panel state
@@ -154,6 +159,7 @@ export interface UISlice {
   startTestRun: () => void;
   stopTestRun: () => void;
   applyNodeLlmContent: (nodeId: string, content: string) => void;
+  applyNodeAgentActivity: (nodeId: string, activity: AgentActivityEntry) => void;
   restoreRunState: (job: Job) => void;
   setNodeRunStatuses: (statuses: Record<string, NodeRunStatus>) => void;
 
@@ -223,6 +229,7 @@ export const createUISlice = (
   runningNodeId: null,
   nodeRunStatuses: {},
   nodeLlmContent: {},
+  nodeAgentActivities: {},
   inspectingNodeId: null,
   agentPanel: {
     isOpen: true,
@@ -410,6 +417,7 @@ export const createUISlice = (
       runningNodeId: null,
       nodeRunStatuses: {},
       nodeLlmContent: {},
+      nodeAgentActivities: {},
       inspectingNodeId: null,
     });
   },
@@ -421,6 +429,15 @@ export const createUISlice = (
   applyNodeLlmContent: (nodeId, content) => {
     set((state) => ({
       nodeLlmContent: { ...state.nodeLlmContent, [nodeId]: content },
+    }));
+  },
+
+  applyNodeAgentActivity: (nodeId, activity) => {
+    set((state) => ({
+      nodeAgentActivities: {
+        ...state.nodeAgentActivities,
+        [nodeId]: appendAgentActivity(state.nodeAgentActivities[nodeId] ?? [], activity),
+      },
     }));
   },
 
@@ -452,7 +469,7 @@ export const createUISlice = (
 
   // Semantic actions
   handleCloseConsole: () => {
-    set({ activeJobId: null, isConsoleOpen: false });
+    set({ isConsoleOpen: false });
   },
 
   handleDismissInspection: () => {

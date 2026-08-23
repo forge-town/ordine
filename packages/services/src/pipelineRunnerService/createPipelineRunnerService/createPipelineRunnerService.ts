@@ -121,6 +121,7 @@ export const createPipelineRunnerService = (
     model,
     reasoningEffort,
     speed,
+    firstOutputTimeoutMs,
     runtimeConfigId,
     executablePath,
     defaultAgent,
@@ -134,6 +135,7 @@ export const createPipelineRunnerService = (
     model?: string;
     reasoningEffort?: string;
     speed?: string;
+    firstOutputTimeoutMs?: number;
     runtimeConfigId?: string;
     executablePath?: string;
     defaultAgent?: AgentRuntime;
@@ -151,6 +153,7 @@ export const createPipelineRunnerService = (
       model,
       reasoningEffort,
       speed,
+      firstOutputTimeoutMs,
       runtimeConfigId,
       executablePath,
       defaultAgent,
@@ -198,6 +201,7 @@ export const createPipelineRunnerService = (
       model?: string;
       reasoningEffort?: string;
       speed?: string;
+      firstOutputTimeoutMs?: number;
     }): Promise<Result<{ jobId: string }, PipelineNotFoundError | AgentRuntimeNotFoundError>> => {
       const pipeline = await pipelinesDao.findById(opts.pipelineId);
       if (!pipeline) {
@@ -273,12 +277,17 @@ export const createPipelineRunnerService = (
             model: opts.model ?? settings.defaultModel,
             reasoningEffort: opts.reasoningEffort,
             speed: opts.speed,
+            firstOutputTimeoutMs: opts.firstOutputTimeoutMs,
             runtimeConfigId: runtimeConfig.id,
             executablePath:
               runtimeConfig.connection.mode === "local" ? runtimeConfig.connection.path : undefined,
             defaultAgent: runtimeConfig.type,
             overrideOperationRoute: Boolean(
-              opts.runtimeConfigId || opts.model || opts.reasoningEffort || opts.speed,
+              opts.runtimeConfigId ||
+              opts.model ||
+              opts.reasoningEffort ||
+              opts.speed ||
+              opts.firstOutputTimeoutMs !== undefined,
             ),
             ssh,
             getMcpConnectorInjection: buildMcpConnectorInjectionProvider(runtimeConfig.type),

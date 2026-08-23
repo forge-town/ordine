@@ -66,6 +66,12 @@ export type ProposeActionsOptions = {
   pipelineName?: string;
   referencedNodeIds?: string[];
   runtimeId?: string;
+  model?: string;
+  reasoningEffort?: string;
+  speed?: string;
+  firstOutputTimeoutMs?: number;
+  jobId?: string;
+  agentId?: string;
   signal?: AbortSignal;
   /** Internal: counts schema-failure auto-retry rounds. Not exposed via API. */
   semanticRetry?: number;
@@ -209,7 +215,13 @@ export const proposeActions = async (
   const agentResult = await runProposeAgent({
     agent: effectiveRuntime?.type ?? settings.defaultAgentRuntime,
     apiKey: settings.defaultApiKey,
-    model: settings.defaultModel,
+    model: opts.model ?? settings.defaultModel,
+    reasoningEffort: opts.reasoningEffort,
+    speed: opts.speed,
+    firstOutputTimeoutMs: opts.firstOutputTimeoutMs,
+    runtimeConfigId: opts.runtimeId,
+    jobId: opts.jobId,
+    agentId: opts.agentId,
     signal: opts.signal,
     ssh: effectiveRuntime?.connection.mode === "ssh" ? effectiveRuntime.connection : undefined,
     userPrompt: userPromptText,

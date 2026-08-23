@@ -59,6 +59,9 @@ export const createAgentRunController =
         networkAccess: options.networkAccess ?? true,
         fullAccessConfirmed: options.fullAccessConfirmed ?? true,
         allowedTools: [...(options.allowedTools ?? [])],
+        ...(options.firstOutputTimeoutMs === undefined
+          ? {}
+          : { firstOutputTimeoutMs: options.firstOutputTimeoutMs }),
       },
       {
         ...(options.apiKey ? { apiKey: options.apiKey } : {}),

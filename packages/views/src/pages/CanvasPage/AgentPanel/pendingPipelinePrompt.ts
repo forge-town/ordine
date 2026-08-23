@@ -6,6 +6,7 @@ export interface PendingPipelinePrompt {
   model?: string;
   reasoningEffort?: string;
   speed?: string;
+  firstOutputTimeoutSeconds?: number;
 }
 
 export const hasPendingPipelinePrompt = (): boolean =>
@@ -46,6 +47,9 @@ export const takePendingPipelinePrompt = (): PendingPipelinePrompt | null => {
         : {}),
       ...(typeof parsed.speed === "string" && parsed.speed.length > 0
         ? { speed: parsed.speed }
+        : {}),
+      ...(typeof parsed.firstOutputTimeoutSeconds === "number"
+        ? { firstOutputTimeoutSeconds: parsed.firstOutputTimeoutSeconds }
         : {}),
     };
   }

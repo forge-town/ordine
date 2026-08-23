@@ -33,4 +33,17 @@ describe("uiSlice AgentPanel layout", () => {
     expect(store.getState().agentPanel.isOpen).toBe(true);
     expect(store.getState().sidebarPanel).toBe("properties");
   });
+
+  it("keeps the active job attached when the console is hidden", () => {
+    const store = createCanvasPageStore();
+    store.setState({ activeJobId: "job-1", isConsoleOpen: true, isTestRunning: true });
+
+    store.getState().handleCloseConsole();
+
+    expect(store.getState()).toMatchObject({
+      activeJobId: "job-1",
+      isConsoleOpen: false,
+      isTestRunning: true,
+    });
+  });
 });

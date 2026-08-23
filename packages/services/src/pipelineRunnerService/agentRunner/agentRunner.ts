@@ -2,6 +2,7 @@ import { ResultAsync } from "neverthrow";
 import {
   agentEngine,
   type AgentInputAttachment,
+  type AgentRunOptions,
   type McpConnectorInjectionProvider,
 } from "@repo/agent-engine";
 import { logger } from "@repo/logger";
@@ -20,12 +21,14 @@ export interface AgentRunnerOptions {
   allowedTools?: readonly string[];
   onProgress?: (line: string) => Promise<void> | void;
   onTextDelta?: (text: string) => Promise<void> | void;
+  onRuntimeEvent?: AgentRunOptions["onRuntimeEvent"];
   logPrefix: string;
   attachments?: AgentInputAttachment[];
   apiKey?: string;
   model?: string;
   reasoningEffort?: string;
   speed?: string;
+  firstOutputTimeoutMs?: number;
   runtimeConfigId?: string;
   executablePath?: string;
   githubToken?: string;
@@ -45,12 +48,14 @@ export const runAgent = async (opts: AgentRunnerOptions): Promise<string> => {
     allowedTools,
     onProgress,
     onTextDelta,
+    onRuntimeEvent,
     logPrefix,
     attachments,
     apiKey,
     model,
     reasoningEffort,
     speed,
+    firstOutputTimeoutMs,
     runtimeConfigId,
     executablePath,
     githubToken,
@@ -94,12 +99,14 @@ export const runAgent = async (opts: AgentRunnerOptions): Promise<string> => {
       allowedTools: allowedTools ?? [],
       onProgress,
       onTextDelta,
+      onRuntimeEvent,
       jobId,
       agentId,
       apiKey,
       model,
       reasoningEffort,
       speed,
+      firstOutputTimeoutMs,
       runtimeConfigId,
       executablePath,
       githubToken,

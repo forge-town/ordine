@@ -534,6 +534,9 @@ export const PipelineCreationWorkspace = ({
             ? { reasoningEffort: executionChoice.reasoningEffort }
             : {}),
           ...(executionChoice?.speed ? { speed: executionChoice.speed } : {}),
+          ...(executionChoice?.firstOutputTimeoutSeconds === undefined
+            ? {}
+            : { firstOutputTimeoutSeconds: executionChoice.firstOutputTimeoutSeconds }),
           signal: controller.signal,
           onEvent: (event) => {
             if (

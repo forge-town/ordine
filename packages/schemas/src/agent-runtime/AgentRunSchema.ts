@@ -28,6 +28,7 @@ export const AgentRunRequestSchema = z
     networkAccess: z.boolean().default(true),
     fullAccessConfirmed: z.boolean().default(true),
     allowedTools: z.array(z.string().min(1)).default([]),
+    firstOutputTimeoutMs: z.number().int().min(0).max(3_600_000).optional(),
   })
   .superRefine((value, context) => {
     if (value.permissionMode === "full-access" && !value.fullAccessConfirmed) {

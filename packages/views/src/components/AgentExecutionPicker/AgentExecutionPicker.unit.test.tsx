@@ -129,4 +129,42 @@ describe("AgentExecutionPicker", () => {
     await user.click(screen.getByTestId("agent-execution-model-trigger"));
     await waitFor(() => expect(screen.getByTestId("agent-execution-model-search")).toHaveFocus());
   });
+
+  it("lets slow models customize or disable the first-output timeout", async () => {
+    const user = userEvent.setup();
+    const handleChange = vi.fn();
+    render(
+      <AgentExecutionPicker
+        catalog={[catalogEntry()]}
+        choice={{
+          runtimeConfigId: "local-codex",
+          model: "gpt-5.6",
+          firstOutputTimeoutSeconds: 45,
+        }}
+        onChange={handleChange}
+        onRuntimeChange={vi.fn()}
+      />,
+    );
+
+    await user.click(screen.getByTestId("agent-execution-picker-trigger"));
+    const input = screen.getByLabelText("First output timeout");
+    await user.clear(input);
+    await user.type(input, "180");
+    await user.tab();
+
+    expect(handleChange).toHaveBeenLastCalledWith(
+      expect.objectContaining({ firstOutputTimeoutSeconds: 180 }),
+    );
+
+    if (!screen.queryByTestId("agent-execution-picker-popover")) {
+      await user.click(screen.getByTestId("agent-execution-picker-trigger"));
+    }
+    const reopenedInput = screen.getByLabelText("First output timeout");
+    await user.clear(reopenedInput);
+    await user.type(reopenedInput, "0");
+    await user.tab();
+    expect(handleChange).toHaveBeenLastCalledWith(
+      expect.objectContaining({ firstOutputTimeoutSeconds: 0 }),
+    );
+  });
 });

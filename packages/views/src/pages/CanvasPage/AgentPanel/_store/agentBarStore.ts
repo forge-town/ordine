@@ -2,6 +2,10 @@ import { createContext, createElement, useContext, useRef, type ReactNode } from
 import { useStore } from "zustand";
 import { createStore, type StoreApi } from "zustand/vanilla";
 import type { ConversationMessageMetadata, PipelineGenerationPlan } from "@repo/schemas";
+import {
+  appendAgentActivity,
+  type AgentActivityEntry,
+} from "../../../../components/AgentActivityFeed";
 
 export type AgentConversationState = "idle" | "thinking" | "streaming" | "done";
 
@@ -24,9 +28,11 @@ export type AgentBarState = {
   sessionGraphSignature: string | null;
   sessionId: string | null;
   streamingAssistantText: string;
+  streamingActivities: AgentActivityEntry[];
   streamingProgress: string | null;
   addMessage: (message: AgentBarMessage) => void;
   appendStreamingAssistantText: (text: string) => void;
+  appendStreamingActivity: (activity: AgentActivityEntry) => void;
   clearMessages: () => void;
   removeMessage: (id: string) => void;
   resetAgentBar: () => void;
@@ -38,6 +44,7 @@ export type AgentBarState = {
   setProposalId: (proposalId: string | null) => void;
   setSession: (sessionId: string, graphSignature: string) => void;
   setStreamingAssistantText: (text: string) => void;
+  setStreamingActivities: (activities: AgentActivityEntry[]) => void;
   setStreamingProgress: (progress: string | null) => void;
 };
 
@@ -82,6 +89,7 @@ export const createAgentBarStore = (pipelineId: string | null = null): AgentBarS
     pipelineId,
     ...initialSessionState,
     streamingAssistantText: "",
+    streamingActivities: [],
     streamingProgress: null,
     addMessage: (message) =>
       set((state) => ({
@@ -90,6 +98,10 @@ export const createAgentBarStore = (pipelineId: string | null = null): AgentBarS
     appendStreamingAssistantText: (text) =>
       set((state) => ({
         streamingAssistantText: `${state.streamingAssistantText}${text}`,
+      })),
+    appendStreamingActivity: (activity) =>
+      set((state) => ({
+        streamingActivities: appendAgentActivity(state.streamingActivities, activity),
       })),
     clearMessages: () => set({ messages: [] }),
     removeMessage: (id) =>
@@ -100,6 +112,7 @@ export const createAgentBarStore = (pipelineId: string | null = null): AgentBarS
         messages: [],
         ...initialSessionState,
         streamingAssistantText: "",
+        streamingActivities: [],
         streamingProgress: null,
       }),
     resetSession: () => set(initialSessionState),
@@ -118,6 +131,7 @@ export const createAgentBarStore = (pipelineId: string | null = null): AgentBarS
     setSession: (sessionId, sessionGraphSignature) =>
       set({ sessionId, sessionGraphSignature, generateProposal: null, proposalId: null }),
     setStreamingAssistantText: (streamingAssistantText) => set({ streamingAssistantText }),
+    setStreamingActivities: (streamingActivities) => set({ streamingActivities }),
     setStreamingProgress: (streamingProgress) => set({ streamingProgress }),
   }));
 

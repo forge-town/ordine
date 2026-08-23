@@ -213,6 +213,7 @@ const run = ({
   model,
   reasoningEffort,
   speed,
+  firstOutputTimeoutMs,
   runtimeConfigId,
   executablePath,
   ssh,
@@ -221,6 +222,7 @@ const run = ({
   runtimeContext,
   getMcpConnectorInjection,
   signal,
+  onRuntimeEvent,
 }: RunSkillExecutorOptions): ResultAsync<string, SkillExecutionError> => {
   const effectiveSystemPrompt = systemPrompt ?? DEFAULT_SKILL_SYSTEM_PROMPT;
   const userPrompt = buildSkillUserPrompt({
@@ -268,11 +270,13 @@ const run = ({
         model,
         reasoningEffort,
         speed,
+        firstOutputTimeoutMs,
         runtimeConfigId,
         executablePath,
         ssh,
         getMcpConnectorInjection,
         signal,
+        onRuntimeEvent,
       });
 
       if (raw.length === 0) {

@@ -38,6 +38,7 @@ const startRunBodySchema = runtimeSelectionBodySchema.extend({
   model: z.string().min(1).optional(),
   reasoningEffort: z.string().min(1).optional(),
   speed: z.string().min(1).optional(),
+  firstOutputTimeoutSeconds: z.number().int().min(0).max(3600).optional(),
   permissionMode: AgentRunPermissionModeSchema.default("full-access"),
   networkAccess: z.boolean().default(true),
   fullAccessConfirmed: z.boolean().default(true),
@@ -172,6 +173,17 @@ pipelineAgentSessionsRoutes.get("/:id", async (c) => {
   }
 
   return c.json(session);
+});
+
+pipelineAgentSessionsRoutes.get("/:id/projection-run", async (c) => {
+  const afterRunId = c.req.query("afterRunId")?.trim();
+  if (!afterRunId) {
+    return c.json({ code: "INVALID_REQUEST", error: "afterRunId is required" }, 400);
+  }
+  const run = await pipelineAgentSessionsService.getProjectionRun(c.req.param("id"), afterRunId);
+  if (!run) return c.body(null, 204);
+
+  return c.json(run);
 });
 
 pipelineAgentSessionsRoutes.post("/:id/messages", async (c) => {

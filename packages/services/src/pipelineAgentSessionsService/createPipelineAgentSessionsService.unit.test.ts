@@ -72,6 +72,7 @@ const mockPipelinesService = {
 const mockRunAgent = vi.fn();
 const mockAgentRunsService = {
   cancel: vi.fn(),
+  getById: vi.fn(),
   getLatestByOwner: vi.fn(),
   start: vi.fn(),
   wait: vi.fn(),
@@ -960,6 +961,7 @@ describe("createPipelineAgentSessionsService", () => {
           model: "anthropic/claude-sonnet-4-5",
           reasoningEffort: "high",
           speed: "priority",
+          firstOutputTimeoutSeconds: 180,
         },
       },
     });
@@ -989,6 +991,7 @@ describe("createPipelineAgentSessionsService", () => {
         model: "anthropic/claude-sonnet-4-5",
         reasoningEffort: "high",
         speed: "priority",
+        firstOutputTimeoutMs: 180_000,
         permissionMode: "full-access",
         networkAccess: true,
         fullAccessConfirmed: true,
@@ -1033,6 +1036,28 @@ describe("createPipelineAgentSessionsService", () => {
     );
   });
 
+  it("exposes only the projection run started after the source planning run", async () => {
+    mockAgentRunsService.getById.mockResolvedValueOnce({
+      id: "run-source",
+      createdAt: "2026-08-24T00:00:00.000Z",
+    });
+    mockAgentRunsService.getLatestByOwner.mockResolvedValueOnce({
+      id: "run-projection",
+      createdAt: "2026-08-24T00:00:01.000Z",
+    });
+    const service = createPipelineAgentSessionsServiceFactory(mockDb as never, {
+      agentRunsService: mockAgentRunsService as never,
+    });
+
+    await expect(service.getProjectionRun("session-1", "run-source")).resolves.toMatchObject({
+      id: "run-projection",
+    });
+    expect(mockAgentRunsService.getLatestByOwner).toHaveBeenCalledWith(
+      "job-agent",
+      "session-1:pipeline-agent-projection",
+    );
+  });
+
   it("cancels durable edit projection and aborts its nested action Agent run", async () => {
     mockSessionsDao.findById.mockResolvedValue({
       id: "session-1",
@@ -1074,6 +1099,14 @@ describe("createPipelineAgentSessionsService", () => {
     const started = await service.startPlanningRun("session-1");
     await vi.waitFor(() => expect(mockPipelinesService.proposeActions).toHaveBeenCalledOnce());
     const nestedSignal = mockPipelinesService.proposeActions.mock.calls[0]?.[0]?.signal;
+    expect(mockPipelinesService.proposeActions).toHaveBeenCalledWith(
+      expect.objectContaining({
+        runtimeId: "runtime-codex",
+        firstOutputTimeoutMs: undefined,
+        jobId: "session-1",
+        agentId: "pipeline-agent-projection",
+      }),
+    );
     expect(nestedSignal).toBeInstanceOf(AbortSignal);
     expect(nestedSignal.aborted).toBe(false);
 

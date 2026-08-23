@@ -128,6 +128,7 @@ const run = ({
   model,
   reasoningEffort,
   speed,
+  firstOutputTimeoutMs,
   runtimeConfigId,
   executablePath,
   extraTools,
@@ -139,6 +140,7 @@ const run = ({
   runtimeContext,
   getMcpConnectorInjection,
   signal,
+  onRuntimeEvent,
 }: PromptExecutorOptions): ResultAsync<string, PromptExecutionError> => {
   if (!prompt?.trim()) {
     return errAsync(new PromptExecutionError("Prompt text is empty"));
@@ -172,12 +174,14 @@ const run = ({
         model,
         reasoningEffort,
         speed,
+        firstOutputTimeoutMs,
         runtimeConfigId,
         executablePath,
         githubToken,
         ssh,
         getMcpConnectorInjection,
         signal,
+        onRuntimeEvent,
       });
       if (onChunk) await onChunk(raw);
 

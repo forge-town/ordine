@@ -6,6 +6,7 @@
  * 生产端与解析端**必须**只引用本文件的常量与编码函数，禁止再写裸字面量。
  */
 
+import type { RuntimeEvent } from "../agent-runtime";
 import type { NodeArtifact } from "../artifact";
 
 /** 所有结构化标记共享的前缀。 */
@@ -16,6 +17,7 @@ export const TRACE_MARKER_PREFIX = "@@";
  * 故解析端用 `startsWith(TRACE_MARKER.x)` 与 `split("::")` 均与历史行为字节级一致。
  */
 export const TRACE_MARKER = {
+  agentEvent: "@@AGENT_EVENT::",
   checkpointResume: "@@CHECKPOINT_RESUME::",
   checkpointWait: "@@CHECKPOINT_WAIT::",
   decisionResolved: "@@DECISION_RESOLVED::",
@@ -47,6 +49,10 @@ export const encodeNodeSkipped = (nodeId: string, reason: string): string =>
 /** LLM 流式内容标记（payload 为 nodeId + 文本）。 */
 export const encodeLlmContent = (nodeId: string, content: string): string =>
   `${TRACE_MARKER.llmContent}${nodeId}::${content}`;
+
+/** Persisted normalized local-CLI activity for a specific Pipeline node. */
+export const encodeAgentEvent = (nodeId: string, event: RuntimeEvent): string =>
+  `${TRACE_MARKER.agentEvent}${nodeId}::${JSON.stringify(event)}`;
 
 /**
  * 节点工件标记（payload 为 nodeId + 单行 JSON）。

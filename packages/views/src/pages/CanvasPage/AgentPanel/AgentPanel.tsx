@@ -16,6 +16,7 @@ import {
 import { createPipelineAgentSessionsClient } from "../../../lib/pipelineAgentSessionsClient";
 import { usePlatform } from "../../../platform";
 import { toastStore } from "../../../store/toastStore";
+import { AgentActivityFeed } from "../../../components/AgentActivityFeed";
 import { useAgentBarStore } from "./_store";
 import { Assistant, MessageTurn, ProposalCard, SuggestionList } from "./messages";
 import type { MessageTurnSubmitInput } from "./messages/MessageTurn";
@@ -70,6 +71,7 @@ export const AgentPanel = ({ onGeneratedPipeline }: AgentPanelProps) => {
     messages,
     resetSession,
     streamingAssistantText,
+    streamingActivities,
     streamingProgress,
     stopConversation,
     submitMessage,
@@ -159,7 +161,13 @@ export const AgentPanel = ({ onGeneratedPipeline }: AgentPanelProps) => {
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages.length, scrollToBottom, streamingAssistantText, streamingProgress]);
+  }, [
+    messages.length,
+    scrollToBottom,
+    streamingActivities,
+    streamingAssistantText,
+    streamingProgress,
+  ]);
 
   const handleMessageSubmit = useCallback(
     ({ content, metadata, runtimeId }: MessageTurnSubmitInput) => {
@@ -190,6 +198,10 @@ export const AgentPanel = ({ onGeneratedPipeline }: AgentPanelProps) => {
           : {}),
         ...(executionChoice?.runtimeConfigId === runtimeId && executionChoice.speed
           ? { speed: executionChoice.speed }
+          : {}),
+        ...(executionChoice?.runtimeConfigId === runtimeId &&
+        executionChoice.firstOutputTimeoutSeconds !== undefined
+          ? { firstOutputTimeoutSeconds: executionChoice.firstOutputTimeoutSeconds }
           : {}),
       }).finally(() => {
         sendInFlightRef.current = false;
@@ -255,6 +267,9 @@ export const AgentPanel = ({ onGeneratedPipeline }: AgentPanelProps) => {
             ? { reasoningEffort: executionChoice.reasoningEffort }
             : {}),
           ...(executionChoice.speed ? { speed: executionChoice.speed } : {}),
+          ...(executionChoice.firstOutputTimeoutSeconds === undefined
+            ? {}
+            : { firstOutputTimeoutSeconds: executionChoice.firstOutputTimeoutSeconds }),
         });
       } finally {
         sendInFlightRef.current = false;
@@ -302,6 +317,9 @@ export const AgentPanel = ({ onGeneratedPipeline }: AgentPanelProps) => {
           ...(pending.model ? { model: pending.model } : {}),
           ...(pending.reasoningEffort ? { reasoningEffort: pending.reasoningEffort } : {}),
           ...(pending.speed ? { speed: pending.speed } : {}),
+          ...(pending.firstOutputTimeoutSeconds === undefined
+            ? {}
+            : { firstOutputTimeoutSeconds: pending.firstOutputTimeoutSeconds }),
         }
       : null;
     if (!pendingChoice) {
@@ -319,6 +337,9 @@ export const AgentPanel = ({ onGeneratedPipeline }: AgentPanelProps) => {
       ...(pendingChoice.model ? { model: pendingChoice.model } : {}),
       ...(pendingChoice.reasoningEffort ? { reasoningEffort: pendingChoice.reasoningEffort } : {}),
       ...(pendingChoice.speed ? { speed: pendingChoice.speed } : {}),
+      ...(pendingChoice.firstOutputTimeoutSeconds === undefined
+        ? {}
+        : { firstOutputTimeoutSeconds: pendingChoice.firstOutputTimeoutSeconds }),
     }).finally(() => {
       sendInFlightRef.current = false;
       setIsPreparingSend(false);
@@ -625,7 +646,9 @@ export const AgentPanel = ({ onGeneratedPipeline }: AgentPanelProps) => {
           <Assistant className="whitespace-pre-wrap">{streamingAssistantText}</Assistant>
         )}
 
-        {isConversationActive && (
+        <AgentActivityFeed active={isConversationActive} entries={streamingActivities} />
+
+        {isConversationActive && streamingActivities.length === 0 && (
           <Assistant isThinking>{streamingProgress ?? t("canvas.agentPanel.thinking")}</Assistant>
         )}
         <div ref={messagesEndRef} />

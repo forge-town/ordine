@@ -108,6 +108,54 @@ describe("proposeActions", () => {
     vi.mocked(logger.error).mockClear();
   });
 
+  it("forwards the selected runtime controls to the durable projection run", async () => {
+    mockRunProposeAgent.mockResolvedValueOnce({
+      ok: true,
+      json: {
+        reply: "Removed the stale node.",
+        proposal: {
+          summary: "Remove stale node",
+          actions: [{ type: "removeNode", nodeId: "folder-1" }],
+        },
+      },
+    });
+
+    await proposeActions(
+      {
+        agentRuntimesDao: mockAgentRuntimesDao as never,
+        conversationMessagesDao: mockConversationMessagesDao as never,
+        jobsDao: mockJobsDao as never,
+        jobTracesDao: mockJobTracesDao as never,
+        operationsDao: mockOperationsDao as never,
+        settingsDao: mockSettingsDao as never,
+        capabilityCatalog: mockCapabilityCatalog,
+      },
+      {
+        snapshot,
+        message: "Remove the stale node",
+        runtimeId: "runtime-codex",
+        model: "gpt-5.6-sol",
+        reasoningEffort: "xhigh",
+        speed: "priority",
+        firstOutputTimeoutMs: 180_000,
+        jobId: "session-1",
+        agentId: "pipeline-agent-projection",
+      },
+    );
+
+    expect(mockRunProposeAgent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        model: "gpt-5.6-sol",
+        reasoningEffort: "xhigh",
+        speed: "priority",
+        firstOutputTimeoutMs: 180_000,
+        runtimeConfigId: "runtime-codex",
+        jobId: "session-1",
+        agentId: "pipeline-agent-projection",
+      }),
+    );
+  });
+
   it("accepts a catalog-valid updateOperation for an operation in the graph", async () => {
     mockAgentRuntimesDao.findMany.mockResolvedValueOnce([
       {

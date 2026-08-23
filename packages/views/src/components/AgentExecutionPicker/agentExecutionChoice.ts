@@ -10,6 +10,8 @@ export const runtimeCatalogEntryIsSelectable = (entry: AgentRuntimeCatalogEntry)
   entry.availability === "launchable" &&
   entry.runtimeConfigId !== null;
 
+export const DEFAULT_FIRST_OUTPUT_TIMEOUT_SECONDS = 45;
+
 const defaultModelId = (entry: AgentRuntimeCatalogEntry): string | undefined =>
   entry.models.find((model) => model.isDefault)?.id ?? entry.models[0]?.id;
 
@@ -24,12 +26,15 @@ export const executionChoiceForRuntime = (
   const selectedModel = entry.models.find((candidate) => candidate.id === model);
   const reasoningEffort = preference?.reasoningEffort ?? selectedModel?.defaultReasoningEffort;
   const speed = preference?.speed ?? selectedModel?.defaultSpeed;
+  const firstOutputTimeoutSeconds =
+    preference?.firstOutputTimeoutSeconds ?? DEFAULT_FIRST_OUTPUT_TIMEOUT_SECONDS;
 
   return {
     runtimeConfigId: entry.runtimeConfigId,
     ...(model ? { model } : {}),
     ...(reasoningEffort ? { reasoningEffort } : {}),
     ...(speed ? { speed } : {}),
+    firstOutputTimeoutSeconds,
   };
 };
 
@@ -84,5 +89,8 @@ export const changeExecutionModel = (
       ? { reasoningEffort: selectedModel.defaultReasoningEffort }
       : {}),
     ...(selectedModel?.defaultSpeed ? { speed: selectedModel.defaultSpeed } : {}),
+    ...(choice.firstOutputTimeoutSeconds === undefined
+      ? {}
+      : { firstOutputTimeoutSeconds: choice.firstOutputTimeoutSeconds }),
   };
 };

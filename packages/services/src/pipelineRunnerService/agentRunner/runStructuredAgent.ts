@@ -25,6 +25,12 @@ export type RunStructuredAgentOptions = Pick<
   | "logPrefix"
   | "apiKey"
   | "model"
+  | "reasoningEffort"
+  | "speed"
+  | "firstOutputTimeoutMs"
+  | "runtimeConfigId"
+  | "jobId"
+  | "onRuntimeEvent"
   | "ssh"
   | "signal"
 > & {
@@ -56,6 +62,12 @@ export const runStructuredAgent = async (
           logPrefix,
           apiKey: opts.apiKey,
           model: opts.model,
+          reasoningEffort: opts.reasoningEffort,
+          speed: opts.speed,
+          firstOutputTimeoutMs: opts.firstOutputTimeoutMs,
+          runtimeConfigId: opts.runtimeConfigId,
+          jobId: opts.jobId,
+          onRuntimeEvent: opts.onRuntimeEvent,
           ssh: opts.ssh,
           signal: opts.signal,
         }),

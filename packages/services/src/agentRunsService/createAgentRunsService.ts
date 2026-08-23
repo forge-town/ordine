@@ -147,17 +147,28 @@ const mergeUsage = (current: AgentRunUsage | null, event: RuntimeEvent): AgentRu
 const terminalStatusForAbort = (reason: AbortReason | null): TerminalAgentRunStatus =>
   reason === "first_output_timeout" || reason === "inactivity_timeout" ? "timed_out" : "cancelled";
 
-const abortError = (reason: AbortReason): { code: string; message: string } => {
+const formatTimeout = (milliseconds: number): string => {
+  const seconds = Math.round(milliseconds / 1000);
+  if (seconds % 60 === 0) return `${seconds / 60} minute${seconds === 60 ? "" : "s"}`;
+
+  return `${seconds} seconds`;
+};
+
+const abortError = (
+  reason: AbortReason,
+  firstOutputTimeoutMs: number,
+  inactivityTimeoutMs: number,
+): { code: string; message: string } => {
   if (reason === "first_output_timeout") {
     return {
       code: "AGENT_FIRST_OUTPUT_TIMEOUT",
-      message: "Agent produced no model output within 45 seconds",
+      message: `Agent produced no model output within ${formatTimeout(firstOutputTimeoutMs)}`,
     };
   }
   if (reason === "inactivity_timeout") {
     return {
       code: "AGENT_INACTIVITY_TIMEOUT",
-      message: "Agent produced no activity for 10 minutes",
+      message: `Agent produced no activity for ${formatTimeout(inactivityTimeoutMs)}`,
     };
   }
 
@@ -345,11 +356,12 @@ export const createAgentRunsService = (
     transient: AgentRunTransientOptions,
   ): Promise<AgentRun> => {
     const runtime = runtimeConfig.type;
+    const effectiveFirstOutputTimeoutMs = request.firstOutputTimeoutMs ?? firstOutputTimeoutMs;
     const resolvedResult = await ResultAsync.fromPromise(resolveRuntime(runtimeConfig), toError);
     if (resolvedResult.isErr()) {
       if (active.controller.signal.aborted) {
         const reason = active.abortReason ?? "user_cancel";
-        const error = abortError(reason);
+        const error = abortError(reason, effectiveFirstOutputTimeoutMs, inactivityTimeoutMs);
 
         return finishRun({
           runId,
@@ -395,7 +407,7 @@ export const createAgentRunsService = (
     });
     if (active.controller.signal.aborted) {
       const reason = active.abortReason ?? "user_cancel";
-      const error = abortError(reason);
+      const error = abortError(reason, effectiveFirstOutputTimeoutMs, inactivityTimeoutMs);
 
       return finishRun({
         runId,
@@ -424,9 +436,14 @@ export const createAgentRunsService = (
     };
     const resetFirstOutputTimer = (): void => {
       if (state.firstOutputTimer) clearTimeout(state.firstOutputTimer);
+      if (effectiveFirstOutputTimeoutMs === 0) {
+        state.firstOutputTimer = undefined;
+
+        return;
+      }
       state.firstOutputTimer = setTimeout(
         () => abortFor("first_output_timeout"),
-        firstOutputTimeoutMs,
+        effectiveFirstOutputTimeoutMs,
       );
     };
     const resetInactivityTimer = (): void => {
@@ -596,7 +613,7 @@ export const createAgentRunsService = (
     clearTimers();
     if (active.controller.signal.aborted) {
       const reason = active.abortReason ?? "user_cancel";
-      const error = abortError(reason);
+      const error = abortError(reason, effectiveFirstOutputTimeoutMs, inactivityTimeoutMs);
 
       return finishRun({
         runId,

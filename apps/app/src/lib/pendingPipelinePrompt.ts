@@ -9,6 +9,7 @@ export interface PendingPipelinePrompt {
   model?: string;
   reasoningEffort?: string;
   speed?: string;
+  firstOutputTimeoutSeconds?: number;
 }
 
 /**
@@ -36,6 +37,9 @@ export const savePendingPipelinePrompt = (
               ? { reasoningEffort: executionChoice.reasoningEffort }
               : {}),
             ...(executionChoice.speed ? { speed: executionChoice.speed } : {}),
+            ...(executionChoice.firstOutputTimeoutSeconds === undefined
+              ? {}
+              : { firstOutputTimeoutSeconds: executionChoice.firstOutputTimeoutSeconds }),
           }
         : {}),
     } satisfies PendingPipelinePrompt),
@@ -79,6 +83,9 @@ export const takePendingPipelinePrompt = (): PendingPipelinePrompt | null => {
         : {}),
       ...(typeof parsed.speed === "string" && parsed.speed.length > 0
         ? { speed: parsed.speed }
+        : {}),
+      ...(typeof parsed.firstOutputTimeoutSeconds === "number"
+        ? { firstOutputTimeoutSeconds: parsed.firstOutputTimeoutSeconds }
         : {}),
     };
   }

@@ -63,6 +63,7 @@ const runPipelineBodySchema = z.object({
   model: z.string().min(1).optional(),
   reasoningEffort: z.string().min(1).optional(),
   speed: z.string().min(1).optional(),
+  firstOutputTimeoutSeconds: z.number().int().min(0).max(3600).optional(),
 });
 
 pipelinesRoutes.get("/", async (c) => {
@@ -194,6 +195,10 @@ pipelinesRoutes.post("/:id/run", async (c) => {
     model: parsed.data.model,
     reasoningEffort: parsed.data.reasoningEffort,
     speed: parsed.data.speed,
+    firstOutputTimeoutMs:
+      parsed.data.firstOutputTimeoutSeconds === undefined
+        ? undefined
+        : parsed.data.firstOutputTimeoutSeconds * 1000,
   });
 
   if (result.isErr()) {

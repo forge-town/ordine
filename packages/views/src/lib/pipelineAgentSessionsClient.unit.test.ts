@@ -117,6 +117,7 @@ describe("createPipelineAgentSessionsClient", () => {
       .fn()
       .mockResolvedValueOnce(new Response(JSON.stringify({ runId: "run-1" })))
       .mockResolvedValueOnce(createStreamResponse(terminalEvent))
+      .mockResolvedValueOnce(new Response(null, { status: 204 }))
       .mockResolvedValueOnce(
         new Response(
           JSON.stringify({
@@ -129,6 +130,7 @@ describe("createPipelineAgentSessionsClient", () => {
           }),
         ),
       )
+      .mockResolvedValueOnce(new Response(null, { status: 204 }))
       .mockResolvedValueOnce(
         new Response(
           JSON.stringify({
@@ -167,6 +169,6 @@ describe("createPipelineAgentSessionsClient", () => {
     expect(onEvent).not.toHaveBeenCalledWith(
       expect.objectContaining({ code: "AGENT_RUN_PROJECTION_TIMEOUT" }),
     );
-    expect(request).toHaveBeenCalledTimes(4);
+    expect(request).toHaveBeenCalledTimes(6);
   });
 });

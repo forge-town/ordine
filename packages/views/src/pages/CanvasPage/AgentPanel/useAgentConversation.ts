@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ResultAsync } from "neverthrow";
 import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
+import type { AgentActivityEntry } from "../../../components/AgentActivityFeed";
 import type { ConversationMessageMetadata, PipelineActionProposal } from "@repo/schemas";
 import { useCanvasPageStore } from "../_store";
 import {
@@ -30,6 +31,7 @@ export type AgentConversationSubmitInput = {
   model?: string;
   reasoningEffort?: string;
   speed?: string;
+  firstOutputTimeoutSeconds?: number;
 };
 
 type GraphSignatureEdge = {
@@ -38,6 +40,73 @@ type GraphSignatureEdge = {
   target: string;
   sourceHandle?: string | null;
   targetHandle?: string | null;
+};
+
+const planEventToActivity = (event: PipelineAgentPlanEvent): AgentActivityEntry | null => {
+  const timestamp = new Date().toISOString();
+  if (event.type === "phase") {
+    return { id: `phase-${timestamp}`, kind: "status", title: event.phase, timestamp };
+  }
+  if (event.type === "progress") {
+    return { id: `progress-${timestamp}`, kind: "status", title: event.message, timestamp };
+  }
+  if (event.type === "thinking") {
+    return {
+      id: "thinking",
+      kind: "thinking",
+      title: "Reasoning",
+      detail: event.text,
+      timestamp,
+    };
+  }
+  if (event.type === "tool") {
+    return {
+      id: `tool-${event.id}`,
+      kind: "tool",
+      title: `${event.name ?? event.id} · ${event.status ?? event.phase}`,
+      ...(event.output === undefined
+        ? {}
+        : {
+            detail:
+              typeof event.output === "string"
+                ? event.output
+                : JSON.stringify(event.output, null, 2),
+          }),
+      timestamp,
+    };
+  }
+  if (event.type === "diagnostic") {
+    return {
+      id: `diagnostic-${timestamp}-${event.code}`,
+      kind: "diagnostic",
+      title: event.code,
+      detail: event.message,
+      timestamp,
+    };
+  }
+  if (event.type === "retry") {
+    return {
+      id: `retry-${timestamp}`,
+      kind: "retry",
+      title: `Retry ${event.phase}`,
+      detail: event.message,
+      timestamp,
+    };
+  }
+  if (event.type === "usage") {
+    return {
+      id: "usage",
+      kind: "usage",
+      title: "Usage",
+      detail: `input ${event.inputTokens ?? "—"} · output ${event.outputTokens ?? "—"}`,
+      timestamp,
+    };
+  }
+  if (event.type === "terminal") {
+    return { id: "terminal", kind: "terminal", title: `Run ${event.status}`, timestamp };
+  }
+
+  return null;
 };
 
 type GraphSignatureNode = {
@@ -102,6 +171,7 @@ export const useAgentConversation = ({
   const messages = useAgentBarStore((state) => state.messages);
   const streamingAssistantText = useAgentBarStore((state) => state.streamingAssistantText);
   const streamingProgress = useAgentBarStore((state) => state.streamingProgress);
+  const streamingActivities = useAgentBarStore((state) => state.streamingActivities);
   const generateSession = useMemo(
     () => !pipelineId || Boolean(loadGenerateSessionId()) || hasPendingPipelinePrompt(),
     [pipelineId],
@@ -338,6 +408,8 @@ export const useAgentConversation = ({
   const handlePlanEvent = useCallback(
     (event: PipelineAgentPlanEvent): Promise<boolean> | null => {
       const state = agentBarStore.getState();
+      const activity = planEventToActivity(event);
+      if (activity) state.appendStreamingActivity(activity);
 
       if (event.type === "phase") {
         state.setConversationState("thinking");
@@ -500,6 +572,7 @@ export const useAgentConversation = ({
       model,
       reasoningEffort,
       speed,
+      firstOutputTimeoutSeconds,
     }: AgentConversationSubmitInput) => {
       const trimmedContent = content.trim();
       if (
@@ -518,6 +591,7 @@ export const useAgentConversation = ({
       state.setGenerateProposal(null);
       state.setConversationState("thinking");
       state.setStreamingAssistantText("");
+      state.setStreamingActivities([]);
       state.setStreamingProgress(null);
       const abortController = new AbortController();
       activeRequestAbortRef.current = abortController;
@@ -554,6 +628,7 @@ export const useAgentConversation = ({
             ...(model ? { model } : {}),
             ...(reasoningEffort ? { reasoningEffort } : {}),
             ...(speed ? { speed } : {}),
+            ...(firstOutputTimeoutSeconds === undefined ? {} : { firstOutputTimeoutSeconds }),
             signal: abortController.signal,
             onEvent: (event) => {
               if (
@@ -684,6 +759,12 @@ export const useAgentConversation = ({
       return false;
     }
     activeRequestAbortRef.current = null;
+    state.appendStreamingActivity({
+      id: "terminal",
+      kind: "terminal",
+      title: t("canvas.agentPanel.runStopped"),
+      timestamp: new Date().toISOString(),
+    });
     await finishWithAssistantMessage(t("canvas.agentPanel.runStopped"));
     setIsStopping(false);
 
@@ -819,6 +900,7 @@ export const useAgentConversation = ({
     messages,
     resetSession: agentBarStore.getState().resetSession,
     streamingAssistantText,
+    streamingActivities,
     streamingProgress,
     stopConversation,
     submitMessage,

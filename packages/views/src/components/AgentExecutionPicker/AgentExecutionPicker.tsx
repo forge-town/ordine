@@ -1,12 +1,16 @@
 import { Bot, Check, ChevronDown, ExternalLink, Gauge, Settings2 } from "lucide-react";
-import type { MouseEvent } from "react";
+import { useEffect, useState, type MouseEvent } from "react";
 import { useTranslation } from "react-i18next";
 import type { AgentExecutionChoice, AgentRuntimeCatalogEntry } from "@repo/schemas";
 import { Button } from "@repo/ui/button";
 import { cn } from "@repo/ui/lib/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "@repo/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@repo/ui/select";
-import { changeExecutionModel, runtimeCatalogEntryIsSelectable } from "./agentExecutionChoice";
+import {
+  changeExecutionModel,
+  DEFAULT_FIRST_OUTPUT_TIMEOUT_SECONDS,
+  runtimeCatalogEntryIsSelectable,
+} from "./agentExecutionChoice";
 import { SearchableModelSelect } from "./SearchableModelSelect";
 
 interface AgentExecutionPickerProps {
@@ -39,6 +43,14 @@ export const AgentExecutionPicker = ({
   const currentModel = currentEntry?.models.find((model) => model.id === choice?.model);
   const reasoningOptions = currentModel?.reasoningEfforts ?? [];
   const speedOptions = currentModel?.speeds ?? [];
+  const [timeoutDraft, setTimeoutDraft] = useState(
+    String(choice?.firstOutputTimeoutSeconds ?? DEFAULT_FIRST_OUTPUT_TIMEOUT_SECONDS),
+  );
+  useEffect(() => {
+    setTimeoutDraft(
+      String(choice?.firstOutputTimeoutSeconds ?? DEFAULT_FIRST_OUTPUT_TIMEOUT_SECONDS),
+    );
+  }, [choice?.firstOutputTimeoutSeconds, choice?.runtimeConfigId]);
   const isolationLabel =
     currentEntry?.runtime === "codex"
       ? t("agentExecutionPicker.nativeSandbox")
@@ -60,6 +72,15 @@ export const AgentExecutionPicker = ({
   };
   const handleSpeedChange = (speed: string | null) => {
     if (choice && speed) handleChange({ ...choice, speed });
+  };
+  const commitTimeout = () => {
+    if (!choice) return;
+    const parsed = Number(timeoutDraft);
+    const seconds = Number.isFinite(parsed) ? Math.min(3600, Math.max(0, Math.round(parsed))) : 45;
+    setTimeoutDraft(String(seconds));
+    if (seconds !== choice.firstOutputTimeoutSeconds) {
+      handleChange({ ...choice, firstOutputTimeoutSeconds: seconds });
+    }
   };
 
   return (
@@ -217,6 +238,33 @@ export const AgentExecutionPicker = ({
                 </Select>
               </div>
             )}
+            <div className="grid grid-cols-[5rem_minmax(0,1fr)] items-center gap-2">
+              <span className="text-[11px] text-muted-foreground">
+                {t("agentExecutionPicker.firstOutputTimeout")}
+              </span>
+              <div className="flex items-center gap-2">
+                <input
+                  aria-label={t("agentExecutionPicker.firstOutputTimeout")}
+                  className="h-8 min-w-0 flex-1 rounded-md border border-border bg-background px-2 text-xs text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  inputMode="numeric"
+                  max={3600}
+                  min={0}
+                  type="number"
+                  value={timeoutDraft}
+                  onBlur={commitTimeout}
+                  onChange={(event) => setTimeoutDraft(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter") event.currentTarget.blur();
+                  }}
+                />
+                <span className="shrink-0 text-[10.5px] text-muted-foreground">
+                  {t("agentExecutionPicker.seconds")}
+                </span>
+              </div>
+              <span className="col-start-2 text-[10px] leading-4 text-muted-foreground">
+                {t("agentExecutionPicker.firstOutputTimeoutHint")}
+              </span>
+            </div>
             <div className="flex items-start gap-2 rounded-lg bg-surface-2 px-2.5 py-2 text-[10.5px] leading-4 text-muted-foreground">
               <Gauge className="mt-0.5 size-3.5 shrink-0" />
               <span>{isolationLabel}</span>

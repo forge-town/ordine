@@ -61,6 +61,7 @@ describe("createAgentRunController", () => {
       cwd: "C:\\workspace",
       jobId: "job-1",
       agentId: "agent-1",
+      firstOutputTimeoutMs: 180_000,
       onRuntimeEvent,
       onTextDelta,
     });
@@ -72,6 +73,7 @@ describe("createAgentRunController", () => {
         permissionMode: "full-access",
         networkAccess: true,
         fullAccessConfirmed: true,
+        firstOutputTimeoutMs: 180_000,
       }),
       expect.any(Object),
     );

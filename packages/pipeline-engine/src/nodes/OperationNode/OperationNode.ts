@@ -1,10 +1,12 @@
 import {
+  encodeAgentEvent,
   encodeLlmContent,
   encodeNodeArtifact,
   encodeNodeDone,
   encodeNodeFail,
   type OperationExecutorConfig,
   type PipelineNode,
+  type RuntimeEvent,
 } from "@repo/schemas";
 import type { NodeCtx, OperationRuntimeContext } from "../../schemas";
 import { trace } from "@repo/obs";
@@ -165,6 +167,11 @@ export const executeOperationNode = async (
     await trace(jobId, line);
   };
 
+  const onRuntimeEvent = async (event: RuntimeEvent) => {
+    if (event.type === "message" || event.type === "text_delta") return;
+    await trace(jobId, encodeAgentEvent(node.id, event));
+  };
+
   const effectiveInput = input.content;
 
   const opResult = { value: "" };
@@ -204,6 +211,7 @@ export const executeOperationNode = async (
       ...(effectiveModel ? { model: effectiveModel } : {}),
       onChunk: handleChunk,
       onProgress,
+      onRuntimeEvent,
       allowedTools: executor.allowedTools,
       extraTools: extraTools.length > 0 ? extraTools : undefined,
       githubToken: input.githubRemote ? ctx.githubToken : undefined,
@@ -262,6 +270,7 @@ export const executeOperationNode = async (
       allowedTools: executor.allowedTools,
       onChunk: handleChunk,
       onProgress,
+      onRuntimeEvent,
       outputItems: config.outputs.length > 0 ? config.outputs : undefined,
       outputDir: ctx.outputDir,
     });

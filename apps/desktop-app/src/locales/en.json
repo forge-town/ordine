@@ -1,4 +1,7 @@
 {
+  "agentActivity": {
+    "title": "CLI activity"
+  },
   "common": {
     "startTime": "Start Time",
     "endTime": "End Time",

@@ -11,6 +11,12 @@ export type RunProposeAgentOptions = {
   agent: Parameters<typeof runStructuredAgent>[0]["agent"];
   apiKey?: string;
   model?: string;
+  reasoningEffort?: string;
+  speed?: string;
+  firstOutputTimeoutMs?: number;
+  runtimeConfigId?: string;
+  jobId?: string;
+  onRuntimeEvent?: Parameters<typeof runStructuredAgent>[0]["onRuntimeEvent"];
   signal?: AbortSignal;
   ssh?: Parameters<typeof runStructuredAgent>[0]["ssh"];
   userPrompt: string;
@@ -40,6 +46,12 @@ export const runProposeAgent = (opts: RunProposeAgentOptions): Promise<RunPropos
     logPrefix: opts.logPrefix ?? "proposeActions",
     apiKey: opts.apiKey,
     model: opts.model,
+    reasoningEffort: opts.reasoningEffort,
+    speed: opts.speed,
+    firstOutputTimeoutMs: opts.firstOutputTimeoutMs,
+    runtimeConfigId: opts.runtimeConfigId,
+    jobId: opts.jobId,
+    onRuntimeEvent: opts.onRuntimeEvent,
     signal: opts.signal,
     ssh: opts.ssh,
   });
