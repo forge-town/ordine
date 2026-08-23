@@ -1,0 +1,4 @@
+/runtime/
+/runtime-opencode-rerun/
+/mcp/*
+!/mcp/mcp-acceptance.json
