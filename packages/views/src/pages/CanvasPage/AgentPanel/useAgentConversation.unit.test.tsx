@@ -15,6 +15,8 @@ const mocks = vi.hoisted(() => ({
   generatePipelineFromApprovedProposal: vi.fn(),
   getLatestAssistantQuestion: vi.fn(),
   getLatestReadyProposal: vi.fn(),
+  getLatestSessionForPipeline: vi.fn(),
+  getSessionById: vi.fn(),
   isHistoryLoading: false,
   planSessionStream: vi.fn(),
   sendMessage: vi.fn(),
@@ -31,6 +33,8 @@ vi.mock("../../../lib/pipelineAgentSessionsClient", () => ({
     createSession: (...args: unknown[]) => mocks.createSession(...args),
     getLatestAssistantQuestion: (...args: unknown[]) => mocks.getLatestAssistantQuestion(...args),
     getLatestReadyProposal: (...args: unknown[]) => mocks.getLatestReadyProposal(...args),
+    getLatestSessionForPipeline: (...args: unknown[]) => mocks.getLatestSessionForPipeline(...args),
+    getSessionById: (...args: unknown[]) => mocks.getSessionById(...args),
     generatePipelineFromApprovedProposal: (...args: unknown[]) =>
       mocks.generatePipelineFromApprovedProposal(...args),
     planSessionStream: (...args: unknown[]) => mocks.planSessionStream(...args),
@@ -134,6 +138,7 @@ const ApplyGenerateProposalHarness = ({
 describe("useAgentConversation", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    globalThis.sessionStorage.clear();
     mocks.isHistoryLoading = false;
     mocks.createSession.mockResolvedValue({
       entrypoint: "canvas-agent-panel",
@@ -146,7 +151,10 @@ describe("useAgentConversation", () => {
     mocks.generatePipelineFromApprovedProposal.mockResolvedValue({ pipelineId: "pipeline-new" });
     mocks.getLatestAssistantQuestion.mockResolvedValue(null);
     mocks.getLatestReadyProposal.mockResolvedValue(null);
+    mocks.getLatestSessionForPipeline.mockResolvedValue(null);
+    mocks.getSessionById.mockResolvedValue(null);
     mocks.sendMessage.mockResolvedValue({ id: "persisted-message" });
+    store.getState().clearPendingProposal();
   });
 
   it("transitions idle to thinking to streaming to done while processing SSE events", async () => {
@@ -244,6 +252,48 @@ describe("useAgentConversation", () => {
       expect(screen.getByTestId("session-b")).toHaveTextContent("session-1");
     });
     expect(mocks.createSession).toHaveBeenCalledTimes(1);
+  });
+
+  it("restores an edit proposal that became ready after the stream returned", async () => {
+    mocks.getLatestSessionForPipeline.mockResolvedValue({
+      entrypoint: "canvas-agent-panel",
+      id: "session-late",
+      mode: "edit",
+      pipelineId: "pipe-1",
+      snapshot: {
+        edges: store.getState().edges,
+        nodes: store.getState().nodes,
+      },
+      status: "proposal_ready",
+    });
+    mocks.getLatestReadyProposal.mockResolvedValue({
+      proposalId: "proposal-late",
+      proposal: {
+        mode: "edit",
+        summary: "Run generators concurrently",
+        targetGraphIntent: "Fan out and merge",
+        majorChanges: ["Add parallel generators"],
+        assumptions: [],
+        openQuestions: [],
+        actions: [{ type: "removeNode", nodeId: "obsolete-generator" }],
+        diagnosticsPreview: [],
+        pendingOperations: [],
+        readiness: "ready_for_generation",
+      },
+    });
+
+    render(<Harness />, { wrapper: Wrapper });
+
+    await waitFor(() => {
+      expect(mocks.getLatestSessionForPipeline).toHaveBeenCalledWith("pipe-1");
+      expect(mocks.getLatestReadyProposal).toHaveBeenCalledWith("session-late", "edit");
+      expect(store.getState().agentPanel.pendingProposal).toEqual({
+        actions: [{ type: "removeNode", nodeId: "obsolete-generator" }],
+        openQuestions: [],
+        readiness: "ready_for_generation",
+        summary: "Run generators concurrently",
+      });
+    });
   });
 
   it("shows a specific generation status and clears it before opening the created pipeline", async () => {

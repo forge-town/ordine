@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { pipelineAgentSessionsTable } from "@repo/db-schema";
 import type { DbExecutor } from "../../types";
 
@@ -10,6 +10,22 @@ export class PipelineAgentSessionsDao {
       .select()
       .from(pipelineAgentSessionsTable)
       .where(eq(pipelineAgentSessionsTable.id, id))
+      .limit(1);
+
+    return rows[0];
+  }
+
+  async findLatestEditByPipelineId(pipelineId: string) {
+    const rows = await this.executor
+      .select()
+      .from(pipelineAgentSessionsTable)
+      .where(
+        and(
+          eq(pipelineAgentSessionsTable.pipelineId, pipelineId),
+          eq(pipelineAgentSessionsTable.mode, "edit"),
+        ),
+      )
+      .orderBy(desc(pipelineAgentSessionsTable.updatedAt))
       .limit(1);
 
     return rows[0];

@@ -29,6 +29,7 @@ const mockGetOne = vi.fn();
 const mockGetList = vi.fn();
 const mockCreateSession = vi.fn();
 const mockGetSessionById = vi.fn();
+const mockGetLatestSessionForPipeline = vi.fn();
 const mockAppendMessage = vi.fn();
 const mockUploadAttachment = vi.fn();
 const mockPlanSessionStream = vi.fn();
@@ -75,6 +76,7 @@ vi.mock("../../../lib/pipelineAgentSessionsClient", () => ({
     approveProposal: (...args: unknown[]) => mockApproveProposal(...args),
     createSession: (...args: unknown[]) => mockCreateSession(...args),
     getSessionById: (...args: unknown[]) => mockGetSessionById(...args),
+    getLatestSessionForPipeline: (...args: unknown[]) => mockGetLatestSessionForPipeline(...args),
     getLatestAssistantQuestion: (...args: unknown[]) => mockGetLatestAssistantQuestion(...args),
     getLatestReadyProposal: (...args: unknown[]) => mockGetLatestReadyProposal(...args),
     planSessionStream: (...args: unknown[]) => mockPlanSessionStream(...args),
@@ -233,6 +235,7 @@ describe("AgentPanel", () => {
       status: "draft",
     });
     mockGetSessionById.mockResolvedValue(null);
+    mockGetLatestSessionForPipeline.mockResolvedValue(null);
     mockAppendMessage.mockResolvedValue({
       id: "message-1",
       sessionId: "session-1",

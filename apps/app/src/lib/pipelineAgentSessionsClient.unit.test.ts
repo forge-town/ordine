@@ -25,6 +25,7 @@ const createStreamResponse = (chunks: string[]) => {
 
 describe("pipelineAgentSessionsClient.planSessionStream", () => {
   afterEach(() => {
+    vi.useRealTimers();
     globalThis.fetch = originalFetch;
     globalThis.window.localStorage.clear();
     vi.restoreAllMocks();
@@ -68,6 +69,18 @@ describe("pipelineAgentSessionsClient.planSessionStream", () => {
             },
           },
         ],
+      }),
+    );
+
+  const sessionAwaitingProjection = () =>
+    new Response(
+      JSON.stringify({
+        id: "session-1",
+        entrypoint: "new-pipeline-dialog",
+        mode: "generate",
+        status: "analyzing",
+        latestProposalId: null,
+        proposals: [],
       }),
     );
 
@@ -131,7 +144,8 @@ describe("pipelineAgentSessionsClient.planSessionStream", () => {
       },
       proposalId: "proposal-1",
     });
-    expect(onEvent).toHaveBeenCalledTimes(7);
+    expect(onEvent).toHaveBeenCalledWith({ type: "phase", phase: "finalizing" });
+    expect(onEvent).toHaveBeenCalledTimes(8);
     expect(globalThis.fetch).toHaveBeenNthCalledWith(
       1,
       "http://localhost:3000/api/pipeline-agent-sessions/session-1/runs",
@@ -144,6 +158,32 @@ describe("pipelineAgentSessionsClient.planSessionStream", () => {
       reasoningEffort: "high",
       speed: "priority",
     });
+  });
+
+  it("waits for a proposal that is persisted after the agent run completes", async () => {
+    vi.useFakeTimers();
+    const onEvent = vi.fn();
+    globalThis.fetch = vi
+      .fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify({ runId: "run-1" })))
+      .mockResolvedValueOnce(
+        createStreamResponse([runtimeEvent(1, { type: "terminal", status: "completed" })]),
+      )
+      .mockResolvedValueOnce(sessionAwaitingProjection())
+      .mockResolvedValueOnce(sessionWithProposal()) as typeof fetch;
+
+    const planning = pipelineAgentSessionsClient.planSessionStream("session-1", { onEvent });
+    await vi.runAllTimersAsync();
+    await planning;
+
+    expect(onEvent).toHaveBeenCalledWith({ type: "phase", phase: "finalizing" });
+    expect(onEvent).toHaveBeenCalledWith(
+      expect.objectContaining({ type: "proposal_ready", proposalId: "proposal-1" }),
+    );
+    expect(onEvent).not.toHaveBeenCalledWith(
+      expect.objectContaining({ code: "AGENT_RUN_PROJECTION_TIMEOUT" }),
+    );
+    expect(globalThis.fetch).toHaveBeenCalledTimes(4);
   });
 
   it("flushes a terminal event without a final delimiter and restores the saved question", async () => {

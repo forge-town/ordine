@@ -925,6 +925,7 @@
       },
       "thinking": "思考中...",
       "generatingPipeline": "正在创建 Pipeline，通常需要约 1 分钟…",
+      "finalizingProposal": "正在整理可应用的画布操作…",
       "proposal": "操作建议",
       "proposalReceived": "已收到操作建议，请查看并决定是否应用。",
       "noProposal": "已处理你的请求，但没有生成操作建议。",
