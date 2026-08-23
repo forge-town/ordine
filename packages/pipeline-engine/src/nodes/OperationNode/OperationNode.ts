@@ -1,5 +1,6 @@
 import {
   encodeAgentEvent,
+  encodeAgentRun,
   encodeLlmContent,
   encodeNodeArtifact,
   encodeNodeDone,
@@ -167,8 +168,15 @@ export const executeOperationNode = async (
     await trace(jobId, line);
   };
 
+  const agentRunState = { persistent: false };
+  const onAgentRunStarted = async (runId: string) => {
+    agentRunState.persistent = true;
+    await trace(jobId, encodeAgentRun(node.id, runId));
+  };
+
   const onRuntimeEvent = async (event: RuntimeEvent) => {
     if (event.type === "message" || event.type === "text_delta") return;
+    if (agentRunState.persistent) return;
     await trace(jobId, encodeAgentEvent(node.id, event));
   };
 
@@ -212,6 +220,7 @@ export const executeOperationNode = async (
       onChunk: handleChunk,
       onProgress,
       onRuntimeEvent,
+      onAgentRunStarted,
       allowedTools: executor.allowedTools,
       extraTools: extraTools.length > 0 ? extraTools : undefined,
       githubToken: input.githubRemote ? ctx.githubToken : undefined,
@@ -271,6 +280,7 @@ export const executeOperationNode = async (
       onChunk: handleChunk,
       onProgress,
       onRuntimeEvent,
+      onAgentRunStarted,
       outputItems: config.outputs.length > 0 ? config.outputs : undefined,
       outputDir: ctx.outputDir,
     });

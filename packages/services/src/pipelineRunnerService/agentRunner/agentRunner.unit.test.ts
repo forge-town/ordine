@@ -41,6 +41,18 @@ describe("runAgent", () => {
     expect(result).toBe("output");
   });
 
+  it("uses an explicitly injected persistent run controller", async () => {
+    const agentRunController = vi.fn().mockResolvedValue({ text: "persistent", usage: null });
+
+    const result = await runAgent({ ...baseOpts, agentRunController });
+
+    expect(result).toBe("persistent");
+    expect(agentRunController).toHaveBeenCalledWith(
+      expect.objectContaining({ agent: "claude-code", agentId: "test-agent" }),
+    );
+    expect(agentEngine.run).not.toHaveBeenCalled();
+  });
+
   it("forwards all options to agentEngine", async () => {
     const controller = new AbortController();
     await runAgent({

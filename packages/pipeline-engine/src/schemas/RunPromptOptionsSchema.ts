@@ -1,6 +1,6 @@
 import { z } from "zod/v4";
 
-import { AgentRuntimeSchema, OutputItemSchema } from "@repo/schemas";
+import { AgentRuntimeSchema, OutputItemSchema, type RuntimeEvent } from "@repo/schemas";
 import { OperationRuntimeContextSchema } from "./OperationRuntimeContextSchema";
 
 export const RunPromptOptionsSchema = z.object({
@@ -26,5 +26,6 @@ export const RunPromptOptionsSchema = z.object({
 export type RunPromptOptions = z.infer<typeof RunPromptOptionsSchema> & {
   onChunk?: (accumulated: string) => Promise<void>;
   onProgress?: (line: string) => Promise<void>;
-  onRuntimeEvent?: (event: import("@repo/schemas").RuntimeEvent) => Promise<void>;
+  onRuntimeEvent?: (event: RuntimeEvent) => Promise<void>;
+  onAgentRunStarted?: (runId: string) => Promise<void>;
 };

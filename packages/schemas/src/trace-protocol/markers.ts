@@ -18,6 +18,7 @@ export const TRACE_MARKER_PREFIX = "@@";
  */
 export const TRACE_MARKER = {
   agentEvent: "@@AGENT_EVENT::",
+  agentRun: "@@AGENT_RUN::",
   checkpointResume: "@@CHECKPOINT_RESUME::",
   checkpointWait: "@@CHECKPOINT_WAIT::",
   decisionResolved: "@@DECISION_RESOLVED::",
@@ -53,6 +54,10 @@ export const encodeLlmContent = (nodeId: string, content: string): string =>
 /** Persisted normalized local-CLI activity for a specific Pipeline node. */
 export const encodeAgentEvent = (nodeId: string, event: RuntimeEvent): string =>
   `${TRACE_MARKER.agentEvent}${nodeId}::${JSON.stringify(event)}`;
+
+/** Persistent Agent Run handle for direct event replay in a specific Pipeline node. */
+export const encodeAgentRun = (nodeId: string, runId: string): string =>
+  `${TRACE_MARKER.agentRun}${nodeId}::${runId}`;
 
 /**
  * 节点工件标记（payload 为 nodeId + 单行 JSON）。

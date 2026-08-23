@@ -55,6 +55,7 @@ export interface AgentRunOptions {
   onProgress?: (msg: string) => Promise<void> | void;
   onTextDelta?: (text: string) => Promise<void> | void;
   onRuntimeEvent?: (event: RuntimeEvent) => Promise<void> | void;
+  onAgentRunStarted?: (runId: string) => Promise<void> | void;
   signal?: AbortSignal;
   jobId?: string;
   agentId?: string;

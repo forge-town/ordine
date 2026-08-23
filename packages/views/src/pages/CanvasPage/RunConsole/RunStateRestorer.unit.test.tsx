@@ -34,12 +34,13 @@ const makeJob = (input: Partial<Job> & Pick<Job, "id" | "pipelineId" | "status">
 const RunStateProbe = () => {
   const store = useCanvasPageStore();
   const activeJobId = useStore(store, (value) => value.activeJobId);
+  const runSyncJobId = useStore(store, (value) => value.runSyncJobId);
   const isConsoleOpen = useStore(store, (value) => value.isConsoleOpen);
   const statuses = useStore(store, (value) => value.nodeRunStatuses);
 
   return (
     <output data-testid="run-state">
-      {JSON.stringify({ activeJobId, isConsoleOpen, statuses })}
+      {JSON.stringify({ activeJobId, runSyncJobId, isConsoleOpen, statuses })}
     </output>
   );
 };
@@ -86,6 +87,7 @@ describe("RunStateRestorer", () => {
       expect(screen.getByTestId("run-state")).toHaveTextContent('"operation":"done"');
     });
     expect(screen.getByTestId("run-state")).toHaveTextContent('"activeJobId":null');
+    expect(screen.getByTestId("run-state")).toHaveTextContent('"runSyncJobId":"latest-run"');
     expect(screen.getByTestId("run-state")).toHaveTextContent('"isConsoleOpen":false');
   });
 
@@ -112,6 +114,7 @@ describe("RunStateRestorer", () => {
     await waitFor(() => {
       expect(screen.getByTestId("run-state")).toHaveTextContent('"activeJobId":"live-run"');
     });
+    expect(screen.getByTestId("run-state")).toHaveTextContent('"runSyncJobId":"live-run"');
     expect(screen.getByTestId("run-state")).toHaveTextContent('"isConsoleOpen":true');
     expect(screen.getByTestId("run-state")).toHaveTextContent('"operation":"running"');
   });

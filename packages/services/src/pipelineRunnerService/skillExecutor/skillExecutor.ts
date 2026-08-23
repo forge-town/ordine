@@ -14,6 +14,7 @@ import type {
   RunSkillOptions as EngineRunSkillOptions,
 } from "@repo/pipeline-engine";
 import type { OutputItem, SshConnection } from "@repo/schemas";
+import type { AgentRunController } from "@repo/agent-engine";
 import { runAgent, type McpConnectorInjectionProvider } from "../agentRunner/agentRunner";
 
 const CHECK_OUTPUT_EXAMPLE: CheckOutput = {
@@ -85,6 +86,7 @@ type RunSkillExecutorOptions = EngineRunSkillOptions & {
   ssh?: SshConnection;
   getMcpConnectorInjection?: McpConnectorInjectionProvider;
   signal?: AbortSignal;
+  agentRunController?: AgentRunController;
 };
 
 export const DEFAULT_SKILL_SYSTEM_PROMPT = [
@@ -223,6 +225,8 @@ const run = ({
   getMcpConnectorInjection,
   signal,
   onRuntimeEvent,
+  onAgentRunStarted,
+  agentRunController,
 }: RunSkillExecutorOptions): ResultAsync<string, SkillExecutionError> => {
   const effectiveSystemPrompt = systemPrompt ?? DEFAULT_SKILL_SYSTEM_PROMPT;
   const userPrompt = buildSkillUserPrompt({
@@ -277,6 +281,8 @@ const run = ({
         getMcpConnectorInjection,
         signal,
         onRuntimeEvent,
+        onAgentRunStarted,
+        agentRunController,
       });
 
       if (raw.length === 0) {

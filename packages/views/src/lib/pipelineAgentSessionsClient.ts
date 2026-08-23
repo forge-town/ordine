@@ -2,8 +2,8 @@ import { Result } from "neverthrow";
 import { z } from "zod/v4";
 import type { PlatformCapabilities } from "../platform";
 import { projectPipelineAgentMessage } from "./projectPipelineAgentMessage";
+import { consumeAgentRunEventStream } from "./agentRunEventsClient";
 import {
-  AgentRunEventEnvelopeSchema,
   AgentRunSchema,
   PipelineAgentAttachmentParseStatusSchema,
   PipelineAgentEntrypointSchema,
@@ -19,6 +19,7 @@ import {
   type PipelineAgentMessageRole,
   type PipelineAgentMode,
   type PipelineAgentProposal,
+  type AgentRunEventEnvelope,
 } from "@repo/schemas";
 
 const PipelineAgentSessionClientRecordSchema = z.object({
@@ -209,21 +210,7 @@ const readResponseJson = async <T>(response: Response, schema: z.ZodType<T>): Pr
   return schema.parse(JSON.parse(body));
 };
 
-const parseAgentRunSseMessage = (message: string) => {
-  const data = message
-    .split(/\r?\n/)
-    .filter((line) => line.startsWith("data:"))
-    .map((line) => line.slice(5).trimStart())
-    .join("\n");
-  if (!data) return null;
-  const envelope = AgentRunEventEnvelopeSchema.safeParse(parseEventPayload(data));
-
-  return envelope.success ? envelope.data : null;
-};
-
-const mapAgentRunEvent = (
-  envelope: z.infer<typeof AgentRunEventEnvelopeSchema>,
-): PipelineAgentPlanEvent | null => {
+const mapAgentRunEvent = (envelope: AgentRunEventEnvelope): PipelineAgentPlanEvent | null => {
   const event = envelope.event;
   if (event.type === "message") {
     const projected = projectPipelineAgentMessage(event.text);
@@ -581,55 +568,18 @@ export const createPipelineAgentSessionsClient = (platform: PipelineAgentSession
       });
 
       while (!streamControl.terminalStatus && !input.signal?.aborted) {
-        const response = await platform.request(
-          `${agentRunsBaseUrl}/${encodeURIComponent(runId)}/events?after=${streamControl.lastSequence}`,
-          {
-            headers: {
-              accept: "text/event-stream",
-              ...(streamControl.lastSequence > 0
-                ? { "Last-Event-ID": String(streamControl.lastSequence) }
-                : {}),
-            },
-            signal: input.signal,
-          },
-        );
-        if (!response.ok) throw await readResponseError(response);
-        const reader = response.body?.getReader();
-        if (!reader) throw new Error(`Agent run ${runId} did not return an event stream`);
-
-        const decoder = new TextDecoder();
-        const streamState = { buffer: "" };
-        const emitBufferedMessages = () => {
-          const messages = streamState.buffer.split(/\r?\n\r?\n/);
-          streamState.buffer = messages.pop() ?? "";
-          for (const message of messages) {
-            const envelope = parseAgentRunSseMessage(message);
-            if (!envelope || envelope.sequence <= streamControl.lastSequence) continue;
-            streamControl.lastSequence = envelope.sequence;
-            writeActiveAgentRun(sessionId, runId, streamControl.lastSequence);
+        const consumed = await consumeAgentRunEventStream(platform, {
+          runId,
+          after: streamControl.lastSequence,
+          signal: input.signal,
+          onEnvelope: (envelope) => {
+            writeActiveAgentRun(sessionId, runId, envelope.sequence);
             const event = mapAgentRunEvent(envelope);
             if (event) input.onEvent(event);
-            if (envelope.event.type === "terminal") {
-              streamControl.terminalStatus = envelope.event.status;
-            }
-          }
-        };
-
-        while (true) {
-          const chunk = await reader.read();
-          if (chunk.done) {
-            streamState.buffer += decoder.decode();
-            emitBufferedMessages();
-            const trailing = streamState.buffer.trim();
-            if (trailing) {
-              streamState.buffer = `${trailing}\n\n`;
-              emitBufferedMessages();
-            }
-            break;
-          }
-          streamState.buffer += decoder.decode(chunk.value, { stream: true });
-          emitBufferedMessages();
-        }
+          },
+        });
+        streamControl.lastSequence = consumed.lastSequence;
+        streamControl.terminalStatus = consumed.terminalStatus;
 
         if (!streamControl.terminalStatus && !input.signal?.aborted) {
           const runResponse = await platform.request(
@@ -666,40 +616,14 @@ export const createPipelineAgentSessionsClient = (platform: PipelineAgentSession
       const projectionStartedAt = Date.now();
       const streamedProjectionRunIds = new Set<string>();
       const streamProjectionRun = async (projectionRunId: string) => {
-        const response = await platform.request(
-          `${agentRunsBaseUrl}/${encodeURIComponent(projectionRunId)}/events?after=0`,
-          {
-            headers: { accept: "text/event-stream" },
-            signal: input.signal,
-          },
-        );
-        if (!response.ok) throw await readResponseError(response);
-        const reader = response.body?.getReader();
-        if (!reader) return;
-        const decoder = new TextDecoder();
-        const state = { buffer: "", lastSequence: 0 };
-        const emitBufferedActivity = () => {
-          const messages = state.buffer.split(/\r?\n\r?\n/);
-          state.buffer = messages.pop() ?? "";
-          for (const message of messages) {
-            const envelope = parseAgentRunSseMessage(message);
-            if (!envelope || envelope.sequence <= state.lastSequence) continue;
-            state.lastSequence = envelope.sequence;
+        await consumeAgentRunEventStream(platform, {
+          runId: projectionRunId,
+          signal: input.signal,
+          onEnvelope: (envelope) => {
             const event = mapAgentRunEvent(envelope);
             if (event && event.type !== "assistant_chunk") input.onEvent(event);
-          }
-        };
-
-        while (!input.signal?.aborted) {
-          const chunk = await reader.read();
-          if (chunk.done) {
-            state.buffer += decoder.decode();
-            emitBufferedActivity();
-            break;
-          }
-          state.buffer += decoder.decode(chunk.value, { stream: true });
-          emitBufferedActivity();
-        }
+          },
+        });
       };
       while (Date.now() - projectionStartedAt < PIPELINE_AGENT_PROJECTION_TIMEOUT_MS) {
         const projectionRunResponse = await platform.request(

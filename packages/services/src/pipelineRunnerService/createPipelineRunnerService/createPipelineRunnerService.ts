@@ -24,11 +24,12 @@ import {
 } from "@repo/models";
 import { buildMcpConnectorInjection } from "../../connectorsService";
 import { hydrateConnectorCredentials } from "../../capabilityHarvestService";
-import type { McpConnectorInjectionProvider } from "@repo/agent-engine";
+import type { AgentRunController, McpConnectorInjectionProvider } from "@repo/agent-engine";
 
 export interface PipelineRunnerServiceOptions {
   encryptionSecret?: string;
   env?: Readonly<Record<string, string | undefined>>;
+  agentRunController?: AgentRunController;
 }
 
 export class PipelineNotFoundError extends Error {
@@ -161,6 +162,7 @@ export const createPipelineRunnerService = (
       ssh,
       getMcpConnectorInjection,
       signal,
+      agentRunController: options.agentRunController,
     });
   };
 
