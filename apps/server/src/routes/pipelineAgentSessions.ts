@@ -130,6 +130,20 @@ const serviceErrorPayload = (error: Error) => ({
   error: error.message,
 });
 
+pipelineAgentSessionsRoutes.get("/", async (c) => {
+  const pipelineId = c.req.query("pipelineId")?.trim();
+  if (!pipelineId) {
+    return c.json({ code: "INVALID_REQUEST", error: "pipelineId is required" }, 400);
+  }
+
+  const session = await pipelineAgentSessionsService.getLatestSessionForPipeline(pipelineId);
+  if (!session) {
+    return c.json({ code: "PIPELINE_AGENT_SESSION_NOT_FOUND", error: "Session not found" }, 404);
+  }
+
+  return c.json(session);
+});
+
 pipelineAgentSessionsRoutes.post("/", async (c) => {
   const bodyResult = await parseJsonBody(c);
   if (bodyResult.isErr()) {

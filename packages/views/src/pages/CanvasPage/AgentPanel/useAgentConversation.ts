@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { ResultAsync } from "neverthrow";
 import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
@@ -16,6 +16,7 @@ import {
   loadGenerateSessionId,
   saveGenerateSessionId,
 } from "./generateSessionStorage";
+import { clearEditSession, loadEditSession, saveEditSession } from "./editSessionStorage";
 import { hasPendingPipelinePrompt } from "./pendingPipelinePrompt";
 import {
   useAgentConversationPersistence,
@@ -30,6 +31,51 @@ export type AgentConversationSubmitInput = {
   reasoningEffort?: string;
   speed?: string;
 };
+
+type GraphSignatureEdge = {
+  id: string;
+  source: string;
+  target: string;
+  sourceHandle?: string | null;
+  targetHandle?: string | null;
+};
+
+type GraphSignatureNode = {
+  id: string;
+  type?: string;
+  position: { x: number; y: number };
+  data: Record<string, unknown>;
+};
+
+const createGraphSignature = (
+  edges: readonly GraphSignatureEdge[],
+  nodes: readonly GraphSignatureNode[],
+  pipelineId: string | null,
+) =>
+  JSON.stringify({
+    edges: [...edges]
+      .sort((left, right) => left.id.localeCompare(right.id))
+      .map(({ id, source, sourceHandle, target, targetHandle }) => ({
+        id,
+        source,
+        sourceHandle: sourceHandle ?? null,
+        target,
+        targetHandle: targetHandle ?? null,
+      })),
+    nodes: [...nodes]
+      .sort((left, right) => left.id.localeCompare(right.id))
+      .map(({ data, id, position, type }) => {
+        const isOperation = type === "operation" || data.nodeType === "operation";
+        const stableData = Object.fromEntries(
+          Object.entries(data)
+            .filter(([key]) => key !== "status" && !(isOperation && key === "description"))
+            .sort(([left], [right]) => left.localeCompare(right)),
+        );
+
+        return { data: stableData, id, position, type: type ?? null };
+      }),
+    pipelineId,
+  });
 
 export const useAgentConversation = ({
   onGeneratedPipeline,
@@ -51,12 +97,18 @@ export const useAgentConversation = ({
   const nodes = useStore(canvasStore, (state) => state.nodes);
   const setPendingProposal = useStore(canvasStore, (state) => state.setPendingProposal);
   const conversationState = useAgentBarStore((state) => state.conversationState);
+  const activeGenerateProposal = useAgentBarStore((state) => state.generateProposal);
+  const activeSessionId = useAgentBarStore((state) => state.sessionId);
   const messages = useAgentBarStore((state) => state.messages);
   const streamingAssistantText = useAgentBarStore((state) => state.streamingAssistantText);
   const streamingProgress = useAgentBarStore((state) => state.streamingProgress);
   const generateSession = useMemo(
     () => !pipelineId || Boolean(loadGenerateSessionId()) || hasPendingPipelinePrompt(),
     [pipelineId],
+  );
+  const graphSignature = useMemo(
+    () => createGraphSignature(edges, nodes, pipelineId),
+    [edges, nodes, pipelineId],
   );
   const sessionCreationRef = useRef<{
     graphSignature: string;
@@ -71,8 +123,47 @@ export const useAgentConversation = ({
     pipelineId,
   });
 
+  const restoreEditSession = useCallback(async () => {
+    if (generateSession || !pipelineId) return null;
+    const persisted = loadEditSession(pipelineId);
+    if (persisted && persisted.graphSignature !== graphSignature) {
+      clearEditSession(pipelineId);
+    }
+
+    const sessionResult = await ResultAsync.fromPromise(
+      persisted?.graphSignature === graphSignature
+        ? client.getSessionById(persisted.sessionId)
+        : client.getLatestSessionForPipeline(pipelineId),
+      (error) => (error instanceof Error ? error : new Error(String(error))),
+    );
+    const session = sessionResult.isOk() ? sessionResult.value : null;
+    const sessionGraphSignature = session?.snapshot
+      ? createGraphSignature(session.snapshot.edges, session.snapshot.nodes, pipelineId)
+      : null;
+    if (
+      !session ||
+      session.mode !== "edit" ||
+      session.pipelineId !== pipelineId ||
+      sessionGraphSignature !== graphSignature ||
+      ["approved", "generating", "completed", "failed"].includes(session.status)
+    ) {
+      clearEditSession(pipelineId);
+
+      return null;
+    }
+
+    saveEditSession(pipelineId, { graphSignature, sessionId: session.id });
+    agentBarStore.getState().setSession(session.id, graphSignature);
+
+    return session.id;
+  }, [agentBarStore, client, generateSession, graphSignature, pipelineId]);
+
+  useEffect(() => {
+    if (activeSessionId) return;
+    void restoreEditSession();
+  }, [activeSessionId, restoreEditSession]);
+
   const ensureSession = useCallback(async () => {
-    const graphSignature = JSON.stringify({ edges, nodes, pipelineId });
     const existingSessionId = () => {
       const current = agentBarStore.getState();
 
@@ -131,6 +222,9 @@ export const useAgentConversation = ({
       }
     }
 
+    const restoredEditSessionId = await restoreEditSession();
+    if (restoredEditSessionId) return restoredEditSessionId;
+
     while (sessionCreationRef.current) {
       const pending = sessionCreationRef.current;
       if (pending.graphSignature === graphSignature) {
@@ -166,6 +260,8 @@ export const useAgentConversation = ({
       });
       if (generateSession) {
         saveGenerateSessionId(session.id);
+      } else if (pipelineId) {
+        saveEditSession(pipelineId, { graphSignature, sessionId: session.id });
       }
 
       const history = agentBarStore.getState().messages.slice(-HISTORY_WINDOW_LIMIT);
@@ -188,7 +284,16 @@ export const useAgentConversation = ({
     sessionCreationRef.current = { graphSignature, promise: creationPromise };
 
     return creationPromise;
-  }, [agentBarStore, client, edges, generateSession, nodes, pipelineId]);
+  }, [
+    agentBarStore,
+    client,
+    edges,
+    generateSession,
+    graphSignature,
+    nodes,
+    pipelineId,
+    restoreEditSession,
+  ]);
 
   // 有 pipelineId 时消息同时落 conversationMessages(可跨刷新恢复);
   // generate 会话在 pipeline 创建前没有可挂靠的 pipeline,只写本地 store,服务端由 session 持久化。
@@ -234,7 +339,9 @@ export const useAgentConversation = ({
 
       if (event.type === "phase") {
         state.setConversationState("thinking");
-        state.setStreamingProgress(event.phase);
+        state.setStreamingProgress(
+          event.phase === "finalizing" ? t("canvas.agentPanel.finalizingProposal") : event.phase,
+        );
 
         return null;
       }
@@ -328,8 +435,60 @@ export const useAgentConversation = ({
 
       return null;
     },
-    [agentBarStore, finishWithAssistantMessage, setPendingProposal],
+    [agentBarStore, finishWithAssistantMessage, setPendingProposal, t],
   );
+
+  useEffect(() => {
+    if (
+      !activeSessionId ||
+      activeGenerateProposal ||
+      agentPanel.pendingProposal ||
+      conversationState === "thinking" ||
+      conversationState === "streaming"
+    ) {
+      return;
+    }
+
+    const recovery = { cancelled: false };
+    void ResultAsync.fromPromise(
+      client.getLatestReadyProposal(activeSessionId, generateSession ? "generate" : "edit"),
+      (error) => (error instanceof Error ? error : new Error(String(error))),
+    ).then((result) => {
+      if (recovery.cancelled || result.isErr() || !result.value) return;
+      const state = agentBarStore.getState();
+      state.setProposalId(result.value.proposalId);
+      state.setStreamingProgress(null);
+      state.setConversationState("done");
+      if (result.value.proposal.mode === "generate") {
+        state.setGenerateProposal(result.value.proposal);
+
+        return;
+      }
+
+      setPendingProposal(
+        {
+          actions: result.value.proposal.actions,
+          openQuestions: result.value.proposal.openQuestions,
+          readiness: result.value.proposal.readiness,
+          summary: result.value.proposal.summary,
+        },
+        result.value.proposal.diagnosticsPreview,
+      );
+    });
+
+    return () => {
+      recovery.cancelled = true;
+    };
+  }, [
+    activeGenerateProposal,
+    activeSessionId,
+    agentBarStore,
+    agentPanel.pendingProposal,
+    client,
+    conversationState,
+    generateSession,
+    setPendingProposal,
+  ]);
 
   const submitMessage = useCallback(
     async ({
@@ -565,6 +724,7 @@ export const useAgentConversation = ({
         phase: "done",
         role: "assistant",
       });
+      if (pipelineId) clearEditSession(pipelineId);
       agentBarStore.getState().resetSession();
 
       return true;
@@ -577,6 +737,7 @@ export const useAgentConversation = ({
       finishWithAssistantMessage,
       onGeneratedPipeline,
       persistMessage,
+      pipelineId,
       t,
     ],
   );

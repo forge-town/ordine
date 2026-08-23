@@ -11,6 +11,7 @@ import {
   PipelineAgentMessageRoleSchema,
   PipelineAgentModeSchema,
   PipelineAgentProposalSchema,
+  PipelineGraphSnapshotSchema,
   PipelineAgentProposalStatusSchema,
   PipelineAgentSessionStatusSchema,
   type PipelineAgentEntrypoint,
@@ -25,6 +26,8 @@ const PipelineAgentSessionClientRecordSchema = z.object({
   entrypoint: PipelineAgentEntrypointSchema,
   mode: PipelineAgentModeSchema,
   status: PipelineAgentSessionStatusSchema,
+  pipelineId: z.string().nullable().optional(),
+  snapshot: PipelineGraphSnapshotSchema.nullable().optional(),
   latestProposalId: z.string().nullable().optional(),
 });
 export type PipelineAgentSessionClientRecord = z.infer<
@@ -140,6 +143,8 @@ const terminalRunStatuses = [
   "interrupted",
 ] as const;
 type TerminalRunStatus = (typeof terminalRunStatuses)[number];
+const PIPELINE_AGENT_PROJECTION_POLL_INTERVAL_MS = 500;
+const PIPELINE_AGENT_PROJECTION_TIMEOUT_MS = 10 * 60 * 1000;
 const isTerminalRunStatus = (
   status: z.infer<typeof AgentRunSchema>["status"],
 ): status is TerminalRunStatus => terminalRunStatuses.includes(status as TerminalRunStatus);
@@ -349,6 +354,17 @@ export const createPipelineAgentSessionsClient = (platform: PipelineAgentSession
       const response = await platform.request(`${pipelineAgentSessionsBaseUrl}/${sessionId}`);
 
       return readResponseJson(response, PipelineAgentSessionClientDetailSchema);
+    },
+
+    async getLatestSessionForPipeline(
+      pipelineId: string,
+    ): Promise<PipelineAgentSessionClientRecord | null> {
+      const response = await platform.request(
+        `${pipelineAgentSessionsBaseUrl}?pipelineId=${encodeURIComponent(pipelineId)}`,
+      );
+      if (response.status === 404) return null;
+
+      return readResponseJson(response, PipelineAgentSessionClientRecordSchema);
     },
 
     async getLatestReadyProposal(
@@ -623,7 +639,9 @@ export const createPipelineAgentSessionsClient = (platform: PipelineAgentSession
         return;
       }
 
-      for (const _attempt of Array.from({ length: 50 })) {
+      input.onEvent({ type: "phase", phase: "finalizing" });
+      const projectionStartedAt = Date.now();
+      while (Date.now() - projectionStartedAt < PIPELINE_AGENT_PROJECTION_TIMEOUT_MS) {
         const session = await this.getSessionById(sessionId);
         const proposal =
           (session.proposals ?? []).find(
@@ -650,7 +668,18 @@ export const createPipelineAgentSessionsClient = (platform: PipelineAgentSession
 
           return;
         }
-        await new Promise<void>((resolve) => globalThis.setTimeout(resolve, 200));
+        if (session.status === "failed") {
+          input.onEvent({
+            type: "error",
+            code: "PIPELINE_AGENT_PROJECTION_FAILED",
+            message: "Pipeline planning failed while finalizing the proposal.",
+          });
+
+          return;
+        }
+        await new Promise<void>((resolve) =>
+          globalThis.setTimeout(resolve, PIPELINE_AGENT_PROJECTION_POLL_INTERVAL_MS),
+        );
       }
 
       input.onEvent({

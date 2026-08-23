@@ -164,6 +164,8 @@ const terminalRunStatuses = [
   "interrupted",
 ] as const;
 type TerminalRunStatus = (typeof terminalRunStatuses)[number];
+const PIPELINE_AGENT_PROJECTION_POLL_INTERVAL_MS = 500;
+const PIPELINE_AGENT_PROJECTION_TIMEOUT_MS = 10 * 60 * 1000;
 const isTerminalRunStatus = (
   status: z.infer<typeof AgentRunSchema>["status"],
 ): status is TerminalRunStatus => terminalRunStatuses.includes(status as TerminalRunStatus);
@@ -692,7 +694,9 @@ export const pipelineAgentSessionsClient = {
       return;
     }
 
-    for (const _attempt of Array.from({ length: 50 })) {
+    input.onEvent({ type: "phase", phase: "finalizing" });
+    const projectionStartedAt = Date.now();
+    while (Date.now() - projectionStartedAt < PIPELINE_AGENT_PROJECTION_TIMEOUT_MS) {
       const session = await this.getSessionById(sessionId, { signal: input.signal });
       const proposal =
         (session.proposals ?? []).find((candidate) => candidate.id === session.latestProposalId) ??
@@ -717,7 +721,18 @@ export const pipelineAgentSessionsClient = {
 
         return;
       }
-      await new Promise<void>((resolve) => globalThis.setTimeout(resolve, 200));
+      if (session.status === "failed") {
+        input.onEvent({
+          type: "error",
+          code: "PIPELINE_AGENT_PROJECTION_FAILED",
+          message: "Pipeline planning failed while finalizing the proposal.",
+        });
+
+        return;
+      }
+      await new Promise<void>((resolve) =>
+        globalThis.setTimeout(resolve, PIPELINE_AGENT_PROJECTION_POLL_INTERVAL_MS),
+      );
     }
 
     input.onEvent({

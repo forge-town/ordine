@@ -614,6 +614,7 @@
       },
       "thinking": "Thinking...",
       "generatingPipeline": "Creating the pipeline. This usually takes about a minute…",
+      "finalizingProposal": "Preparing canvas operations you can apply…",
       "proposal": "Proposed Operations",
       "proposalReceived": "I've received a proposal. Review it below and choose to apply or discard.",
       "noProposal": "I've processed your request but no operations were proposed.",

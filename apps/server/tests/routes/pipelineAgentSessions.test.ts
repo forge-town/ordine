@@ -7,6 +7,7 @@ const mocks = vi.hoisted(() => ({
   cancelSession: vi.fn(),
   createSession: vi.fn(),
   generatePipelineFromApprovedProposal: vi.fn(),
+  getLatestSessionForPipeline: vi.fn(),
   getSessionById: vi.fn(),
   ingestAttachment: vi.fn(),
   startPlanningRun: vi.fn(),
@@ -25,6 +26,7 @@ vi.mock("../../src/services.js", () => ({
     cancelSession: mocks.cancelSession,
     createSession: mocks.createSession,
     generatePipelineFromApprovedProposal: mocks.generatePipelineFromApprovedProposal,
+    getLatestSessionForPipeline: mocks.getLatestSessionForPipeline,
     getSessionById: mocks.getSessionById,
     ingestAttachment: mocks.ingestAttachment,
     startPlanningRun: mocks.startPlanningRun,
@@ -97,6 +99,22 @@ describe("pipelineAgentSessionsRoutes", () => {
 
     expect(response.status).toBe(400);
     expect(mocks.createSession).not.toHaveBeenCalled();
+  });
+
+  it("returns the latest edit session for a pipeline", async () => {
+    mocks.getLatestSessionForPipeline.mockResolvedValue({
+      id: "session-latest",
+      entrypoint: "canvas-agent-panel",
+      mode: "edit",
+      pipelineId: "pipeline-1",
+      status: "proposal_ready",
+    });
+
+    const response = await makeApp().request("/pipeline-agent-sessions?pipelineId=pipeline-1");
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual(expect.objectContaining({ id: "session-latest" }));
+    expect(mocks.getLatestSessionForPipeline).toHaveBeenCalledWith("pipeline-1");
   });
 
   it("returns a hydrated session by id", async () => {

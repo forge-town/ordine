@@ -780,6 +780,9 @@ export const createPipelineAgentSessionsService = (
       });
     },
 
+    getLatestSessionForPipeline: async (pipelineId: string) =>
+      sessionsDao.findLatestEditByPipelineId(pipelineId),
+
     appendMessage: async (
       sessionId: string,
       input: {
