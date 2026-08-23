@@ -78,9 +78,16 @@ export const RuntimesPageContent = () => {
           </Button>
         }
         badge={
-          <span className="text-xs text-muted-foreground">
-            {launchable.length}/{supported.length}
-          </span>
+          catalogQuery.isLoading ? (
+            <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <Loader2 className="size-3 animate-spin" />
+              {t("localAgents.scanning")}
+            </span>
+          ) : (
+            <span className="text-xs text-muted-foreground">
+              {launchable.length}/{supported.length}
+            </span>
+          )
         }
         eyebrow={t("nav.groups.capabilities")}
         icon={<Cpu className="size-[18px] text-muted-foreground" />}
@@ -153,10 +160,12 @@ export const RuntimesPageContent = () => {
         <div className="mt-3 flex items-center gap-2 rounded-lg bg-surface-2 px-3.5 py-2.5 text-[11.5px] text-muted-foreground">
           <Radar className="size-3.5 shrink-0" />
           <span>
-            {t("localAgents.detected", {
-              count: launchable.length,
-              total: supported.length,
-            })}
+            {catalogQuery.isLoading
+              ? t("localAgents.scanning")
+              : t("localAgents.detected", {
+                  count: launchable.length,
+                  total: supported.length,
+                })}
           </span>
         </div>
       </div>
