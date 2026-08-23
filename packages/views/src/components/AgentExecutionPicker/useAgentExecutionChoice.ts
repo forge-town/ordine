@@ -13,6 +13,10 @@ import {
   resolveAgentExecutionChoice,
   runtimeCatalogEntryIsSelectable,
 } from "./agentExecutionChoice";
+import {
+  readAgentRuntimeCatalogCache,
+  writeAgentRuntimeCatalogCache,
+} from "./agentRuntimeCatalogCache";
 import { getAgentRuntimeCatalogData } from "./agentRuntimeCatalogData";
 
 interface UseAgentExecutionChoiceOptions {
@@ -32,11 +36,17 @@ export const useAgentExecutionChoice = ({
   });
   const { mutate: updateSettings, mutation: updateMutation } = useUpdate();
   const [localChoice, setLocalChoice] = useState<AgentExecutionChoice | null>(null);
+  const [cachedCatalog] = useState(readAgentRuntimeCatalogCache);
   const preferencesRef = useRef<AgentRuntimePreferences>({});
-  const catalog = useMemo(
+  const liveCatalog = useMemo(
     () => getAgentRuntimeCatalogData(catalogResult?.data),
     [catalogResult?.data],
   );
+  const hasLiveCatalog = catalogResult?.data !== undefined;
+  const catalog = hasLiveCatalog ? liveCatalog : cachedCatalog;
+  useEffect(() => {
+    if (hasLiveCatalog) writeAgentRuntimeCatalogCache(liveCatalog);
+  }, [hasLiveCatalog, liveCatalog]);
   useEffect(() => {
     if (!updateMutation.isPending) {
       preferencesRef.current = settings?.agentRuntimePreferences ?? {};
@@ -110,7 +120,7 @@ export const useAgentExecutionChoice = ({
     catalog,
     catalogQuery,
     choice,
-    isLoading: catalogQuery.isLoading || settingsQuery.isLoading,
+    isLoading: (catalog.length === 0 && catalogQuery.isLoading) || settingsQuery.isLoading,
     isSaving: updateMutation.isPending,
     persistChoice,
     selectRuntime,

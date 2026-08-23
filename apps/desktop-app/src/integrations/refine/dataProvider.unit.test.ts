@@ -201,6 +201,16 @@ describe("desktop dataProvider", () => {
         { inputContent: "content" },
       ],
     },
+    {
+      endpoint: "agentRuntimes/getCatalog",
+      payload: undefined,
+      request: ["http://desktop.test/api/agent-runtimes/catalog", "GET"],
+    },
+    {
+      endpoint: "agentRuntimes/rescanCatalog",
+      payload: undefined,
+      request: ["http://desktop.test/api/agent-runtimes/rescan", "POST"],
+    },
   ])("maps the REST-backed $endpoint custom endpoint", async ({ endpoint, payload, request }) => {
     await dataProvider.custom!({ url: endpoint, method: "post", payload });
 

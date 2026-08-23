@@ -3,7 +3,11 @@ import { homedir } from "node:os";
 import { basename, dirname, extname, join } from "node:path";
 import { Result, ResultAsync } from "neverthrow";
 import { z } from "zod/v4";
-import { scanRuntimeCatalog } from "@repo/agent";
+import {
+  createRuntimeCatalogCache,
+  projectRuntimeCatalogFromConfigs,
+  scanRuntimeCatalog,
+} from "@repo/agent";
 import { getLocalAgentRuntimeId, type AgentRuntimeConfig } from "@repo/schemas";
 import {
   doctorMcpTarget,
@@ -34,6 +38,11 @@ const parseOptionalJsonBody = (context: Context) =>
   );
 
 export const agentRuntimesRoutes = new Hono();
+const runtimeCatalogCache = createRuntimeCatalogCache({
+  load: scanRuntimeCatalog,
+  ttlMs: 60_000,
+});
+runtimeCatalogCache.warm();
 
 const mergeRuntimeConfigIds = (
   catalog: Awaited<ReturnType<typeof scanRuntimeCatalog>>,
@@ -48,16 +57,14 @@ const mergeRuntimeConfigIds = (
   }));
 
 const getCatalog = async () => {
-  const [catalog, runtimes] = await Promise.all([
-    scanRuntimeCatalog(),
-    agentRuntimesService.getAll(),
-  ]);
+  const runtimes = await agentRuntimesService.getAll();
+  const catalog = await runtimeCatalogCache.get(projectRuntimeCatalogFromConfigs(runtimes));
 
   return mergeRuntimeConfigIds(catalog, runtimes);
 };
 
 const rescanCatalog = async () => {
-  const catalog = await scanRuntimeCatalog();
+  const catalog = await runtimeCatalogCache.refresh();
   const configs = catalog.flatMap((entry): AgentRuntimeConfig[] => {
     if (!entry.path || entry.availability === "unavailable") return [];
 
