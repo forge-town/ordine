@@ -37,6 +37,8 @@ import { Route as ApiPipelinesSplatRouteImport } from './routes/api/pipelines.$'
 import { Route as ApiPipelineAgentSessionsSplatRouteImport } from './routes/api/pipeline-agent-sessions.$'
 import { Route as ApiOperationsSplatRouteImport } from './routes/api/operations.$'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth.$'
+import { Route as ApiAgentRuntimesSplatRouteImport } from './routes/api/agent-runtimes.$'
+import { Route as ApiAgentRunsSplatRouteImport } from './routes/api/agent-runs.$'
 import { Route as LayoutPipelinesJobsRouteImport } from './routes/_layout/pipelines.jobs'
 import { Route as LayoutPipelinesPipelineIdRouteImport } from './routes/_layout/pipelines.$pipelineId'
 import { Route as LayoutDistillationsNewRouteImport } from './routes/_layout/distillations.new'
@@ -196,6 +198,16 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAgentRuntimesSplatRoute = ApiAgentRuntimesSplatRouteImport.update({
+  id: '/api/agent-runtimes/$',
+  path: '/api/agent-runtimes/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAgentRunsSplatRoute = ApiAgentRunsSplatRouteImport.update({
+  id: '/api/agent-runs/$',
+  path: '/api/agent-runs/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LayoutPipelinesJobsRoute = LayoutPipelinesJobsRouteImport.update({
   id: '/jobs',
   path: '/jobs',
@@ -308,6 +320,8 @@ export interface FileRoutesByFullPath {
   '/distillations/new': typeof LayoutDistillationsNewRoute
   '/pipelines/$pipelineId': typeof LayoutPipelinesPipelineIdRoute
   '/pipelines/jobs': typeof LayoutPipelinesJobsRouteWithChildren
+  '/api/agent-runs/$': typeof ApiAgentRunsSplatRoute
+  '/api/agent-runtimes/$': typeof ApiAgentRuntimesSplatRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/operations/$': typeof ApiOperationsSplatRoute
   '/api/pipeline-agent-sessions/$': typeof ApiPipelineAgentSessionsSplatRoute
@@ -348,6 +362,8 @@ export interface FileRoutesByTo {
   '/distillations/$distillationId': typeof LayoutDistillationsDistillationIdRoute
   '/distillations/new': typeof LayoutDistillationsNewRoute
   '/pipelines/$pipelineId': typeof LayoutPipelinesPipelineIdRoute
+  '/api/agent-runs/$': typeof ApiAgentRunsSplatRoute
+  '/api/agent-runtimes/$': typeof ApiAgentRuntimesSplatRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/operations/$': typeof ApiOperationsSplatRoute
   '/api/pipeline-agent-sessions/$': typeof ApiPipelineAgentSessionsSplatRoute
@@ -394,6 +410,8 @@ export interface FileRoutesById {
   '/_layout/distillations/new': typeof LayoutDistillationsNewRoute
   '/_layout/pipelines/$pipelineId': typeof LayoutPipelinesPipelineIdRoute
   '/_layout/pipelines/jobs': typeof LayoutPipelinesJobsRouteWithChildren
+  '/api/agent-runs/$': typeof ApiAgentRunsSplatRoute
+  '/api/agent-runtimes/$': typeof ApiAgentRuntimesSplatRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/operations/$': typeof ApiOperationsSplatRoute
   '/api/pipeline-agent-sessions/$': typeof ApiPipelineAgentSessionsSplatRoute
@@ -440,6 +458,8 @@ export interface FileRouteTypes {
     | '/distillations/new'
     | '/pipelines/$pipelineId'
     | '/pipelines/jobs'
+    | '/api/agent-runs/$'
+    | '/api/agent-runtimes/$'
     | '/api/auth/$'
     | '/api/operations/$'
     | '/api/pipeline-agent-sessions/$'
@@ -480,6 +500,8 @@ export interface FileRouteTypes {
     | '/distillations/$distillationId'
     | '/distillations/new'
     | '/pipelines/$pipelineId'
+    | '/api/agent-runs/$'
+    | '/api/agent-runtimes/$'
     | '/api/auth/$'
     | '/api/operations/$'
     | '/api/pipeline-agent-sessions/$'
@@ -525,6 +547,8 @@ export interface FileRouteTypes {
     | '/_layout/distillations/new'
     | '/_layout/pipelines/$pipelineId'
     | '/_layout/pipelines/jobs'
+    | '/api/agent-runs/$'
+    | '/api/agent-runtimes/$'
     | '/api/auth/$'
     | '/api/operations/$'
     | '/api/pipeline-agent-sessions/$'
@@ -554,6 +578,8 @@ export interface RootRouteChildren {
   SignUpRoute: typeof SignUpRoute
   ApiLocalSessionRoute: typeof ApiLocalSessionRoute
   ApiPipelineAgentSessionsRoute: typeof ApiPipelineAgentSessionsRouteWithChildren
+  ApiAgentRunsSplatRoute: typeof ApiAgentRunsSplatRoute
+  ApiAgentRuntimesSplatRoute: typeof ApiAgentRuntimesSplatRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   ApiOperationsSplatRoute: typeof ApiOperationsSplatRoute
   ApiPipelinesSplatRoute: typeof ApiPipelinesSplatRoute
@@ -756,6 +782,20 @@ declare module '@tanstack/react-router' {
       path: '/api/auth/$'
       fullPath: '/api/auth/$'
       preLoaderRoute: typeof ApiAuthSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/agent-runtimes/$': {
+      id: '/api/agent-runtimes/$'
+      path: '/api/agent-runtimes/$'
+      fullPath: '/api/agent-runtimes/$'
+      preLoaderRoute: typeof ApiAgentRuntimesSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/agent-runs/$': {
+      id: '/api/agent-runs/$'
+      path: '/api/agent-runs/$'
+      fullPath: '/api/agent-runs/$'
+      preLoaderRoute: typeof ApiAgentRunsSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_layout/pipelines/jobs': {
@@ -1002,6 +1042,8 @@ const rootRouteChildren: RootRouteChildren = {
   SignUpRoute: SignUpRoute,
   ApiLocalSessionRoute: ApiLocalSessionRoute,
   ApiPipelineAgentSessionsRoute: ApiPipelineAgentSessionsRouteWithChildren,
+  ApiAgentRunsSplatRoute: ApiAgentRunsSplatRoute,
+  ApiAgentRuntimesSplatRoute: ApiAgentRuntimesSplatRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
   ApiOperationsSplatRoute: ApiOperationsSplatRoute,
   ApiPipelinesSplatRoute: ApiPipelinesSplatRoute,
