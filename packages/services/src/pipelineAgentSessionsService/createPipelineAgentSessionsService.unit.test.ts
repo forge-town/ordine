@@ -994,6 +994,8 @@ describe("createPipelineAgentSessionsService", () => {
     );
     const startInput = mockAgentRunsService.start.mock.calls[0]?.[0];
     expect(startInput?.prompt).toBe(startInput?.rebuildPrompt);
+    expect(startInput?.systemPrompt).toContain("## Active skill — ordine-create-pipeline");
+    expect(startInput?.systemPrompt).toContain("不要把所有 Operation 默认串成一条直线");
   });
 
   it("reseeds the full planning prompt after a completed run failed projection", async () => {
@@ -1133,7 +1135,12 @@ describe("createPipelineAgentSessionsService", () => {
 
     await createPipelineAgentSessionsService({} as never).planSession("session-1");
 
-    const plannerCall = mockRunAgent.mock.calls[0]![0] as { userPrompt: string };
+    const plannerCall = mockRunAgent.mock.calls[0]![0] as {
+      systemPrompt: string;
+      userPrompt: string;
+    };
+    expect(plannerCall.systemPrompt).toContain("## Active skill — ordine-create-pipeline");
+    expect(plannerCall.systemPrompt).toContain("并行后汇总");
     expect(plannerCall.userPrompt).toContain(
       "AVAILABLE OPERATIONS ARE REUSABLE EXAMPLES, NOT A CAPABILITY LIMIT",
     );

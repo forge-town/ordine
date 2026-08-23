@@ -2,7 +2,10 @@ import {
   runStructuredAgent,
   type StructuredAgentResult,
 } from "../../pipelineRunnerService/agentRunner/runStructuredAgent";
+import { withPipelineCanvasSkill } from "../pipelineCanvasSkillContext";
 import { PROPOSE_AGENT_ID, PROPOSE_SYSTEM_PROMPT } from "./buildProposePrompt";
+
+export const DEFAULT_PROPOSE_SYSTEM_PROMPT = withPipelineCanvasSkill(PROPOSE_SYSTEM_PROMPT);
 
 export type RunProposeAgentOptions = {
   agent: Parameters<typeof runStructuredAgent>[0]["agent"];
@@ -30,7 +33,7 @@ export type RunProposeAgentResult = StructuredAgentResult;
 export const runProposeAgent = (opts: RunProposeAgentOptions): Promise<RunProposeAgentResult> =>
   runStructuredAgent({
     agent: opts.agent,
-    systemPrompt: opts.systemPrompt ?? PROPOSE_SYSTEM_PROMPT,
+    systemPrompt: opts.systemPrompt ?? DEFAULT_PROPOSE_SYSTEM_PROMPT,
     userPrompt: opts.userPrompt,
     agentId: opts.agentId ?? PROPOSE_AGENT_ID,
     logPrefix: opts.logPrefix ?? "proposeActions",

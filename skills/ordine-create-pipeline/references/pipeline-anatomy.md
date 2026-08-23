@@ -22,7 +22,7 @@
 ```json
 {
   "id": "n_xxx",
-  "type": "folder | operation | output-local-path | file | github-project | condition",
+  "type": "folder | file | github-project | prompt | operation | output-local-path | output-project-path",
   "data": {
     "label": "节点名称",
     "nodeType": "同 type",
@@ -34,14 +34,15 @@
 
 ### 节点类型
 
-| type                | 用途                  | data 特有字段                            |
-| ------------------- | --------------------- | ---------------------------------------- |
-| `folder`            | 输入源 - 本地文件夹   | `folderPath`                             |
-| `file`              | 输入源 - 代码文件     | `filePath`                               |
-| `github-project`    | 输入源 - GitHub 项目  | `owner`, `repo`, `branch`                |
-| `operation`         | 执行动作（检查/修复） | `operationId`, `operationName`, `status` |
-| `output-local-path` | 输出目标 - 本地路径   | `localPath`, `outputMode`                |
-| `condition`         | 条件分支              | `condition`                              |
+| type                  | 用途                 | data 特有字段                            |
+| --------------------- | -------------------- | ---------------------------------------- |
+| `folder`              | 输入源 - 本地文件夹  | `folderPath`                             |
+| `file`                | 输入源 - 代码文件    | `filePath`                               |
+| `github-project`      | 输入源 - GitHub 项目 | `owner`, `repo`, `branch`                |
+| `prompt`              | 输入源 - 文本或指令  | `prompt`                                 |
+| `operation`           | 执行业务处理步骤     | `operationId`, `operationName`, `status` |
+| `output-local-path`   | 输出目标 - 本地路径  | `localPath`, `outputMode`                |
+| `output-project-path` | 输出目标 - 项目路径  | `path`                                   |
 
 ## 边 (edges)
 
@@ -78,6 +79,16 @@
 [文件夹] ─→ ├→ [检查 Schema] → [Schema 报告]
                   └→ [检查 Store] → [Store 报告]
 ```
+
+### 4. 并行后汇总 (input → [step1, step2, step3] → merge → output)
+
+```
+            ┌→ [生成题目] ─┐
+[命题要求] ─┼→ [整理素材] ─┼→ [组卷汇总] → [完整试卷]
+            └→ [设计评分] ─┘
+```
+
+只有当下游确实需要多个分支的结果时才汇总。独立步骤应共享上游并行执行，不能因为它们在需求中依次出现就串成一条链。
 
 ## ID 命名规范
 

@@ -22,7 +22,7 @@
 
 ## operation — 操作节点
 
-执行一个预定义的 Operation（检查或修复动作）。
+执行一个预定义的业务 Operation，例如生成、转换、检查、修复或导出。
 
 ```json
 {
@@ -98,17 +98,34 @@
 
 **注意**: `owner` 和 `repo` 均为必填字段。若用户输入 `owner/repo`，必须拆分成两个字段，不能把完整值只放进 `repo`。
 
-## condition — 条件分支
+## prompt — 文本或指令输入
 
 ```json
 {
-  "id": "n_condition",
-  "type": "condition",
+  "id": "n_prompt",
+  "type": "prompt",
   "data": {
-    "label": "是否有违规",
-    "nodeType": "condition",
-    "condition": "violations > 0"
+    "label": "任务说明",
+    "nodeType": "prompt",
+    "prompt": "生成一套符合指定结构的原创试卷"
   },
-  "position": { "x": 500, "y": 200 }
+  "position": { "x": 0, "y": 0 }
 }
 ```
+
+## output-project-path — 项目内路径输出
+
+```json
+{
+  "id": "n_project_output",
+  "type": "output-project-path",
+  "data": {
+    "label": "项目成品",
+    "nodeType": "output-project-path",
+    "path": "outputs/final"
+  },
+  "position": { "x": 1000, "y": 0 }
+}
+```
+
+Canvas Agent 当前不要创建 `condition`、`decision`、`compound` 或子节点。需要质量复核和迭代改进时，使用 Operation 节点的 `loopEnabled`、`maxLoopCount` 和 `loopConditionPrompt`。
