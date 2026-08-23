@@ -41,8 +41,12 @@ export class PipelineNotFoundError extends Error {
 export class AgentRuntimeNotFoundError extends Error {
   readonly code = "AGENT_RUNTIME_NOT_FOUND";
 
-  constructor() {
-    super("No configured Agent runtime is available for this Pipeline run");
+  constructor(runtimeConfigId?: string) {
+    super(
+      runtimeConfigId
+        ? `Configured Agent runtime not found: ${runtimeConfigId}`
+        : "No configured Agent runtime is available for this Pipeline run",
+    );
     this.name = "AgentRuntimeNotFoundError";
   }
 }
@@ -115,14 +119,24 @@ export const createPipelineRunnerService = (
     jobId,
     apiKey,
     model,
+    reasoningEffort,
+    speed,
+    runtimeConfigId,
+    executablePath,
     defaultAgent,
+    overrideOperationRoute,
     ssh,
     getMcpConnectorInjection,
   }: {
     jobId: string;
     apiKey?: string;
     model?: string;
+    reasoningEffort?: string;
+    speed?: string;
+    runtimeConfigId?: string;
+    executablePath?: string;
     defaultAgent?: AgentRuntime;
+    overrideOperationRoute?: boolean;
     ssh?: SshConnection;
     getMcpConnectorInjection?: McpConnectorInjectionProvider;
   }) => {
@@ -133,7 +147,12 @@ export const createPipelineRunnerService = (
       jobId,
       apiKey,
       model,
+      reasoningEffort,
+      speed,
+      runtimeConfigId,
+      executablePath,
       defaultAgent,
+      overrideOperationRoute,
       ssh,
       getMcpConnectorInjection,
     });
@@ -172,6 +191,10 @@ export const createPipelineRunnerService = (
       /** Per-device autonomy preference sent with the request (0 = no self-heal retries). */
       selfHealRetries?: number;
       triggeredBy?: JobTriggeredBy;
+      runtimeConfigId?: string;
+      model?: string;
+      reasoningEffort?: string;
+      speed?: string;
     }): Promise<Result<{ jobId: string }, PipelineNotFoundError | AgentRuntimeNotFoundError>> => {
       const pipeline = await pipelinesDao.findById(opts.pipelineId);
       if (!pipeline) {
@@ -183,7 +206,15 @@ export const createPipelineRunnerService = (
         agentRuntimesDao.findMany(),
       ]);
       const settings = normalizeSettingsRecord(settingsRecord);
+      const requestedRuntime = opts.runtimeConfigId
+        ? allRuntimes.find((runtime) => runtime.id === opts.runtimeConfigId)
+        : undefined;
+      if (opts.runtimeConfigId && !requestedRuntime) {
+        return err(new AgentRuntimeNotFoundError(opts.runtimeConfigId));
+      }
       const runtimeConfig =
+        requestedRuntime ??
+        allRuntimes.find((runtime) => runtime.id === settings.defaultAgentRuntimeConfigId) ??
         allRuntimes.find((runtime) => runtime.type === settings.defaultAgentRuntime) ??
         allRuntimes[0];
       if (!runtimeConfig) {
@@ -235,8 +266,16 @@ export const createPipelineRunnerService = (
           engineDeps: buildDepsForJob({
             jobId,
             apiKey: settings.defaultApiKey,
-            model: settings.defaultModel,
+            model: opts.model ?? settings.defaultModel,
+            reasoningEffort: opts.reasoningEffort,
+            speed: opts.speed,
+            runtimeConfigId: runtimeConfig.id,
+            executablePath:
+              runtimeConfig.connection.mode === "local" ? runtimeConfig.connection.path : undefined,
             defaultAgent: runtimeConfig.type,
+            overrideOperationRoute: Boolean(
+              opts.runtimeConfigId || opts.model || opts.reasoningEffort || opts.speed,
+            ),
             ssh,
             getMcpConnectorInjection: buildMcpConnectorInjectionProvider(runtimeConfig.type),
           }),

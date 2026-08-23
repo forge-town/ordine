@@ -1,10 +1,12 @@
-import { useList } from "@refinedev/core";
 import { Bot, Loader2, Play, Save, Settings2, Workflow } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { CSSProperties } from "react";
 import { useStore } from "zustand";
 import { cn } from "@repo/ui/lib/utils";
-import { ResourceName } from "../../../constants";
+import {
+  AgentExecutionPicker,
+  useAgentExecutionChoice,
+} from "../../../components/AgentExecutionPicker";
 import { useCanvasPageStore } from "../_store";
 import { CanvasStatusBar } from "../CanvasStatusBar";
 import { useCanvasWorkspacePersistence } from "../useCanvasWorkspacePersistence";
@@ -22,11 +24,17 @@ export const CanvasTopChrome = () => {
   const handlePipelineNameChange = useStore(store, (state) => state.handlePipelineNameChange);
   const handleRunTest = useStore(store, (state) => state.handleRunTest);
   const toggleAgentPanel = useStore(store, (state) => state.toggleAgentPanel);
-  const { result: runtimesResult } = useList({ resource: ResourceName.agentRuntimes });
+  const {
+    catalog,
+    choice: executionChoice,
+    isLoading: isExecutionChoiceLoading,
+    persistChoice,
+    selectRuntime,
+  } = useAgentExecutionChoice();
   const { handleSave: handleSaveCanvas, isPending: isSavePending } =
     useCanvasWorkspacePersistence();
 
-  const hasAvailableRuntime = runtimesResult.data.length > 0;
+  const hasAvailableRuntime = executionChoice !== null;
   const isRunPending = isRunning || isTestRunning;
   const canRun = Boolean(pipelineId && hasAvailableRuntime && !isRunPending);
   const pipelineTitleLabel = t("canvas.pipelineTitle", { defaultValue: "Pipeline name" });
@@ -92,6 +100,17 @@ export const CanvasTopChrome = () => {
 
       <div className="pointer-events-auto flex shrink-0 items-center gap-2 max-[480px]:gap-1">
         <CanvasStatusBar />
+        <div data-testid="canvas-v2-execution-picker">
+          <AgentExecutionPicker
+            catalog={catalog}
+            choice={executionChoice}
+            disabled={isRunPending}
+            isLoading={isExecutionChoiceLoading}
+            triggerVariant="button"
+            onChange={persistChoice}
+            onRuntimeChange={selectRuntime}
+          />
+        </div>
         <button
           aria-label={isRunPending ? runningLabel : runLabel}
           className={cn(
@@ -103,7 +122,7 @@ export const CanvasTopChrome = () => {
           data-testid="canvas-v2-run"
           disabled={!canRun}
           type="button"
-          onClick={() => void handleRunTest()}
+          onClick={() => void handleRunTest(executionChoice)}
         >
           {isRunPending ? (
             <Loader2 className="size-3.5 animate-spin" />

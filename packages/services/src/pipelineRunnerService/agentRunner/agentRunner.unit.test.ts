@@ -47,6 +47,11 @@ describe("runAgent", () => {
       jobId: "job-1",
       allowedTools: ["Read"],
       onProgress: vi.fn(),
+      model: "gpt-5.6-luna",
+      reasoningEffort: "high",
+      speed: "priority",
+      runtimeConfigId: "local-claude-code",
+      executablePath: "C:\\Tools\\claude.cmd",
     });
 
     expect(agentEngine.run).toHaveBeenCalledWith(
@@ -58,6 +63,11 @@ describe("runAgent", () => {
         allowedTools: ["Read"],
         jobId: "job-1",
         agentId: "test-agent",
+        model: "gpt-5.6-luna",
+        reasoningEffort: "high",
+        speed: "priority",
+        runtimeConfigId: "local-claude-code",
+        executablePath: "C:\\Tools\\claude.cmd",
       }),
     );
   });

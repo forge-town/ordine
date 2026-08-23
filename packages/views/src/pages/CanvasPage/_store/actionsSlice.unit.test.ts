@@ -1,7 +1,16 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type { FinalConnectionState } from "@xyflow/system";
 import { createCanvasPageStore } from "./canvasPageStore";
 import type { PipelineNode } from "./canvasSlice";
+
+const canvasDataProviderMocks = vi.hoisted(() => ({
+  update: vi.fn(async () => ({ data: { id: "pipeline-1" } })),
+  custom: vi.fn(async () => ({ data: { jobId: "job-1" } })),
+}));
+
+vi.mock("../../../lib/canvasDataProvider", () => ({
+  getCanvasDataProvider: () => canvasDataProviderMocks,
+}));
 
 const makeNode = (id: string, type: PipelineNode["type"]): PipelineNode =>
   ({
@@ -207,6 +216,36 @@ describe("canvas connection actions", () => {
 
     expect(store.getState().connectStart).toBeNull();
     expect(store.getState().connectionMenu).toBeNull();
+  });
+});
+
+describe("canvas run actions", () => {
+  it("passes the selected runtime and model to the pipeline run request", async () => {
+    canvasDataProviderMocks.update.mockClear();
+    canvasDataProviderMocks.custom.mockClear();
+    const store = createCanvasPageStore([], [], "pipeline-1", "Selected runtime pipeline");
+
+    await store.getState().handleRunTest({
+      runtimeConfigId: "local-codex",
+      model: "gpt-5.6-luna",
+      reasoningEffort: "xhigh",
+      speed: "priority",
+    });
+
+    expect(canvasDataProviderMocks.custom).toHaveBeenCalledWith({
+      url: "pipelines/run",
+      method: "post",
+      payload: {
+        id: "pipeline-1",
+        runtimeConfigId: "local-codex",
+        model: "gpt-5.6-luna",
+        reasoningEffort: "xhigh",
+        speed: "priority",
+      },
+    });
+    expect(store.getState()).toEqual(
+      expect.objectContaining({ activeJobId: "job-1", isConsoleOpen: true, isRunning: false }),
+    );
   });
 });
 

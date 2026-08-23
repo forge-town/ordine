@@ -8,6 +8,16 @@ import { createCanvasPageStore, CanvasPageStoreContext } from "../_store";
 import { CanvasTopChrome } from "./CanvasTopChrome";
 
 const handleSaveMock = vi.hoisted(() => vi.fn());
+const executionPickerMocks = vi.hoisted(() => ({
+  choice: {
+    runtimeConfigId: "local-codex",
+    model: "gpt-5.6-luna",
+    reasoningEffort: "xhigh",
+    speed: "priority",
+  },
+  persistChoice: vi.fn(),
+  selectRuntime: vi.fn(),
+}));
 
 vi.mock("@refinedev/core", async (importOriginal) => ({
   ...(await importOriginal<typeof RefineCore>()),
@@ -16,6 +26,21 @@ vi.mock("@refinedev/core", async (importOriginal) => ({
 
 vi.mock("../useCanvasWorkspacePersistence", () => ({
   useCanvasWorkspacePersistence: () => ({ handleSave: handleSaveMock, isPending: false }),
+}));
+
+vi.mock("../../../components/AgentExecutionPicker", () => ({
+  AgentExecutionPicker: () => (
+    <button data-testid="agent-execution-picker-trigger" type="button">
+      模型
+    </button>
+  ),
+  useAgentExecutionChoice: () => ({
+    catalog: [],
+    choice: executionPickerMocks.choice,
+    isLoading: false,
+    persistChoice: executionPickerMocks.persistChoice,
+    selectRuntime: executionPickerMocks.selectRuntime,
+  }),
 }));
 
 const renderTopChrome = () => {
@@ -69,14 +94,18 @@ describe("CanvasTopChrome", () => {
       "max-[480px]:w-16",
     );
     const stateLegendTrigger = screen.getByTestId("canvas-v2-state-legend-trigger");
+    const executionPicker = screen.getByTestId("canvas-v2-execution-picker");
+    const runButton = screen.getByTestId("canvas-v2-run");
     expect(stateLegendTrigger).toBeInTheDocument();
+    expect(executionPicker).toHaveTextContent("模型");
     expect(stateLegendTrigger).toHaveClass("max-[480px]:px-2");
-    expect(screen.getByTestId("canvas-v2-run")).toHaveClass("max-[480px]:px-2");
+    expect(runButton).toHaveClass("max-[480px]:px-2");
     expect(stateLegendTrigger.querySelector("span")).toHaveClass("max-[480px]:sr-only");
-    expect(screen.getByTestId("canvas-v2-run").querySelector("span")).toHaveClass(
-      "max-[480px]:sr-only",
+    expect(runButton.querySelector("span")).toHaveClass("max-[480px]:sr-only");
+    expect(stateLegendTrigger.compareDocumentPosition(executionPicker)).toBe(
+      Node.DOCUMENT_POSITION_FOLLOWING,
     );
-    expect(stateLegendTrigger.compareDocumentPosition(screen.getByTestId("canvas-v2-run"))).toBe(
+    expect(executionPicker.compareDocumentPosition(runButton)).toBe(
       Node.DOCUMENT_POSITION_FOLLOWING,
     );
     expect(screen.getByRole("button", { name: /Save|保存/i })).toBeInTheDocument();
@@ -120,7 +149,7 @@ describe("CanvasTopChrome", () => {
     const runButton = screen.getByRole("button", { name: /Run|运行/i });
     expect(runButton).toBeEnabled();
     await user.click(runButton);
-    expect(handleRunTest).toHaveBeenCalledOnce();
+    expect(handleRunTest).toHaveBeenCalledWith(executionPickerMocks.choice);
 
     act(() => {
       store.setState({ isRunning: true });

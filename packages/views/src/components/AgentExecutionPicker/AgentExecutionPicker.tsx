@@ -14,6 +14,7 @@ interface AgentExecutionPickerProps {
   choice: AgentExecutionChoice | null;
   className?: string;
   compact?: boolean;
+  triggerVariant?: "summary" | "button";
   disabled?: boolean;
   isLoading?: boolean;
   onChange: (choice: AgentExecutionChoice) => void;
@@ -26,6 +27,7 @@ export const AgentExecutionPicker = ({
   choice,
   className,
   compact = false,
+  triggerVariant = "summary",
   disabled,
   isLoading,
   onChange: handleChange,
@@ -43,6 +45,7 @@ export const AgentExecutionPicker = ({
       : t("agentExecutionPicker.bestEffortPolicy");
   const displayModel =
     currentModel?.displayName ?? choice?.model ?? t("agentExecutionPicker.model");
+  const isButtonTrigger = triggerVariant === "button";
   const handleRuntimeClick = (event: MouseEvent<HTMLButtonElement>) => {
     const runtimeConfigId = event.currentTarget.dataset.runtimeConfigId;
     if (runtimeConfigId) handleRuntimeChange(runtimeConfigId);
@@ -65,27 +68,42 @@ export const AgentExecutionPicker = ({
         aria-label={t("agentExecutionPicker.label")}
         className={cn(
           "flex h-8 min-w-0 items-center gap-1.5 rounded-lg px-2 text-xs text-muted-foreground outline-none transition-colors hover:bg-surface-2 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50",
-          compact && "h-auto rounded-none p-0 text-[10.5px] hover:bg-transparent",
+          compact &&
+            !isButtonTrigger &&
+            "h-auto rounded-none p-0 text-[10.5px] hover:bg-transparent",
+          isButtonTrigger &&
+            "h-auto rounded-full bg-surface px-3.5 py-1.5 font-medium text-foreground shadow-pill ring-1 ring-border hover:bg-surface hover:ring-border-strong max-[480px]:px-2",
           className,
         )}
         data-testid="agent-execution-picker-trigger"
         disabled={disabled || isLoading}
       >
-        <span
-          className={cn(
-            "size-1.5 shrink-0 rounded-full",
-            currentEntry?.availability === "launchable" ? "bg-success" : "bg-muted-foreground/45",
-          )}
-        />
-        <span className="truncate font-medium">
-          {isLoading
-            ? t("agentExecutionPicker.loading")
-            : (currentEntry?.displayName ?? t("agentExecutionPicker.configure"))}
-        </span>
-        {choice?.model && (
+        {isButtonTrigger ? (
           <>
-            <span aria-hidden="true">·</span>
-            <span className="max-w-40 truncate">{displayModel}</span>
+            <Bot className="size-3.5 shrink-0" />
+            <span className="max-[480px]:sr-only">{t("agentExecutionPicker.model")}</span>
+          </>
+        ) : (
+          <>
+            <span
+              className={cn(
+                "size-1.5 shrink-0 rounded-full",
+                currentEntry?.availability === "launchable"
+                  ? "bg-success"
+                  : "bg-muted-foreground/45",
+              )}
+            />
+            <span className="truncate font-medium">
+              {isLoading
+                ? t("agentExecutionPicker.loading")
+                : (currentEntry?.displayName ?? t("agentExecutionPicker.configure"))}
+            </span>
+            {choice?.model && (
+              <>
+                <span aria-hidden="true">·</span>
+                <span className="max-w-40 truncate">{displayModel}</span>
+              </>
+            )}
           </>
         )}
         <ChevronDown className="size-3 shrink-0" />

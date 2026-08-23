@@ -1,6 +1,12 @@
 import { sortParentBeforeChildren, type PipelineEdge, type PipelineNode } from "./canvasSlice";
 import type { CanvasPageStoreSlice } from "./canvasPageStore";
-import type { Operation, BuiltinNodeType, Skill, OutputMode } from "@repo/schemas";
+import type {
+  AgentExecutionChoice,
+  Operation,
+  BuiltinNodeType,
+  Skill,
+  OutputMode,
+} from "@repo/schemas";
 import type { PickedProject } from "../GitHubProjectNode/PickProjectDialog";
 import type { ConnectedRepoInfo } from "../GitHubProjectNode/GitHubConnectDialog";
 import type { LocalFolderInfo } from "../GitHubProjectNode/PickLocalFolderDialog";
@@ -114,7 +120,7 @@ export interface ActionsSlice {
   dropNodeOntoCompound: (nodeId: string) => void;
   handleDragOverCompound: (draggedNodeId: string, position: { x: number; y: number }) => void;
   handleDragEndOnCompound: (draggedNodeId: string, isCompound: boolean) => void;
-  handleRunTest: () => Promise<void>;
+  handleRunTest: (executionChoice?: AgentExecutionChoice | null) => Promise<void>;
   addNodeAndAutoConnect: (node: PipelineNode) => void;
   createObjectNode: (type: BuiltinNodeType) => void;
   createOperationNode: (operation: Operation) => void;
@@ -459,7 +465,7 @@ export const createActionsSlice = (
     get().handleDragEndOnCompound(node.id, node.type === "compound");
   },
 
-  handleRunTest: async () => {
+  handleRunTest: async (executionChoice) => {
     const {
       isRunning,
       isTestRunning,
@@ -516,7 +522,19 @@ export const createActionsSlice = (
       getCanvasDataProvider().custom!({
         url: "pipelines/run",
         method: "post",
-        payload: { id: pipelineId },
+        payload: {
+          id: pipelineId,
+          ...(executionChoice
+            ? {
+                runtimeConfigId: executionChoice.runtimeConfigId,
+                ...(executionChoice.model ? { model: executionChoice.model } : {}),
+                ...(executionChoice.reasoningEffort
+                  ? { reasoningEffort: executionChoice.reasoningEffort }
+                  : {}),
+                ...(executionChoice.speed ? { speed: executionChoice.speed } : {}),
+              }
+            : {}),
+        },
       }),
       () => t("canvas.runStartFailed"),
     );

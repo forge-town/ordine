@@ -7,5 +7,9 @@ export const LoopEvaluationOptionsSchema = z.object({
   operationOutput: z.string(),
   agent: AgentRuntimeSchema.optional(),
   model: z.string().optional(),
+  reasoningEffort: z.string().optional(),
+  speed: z.string().optional(),
+  runtimeConfigId: z.string().optional(),
+  executablePath: z.string().optional(),
 });
 export type LoopEvaluationOptions = z.infer<typeof LoopEvaluationOptionsSchema>;

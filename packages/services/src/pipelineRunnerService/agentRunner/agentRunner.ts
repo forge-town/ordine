@@ -24,6 +24,10 @@ export interface AgentRunnerOptions {
   attachments?: AgentInputAttachment[];
   apiKey?: string;
   model?: string;
+  reasoningEffort?: string;
+  speed?: string;
+  runtimeConfigId?: string;
+  executablePath?: string;
   githubToken?: string;
   ssh?: SshConnection;
   getMcpConnectorInjection?: McpConnectorInjectionProvider;
@@ -44,6 +48,10 @@ export const runAgent = async (opts: AgentRunnerOptions): Promise<string> => {
     attachments,
     apiKey,
     model,
+    reasoningEffort,
+    speed,
+    runtimeConfigId,
+    executablePath,
     githubToken,
     getMcpConnectorInjection,
   } = opts;
@@ -88,6 +96,10 @@ export const runAgent = async (opts: AgentRunnerOptions): Promise<string> => {
       agentId,
       apiKey,
       model,
+      reasoningEffort,
+      speed,
+      runtimeConfigId,
+      executablePath,
       githubToken,
       ssh: opts.ssh,
       getMcpConnectorInjection,

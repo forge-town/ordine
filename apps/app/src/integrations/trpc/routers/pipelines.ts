@@ -75,6 +75,10 @@ export const pipelinesRouter = router({
         inputPath: z.string().optional(),
         githubToken: z.string().optional(),
         selfHealRetries: z.number().int().min(0).max(5).optional(),
+        runtimeConfigId: z.string().min(1).optional(),
+        model: z.string().min(1).optional(),
+        reasoningEffort: z.string().min(1).optional(),
+        speed: z.string().min(1).optional(),
       }),
     )
     .mutation(async ({ input }) => {
@@ -88,6 +92,10 @@ export const pipelinesRouter = router({
         inputPath: input.inputPath,
         githubToken: input.githubToken,
         selfHealRetries: input.selfHealRetries,
+        runtimeConfigId: input.runtimeConfigId,
+        model: input.model,
+        reasoningEffort: input.reasoningEffort,
+        speed: input.speed,
       });
 
       if (result.isErr()) {

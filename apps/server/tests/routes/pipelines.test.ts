@@ -178,6 +178,37 @@ describe("pipelinesRoutes", () => {
     });
   });
 
+  it("forwards the selected runtime and model to a Pipeline run", async () => {
+    mocks.getById.mockResolvedValue({ id: "p1" });
+    mocks.startRun.mockResolvedValue({
+      isErr: () => false,
+      value: { jobId: "job-1" },
+    });
+
+    const response = await makeApp().request("/pipelines/p1/run", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        runtimeConfigId: "local-codex",
+        model: "gpt-5.6-luna",
+        reasoningEffort: "high",
+        speed: "priority",
+      }),
+    });
+
+    expect(response.status).toBe(202);
+    expect(mocks.startRun).toHaveBeenCalledWith({
+      pipelineId: "p1",
+      inputPath: undefined,
+      githubToken: undefined,
+      inputs: undefined,
+      runtimeConfigId: "local-codex",
+      model: "gpt-5.6-luna",
+      reasoningEffort: "high",
+      speed: "priority",
+    });
+  });
+
   it("returns a stable conflict when a Pipeline run has no configured runtime", async () => {
     const runtimeError = Object.assign(
       new Error("No configured Agent runtime is available for this Pipeline run"),

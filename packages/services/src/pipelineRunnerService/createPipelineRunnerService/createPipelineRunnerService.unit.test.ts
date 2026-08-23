@@ -11,6 +11,13 @@ type PipelineRunOptionsMock = {
 
 type EngineDepsBuildOptionsMock = {
   getMcpConnectorInjection?: (selectedToolNames: readonly string[]) => Promise<unknown>;
+  defaultAgent?: string;
+  model?: string;
+  reasoningEffort?: string;
+  speed?: string;
+  runtimeConfigId?: string;
+  executablePath?: string;
+  overrideOperationRoute?: boolean;
 };
 
 const {
@@ -104,6 +111,7 @@ vi.mock("../runPipeline", () => ({
 
 import type { DbConnection } from "@repo/models";
 import { createCredentialCipher } from "../../capabilityHarvestService";
+import { pipelineRunnerEngineDeps } from "../engineDeps";
 import {
   AgentRuntimeNotFoundError,
   createPipelineRunnerService,
@@ -132,7 +140,7 @@ describe("createPipelineRunnerService run controls", () => {
         id: "runtime-codex",
         name: "Codex Local",
         type: "codex",
-        connection: { mode: "local" },
+        connection: { mode: "local", path: "C:\\Tools\\codex.cmd" },
       },
     ]);
   });
@@ -257,6 +265,32 @@ describe("createPipelineRunnerService run controls", () => {
     expect(mockConnectorsDao.findMany).toHaveBeenCalledOnce();
   });
 
+  it("builds the run with the exact selected runtime and model", async () => {
+    const service = makeService();
+
+    const result = await service.startRun({
+      pipelineId: "pipe-1",
+      runtimeConfigId: "runtime-codex",
+      model: "gpt-5.6-luna",
+      reasoningEffort: "xhigh",
+      speed: "priority",
+    });
+    expect(result.isOk()).toBe(true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(pipelineRunnerEngineDeps.build).toHaveBeenCalledWith(
+      expect.objectContaining({
+        defaultAgent: "codex",
+        model: "gpt-5.6-luna",
+        reasoningEffort: "xhigh",
+        speed: "priority",
+        runtimeConfigId: "runtime-codex",
+        executablePath: "C:\\Tools\\codex.cmd",
+        overrideOperationRoute: true,
+      }),
+    );
+  });
+
   it("decrypts the active runtime source only while building execution injection", async () => {
     const sourceKey = "codex-source";
     const cipher = createCredentialCipher("unit-test-encryption-key");
@@ -329,6 +363,24 @@ describe("createPipelineRunnerService run controls", () => {
     expect(result.isErr()).toBe(true);
     if (result.isErr()) {
       expect(result.error).toBeInstanceOf(AgentRuntimeNotFoundError);
+    }
+    expect(mockJobsDao.create).not.toHaveBeenCalled();
+    expect(mockPipelineRunExecutorRun).not.toHaveBeenCalled();
+  });
+
+  it("rejects an unknown selected runtime before creating a job", async () => {
+    const service = makeService();
+
+    const result = await service.startRun({
+      pipelineId: "pipe-1",
+      runtimeConfigId: "missing-runtime",
+      model: "gpt-5.6-luna",
+    });
+
+    expect(result.isErr()).toBe(true);
+    if (result.isErr()) {
+      expect(result.error).toBeInstanceOf(AgentRuntimeNotFoundError);
+      expect(result.error.message).toContain("missing-runtime");
     }
     expect(mockJobsDao.create).not.toHaveBeenCalled();
     expect(mockPipelineRunExecutorRun).not.toHaveBeenCalled();
