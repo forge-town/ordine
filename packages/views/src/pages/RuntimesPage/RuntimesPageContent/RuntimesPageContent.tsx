@@ -11,6 +11,7 @@ import { getAgentRuntimeCatalogData } from "../../../components/AgentExecutionPi
 import { LocalAgentCard } from "../LocalAgentCard";
 import { RuntimeConnectionTestSheet } from "../RuntimeConnectionTestSheet";
 import { useRuntimesPageStore } from "../_store";
+import { getConnectionTestEntry } from "./getConnectionTestEntry";
 
 export const RuntimesPageContent = () => {
   const { t } = useTranslation();
@@ -41,9 +42,7 @@ export const RuntimesPageContent = () => {
   });
   const supported = catalog.filter((entry) => entry.compatibility.supportLevel === "supported");
   const launchable = supported.filter((entry) => entry.availability === "launchable");
-  const connectionTestEntry = catalog.find(
-    (entry) => entry.runtimeConfigId === connectionTestRuntimeConfigId,
-  );
+  const connectionTestEntry = getConnectionTestEntry(catalog, connectionTestRuntimeConfigId);
 
   const handleScan = () => {
     void handleRescanButtonClick(async () => {
