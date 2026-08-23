@@ -1,6 +1,6 @@
-import { Bot, Loader2, Play, Save, Settings2, Workflow } from "lucide-react";
+import { Bot, Loader2, Play, Save, Settings2, Square, Workflow } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import type { CSSProperties } from "react";
+import { useState, type CSSProperties } from "react";
 import { useStore } from "zustand";
 import { cn } from "@repo/ui/lib/utils";
 import {
@@ -23,6 +23,9 @@ export const CanvasTopChrome = () => {
   const handleOpenCanvasSettings = useStore(store, (state) => state.openCanvasSettings);
   const handlePipelineNameChange = useStore(store, (state) => state.handlePipelineNameChange);
   const handleRunTest = useStore(store, (state) => state.handleRunTest);
+  const handleCancelRun = useStore(store, (state) => state.handleCancelRun);
+  const activeJobId = useStore(store, (state) => state.activeJobId);
+  const [isCancelling, setIsCancelling] = useState(false);
   const toggleAgentPanel = useStore(store, (state) => state.toggleAgentPanel);
   const {
     catalog,
@@ -37,11 +40,14 @@ export const CanvasTopChrome = () => {
   const hasAvailableRuntime = executionChoice !== null;
   const isRunPending = isRunning || isTestRunning;
   const canRun = Boolean(pipelineId && hasAvailableRuntime && !isRunPending);
+  const canStop = Boolean(activeJobId && isTestRunning && !isCancelling);
   const pipelineTitleLabel = t("canvas.pipelineTitle", { defaultValue: "Pipeline name" });
   const saveLabel = t("canvas.floatingMenu.save", { defaultValue: "Save" });
   const settingsLabel = t("canvas.settingsDrawer.menuLabel", { defaultValue: "Settings" });
   const runLabel = t("canvas.run", { defaultValue: "Run" });
   const runningLabel = t("canvas.running", { defaultValue: "Running" });
+  const stopLabel = t("canvas.stopRun", { defaultValue: "Stop run" });
+  const stoppingLabel = t("canvas.stoppingRun", { defaultValue: "Stopping" });
   const agentLabel = t("canvas.agent", { defaultValue: "Agent" });
 
   return (
@@ -112,24 +118,52 @@ export const CanvasTopChrome = () => {
           />
         </div>
         <button
-          aria-label={isRunPending ? runningLabel : runLabel}
+          aria-label={
+            isCancelling
+              ? stoppingLabel
+              : isTestRunning
+                ? stopLabel
+                : isRunPending
+                  ? runningLabel
+                  : runLabel
+          }
           className={cn(
             "flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-medium shadow-pill transition-all disabled:opacity-70 max-[480px]:px-2",
-            canRun
-              ? "bg-foreground text-background hover:opacity-90"
+            canRun || canStop
+              ? isTestRunning
+                ? "bg-destructive text-destructive-foreground hover:opacity-90"
+                : "bg-foreground text-background hover:opacity-90"
               : "cursor-not-allowed bg-surface text-muted-foreground ring-1 ring-border",
           )}
           data-testid="canvas-v2-run"
-          disabled={!canRun}
+          disabled={isTestRunning ? !canStop : !canRun}
           type="button"
-          onClick={() => void handleRunTest(executionChoice)}
+          onClick={() => {
+            if (!isTestRunning) {
+              void handleRunTest(executionChoice);
+
+              return;
+            }
+            setIsCancelling(true);
+            void handleCancelRun().then(() => setIsCancelling(false));
+          }}
         >
-          {isRunPending ? (
+          {isCancelling || (isRunPending && !isTestRunning) ? (
             <Loader2 className="size-3.5 animate-spin" />
+          ) : isTestRunning ? (
+            <Square className="size-3.5 fill-current" />
           ) : (
             <Play className="size-3.5 fill-current" />
           )}
-          <span className="max-[480px]:sr-only">{isRunPending ? runningLabel : runLabel}</span>
+          <span className="max-[480px]:sr-only">
+            {isCancelling
+              ? stoppingLabel
+              : isTestRunning
+                ? stopLabel
+                : isRunPending
+                  ? runningLabel
+                  : runLabel}
+          </span>
         </button>
         {!agentPanelIsOpen ? (
           <button

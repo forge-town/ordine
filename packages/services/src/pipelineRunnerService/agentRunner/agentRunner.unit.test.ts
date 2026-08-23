@@ -42,6 +42,7 @@ describe("runAgent", () => {
   });
 
   it("forwards all options to agentEngine", async () => {
+    const controller = new AbortController();
     await runAgent({
       ...baseOpts,
       jobId: "job-1",
@@ -52,6 +53,7 @@ describe("runAgent", () => {
       speed: "priority",
       runtimeConfigId: "local-claude-code",
       executablePath: "C:\\Tools\\claude.cmd",
+      signal: controller.signal,
     });
 
     expect(agentEngine.run).toHaveBeenCalledWith(
@@ -68,6 +70,7 @@ describe("runAgent", () => {
         speed: "priority",
         runtimeConfigId: "local-claude-code",
         executablePath: "C:\\Tools\\claude.cmd",
+        signal: controller.signal,
       }),
     );
   });

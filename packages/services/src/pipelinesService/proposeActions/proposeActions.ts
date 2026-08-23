@@ -66,6 +66,7 @@ export type ProposeActionsOptions = {
   pipelineName?: string;
   referencedNodeIds?: string[];
   runtimeId?: string;
+  signal?: AbortSignal;
   /** Internal: counts schema-failure auto-retry rounds. Not exposed via API. */
   semanticRetry?: number;
   /** Internal: stage-one analysis carried across the semantic retry round. */
@@ -209,6 +210,7 @@ export const proposeActions = async (
     agent: effectiveRuntime?.type ?? settings.defaultAgentRuntime,
     apiKey: settings.defaultApiKey,
     model: settings.defaultModel,
+    signal: opts.signal,
     ssh: effectiveRuntime?.connection.mode === "ssh" ? effectiveRuntime.connection : undefined,
     userPrompt: userPromptText,
   });

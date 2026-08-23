@@ -18,7 +18,15 @@ export type StructuredAgentResult =
 
 export type RunStructuredAgentOptions = Pick<
   AgentRunnerOptions,
-  "agent" | "systemPrompt" | "userPrompt" | "agentId" | "logPrefix" | "apiKey" | "model" | "ssh"
+  | "agent"
+  | "systemPrompt"
+  | "userPrompt"
+  | "agentId"
+  | "logPrefix"
+  | "apiKey"
+  | "model"
+  | "ssh"
+  | "signal"
 > & {
   /** Process-level retry count (default 3; single-shot callers such as analyzeIntent pass 1). */
   maxRetries?: number;
@@ -49,10 +57,12 @@ export const runStructuredAgent = async (
           apiKey: opts.apiKey,
           model: opts.model,
           ssh: opts.ssh,
+          signal: opts.signal,
         }),
         (cause) => (cause instanceof Error ? cause : new Error(String(cause))),
       );
       if (result.isOk()) return result;
+      if (opts.signal?.aborted) return result;
       if (attempt === maxRetries) return result;
       logger.warn(
         { attempt, err: result.error.message },

@@ -249,4 +249,28 @@ describe("pipelineRunnerEngineDeps", () => {
       expect.objectContaining({ getMcpConnectorInjection }),
     );
   });
+
+  it("forwards the shared run cancellation signal to prompt and skill executors", () => {
+    const controller = new AbortController();
+    const deps = pipelineRunnerEngineDeps.build({
+      evaluateLoopCondition,
+      jobId: "job-1",
+      signal: controller.signal,
+    });
+
+    deps.runPrompt({ prompt: "publish", inputContent: "content", inputPath: "/tmp/project" });
+    deps.runSkill({
+      skillId: "skill-1",
+      skillDescription: "desc",
+      inputContent: "content",
+      inputPath: "/tmp/project",
+    });
+
+    expect(promptExecutor.run).toHaveBeenCalledWith(
+      expect.objectContaining({ signal: controller.signal }),
+    );
+    expect(skillExecutor.run).toHaveBeenCalledWith(
+      expect.objectContaining({ signal: controller.signal }),
+    );
+  });
 });

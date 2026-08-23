@@ -494,6 +494,25 @@ export const createPipelineAgentSessionsClient = (platform: PipelineAgentSession
       throw new Error(`Timed out waiting for generated pipeline in session ${sessionId}`);
     },
 
+    async cancelActiveRun(sessionId: string): Promise<boolean> {
+      const activeRun = readActiveAgentRun(sessionId);
+      const sessionResponse = await platform.request(
+        `${pipelineAgentSessionsBaseUrl}/${encodeURIComponent(sessionId)}/cancel`,
+        { method: "POST" },
+      );
+      if (!sessionResponse.ok) throw await readResponseError(sessionResponse);
+      if (!activeRun) return true;
+
+      const response = await platform.request(
+        `${agentRunsBaseUrl}/${encodeURIComponent(activeRun.runId)}/cancel`,
+        { method: "POST" },
+      );
+      if (!response.ok) throw await readResponseError(response);
+      clearActiveAgentRun(sessionId);
+
+      return true;
+    },
+
     async planSessionStream(
       sessionId: string,
       input: {

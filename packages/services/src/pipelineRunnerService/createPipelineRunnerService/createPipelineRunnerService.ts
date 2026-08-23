@@ -127,6 +127,7 @@ export const createPipelineRunnerService = (
     overrideOperationRoute,
     ssh,
     getMcpConnectorInjection,
+    signal,
   }: {
     jobId: string;
     apiKey?: string;
@@ -139,6 +140,7 @@ export const createPipelineRunnerService = (
     overrideOperationRoute?: boolean;
     ssh?: SshConnection;
     getMcpConnectorInjection?: McpConnectorInjectionProvider;
+    signal?: AbortSignal;
   }) => {
     const evaluateLoopCondition = loopEvaluator.create({ apiKey })({ jobId });
 
@@ -155,6 +157,7 @@ export const createPipelineRunnerService = (
       overrideOperationRoute,
       ssh,
       getMcpConnectorInjection,
+      signal,
     });
   };
 
@@ -247,6 +250,7 @@ export const createPipelineRunnerService = (
       // Resolve SSH connection from agent runtimes config
       const ssh = runtimeConfig.connection.mode === "ssh" ? runtimeConfig.connection : undefined;
 
+      const runControl = pipelineRunControl.buildForJob(jobId);
       void ResultAsync.fromPromise(
         pipelineRunExecutor.run({
           pipelineId: opts.pipelineId,
@@ -278,8 +282,9 @@ export const createPipelineRunnerService = (
             ),
             ssh,
             getMcpConnectorInjection: buildMcpConnectorInjectionProvider(runtimeConfig.type),
+            signal: pipelineRunControl.signal(jobId),
           }),
-          runControl: pipelineRunControl.buildForJob(jobId),
+          runControl,
           onRunSettled: () => pipelineRunControl.clear(jobId),
         }),
         (error) => error,

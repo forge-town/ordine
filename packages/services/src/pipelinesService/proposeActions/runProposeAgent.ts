@@ -11,6 +11,7 @@ export type RunProposeAgentOptions = {
   agent: Parameters<typeof runStructuredAgent>[0]["agent"];
   apiKey?: string;
   model?: string;
+  signal?: AbortSignal;
   ssh?: Parameters<typeof runStructuredAgent>[0]["ssh"];
   userPrompt: string;
   /**
@@ -39,5 +40,6 @@ export const runProposeAgent = (opts: RunProposeAgentOptions): Promise<RunPropos
     logPrefix: opts.logPrefix ?? "proposeActions",
     apiKey: opts.apiKey,
     model: opts.model,
+    signal: opts.signal,
     ssh: opts.ssh,
   });

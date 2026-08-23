@@ -71,6 +71,7 @@ const mockPipelinesService = {
 
 const mockRunAgent = vi.fn();
 const mockAgentRunsService = {
+  cancel: vi.fn(),
   getLatestByOwner: vi.fn(),
   start: vi.fn(),
   wait: vi.fn(),
@@ -130,6 +131,7 @@ describe("createPipelineAgentSessionsService", () => {
     vi.clearAllMocks();
     mockDb.transaction.mockImplementation(async (callback) => callback({}));
     mockAgentRunsService.getLatestByOwner.mockResolvedValue(null);
+    mockAgentRunsService.cancel.mockResolvedValue({ id: "run-1", status: "cancelled" });
     mockAgentRunsService.start.mockResolvedValue({ runId: "run-1" });
     mockAgentRunsService.wait.mockReturnValue(new Promise(() => undefined));
 
@@ -1028,6 +1030,66 @@ describe("createPipelineAgentSessionsService", () => {
         rebuildPrompt: expect.stringContaining("[user/text] Build me a review pipeline"),
         resumeFromRunId: undefined,
       }),
+    );
+  });
+
+  it("cancels durable edit projection and aborts its nested action Agent run", async () => {
+    mockSessionsDao.findById.mockResolvedValue({
+      id: "session-1",
+      entrypoint: "canvas-agent-panel",
+      mode: "edit",
+      status: "analyzing",
+      pipelineId: "pipe-1",
+      snapshot: { nodes: [], edges: [] },
+      latestProposalId: null,
+      approvedProposalId: null,
+      createdPipelineId: null,
+    });
+    mockAgentRunsService.wait.mockResolvedValueOnce({
+      id: "run-1",
+      status: "completed",
+      resultText: JSON.stringify({
+        type: "proposal",
+        proposal: {
+          mode: "edit",
+          assistantReply: "I will improve the graph.",
+          summary: "Improve the graph",
+          targetGraphIntent: "Use explicit parallel branches",
+          majorChanges: ["Add parallel branches"],
+          assumptions: [],
+          openQuestions: [],
+          readiness: "ready_for_generation",
+        },
+      }),
+    });
+    const deferredActions = createDeferred<{
+      proposal: { summary: string; actions: [] };
+      diagnostics: [];
+    }>();
+    mockPipelinesService.proposeActions.mockReturnValueOnce(deferredActions.promise);
+    const service = createPipelineAgentSessionsServiceFactory(mockDb as never, {
+      agentRunsService: mockAgentRunsService as never,
+    });
+
+    const started = await service.startPlanningRun("session-1");
+    await vi.waitFor(() => expect(mockPipelinesService.proposeActions).toHaveBeenCalledOnce());
+    const nestedSignal = mockPipelinesService.proposeActions.mock.calls[0]?.[0]?.signal;
+    expect(nestedSignal).toBeInstanceOf(AbortSignal);
+    expect(nestedSignal.aborted).toBe(false);
+
+    await service.cancelSession("session-1");
+    expect(nestedSignal.aborted).toBe(true);
+    expect(mockAgentRunsService.cancel).toHaveBeenCalledWith("run-1");
+    deferredActions.resolve({
+      proposal: { summary: "late actions", actions: [] },
+      diagnostics: [],
+    });
+    await service.waitForPlanningRun(started.runId);
+
+    expect(mockProposalsDao.create).not.toHaveBeenCalled();
+    expect(mockSessionsDao.update).toHaveBeenLastCalledWith(
+      "session-1",
+      expect.objectContaining({ status: "awaiting_user" }),
     );
   });
 

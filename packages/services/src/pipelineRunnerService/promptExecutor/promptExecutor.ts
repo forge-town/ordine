@@ -19,6 +19,7 @@ const PROMPT_AGENT_ID = "prompt-executor";
 type PromptExecutorOptions = RunPromptOptions & {
   ssh?: SshConnection;
   getMcpConnectorInjection?: McpConnectorInjectionProvider;
+  signal?: AbortSignal;
 };
 
 /**
@@ -137,6 +138,7 @@ const run = ({
   outputDir,
   runtimeContext,
   getMcpConnectorInjection,
+  signal,
 }: PromptExecutorOptions): ResultAsync<string, PromptExecutionError> => {
   if (!prompt?.trim()) {
     return errAsync(new PromptExecutionError("Prompt text is empty"));
@@ -175,6 +177,7 @@ const run = ({
         githubToken,
         ssh,
         getMcpConnectorInjection,
+        signal,
       });
       if (onChunk) await onChunk(raw);
 

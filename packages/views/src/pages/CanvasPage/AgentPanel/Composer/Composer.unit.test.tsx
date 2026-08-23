@@ -143,4 +143,16 @@ describe("Agent Bar Composer", () => {
     expect(chip).toHaveTextContent("brief.md");
     expect(chip.querySelector("button")).toBeNull();
   });
+
+  it("replaces send with an enabled stop control while the Agent is running", async () => {
+    const user = userEvent.setup();
+    const onStop = vi.fn();
+    renderComposer({ isSending: true, onStop });
+
+    const stopButton = screen.getByTestId("agent-composer-send");
+    expect(stopButton).toBeEnabled();
+    expect(stopButton).toHaveAccessibleName(/Stop generating|停止生成/i);
+    await user.click(stopButton);
+    expect(onStop).toHaveBeenCalledOnce();
+  });
 });

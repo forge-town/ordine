@@ -771,6 +771,10 @@
     "runFailed": "Pipeline validation failed, please retry",
     "runSaveFailed": "Failed to save pipeline validation result",
     "runStartFailed": "Failed to start pipeline",
+    "runStopFailed": "Failed to stop pipeline",
+    "runStopped": "Pipeline stopped",
+    "stopRun": "Stop run",
+    "stoppingRun": "Stopping",
     "runCompleted": "Pipeline run completed",
     "runSuccessDescription": "Job {{jobId}} completed pipeline validation",
     "runTest": "Run Test",
@@ -941,6 +945,7 @@
       "discarded": "Proposal discarded.",
       "diagnostics": "Diagnostics",
       "requestFailed": "Request failed. Please try again later.",
+      "runStopped": "This Agent run was stopped.",
       "errorTitle": "AI Assistant Error",
       "close": "Close AI assistant",
       "resize": "Resize AI assistant",
@@ -2087,7 +2092,8 @@
         "placeholderWithRefs": "Ask the Agent to change the referenced nodes...",
         "removeAttachment": "Remove {{name}}",
         "reverseDefault": "Reverse-engineer a pipeline from the attached sample: {{names}}",
-        "send": "Send message"
+        "send": "Send message",
+        "stop": "Stop generating"
       },
       "context": {
         "footer": {

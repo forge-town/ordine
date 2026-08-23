@@ -157,6 +157,26 @@ describe("CanvasTopChrome", () => {
     expect(screen.getByRole("button", { name: /Running|运行中/i })).toBeDisabled();
   });
 
+  it("turns the run button into an enabled stop control for an active job", async () => {
+    const user = userEvent.setup();
+    const handleCancelRun = vi.fn(async () => true);
+    const store = renderTopChrome();
+
+    act(() => {
+      store.setState({
+        activeJobId: "job-1",
+        handleCancelRun,
+        isTestRunning: true,
+        pipelineId: "pipeline-1",
+      });
+    });
+
+    const stopButton = screen.getByRole("button", { name: /Stop run|停止运行/i });
+    expect(stopButton).toBeEnabled();
+    await user.click(stopButton);
+    expect(handleCancelRun).toHaveBeenCalledOnce();
+  });
+
   it("shows the agent reopen pill and uses the current toggle action", async () => {
     const user = userEvent.setup();
     const store = renderTopChrome();
