@@ -199,6 +199,8 @@ export const runOpencode = (options: RunOpencodeOptions): ResultAsync<string, Er
       signal: options.signal,
       env: {
         ...process.env,
+        PWD: options.cwd,
+        INIT_CWD: options.cwd,
         OPENCODE_CONFIG_CONTENT: configContent,
       },
       initialEvents: [

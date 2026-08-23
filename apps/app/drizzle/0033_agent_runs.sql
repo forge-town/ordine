@@ -52,4 +52,3 @@ CREATE INDEX IF NOT EXISTS "agent_runs_status_idx" ON "agent_runs" USING btree (
 CREATE INDEX IF NOT EXISTS "agent_runs_expires_at_idx" ON "agent_runs" USING btree ("expires_at");
 --> statement-breakpoint
 CREATE INDEX IF NOT EXISTS "agent_run_events_run_sequence_idx" ON "agent_run_events" USING btree ("run_id","sequence");
-
