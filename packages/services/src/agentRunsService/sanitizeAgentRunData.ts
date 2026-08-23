@@ -4,15 +4,32 @@ import { RuntimeEventSchema, type RuntimeEvent } from "@repo/schemas";
 const MAX_EVENT_STRING_CHARS = 64 * 1024;
 const MAX_EVENT_JSON_CHARS = 256 * 1024;
 const SENSITIVE_KEY = /(?:authorization|api[-_]?key|access[-_]?token|refresh[-_]?token|password|secret|cookie)/i;
-const CREDENTIAL_PATTERNS = [
-  /\bBearer\s+[A-Za-z0-9._~+/=-]+/gi,
-  /\bsk-[A-Za-z0-9_-]{12,}\b/g,
-  /\b(?:api[-_]?key|access[-_]?token|refresh[-_]?token|password|secret)\s*[:=]\s*([^\s,;]+)/gi,
-] as const;
+const CREDENTIAL_PATTERNS: ReadonlyArray<{
+  pattern: RegExp;
+  replacement: (match: string) => string;
+}> = [
+  {
+    pattern: /\bBearer\s+[A-Za-z0-9._~+/=-]+/gi,
+    replacement: () => "Bearer [REDACTED]",
+  },
+  {
+    pattern: /\bsk-[A-Za-z0-9_-]{12,}\b/gi,
+    replacement: () => "sk-[REDACTED]",
+  },
+  {
+    pattern: /\b(?:gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,})\b/gi,
+    replacement: (match) => `${match.slice(0, match.indexOf("_") + 1)}[REDACTED]`,
+  },
+  {
+    pattern:
+      /\b(?:api[-_]?key|access[-_]?token|refresh[-_]?token|password|secret)\s*[:=]\s*([^\s,;]+)/gi,
+    replacement: (match) => `${match.split(/[:=]/, 1)[0]?.trim()}=[REDACTED]`,
+  },
+];
 
 export const redactSensitiveText = (value: string): string =>
   CREDENTIAL_PATTERNS.reduce(
-    (redacted, pattern) => redacted.replace(pattern, (match) => `${match.split(/[:=\s]/, 1)[0]} [REDACTED]`),
+    (redacted, { pattern, replacement }) => redacted.replace(pattern, replacement),
     value,
   );
 

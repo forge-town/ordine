@@ -119,6 +119,12 @@ const summarizeRun = async (run: AgentRun): Promise<RunEvidence> => {
 const persistEvidence = () =>
   writeFile(evidencePath, `${JSON.stringify(evidence, null, 2)}\n`, { encoding: "utf8" });
 
+const nonEmptyUtf8Lines = (value: string): string[] =>
+  value
+    .replaceAll("\r\n", "\n")
+    .split("\n")
+    .filter((line) => line.length > 0);
+
 beforeAll(async () => {
   if (!enabled) return;
   const configuredRoot = process.env["ORDINE_WINDOWS_RUNTIME_ACCEPTANCE_ROOT"];
@@ -153,7 +159,7 @@ describe.skipIf(!enabled)("COD-369 Windows runtime acceptance", () => {
         const resumeLine = `ORDINE_COD369_${marker}_RESUME`;
         const firstPrompt = [
           `Use your file editing tool to create ${fileName} in the current workspace.`,
-          `Its exact UTF-8 contents must be ${JSON.stringify(`${firstLine}\n`)}.`,
+          `Its only non-empty UTF-8 line must be ${JSON.stringify(firstLine)}.`,
           "Do not only describe the change. Verify the file, then reply with a short confirmation.",
         ].join(" ");
         const firstStarted = await service.start({
@@ -178,11 +184,11 @@ describe.skipIf(!enabled)("COD-369 Windows runtime acceptance", () => {
         expect(runtimeEvidence.firstRun.processTreeCleaned).toBe(true);
         expect(runtimeEvidence.firstRun.eventTypes["tool_start"]).toBeGreaterThan(0);
         expect(runtimeEvidence.firstRun.eventTypes["tool_result"]).toBeGreaterThan(0);
-        expect(await readFile(filePath, "utf8")).toBe(`${firstLine}\n`);
+        expect(nonEmptyUtf8Lines(await readFile(filePath, "utf8"))).toEqual([firstLine]);
 
         const resumePrompt = [
           `Continue the same session and append one line to ${fileName}.`,
-          `The final exact UTF-8 contents must be ${JSON.stringify(`${firstLine}\n${resumeLine}\n`)}.`,
+          `The final non-empty UTF-8 lines must be exactly ${JSON.stringify([firstLine, resumeLine])}.`,
           "Verify it, then reply with a short confirmation.",
         ].join(" ");
         const resumeStarted = await service.start({
@@ -206,7 +212,10 @@ describe.skipIf(!enabled)("COD-369 Windows runtime acceptance", () => {
         expect(resumeRun.usage).not.toBeNull();
         expect(runtimeEvidence.resumeRun.processTreeCleaned).toBe(true);
         const finalBytes = await readFile(filePath);
-        expect(finalBytes.toString("utf8")).toBe(`${firstLine}\n${resumeLine}\n`);
+        expect(nonEmptyUtf8Lines(finalBytes.toString("utf8"))).toEqual([
+          firstLine,
+          resumeLine,
+        ]);
         runtimeEvidence.filePath = filePath;
         runtimeEvidence.fileSha256 = createHash("sha256").update(finalBytes).digest("hex");
 

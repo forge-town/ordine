@@ -50,7 +50,10 @@ describe("runOpencode invocation", () => {
           "high",
         ],
         stdin: "system\n\n---\n\nuser",
+        cwd: "C:\\workspace",
         env: expect.objectContaining({
+          PWD: "C:\\workspace",
+          INIT_CWD: "C:\\workspace",
           OPENCODE_CONFIG_CONTENT: expect.any(String),
         }),
       }),
