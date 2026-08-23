@@ -77,6 +77,8 @@ Return ONLY a JSON object matching this exact schema:
 - For updateOperation, choose the smallest capability set. If any selected capability is irreversible, explain why it is necessary in assignmentReason.
 - When adding or replacing operation nodes, prefer operationId values from the provided available operations list.
 - If NO existing operation matches a required step, define a new one in 'newOperations' (unique id starting with op_new_, clear name, and a thorough 'prompt' describing exactly what the step must do with its input). Reference that id from addNode operation nodes.
+- Each operation receives only its immediate parent output. For newOperations that organize, revise, validate, correct, format, or export an artifact, the prompt MUST require the complete resulting artifact in the response; it must forbid summary-only output, placeholders, and references to omitted prior content.
+- Avoid chains of agents that repeatedly rewrite the same large deliverable when one generation Operation with loopEnabled quality review can produce the final artifact safely.
 - Do NOT refuse a request merely because no matching operation exists — define newOperations instead. Only refuse when the request itself is unsafe or impossible.
 - For operation nodes, operationName MUST match the referenced operation's name (existing or new).
 - Compound nodes (type === 'compound' or data.nodeType === 'compound') are NOT supported.

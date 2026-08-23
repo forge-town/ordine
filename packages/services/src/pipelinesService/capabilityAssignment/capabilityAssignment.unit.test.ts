@@ -3,6 +3,7 @@ import { buildMcpServerKey, buildMcpToolReference } from "../../connectorsServic
 import { parseCapabilityAssignments } from "./parseCapabilityAssignments";
 import { planCapabilityAssignments } from "./planCapabilityAssignments";
 import type { CapabilityAssignmentContext } from "./schemas";
+import { CAPABILITY_ASSIGNMENT_SYSTEM_PROMPT } from "./buildCapabilityAssignmentPrompt";
 
 const mailToolReference = buildMcpToolReference(buildMcpServerKey("mail"), "send");
 
@@ -81,6 +82,13 @@ const validOutput = {
 };
 
 describe("capability assignment", () => {
+  it("requires generated artifact-transform prompts to preserve the complete result", () => {
+    expect(CAPABILITY_ASSIGNMENT_SYSTEM_PROMPT).toContain(
+      "Each operation receives only its immediate parent output",
+    );
+    expect(CAPABILITY_ASSIGNMENT_SYSTEM_PROMPT).toContain("complete resulting artifact");
+  });
+
   it("accepts a mixed script and agent plan", () => {
     const result = parseCapabilityAssignments(validOutput, context);
 

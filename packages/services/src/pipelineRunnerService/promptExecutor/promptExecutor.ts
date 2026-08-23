@@ -38,6 +38,17 @@ const USER_ACTION_SECTION = [
   "",
 ].join("\n");
 
+const DOWNSTREAM_DATA_CONTRACT_SECTION = [
+  "",
+  "## Downstream data contract",
+  "Your entire response becomes the only content passed to the next Pipeline node.",
+  "Never refer to prior content as attached, provided above, or available from an earlier step while omitting that content from your response.",
+  "When this Operation organizes, revises, validates, corrects, formats, or exports an artifact, return the COMPLETE resulting artifact, not only an outline, summary, change list, validation report, or instructions for reconstructing it.",
+  "If a report is also required, include it after the complete artifact unless the Operation explicitly asks for a report only.",
+  "Do not replace usable input content with placeholders such as TBD, pending, omitted, or to be supplied.",
+  "",
+].join("\n");
+
 const buildRuntimeContextSection = (runtimeContext?: OperationRuntimeContext): string => {
   if (!runtimeContext) return "";
 
@@ -137,7 +148,7 @@ const run = ({
 
   return ResultAsync.fromPromise(
     (async () => {
-      const systemPrompt = `${buildSystemPrompt({ prompt, runtimeContext })}\n${USER_ACTION_SECTION}`;
+      const systemPrompt = `${buildSystemPrompt({ prompt, runtimeContext })}\n${DOWNSTREAM_DATA_CONTRACT_SECTION}\n${USER_ACTION_SECTION}`;
       const streamState = { accumulated: "" };
       const raw = await runAgent({
         agent,
