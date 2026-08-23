@@ -6,6 +6,7 @@ import { ResourceName } from "../../constants";
 import { CanvasPageStoreProvider } from "./_store";
 import { CanvasPageContent } from "./CanvasPageContent";
 import { RunStateRestorer } from "./RunConsole/RunStateRestorer";
+import { CanvasRunEventSynchronizer } from "./RunConsole/CanvasRunEventSynchronizer";
 
 interface CanvasPageProps {
   // Pipeline id to load, read from the route's search params by each app.
@@ -40,6 +41,7 @@ export const CanvasPage = ({
     <CanvasLayout embedded={embedded}>
       <CanvasPageStoreProvider pipeline={pipeline}>
         <RunStateRestorer />
+        <CanvasRunEventSynchronizer />
         <CanvasPageContent
           showCanvasMiniSidebar={showCanvasMiniSidebar}
           onGeneratedPipeline={handleGeneratedPipeline}

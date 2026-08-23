@@ -53,6 +53,7 @@ describe("createAgentRunController", () => {
     } as unknown as ReturnType<typeof createAgentRunsService>;
     const onRuntimeEvent = vi.fn();
     const onTextDelta = vi.fn();
+    const onAgentRunStarted = vi.fn();
     const result = await createAgentRunController(service)({
       agent: "codex",
       mode: "direct",
@@ -64,6 +65,7 @@ describe("createAgentRunController", () => {
       firstOutputTimeoutMs: 180_000,
       onRuntimeEvent,
       onTextDelta,
+      onAgentRunStarted,
     });
 
     expect(service.start).toHaveBeenCalledWith(
@@ -78,7 +80,36 @@ describe("createAgentRunController", () => {
       expect.any(Object),
     );
     expect(onTextDelta).toHaveBeenCalledOnce();
+    expect(onAgentRunStarted).toHaveBeenCalledOnce();
+    expect(onAgentRunStarted).toHaveBeenCalledWith("run-1");
+    expect(onAgentRunStarted.mock.invocationCallOrder[0]).toBeLessThan(
+      onRuntimeEvent.mock.invocationCallOrder[0] ?? Number.MAX_SAFE_INTEGER,
+    );
     expect(onRuntimeEvent).toHaveBeenCalledTimes(3);
     expect(result).toEqual({ text: "done", usage: { input: 3, output: 1 } });
+  });
+
+  it("cancels a started run when its durable node mapping cannot be recorded", async () => {
+    const service = {
+      start: vi.fn().mockResolvedValue({ runId: "run-1" }),
+      cancel: vi.fn().mockResolvedValue(undefined),
+      subscribe: vi.fn(),
+    } as unknown as ReturnType<typeof createAgentRunsService>;
+
+    await expect(
+      createAgentRunController(service)({
+        agent: "codex",
+        mode: "direct",
+        systemPrompt: "system",
+        userPrompt: "prompt",
+        cwd: "C:\\workspace",
+        onAgentRunStarted: async () => {
+          throw new Error("trace write failed");
+        },
+      }),
+    ).rejects.toThrow("trace write failed");
+
+    expect(service.cancel).toHaveBeenCalledWith("run-1");
+    expect(service.subscribe).not.toHaveBeenCalled();
   });
 });

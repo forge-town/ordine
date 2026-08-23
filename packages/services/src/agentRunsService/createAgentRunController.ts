@@ -73,6 +73,12 @@ export const createAgentRunController =
         ...(options.githubToken ? { githubToken: options.githubToken } : {}),
       },
     );
+    await Promise.resolve()
+      .then(() => options.onAgentRunStarted?.(started.runId))
+      .then(undefined, async (error) => {
+        await agentRunsService.cancel(started.runId);
+        throw error;
+      });
     const state = {
       lastSequence: 0,
       replaying: true,

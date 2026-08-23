@@ -5,11 +5,13 @@ import type {
   NodeRunStatus,
   PipelineActionDiagnostic,
   PipelineActionProposal,
+  RuntimeEvent,
 } from "@repo/schemas";
 import type { CanvasPageStoreSlice } from "./canvasPageStore";
 import { DEFAULT_CANVAS_VIEWPORT } from "../utils/canvasViewport";
 import {
   appendAgentActivity,
+  runtimeEventToAgentActivity,
   type AgentActivityEntry,
 } from "../../../components/AgentActivityFeed";
 
@@ -92,6 +94,7 @@ export interface UISlice {
   isCanvasSettingsOpen: boolean;
   isConsoleOpen: boolean;
   activeJobId: string | null;
+  runSyncJobId: string | null;
   contextMenu: ContextMenuState | null;
   connectionMenu: ContextMenuState | null;
   nodeContextMenu: NodeContextMenuState | null;
@@ -110,6 +113,7 @@ export interface UISlice {
   nodeRunStatuses: Record<string, NodeRunStatus>;
   nodeLlmContent: Record<string, string>;
   nodeAgentActivities: Record<string, AgentActivityEntry[]>;
+  nodeAgentRunIds: Record<string, string[]>;
   inspectingNodeId: string | null;
 
   // Agent panel state
@@ -160,6 +164,8 @@ export interface UISlice {
   stopTestRun: () => void;
   applyNodeLlmContent: (nodeId: string, content: string) => void;
   applyNodeAgentActivity: (nodeId: string, activity: AgentActivityEntry) => void;
+  registerNodeAgentRun: (nodeId: string, runId: string) => void;
+  applyNodeRuntimeEvent: (nodeId: string, runId: string, event: RuntimeEvent) => void;
   restoreRunState: (job: Job) => void;
   setNodeRunStatuses: (statuses: Record<string, NodeRunStatus>) => void;
 
@@ -213,6 +219,7 @@ export const createUISlice = (
   isCanvasSettingsOpen: false,
   isConsoleOpen: false,
   activeJobId: null,
+  runSyncJobId: null,
   contextMenu: null,
   connectionMenu: null,
   nodeContextMenu: null,
@@ -230,6 +237,7 @@ export const createUISlice = (
   nodeRunStatuses: {},
   nodeLlmContent: {},
   nodeAgentActivities: {},
+  nodeAgentRunIds: {},
   inspectingNodeId: null,
   agentPanel: {
     isOpen: true,
@@ -418,6 +426,8 @@ export const createUISlice = (
       nodeRunStatuses: {},
       nodeLlmContent: {},
       nodeAgentActivities: {},
+      nodeAgentRunIds: {},
+      runSyncJobId: null,
       inspectingNodeId: null,
     });
   },
@@ -441,6 +451,53 @@ export const createUISlice = (
     }));
   },
 
+  registerNodeAgentRun: (nodeId, runId) => {
+    set((state) => {
+      const current = state.nodeAgentRunIds[nodeId] ?? [];
+      if (current.includes(runId)) return state;
+
+      return {
+        nodeAgentRunIds: {
+          ...state.nodeAgentRunIds,
+          [nodeId]: [...current, runId],
+        },
+      };
+    });
+  },
+
+  applyNodeRuntimeEvent: (nodeId, runId, event) => {
+    set((state) => {
+      const currentContent = state.nodeLlmContent[nodeId] ?? "";
+      const isCurrentRun = state.nodeAgentRunIds[nodeId]?.at(-1) === runId;
+      if (event.type === "text_delta" || event.type === "message") {
+        if (!isCurrentRun) return state;
+        const content =
+          event.type === "text_delta"
+            ? `${currentContent}${event.text}`
+            : currentContent
+              ? `${currentContent}\n${event.text}`
+              : event.text;
+
+        return { nodeLlmContent: { ...state.nodeLlmContent, [nodeId]: content } };
+      }
+
+      const activity = runtimeEventToAgentActivity(event);
+      const scopedActivity = { ...activity, id: `${runId}:${activity.id}` };
+      const terminalContent =
+        isCurrentRun && event.type === "terminal" && event.resultText ? event.resultText : null;
+
+      return {
+        ...(terminalContent !== null
+          ? { nodeLlmContent: { ...state.nodeLlmContent, [nodeId]: terminalContent } }
+          : {}),
+        nodeAgentActivities: {
+          ...state.nodeAgentActivities,
+          [nodeId]: appendAgentActivity(state.nodeAgentActivities[nodeId] ?? [], scopedActivity),
+        },
+      };
+    });
+  },
+
   restoreRunState: (job) => {
     const live = job.status === "queued" || job.status === "running" || job.status === "paused";
     const nodeRunStatuses = { ...job.nodeStatuses };
@@ -451,6 +508,7 @@ export const createUISlice = (
 
     set({
       activeJobId: live ? job.id : null,
+      runSyncJobId: job.id,
       isConsoleOpen: live,
       isTestRunning: live,
       nodeRunStatuses,

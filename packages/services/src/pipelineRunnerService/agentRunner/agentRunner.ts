@@ -1,6 +1,7 @@
 import { ResultAsync } from "neverthrow";
 import {
   agentEngine,
+  type AgentRunController,
   type AgentInputAttachment,
   type AgentRunOptions,
   type McpConnectorInjectionProvider,
@@ -22,6 +23,8 @@ export interface AgentRunnerOptions {
   onProgress?: (line: string) => Promise<void> | void;
   onTextDelta?: (text: string) => Promise<void> | void;
   onRuntimeEvent?: AgentRunOptions["onRuntimeEvent"];
+  onAgentRunStarted?: AgentRunOptions["onAgentRunStarted"];
+  agentRunController?: AgentRunController;
   logPrefix: string;
   attachments?: AgentInputAttachment[];
   apiKey?: string;
@@ -49,6 +52,8 @@ export const runAgent = async (opts: AgentRunnerOptions): Promise<string> => {
     onProgress,
     onTextDelta,
     onRuntimeEvent,
+    onAgentRunStarted,
+    agentRunController,
     logPrefix,
     attachments,
     apiKey,
@@ -89,7 +94,7 @@ export const runAgent = async (opts: AgentRunnerOptions): Promise<string> => {
   const cwd = cwdResult.value;
 
   const engineResult = await ResultAsync.fromPromise(
-    agentEngine.run({
+    (agentRunController ?? agentEngine.run)({
       agent,
       mode: "direct",
       systemPrompt,
@@ -100,6 +105,7 @@ export const runAgent = async (opts: AgentRunnerOptions): Promise<string> => {
       onProgress,
       onTextDelta,
       onRuntimeEvent,
+      onAgentRunStarted,
       jobId,
       agentId,
       apiKey,

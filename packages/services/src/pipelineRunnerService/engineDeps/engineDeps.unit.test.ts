@@ -69,6 +69,28 @@ describe("pipelineRunnerEngineDeps", () => {
     );
   });
 
+  it("passes the persistent Agent Run controller to prompt and skill executors", () => {
+    const agentRunController = vi.fn();
+    const deps = pipelineRunnerEngineDeps.build({
+      evaluateLoopCondition,
+      jobId: "job-1",
+      agentRunController,
+    });
+
+    deps.runPrompt({ prompt: "analyze", inputContent: "content", inputPath: "/tmp/project" });
+    deps.runSkill({
+      skillId: "skill-1",
+      skillDescription: "desc",
+      inputContent: "content",
+      inputPath: "/tmp/project",
+    });
+
+    expect(promptExecutor.run).toHaveBeenCalledWith(
+      expect.objectContaining({ agentRunController }),
+    );
+    expect(skillExecutor.run).toHaveBeenCalledWith(expect.objectContaining({ agentRunController }));
+  });
+
   it("applies defaultAgent to runPrompt when agent is not specified", () => {
     const deps = pipelineRunnerEngineDeps.build({
       evaluateLoopCondition,

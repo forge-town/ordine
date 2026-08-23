@@ -92,6 +92,26 @@ describe("executeOperationNode", () => {
     expect(deps.runPrompt).toHaveBeenCalledWith(expect.objectContaining({ prompt: "Do analysis" }));
   });
 
+  it("persists the Agent Run handle before falling back to trace events", async () => {
+    const deps = makeDeps();
+    const op = makeOperation({ type: "agent", agentMode: "prompt", prompt: "Do analysis" });
+    const node = makeNode({ operationId: "op-id" });
+    const ctx = makeCtx(deps, new Map([["op-id", op]]));
+
+    await executeOperationNode(node, makeInput(), ctx);
+    const options = vi.mocked(deps.runPrompt).mock.calls[0]?.[0];
+    await options?.onAgentRunStarted?.("run-123");
+    await options?.onRuntimeEvent?.({
+      type: "status",
+      runtime: "codex",
+      timestamp: "2026-08-24T00:00:00.000Z",
+      phase: "running",
+    });
+
+    expect(trace).toHaveBeenCalledWith("job-1", "@@AGENT_RUN::op-1::run-123");
+    expect(trace).not.toHaveBeenCalledWith("job-1", expect.stringContaining("@@AGENT_EVENT::"));
+  });
+
   it("passes selected tools to prompt operations", async () => {
     const deps = makeDeps();
     const op = makeOperation({

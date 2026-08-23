@@ -102,6 +102,7 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
   const agents = agentsResult.data;
   const {
     isTestRunning,
+    nodeAgentRunIds,
     nodeLlmContent,
     operationAgentDropdownNodeId,
     handleOperationLabelChange,
@@ -115,6 +116,7 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
     store,
     useShallow((s) => ({
       isTestRunning: s.isTestRunning,
+      nodeAgentRunIds: s.nodeAgentRunIds,
       nodeLlmContent: s.nodeLlmContent,
       operationAgentDropdownNodeId: s.operationAgentDropdownNodeId,
       handleOperationLabelChange: s.handleOperationLabelChange,
@@ -164,7 +166,7 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
       : t("nodes.operation.defaultAgent");
 
   const hasLlmContent = !!nodeLlmContent[id];
-  const canInspect = isTestRunning || hasLlmContent;
+  const canInspect = isTestRunning || hasLlmContent || !!nodeAgentRunIds[id]?.length;
   const objectTypeLabels: Record<string, string> = {
     file: t("nodes.operation.objectTypes.file"),
     folder: t("nodes.operation.objectTypes.folder"),

@@ -1,6 +1,9 @@
 import { db } from "@repo/db";
 import {
+  configureAgentRunController,
   createAgentsService,
+  createAgentRunController,
+  createAgentRunsService,
   createAgentRuntimesService,
   createCapabilityHarvestService,
   createCapabilityCatalogService,
@@ -28,6 +31,9 @@ const { BETTER_AUTH_SECRET } = getServerEnv();
 const capabilityExecutionOptions = { encryptionSecret: BETTER_AUTH_SECRET };
 
 export const agentsService = createAgentsService(db);
+export const agentRunsService = createAgentRunsService(db);
+const agentRunController = createAgentRunController(agentRunsService);
+configureAgentRunController(agentRunController);
 export const agentRuntimesService = createAgentRuntimesService(db);
 export const capabilityHarvestService = createCapabilityHarvestService(db, {
   encryptionSecret: BETTER_AUTH_SECRET,
@@ -44,7 +50,10 @@ export const operationsService = createOperationsService(db);
 export const operationRunnerService = createOperationRunnerService(db);
 export const pipelineAssetsService = createPipelineAssetsService(db);
 export const pipelinesService = createPipelinesService(db);
-export const pipelineRunnerService = createPipelineRunnerService(db, capabilityExecutionOptions);
+export const pipelineRunnerService = createPipelineRunnerService(db, {
+  ...capabilityExecutionOptions,
+  agentRunController,
+});
 export const projectsService = createProjectsService(db);
 export const refinementsService = createRefinementsService(db, capabilityExecutionOptions);
 export const routinesService = createRoutinesService(db, {

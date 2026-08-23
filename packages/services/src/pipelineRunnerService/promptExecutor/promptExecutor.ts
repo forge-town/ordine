@@ -1,6 +1,7 @@
 import { ResultAsync, errAsync } from "neverthrow";
 import { logger } from "@repo/logger";
 import type { OperationRuntimeContext, RunPromptOptions } from "@repo/pipeline-engine";
+import type { AgentRunController } from "@repo/agent-engine";
 import { TRACE_MARKER, type OutputItem, type SshConnection } from "@repo/schemas";
 import { runAgent, type McpConnectorInjectionProvider } from "../agentRunner/agentRunner";
 
@@ -20,6 +21,7 @@ type PromptExecutorOptions = RunPromptOptions & {
   ssh?: SshConnection;
   getMcpConnectorInjection?: McpConnectorInjectionProvider;
   signal?: AbortSignal;
+  agentRunController?: AgentRunController;
 };
 
 /**
@@ -141,6 +143,8 @@ const run = ({
   getMcpConnectorInjection,
   signal,
   onRuntimeEvent,
+  onAgentRunStarted,
+  agentRunController,
 }: PromptExecutorOptions): ResultAsync<string, PromptExecutionError> => {
   if (!prompt?.trim()) {
     return errAsync(new PromptExecutionError("Prompt text is empty"));
@@ -182,6 +186,8 @@ const run = ({
         getMcpConnectorInjection,
         signal,
         onRuntimeEvent,
+        onAgentRunStarted,
+        agentRunController,
       });
       if (onChunk) await onChunk(raw);
 

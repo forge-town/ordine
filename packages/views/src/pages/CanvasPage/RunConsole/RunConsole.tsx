@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from "react";
+import { useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { ChevronDown, ChevronUp, FileText, Loader2, SquareTerminal, X } from "lucide-react";
 import { cn } from "@repo/ui/lib/utils";
@@ -12,8 +12,7 @@ import {
   type RunTimelineStatus,
 } from "./runTraceParser";
 import { ResourceName } from "../../../constants";
-import { RuntimeEventSchema, type Job, type JobStatus, type RuntimeEvent } from "@repo/schemas";
-import { runtimeEventToAgentActivity } from "../../../components/AgentActivityFeed";
+import type { Job, JobStatus } from "@repo/schemas";
 
 const POLL_INTERVAL = 1500;
 
@@ -55,48 +54,6 @@ const parseMessage = (log: string): string => {
 
 const STRUCTURED_LOG_PREFIX = "@@";
 
-const parseStructuredLogs = (
-  logs: string[],
-  callbacks: {
-    onNodeStart: (nodeId: string) => void;
-    onNodeDone: (nodeId: string) => void;
-    onNodeFail: (nodeId: string) => void;
-    onLlmContent: (nodeId: string, content: string) => void;
-    onAgentEvent: (nodeId: string, event: RuntimeEvent) => void;
-  },
-) => {
-  for (const log of logs) {
-    const msg = log.replace(/^\[[^\]]+\]\s*/, "");
-    if (!msg.startsWith(STRUCTURED_LOG_PREFIX)) continue;
-    if (msg.startsWith("@@NODE_START::")) {
-      callbacks.onNodeStart(msg.slice("@@NODE_START::".length));
-    } else if (msg.startsWith("@@NODE_DONE::")) {
-      callbacks.onNodeDone(msg.slice("@@NODE_DONE::".length));
-    } else if (msg.startsWith("@@NODE_FAIL::")) {
-      callbacks.onNodeFail(msg.slice("@@NODE_FAIL::".length));
-    } else if (msg.startsWith("@@LLM_CONTENT::")) {
-      const rest = msg.slice("@@LLM_CONTENT::".length);
-      const sepIdx = rest.indexOf("::");
-      if (sepIdx !== -1) {
-        callbacks.onLlmContent(rest.slice(0, sepIdx), rest.slice(sepIdx + 2));
-      }
-    } else if (msg.startsWith("@@AGENT_EVENT::")) {
-      const rest = msg.slice("@@AGENT_EVENT::".length);
-      const sepIdx = rest.indexOf("::");
-      if (sepIdx !== -1) {
-        let payload: unknown;
-        try {
-          payload = JSON.parse(rest.slice(sepIdx + 2)) as unknown;
-        } catch {
-          continue;
-        }
-        const parsed = RuntimeEventSchema.safeParse(payload);
-        if (parsed.success) callbacks.onAgentEvent(rest.slice(0, sepIdx), parsed.data);
-      }
-    }
-  }
-};
-
 const isStructuredLog = (log: string): boolean => {
   const msg = log.replace(/^\[[^\]]+\]\s*/, "");
 
@@ -119,51 +76,12 @@ export const RunConsole = ({ visible = true }: { visible?: boolean }) => {
   const nodes = useStore(store, (s) => s.nodes);
   const edges = useStore(store, (s) => s.edges);
   const handleCloseConsole = useStore(store, (s) => s.handleCloseConsole);
-  const markNodeRunning = useStore(store, (s) => s.markNodeRunning);
-  const markNodePassed = useStore(store, (s) => s.markNodePassed);
-  const markNodeFailed = useStore(store, (s) => s.markNodeFailed);
-  const applyNodeLlmContent = useStore(store, (s) => s.applyNodeLlmContent);
-  const applyNodeAgentActivity = useStore(store, (s) => s.applyNodeAgentActivity);
-  const setNodeRunStatuses = useStore(store, (s) => s.setNodeRunStatuses);
-  const stopTestRun = useStore(store, (s) => s.stopTestRun);
   const isConsoleCollapsed = useStore(store, (s) => s.isConsoleCollapsed);
   const handleToggleConsoleCollapse = useStore(store, (s) => s.handleToggleConsoleCollapse);
   const getDataProvider = useDataProvider();
   const dataProvider = getDataProvider();
 
   const scrollRef = useRef<HTMLDivElement>(null);
-  const processedTraceRef = useRef({ jobId: null as string | null, count: 0 });
-  const isConsoleCollapsedRef = useRef(isConsoleCollapsed);
-  isConsoleCollapsedRef.current = isConsoleCollapsed;
-
-  const applyStructuredTraceLogs = useCallback(
-    (currentJobId: string, logs: string[]) => {
-      if (processedTraceRef.current.jobId !== currentJobId) {
-        processedTraceRef.current = { jobId: currentJobId, count: 0 };
-      }
-
-      if (logs.length <= processedTraceRef.current.count) return;
-
-      const newLogs = logs.slice(processedTraceRef.current.count);
-      processedTraceRef.current.count = logs.length;
-
-      parseStructuredLogs(newLogs, {
-        onNodeStart: markNodeRunning,
-        onNodeDone: markNodePassed,
-        onNodeFail: markNodeFailed,
-        onLlmContent: applyNodeLlmContent,
-        onAgentEvent: (nodeId, event) =>
-          applyNodeAgentActivity(nodeId, runtimeEventToAgentActivity(event)),
-      });
-
-      requestAnimationFrame(() => {
-        if (scrollRef.current && !isConsoleCollapsedRef.current) {
-          scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-        }
-      });
-    },
-    [markNodeRunning, markNodePassed, markNodeFailed, applyNodeLlmContent, applyNodeAgentActivity],
-  );
 
   const { query: jobQuery } = useOne<Job>({
     resource: ResourceName.jobs,
@@ -176,10 +94,6 @@ export const RunConsole = ({ visible = true }: { visible?: boolean }) => {
           resource: ResourceName.jobs,
           id: currentJobId,
         });
-
-        if (isTerminalStatus(response.data.status)) {
-          stopTestRun();
-        }
 
         return response;
       },
@@ -196,14 +110,6 @@ export const RunConsole = ({ visible = true }: { visible?: boolean }) => {
   const jobRef = useRef(job);
   jobRef.current = job;
 
-  useEffect(() => {
-    if (!job?.nodeStatuses) {
-      return;
-    }
-
-    setNodeRunStatuses(job.nodeStatuses);
-  }, [job, setNodeRunStatuses]);
-
   const { result: tracesResult } = useCustom<{ traces: RunTrace[] }>({
     url: "jobs/traces",
     method: "get",
@@ -217,9 +123,6 @@ export const RunConsole = ({ visible = true }: { visible?: boolean }) => {
           method: "get",
           payload: { jobId: currentJobId },
         });
-        const logs = response.data.traces.map((trace) => trace.message);
-        applyStructuredTraceLogs(currentJobId, logs);
-
         return response;
       },
       refetchInterval: () => {

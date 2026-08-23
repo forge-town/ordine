@@ -548,7 +548,7 @@ export const createActionsSlice = (
     runResult.match(
       (data) => {
         const result = data.data as { jobId: string };
-        set({ activeJobId: result.jobId, isConsoleOpen: true });
+        set({ activeJobId: result.jobId, runSyncJobId: result.jobId, isConsoleOpen: true });
         toastStore.getState().addToast({
           type: "success",
           title: t("canvas.runCompleted"),
@@ -961,8 +961,13 @@ export const createActionsSlice = (
   },
 
   handleOperationCardClick: (nodeId) => {
-    const { isTestRunning, nodeLlmContent } = get();
-    if (isTestRunning || nodeLlmContent[nodeId]) {
+    const { isTestRunning, nodeAgentActivities, nodeAgentRunIds, nodeLlmContent } = get();
+    if (
+      isTestRunning ||
+      nodeLlmContent[nodeId] ||
+      nodeAgentActivities[nodeId]?.length ||
+      nodeAgentRunIds[nodeId]?.length
+    ) {
       set({ inspectingNodeId: nodeId });
     }
   },

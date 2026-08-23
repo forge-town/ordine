@@ -5,7 +5,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { RunConsole } from "./RunConsole";
 import { CanvasPageStoreProvider, useCanvasPageStore } from "../_store";
 import { useRef } from "react";
-import { useStore } from "zustand";
 import type { Job } from "@repo/schemas";
 
 vi.mock("@xyflow/react", () => ({
@@ -43,13 +42,6 @@ const wrapperWithJob = (jobId: string | null) => {
   );
 
   return Wrapper;
-};
-
-const RunStatusProbe = ({ nodeId }: { nodeId: string }) => {
-  const store = useCanvasPageStore();
-  const status = useStore(store, (state) => state.nodeRunStatuses[nodeId]);
-
-  return <span data-testid="run-status-probe">{status ?? "missing"}</span>;
 };
 
 const timelineWrapper = ({ children }: { children?: React.ReactNode }) => (
@@ -161,25 +153,6 @@ describe("RunConsole", () => {
   it("shows status bar with running indicator", () => {
     render(<RunConsole />, { wrapper: wrapperWithJob("job-1") });
     expect(screen.getByText(/Running/i)).toBeInTheDocument();
-  });
-
-  it("syncs authoritative job node statuses without structured trace markers", async () => {
-    useOneData.mockReturnValue({
-      ...mockJobRunning,
-      nodeStatuses: { "node-op": "running" },
-    });
-
-    render(
-      <>
-        <RunConsole />
-        <RunStatusProbe nodeId="node-op" />
-      </>,
-      { wrapper: wrapperWithJob("job-1") },
-    );
-
-    await waitFor(() => {
-      expect(screen.getByTestId("run-status-probe")).toHaveTextContent("running");
-    });
   });
 
   it("displays log entries from traces", async () => {

@@ -3,6 +3,7 @@ import { skillExecutor } from "../skillExecutor";
 import { structuredOutput } from "../structuredOutput";
 import type { LoopEvaluationOptions, PipelineEngineDeps } from "@repo/pipeline-engine";
 import type { AgentRuntime, SshConnection } from "@repo/schemas";
+import type { AgentRunController } from "@repo/agent-engine";
 import type { McpConnectorInjectionProvider } from "../agentRunner/agentRunner";
 import type { LoopEvaluatorFn } from "../loopEvaluator";
 
@@ -22,6 +23,7 @@ export const pipelineRunnerEngineDeps = {
     ssh,
     getMcpConnectorInjection,
     signal,
+    agentRunController,
   }: {
     evaluateLoopCondition: LoopEvaluatorFn;
     jobId?: string;
@@ -37,6 +39,7 @@ export const pipelineRunnerEngineDeps = {
     ssh?: SshConnection;
     getMcpConnectorInjection?: McpConnectorInjectionProvider;
     signal?: AbortSignal;
+    agentRunController?: AgentRunController;
   }): PipelineEngineDeps => {
     const resolveRoute = (route: Pick<LoopEvaluationOptions, "agent" | "model">) => {
       const agent = overrideOperationRoute ? defaultAgent : (route.agent ?? defaultAgent);
@@ -65,6 +68,7 @@ export const pipelineRunnerEngineDeps = {
           apiKey,
           getMcpConnectorInjection,
           signal,
+          agentRunController,
         }),
       runSkill: (o) =>
         skillExecutor.run({
@@ -74,6 +78,7 @@ export const pipelineRunnerEngineDeps = {
           apiKey,
           getMcpConnectorInjection,
           signal,
+          agentRunController,
         }),
       structuredJsonToMarkdown: (content) => structuredOutput.toMarkdown({ content }),
       evaluateLoopCondition: (o) => evaluateLoopCondition({ ...o, ...resolveRoute(o) }),

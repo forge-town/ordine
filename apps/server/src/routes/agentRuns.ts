@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import { ResultAsync } from "neverthrow";
 import { z } from "zod/v4";
 import type { AgentRunEventEnvelope, AgentRunStatus } from "@repo/schemas";
 import { agentRunsService } from "../services.js";
@@ -30,8 +31,7 @@ agentRunsRoutes.get("/:id/events", async (context) => {
   const runId = context.req.param("id");
   const run = await agentRunsService.getById(runId);
   if (!run) return context.json({ code: "AGENT_RUN_NOT_FOUND", error: "Run not found" }, 404);
-  const rawAfter =
-    context.req.query("after") ?? context.req.header("Last-Event-ID") ?? "0";
+  const rawAfter = context.req.query("after") ?? context.req.header("Last-Event-ID") ?? "0";
   const parsedAfter = afterSchema.safeParse(rawAfter);
   if (!parsedAfter.success) {
     return context.json({ code: "INVALID_SEQUENCE", error: "Invalid event sequence" }, 400);
@@ -45,12 +45,15 @@ agentRunsRoutes.get("/:id/events", async (context) => {
         lastSequence: parsedAfter.data,
         pending: new Map<number, AgentRunEventEnvelope>(),
         heartbeat: undefined as ReturnType<typeof setInterval> | undefined,
+        databasePoll: undefined as ReturnType<typeof setInterval> | undefined,
+        databasePollInFlight: false,
         unsubscribe: undefined as (() => void) | undefined,
       };
       const close = () => {
         if (state.closed) return;
         state.closed = true;
         if (state.heartbeat) clearInterval(state.heartbeat);
+        if (state.databasePoll) clearInterval(state.databasePoll);
         state.unsubscribe?.();
         controller.close();
       };
@@ -88,6 +91,25 @@ agentRunsRoutes.get("/:id/events", async (context) => {
       state.heartbeat = setInterval(() => {
         if (!state.closed) controller.enqueue(new TextEncoder().encode(": heartbeat\n\n"));
       }, 15_000);
+      // Pipeline runs may execute in the desktop app process while this API is
+      // served by the sidecar. The database is the cross-process event bus of
+      // record; local subscriptions remain the low-latency fast path.
+      state.databasePoll = setInterval(async () => {
+        if (state.closed || state.databasePollInFlight) return;
+        state.databasePollInFlight = true;
+        const persisted = await ResultAsync.fromPromise(
+          agentRunsService.getEvents(runId, state.lastSequence),
+          (cause) => cause,
+        );
+        persisted.match(
+          (events) => {
+            for (const envelope of events) send(envelope);
+          },
+          // End this response so the client can reconnect from lastSequence.
+          close,
+        );
+        state.databasePollInFlight = false;
+      }, 250);
       context.req.raw.signal.addEventListener("abort", close, { once: true });
     },
   });

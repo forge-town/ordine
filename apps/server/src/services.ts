@@ -1,6 +1,6 @@
 import { db } from "@repo/db";
-import { agentEngine } from "@repo/agent-engine";
 import {
+  configureAgentRunController,
   createAgentsService,
   createAgentRunsService,
   createAgentRunController,
@@ -24,7 +24,8 @@ import {
 
 export const agentsService = createAgentsService(db);
 export const agentRunsService = createAgentRunsService(db);
-agentEngine.setRunController(createAgentRunController(agentRunsService));
+const agentRunController = createAgentRunController(agentRunsService);
+configureAgentRunController(agentRunController);
 export const agentRuntimesService = createAgentRuntimesService(db);
 export const connectorsService = createConnectorsService(db);
 export const conversationMessagesService = createConversationMessagesService(db);
@@ -37,7 +38,7 @@ export const pipelineAgentSessionsService = createPipelineAgentSessionsService(d
 });
 export const pipelineAssetsService = createPipelineAssetsService(db);
 export const pipelinesService = createPipelinesService(db);
-export const pipelineRunnerService = createPipelineRunnerService(db);
+export const pipelineRunnerService = createPipelineRunnerService(db, { agentRunController });
 export const projectsService = createProjectsService(db);
 export const routinesService = createRoutinesService(db, {
   startRun: (opts) => pipelineRunnerService.startRun(opts),
