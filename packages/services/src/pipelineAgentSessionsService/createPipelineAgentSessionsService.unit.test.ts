@@ -979,6 +979,41 @@ describe("createPipelineAgentSessionsService", () => {
         permissionMode: "full-access",
         networkAccess: true,
         fullAccessConfirmed: true,
+        prompt: expect.stringContaining("=== OUTPUT FORMAT ==="),
+        rebuildPrompt: expect.stringContaining("[user/text] Build me a review pipeline"),
+      }),
+    );
+    const startInput = mockAgentRunsService.start.mock.calls[0]?.[0];
+    expect(startInput?.prompt).toBe(startInput?.rebuildPrompt);
+  });
+
+  it("reseeds the full planning prompt after a completed run failed projection", async () => {
+    mockSessionsDao.findById.mockResolvedValueOnce({
+      id: "session-1",
+      entrypoint: "canvas-agent-panel",
+      mode: "generate",
+      status: "failed",
+      pipelineId: null,
+      snapshot: null,
+      latestProposalId: null,
+      approvedProposalId: null,
+      createdPipelineId: null,
+    });
+    mockAgentRunsService.getLatestByOwner.mockResolvedValueOnce({
+      id: "run-with-invalid-projection",
+      status: "completed",
+    });
+    const service = createPipelineAgentSessionsServiceFactory(mockDb as never, {
+      agentRunsService: mockAgentRunsService as never,
+    });
+
+    await service.startPlanningRun("session-1");
+
+    expect(mockAgentRunsService.start).toHaveBeenCalledWith(
+      expect.objectContaining({
+        prompt: expect.stringContaining("=== OUTPUT FORMAT ==="),
+        rebuildPrompt: expect.stringContaining("[user/text] Build me a review pipeline"),
+        resumeFromRunId: undefined,
       }),
     );
   });

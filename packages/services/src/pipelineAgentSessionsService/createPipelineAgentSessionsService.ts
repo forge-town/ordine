@@ -18,7 +18,6 @@ import {
   createSettingsDao,
   type DbConnection,
 } from "@repo/models";
-import { extractJsonFromText } from "@repo/agent";
 import {
   type AgentRuntime,
   PipelineAgentPlanReadinessSchema,
@@ -42,6 +41,7 @@ import { getNextCronRunAt } from "@repo/utils";
 import { runAgent } from "../pipelineRunnerService/agentRunner/agentRunner";
 import { createAgentRunsService } from "../agentRunsService/createAgentRunsService";
 import { createPipelinesService } from "../pipelinesService/createPipelinesService";
+import { parsePlanningResult } from "./parsePlanningResult";
 import { createPlanningPreviewStreamer } from "./streamPlanningPreview";
 
 const RelaxedCanvasEditPlanningResultSchema = z.discriminatedUnion("type", [
@@ -304,11 +304,10 @@ export const createPipelineAgentSessionsService = (
   > => {
     const session = await sessionsDao.findById(sessionId);
     if (!session) throw new Error(`Pipeline agent session not found: ${sessionId}`);
-    const parsed = (
+    const parsed =
       session.mode === "edit"
-        ? RelaxedCanvasEditPlanningResultSchema
-        : PipelineAgentPlanningResultSchema
-    ).parse(JSON.parse(extractJsonFromText(raw)));
+        ? parsePlanningResult(raw, RelaxedCanvasEditPlanningResultSchema)
+        : parsePlanningResult(raw, PipelineAgentPlanningResultSchema);
 
     if (parsed.type === "question") {
       await db.transaction(async (transaction) => {
@@ -1182,6 +1181,7 @@ export const createPipelineAgentSessionsService = (
         .find((message) => message.role === "user")?.content;
       const agentRunsService = getAgentRunsService();
       const previous = await agentRunsService.getLatestByOwner("pipeline-agent-session", sessionId);
+      const canResumePreviousRun = previous?.status === "completed" && session.status !== "failed";
       await sessionsDao.update(sessionId, { status: "analyzing" });
       const started = await agentRunsService.start({
         owner: { type: "pipeline-agent-session", id: sessionId },
@@ -1190,10 +1190,11 @@ export const createPipelineAgentSessionsService = (
         model: input?.model ?? runtimePreference?.model ?? settings.defaultModel ?? undefined,
         reasoningEffort: input?.reasoningEffort ?? runtimePreference?.reasoningEffort,
         speed: input?.speed ?? runtimePreference?.speed,
-        systemPrompt: "You are a fast planning assistant. Return only valid JSON.",
-        prompt: latestUserMessage ?? rebuildPrompt,
+        systemPrompt:
+          "You are a fast pipeline planning assistant. Do not use tools. Return exactly one valid JSON object matching the provided output format.",
+        prompt: canResumePreviousRun ? (latestUserMessage ?? rebuildPrompt) : rebuildPrompt,
         rebuildPrompt,
-        resumeFromRunId: previous?.status === "completed" ? previous.id : undefined,
+        resumeFromRunId: canResumePreviousRun ? previous.id : undefined,
         permissionMode: input?.permissionMode ?? "full-access",
         networkAccess: input?.networkAccess ?? true,
         fullAccessConfirmed: input?.fullAccessConfirmed ?? true,
@@ -1314,11 +1315,10 @@ export const createPipelineAgentSessionsService = (
           planningPreview.push(raw);
           assertActivityActive(sessionId, activity);
 
-          const parsed = (
+          const parsed =
             session.mode === "edit"
-              ? RelaxedCanvasEditPlanningResultSchema
-              : PipelineAgentPlanningResultSchema
-          ).parse(JSON.parse(extractJsonFromText(raw)));
+              ? parsePlanningResult(raw, RelaxedCanvasEditPlanningResultSchema)
+              : parsePlanningResult(raw, PipelineAgentPlanningResultSchema);
           assertActivityActive(sessionId, activity);
 
           if (parsed.type === "question") {

@@ -1,6 +1,7 @@
 import { Result } from "neverthrow";
 import { z } from "zod/v4";
 import type { PlatformCapabilities } from "../platform";
+import { projectPipelineAgentMessage } from "./projectPipelineAgentMessage";
 import {
   AgentRunEventEnvelopeSchema,
   AgentRunSchema,
@@ -219,7 +220,13 @@ const mapAgentRunEvent = (
   envelope: z.infer<typeof AgentRunEventEnvelopeSchema>,
 ): PipelineAgentPlanEvent | null => {
   const event = envelope.event;
-  if (event.type === "text_delta" || event.type === "message") {
+  if (event.type === "message") {
+    const projected = projectPipelineAgentMessage(event.text);
+    if (projected !== undefined) return projected;
+
+    return { type: "assistant_chunk", text: event.text };
+  }
+  if (event.type === "text_delta") {
     return { type: "assistant_chunk", text: event.text };
   }
   if (event.type === "thinking_delta") return { type: "thinking", text: event.text };
