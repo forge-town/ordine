@@ -29,10 +29,21 @@ vi.mock("../services", () => ({
 }));
 vi.mock("@repo/agent", () => ({
   createRuntimeCatalogCache: ({ load }: { load: () => Promise<unknown[]> }) => ({
-    get: load,
+    get: (seed?: unknown[]) =>
+      Promise.resolve(seed ?? []).then((catalog) => {
+        void load();
+
+        return catalog;
+      }),
     refresh: load,
     warm: vi.fn(),
   }),
+  projectRuntimeCatalogFromConfigs: (runtimes: Array<Record<string, unknown>>) =>
+    runtimes.map((runtime) => ({
+      runtime: runtime.type,
+      runtimeConfigId: runtime.id,
+      availability: "launchable",
+    })),
   scanRuntimeCatalog: mocks.scanRuntimeCatalog,
   scanRuntimes: mocks.scanRuntimes,
 }));
@@ -100,7 +111,7 @@ describe("agentRuntimesRouter", () => {
     expect(mocks.harvestOnce).toHaveBeenCalledWith({});
   });
 
-  it("reads the full runtime catalog without mutating stored runtime configs", async () => {
+  it("serves the persisted runtime catalog seed without waiting for a binary rescan", async () => {
     const existing = [
       {
         id: "saved-opencode",
@@ -110,19 +121,12 @@ describe("agentRuntimesRouter", () => {
       },
     ];
     mocks.getAll.mockResolvedValue(existing);
-    mocks.scanRuntimeCatalog.mockResolvedValue([
-      {
-        runtime: "opencode",
-        runtimeConfigId: "local-opencode",
-        availability: "launchable",
-      },
-    ]);
-
     const result = await agentRuntimesRouter.createCaller({ session: null }).getCatalog();
 
     expect(result).toEqual([
       expect.objectContaining({ runtime: "opencode", runtimeConfigId: "saved-opencode" }),
     ]);
+    expect(mocks.scanRuntimeCatalog).toHaveBeenCalledOnce();
     expect(mocks.syncAll).not.toHaveBeenCalled();
   });
 

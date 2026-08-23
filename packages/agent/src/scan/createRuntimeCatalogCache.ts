@@ -9,7 +9,7 @@ type RuntimeCatalogCacheOptions = {
 };
 
 export type RuntimeCatalogCache = {
-  get: RuntimeCatalogLoader;
+  get: (seed?: AgentRuntimeCatalogEntry[]) => Promise<AgentRuntimeCatalogEntry[]>;
   refresh: RuntimeCatalogLoader;
   warm: () => void;
 };
@@ -45,7 +45,13 @@ export const createRuntimeCatalogCache = ({
     return request;
   };
 
-  const get = async (): Promise<AgentRuntimeCatalogEntry[]> => {
+  const get = async (seed?: AgentRuntimeCatalogEntry[]): Promise<AgentRuntimeCatalogEntry[]> => {
+    if (!state.cached && seed) {
+      state.cached = { catalog: seed, loadedAt: now() };
+      void refresh().catch(() => undefined);
+
+      return seed;
+    }
     if (!state.cached) return refresh();
     if (now() - state.cached.loadedAt < ttlMs) return state.cached.catalog;
 

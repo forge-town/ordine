@@ -225,6 +225,18 @@ const resolveCustomRequest = (url: string, method: string, payload: unknown): Cu
         body: payloadWithout(payload, "operationId"),
       };
     }
+    case "agentRuntimes/getCatalog": {
+      return {
+        url: `${DESKTOP_API_BASE}/agent-runtimes/catalog`,
+        method: "GET",
+      };
+    }
+    case "agentRuntimes/rescanCatalog": {
+      return {
+        url: `${DESKTOP_API_BASE}/agent-runtimes/rescan`,
+        method: "POST",
+      };
+    }
     case "pipelines/optimizeFromDistillation":
     case "refinements/start":
     case "settings/scanRuntimes":

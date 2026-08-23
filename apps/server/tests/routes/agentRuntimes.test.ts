@@ -1,18 +1,53 @@
 import { Hono } from "hono";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const mocks = vi.hoisted(() => ({ start: vi.fn(), getRuntimeById: vi.fn() }));
-const env = vi.hoisted(() => ({ DESKTOP_MODE: false, DESKTOP_AUTH_TOKEN: undefined as string | undefined }));
+const mocks = vi.hoisted(() => ({
+  start: vi.fn(),
+  getAllRuntimes: vi.fn(),
+  getRuntimeById: vi.fn(),
+  scanRuntimeCatalog: vi.fn(),
+  syncRuntimes: vi.fn(),
+}));
+const env = vi.hoisted(() => ({
+  DESKTOP_MODE: false,
+  DESKTOP_AUTH_TOKEN: undefined as string | undefined,
+}));
 vi.mock("../../src/services.js", () => ({
   agentRunsService: { start: mocks.start },
-  agentRuntimesService: { getById: mocks.getRuntimeById },
+  agentRuntimesService: {
+    getAll: mocks.getAllRuntimes,
+    getById: mocks.getRuntimeById,
+    syncAll: mocks.syncRuntimes,
+  },
 }));
 vi.mock("../../src/integrations/env/index.js", () => ({ getEnv: () => env }));
+vi.mock("@repo/agent", () => ({
+  createRuntimeCatalogCache: ({ load }: { load: () => Promise<unknown[]> }) => ({
+    get: (seed?: unknown[]) => Promise.resolve(seed ?? []),
+    refresh: load,
+    warm: vi.fn(),
+  }),
+  projectRuntimeCatalogFromConfigs: (runtimes: Array<Record<string, unknown>>) =>
+    runtimes.map((runtime) => ({
+      runtime: runtime.type,
+      displayName: runtime.name,
+      runtimeConfigId: runtime.id,
+      availability: "launchable",
+      binaryName: "codex.exe",
+      path: "C:/tools/codex.exe",
+      version: "0.149.0",
+      authenticationStatus: "unknown",
+      authenticationMessage: null,
+      diagnostics: [],
+      models: [],
+      modelsSource: "none",
+      supportsCustomModel: true,
+      compatibility: { runtime: runtime.type },
+    })),
+  scanRuntimeCatalog: mocks.scanRuntimeCatalog,
+}));
 
-import {
-  agentRuntimesRoutes,
-  resolveDesktopMcpSidecarPath,
-} from "../../src/routes/agentRuntimes";
+import { agentRuntimesRoutes, resolveDesktopMcpSidecarPath } from "../../src/routes/agentRuntimes";
 
 const makeApp = () => {
   const app = new Hono();
@@ -24,6 +59,8 @@ const makeApp = () => {
 describe("agentRuntimesRoutes", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mocks.getAllRuntimes.mockResolvedValue([]);
+    mocks.scanRuntimeCatalog.mockResolvedValue([]);
     env.DESKTOP_MODE = false;
     env.DESKTOP_AUTH_TOKEN = undefined;
   });
@@ -36,9 +73,32 @@ describe("agentRuntimesRoutes", () => {
         "win32",
       ),
     ).toBe("C:\\Program Files\\ORDINE\\ordine-mcp-x86_64-pc-windows-msvc.exe");
-    expect(
-      resolveDesktopMcpSidecarPath("D:\\custom\\ordine-mcp.exe", "ignored", "win32"),
-    ).toBe("D:\\custom\\ordine-mcp.exe");
+    expect(resolveDesktopMcpSidecarPath("D:\\custom\\ordine-mcp.exe", "ignored", "win32")).toBe(
+      "D:\\custom\\ordine-mcp.exe",
+    );
+  });
+
+  it("serves the persisted catalog seed without waiting for a CLI scan", async () => {
+    mocks.getAllRuntimes.mockResolvedValue([
+      {
+        id: "saved-codex",
+        name: "Codex CLI",
+        type: "codex",
+        connection: { mode: "local", path: "C:/tools/codex.exe" },
+      },
+    ]);
+
+    const response = await makeApp().request("/agent-runtimes/catalog");
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual([
+      expect.objectContaining({
+        runtime: "codex",
+        runtimeConfigId: "saved-codex",
+        availability: "launchable",
+      }),
+    ]);
+    expect(mocks.scanRuntimeCatalog).not.toHaveBeenCalled();
   });
 
   it("starts a real read-only model probe and returns 202", async () => {

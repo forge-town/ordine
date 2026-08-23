@@ -9,7 +9,12 @@ import {
   type AgentRuntimeCatalogEntry,
   type AgentRuntimeConfig,
 } from "@repo/schemas";
-import { createRuntimeCatalogCache, scanRuntimeCatalog, scanRuntimes } from "@repo/agent";
+import {
+  createRuntimeCatalogCache,
+  projectRuntimeCatalogFromConfigs,
+  scanRuntimeCatalog,
+  scanRuntimes,
+} from "@repo/agent";
 import { getServerEnv } from "@/integrations/server-env";
 import { unwrapResult } from "./result";
 
@@ -21,8 +26,7 @@ const runtimeCatalogCache = createRuntimeCatalogCache({
   load: scanRuntimeCatalog,
   ttlMs: 60_000,
 });
-const getRuntimeCatalog = () =>
-  process.env.NODE_ENV === "test" ? scanRuntimeCatalog() : runtimeCatalogCache.get();
+const getRuntimeCatalog = (seed: AgentRuntimeCatalogEntry[]) => runtimeCatalogCache.get(seed);
 const refreshRuntimeCatalog = () =>
   process.env.NODE_ENV === "test" ? scanRuntimeCatalog() : runtimeCatalogCache.refresh();
 
@@ -107,10 +111,8 @@ export const agentRuntimesRouter = router({
 
   getCatalog: publicProcedure.query(async () => {
     if (!localRuntimeScanEnabled) return [];
-    const [catalog, runtimes] = await Promise.all([
-      getRuntimeCatalog(),
-      agentRuntimesService.getAll(),
-    ]);
+    const runtimes = await agentRuntimesService.getAll();
+    const catalog = await getRuntimeCatalog(projectRuntimeCatalogFromConfigs(runtimes));
 
     return mergeCatalogRuntimeConfigIds(catalog, runtimes);
   }),

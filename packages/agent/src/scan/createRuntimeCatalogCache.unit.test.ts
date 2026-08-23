@@ -37,6 +37,19 @@ describe("createRuntimeCatalogCache", () => {
     expect(load).toHaveBeenCalledOnce();
   });
 
+  it("serves a persisted seed immediately while the cold scan continues", async () => {
+    const pending = deferred<AgentRuntimeCatalogEntry[]>();
+    const load = vi.fn(() => pending.promise);
+    const cache = createRuntimeCatalogCache({ load, ttlMs: 60_000 });
+
+    await expect(cache.get(catalog("codex"))).resolves.toEqual(catalog("codex"));
+    expect(load).toHaveBeenCalledOnce();
+
+    pending.resolve(catalog("opencode"));
+    await expect(cache.refresh()).resolves.toEqual(catalog("opencode"));
+    await expect(cache.get()).resolves.toEqual(catalog("opencode"));
+  });
+
   it("returns a fresh catalog without another scan", async () => {
     const load = vi.fn().mockResolvedValue(catalog("codex"));
     const cache = createRuntimeCatalogCache({ load, ttlMs: 60_000 });
