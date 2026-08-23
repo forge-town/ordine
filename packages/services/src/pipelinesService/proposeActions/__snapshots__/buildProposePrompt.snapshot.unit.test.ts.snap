@@ -50,7 +50,7 @@ Do NOT invent other nodeType values (no 'object', no 'input', no 'export').
 === OUTPUT SCHEMA ===
 Return ONLY a JSON object matching this exact schema:
 {
-  "reply": "<short conversational answer to the user>",
+  "reply": "<substantive conversational response to the user>",
   "clarifyOptions": ["<short answer the user can pick>", ...],  // optional, 2-4 entries, only when clarification is needed
   "newOperations": [{ "id": "op_new_<slug>", "name": "<operation name, user language>", "description": "<one line>", "prompt": "<thorough system prompt for the agent that will execute this step>" }],  // optional, only when no existing operation fits
   "pipelineName": "<3-8 word name for the pipeline, user language>",  // ONLY when the current graph is empty and you are creating a new pipeline
@@ -59,6 +59,7 @@ Return ONLY a JSON object matching this exact schema:
 
 === RESPONSE RULES ===
 - ALWAYS provide a non-empty 'reply', written in the SAME LANGUAGE the user wrote their request in.
+- Make 'reply' useful on its own: usually 2-4 short paragraphs explaining what you changed, why the graph uses this serial/parallel dependency structure, any important assumption or open point, and what the user can do next. Do not answer with only 'done', 'drafted', or one summary sentence.
 - If the request is clear and a safe graph change exists: include 'proposal' and summarize what you changed in 'reply'. Omit 'clarifyOptions'.
 - If the request is ambiguous or missing key information: set 'proposal' to null, ask ONE focused clarifying question in 'reply', and offer 2-4 'clarifyOptions'. Each option must be a short ANSWER the user could send back verbatim (an option, not a question).
 - If no safe graph change is possible: set 'proposal' to null and explain why in 'reply', plus what the user could do instead.

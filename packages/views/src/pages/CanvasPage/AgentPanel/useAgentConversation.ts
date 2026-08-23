@@ -415,13 +415,13 @@ export const useAgentConversation = ({
         };
         state.setProposalId(event.proposalId);
         setPendingProposal(proposal, event.proposal.diagnosticsPreview);
-        return finishWithAssistantMessage(event.proposal.summary);
+        return finishWithAssistantMessage(event.proposal.assistantReply ?? event.proposal.summary);
       }
 
       if (event.type === "proposal_ready" && event.proposal.mode === "generate") {
         state.setProposalId(event.proposalId);
         state.setGenerateProposal(event.proposal);
-        return finishWithAssistantMessage(event.proposal.purpose);
+        return finishWithAssistantMessage(event.proposal.assistantReply ?? event.proposal.purpose);
       }
 
       if (event.type === "error") {

@@ -6,6 +6,7 @@ import { PipelineAgentPlanReadinessSchema } from "./PipelineGenerationPlanSchema
 
 export const CanvasEditPlanSchema = z.object({
   mode: z.literal("edit"),
+  assistantReply: z.string().min(1).optional(),
   summary: z.string().min(1),
   targetGraphIntent: z.string().min(1),
   majorChanges: z.array(z.string()).default([]),

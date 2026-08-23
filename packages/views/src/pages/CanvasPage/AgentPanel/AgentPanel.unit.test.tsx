@@ -620,6 +620,8 @@ describe("AgentPanel", () => {
         proposalId: "proposal-1",
         proposal: {
           mode: "edit",
+          assistantReply:
+            "我会在现有输入和输出之间加入代码审查步骤。\n\n它只依赖当前输入，完成后再流向原有输出；你可以展开提案检查节点与连线。",
           summary: "Add a review operation",
           targetGraphIntent: "Insert a review step before output",
           majorChanges: ["Add review-code operation"],
@@ -662,6 +664,7 @@ describe("AgentPanel", () => {
         pipelineId: "pipe-1",
         snapshot: { nodes: [], edges: [] },
       });
+      expect(screen.getByText(/我会在现有输入和输出之间加入代码审查步骤/)).toBeInTheDocument();
     });
   });
 

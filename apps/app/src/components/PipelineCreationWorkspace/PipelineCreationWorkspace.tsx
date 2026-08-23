@@ -411,6 +411,17 @@ export const PipelineCreationWorkspace = ({
       setStreamingAssistantText("");
       setProposal(event.proposal);
       setProposalId(event.proposalId);
+      const assistantReply =
+        event.proposal.assistantReply ??
+        (event.proposal.mode === "generate" ? event.proposal.purpose : event.proposal.summary);
+      setMessages((currentMessages) => [
+        ...currentMessages,
+        {
+          id: `assistant-proposal-${event.proposalId}`,
+          role: "assistant",
+          content: assistantReply,
+        },
+      ]);
       setPhase("proposal_ready");
 
       return;

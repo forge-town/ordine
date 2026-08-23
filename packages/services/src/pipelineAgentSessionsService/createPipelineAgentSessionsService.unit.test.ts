@@ -272,6 +272,8 @@ describe("createPipelineAgentSessionsService", () => {
         status: "proposal_ready",
         proposal: {
           mode: "generate",
+          assistantReply:
+            "我会把仓库代码审查拆成输入、审查和报告三个阶段。\n\n审查步骤消费文件夹内容，完成后再生成 Markdown 报告。你可以先查看拟议操作，确认后再应用。",
           purpose: "Review repository code",
           inputs: ["folder"],
           outputs: ["markdown report"],
@@ -1058,6 +1060,8 @@ describe("createPipelineAgentSessionsService", () => {
         type: "proposal",
         proposal: {
           mode: "generate",
+          assistantReply:
+            "我会把仓库代码审查拆成输入、审查和报告三个阶段。\n\n审查步骤消费文件夹内容，完成后再生成 Markdown 报告。你可以先查看拟议操作，确认后再应用。",
           purpose: "Review repository code",
           inputs: ["folder"],
           outputs: ["markdown report"],
@@ -1086,6 +1090,13 @@ describe("createPipelineAgentSessionsService", () => {
       expect.objectContaining({
         sessionId: "session-1",
         mode: "generate",
+      }),
+    );
+    expect(mockMessagesDao.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        content: expect.stringContaining("拆成输入、审查和报告三个阶段"),
+        kind: "proposal_summary",
+        role: "assistant",
       }),
     );
     expect(mockSessionsDao.update).toHaveBeenLastCalledWith(

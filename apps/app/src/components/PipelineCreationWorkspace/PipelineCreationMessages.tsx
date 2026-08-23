@@ -58,7 +58,7 @@ export const PipelineCreationMessages = ({
         <div
           key={message.id}
           className={cn(
-            "max-w-[88%] break-words rounded-xl px-3.5 py-2.5 text-sm leading-6 [overflow-wrap:anywhere]",
+            "max-w-[88%] whitespace-pre-wrap break-words rounded-xl px-3.5 py-2.5 text-sm leading-6 [overflow-wrap:anywhere]",
             message.role === "user"
               ? "ml-auto bg-foreground text-background"
               : message.role === "system"
@@ -89,7 +89,8 @@ export const PipelineCreationMessages = ({
                 key={activity.id}
                 className={cn(
                   "flex items-start gap-2 rounded-lg px-2 py-1.5 text-xs text-muted-foreground",
-                  activity.tone === "warning" && "bg-amber-500/8 text-amber-700 dark:text-amber-300",
+                  activity.tone === "warning" &&
+                    "bg-amber-500/8 text-amber-700 dark:text-amber-300",
                   activity.tone === "error" && "bg-destructive/8 text-destructive",
                 )}
               >

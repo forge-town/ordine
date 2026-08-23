@@ -12,7 +12,7 @@ export type AssistantProps = {
 /** Minimal assistant message: plain text with an optional thinking indicator. */
 export const Assistant = ({ children, className, isThinking = false }: AssistantProps) => (
   <div
-    className={cn("text-[12px] leading-relaxed text-foreground/90", className)}
+    className={cn("whitespace-pre-wrap text-[12px] leading-relaxed text-foreground/90", className)}
     data-testid="agent-assistant"
   >
     {isThinking ? (
