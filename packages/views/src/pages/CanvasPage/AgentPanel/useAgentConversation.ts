@@ -507,6 +507,7 @@ export const useAgentConversation = ({
           return false;
         }
         state.setConversationState("thinking");
+        state.setStreamingProgress(t("canvas.agentPanel.generatingPipeline"));
         const generation = await ResultAsync.fromPromise(
           (async () => {
             await client.approveProposal(sessionId, proposalId);
@@ -538,6 +539,7 @@ export const useAgentConversation = ({
 
         clearGenerateSessionId();
         state.setGenerateProposal(null);
+        state.setStreamingProgress(null);
         state.setConversationState("done");
         await onGeneratedPipeline?.(generation.value.pipelineId);
 

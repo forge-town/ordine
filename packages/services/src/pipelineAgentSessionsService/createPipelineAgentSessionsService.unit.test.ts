@@ -49,6 +49,10 @@ const mockAgentRuntimesDao = {
   findMany: vi.fn(),
 };
 
+const mockConversationMessagesDao = {
+  create: vi.fn(),
+};
+
 const mockPipelinesDao = {
   create: vi.fn(),
 };
@@ -85,6 +89,7 @@ const createDeferred = <T>() => {
 
 vi.mock("@repo/models", () => ({
   createAgentRuntimesDao: () => mockAgentRuntimesDao,
+  createConversationMessagesDao: () => mockConversationMessagesDao,
   createOperationsDao: () => mockOperationsDao,
   createPipelinesDao: () => mockPipelinesDao,
   createPipelineAgentSessionsDao: (executor: { sessionsDao?: typeof mockSessionsDao }) =>
@@ -138,6 +143,10 @@ describe("createPipelineAgentSessionsService", () => {
       id: data.id ?? "message-1",
       ...data,
       createdAt: new Date("2026-06-03T12:00:01.000Z"),
+    }));
+    mockConversationMessagesDao.create.mockImplementation(async (data) => ({
+      ...data,
+      createdAt: data.createdAt ?? new Date("2026-06-03T12:00:05.000Z"),
     }));
     mockAttachmentsDao.create.mockImplementation(async (data) => ({
       id: data.id ?? "attachment-1",
@@ -1380,6 +1389,14 @@ describe("createPipelineAgentSessionsService", () => {
     });
     mockMessagesDao.findManyBySessionId.mockResolvedValueOnce([
       {
+        id: "message-context",
+        sessionId: "session-1",
+        role: "system",
+        kind: "text",
+        content: '{"type":"agent_context"}',
+        createdAt: new Date("2026-06-03T12:00:00.500Z"),
+      },
+      {
         id: "message-1",
         sessionId: "session-1",
         role: "user",
@@ -1432,6 +1449,25 @@ describe("createPipelineAgentSessionsService", () => {
         createdPipelineId: result.pipeline.id,
       }),
     );
+    expect(mockConversationMessagesDao.create).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({
+        pipelineId: result.pipeline.id,
+        role: "user",
+        content: "Build me a code review pipeline",
+        phase: "done",
+      }),
+    );
+    expect(mockConversationMessagesDao.create).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({
+        pipelineId: result.pipeline.id,
+        role: "agent",
+        content: "Review repository code",
+        phase: "done",
+      }),
+    );
+    expect(mockConversationMessagesDao.create).toHaveBeenCalledTimes(2);
   });
 
   it("creates a real routine with an Agent-generated scheduled pipeline", async () => {

@@ -7,6 +7,7 @@ import { Result, ResultAsync } from "neverthrow";
 import { z } from "zod/v4";
 import {
   createAgentRuntimesDao,
+  createConversationMessagesDao,
   createOperationsDao,
   createPipelineAgentAttachmentsDao,
   createPipelineAgentAttachmentsRepository,
@@ -1526,7 +1527,7 @@ export const createPipelineAgentSessionsService = (
           await sessionsDao.update(sessionId, { status: "generating" });
           assertActivityActive(sessionId, activity);
 
-          return { effectiveRuntime, pipelineDescription, pipelineName };
+          return { effectiveRuntime, messages, pipelineDescription, pipelineName };
         })(),
         (error) => (error instanceof Error ? error : new Error(String(error))),
       );
@@ -1545,7 +1546,8 @@ export const createPipelineAgentSessionsService = (
         finishActivity(sessionId, activity);
         throw preparationResult.error;
       }
-      const { effectiveRuntime, pipelineDescription, pipelineName } = preparationResult.value;
+      const { effectiveRuntime, messages, pipelineDescription, pipelineName } =
+        preparationResult.value;
 
       const persistedPipeline = { id: null as string | null };
       const pendingOperationIds = { value: [] as string[] };
@@ -1587,6 +1589,7 @@ export const createPipelineAgentSessionsService = (
             );
             const transactionalRoutinesDao = createRoutinesDao(tx as unknown as DbConnection);
             const transactionalSessionsDao = createPipelineAgentSessionsDao(tx);
+            const transactionalConversationMessagesDao = createConversationMessagesDao(tx);
             assertActivityActive(sessionId, activity);
             if (generated.pendingOperations && generated.pendingOperations.length > 0) {
               const createPendingResult =
@@ -1628,6 +1631,35 @@ export const createPipelineAgentSessionsService = (
               });
               assertActivityActive(sessionId, activity);
             }
+            const visibleMessages = messages.filter(
+              (message) => message.role !== "system" && message.content.trim().length > 0,
+            );
+            for (const message of visibleMessages) {
+              await transactionalConversationMessagesDao.create({
+                id: crypto.randomUUID(),
+                pipelineId: createdPipeline.id,
+                role: message.role === "assistant" ? "agent" : "user",
+                content: message.content,
+                metadata: null,
+                phase: "done",
+                createdAt: message.createdAt,
+              });
+            }
+            const lastVisibleMessage = visibleMessages.at(-1);
+            if (
+              lastVisibleMessage?.role !== "assistant" ||
+              lastVisibleMessage.content.trim() !== generateProposal.purpose.trim()
+            ) {
+              await transactionalConversationMessagesDao.create({
+                id: crypto.randomUUID(),
+                pipelineId: createdPipeline.id,
+                role: "agent",
+                content: generateProposal.purpose,
+                metadata: null,
+                phase: "done",
+              });
+            }
+            assertActivityActive(sessionId, activity);
             await transactionalSessionsDao.update(sessionId, {
               status: "completed",
               createdPipelineId: createdPipeline.id,
