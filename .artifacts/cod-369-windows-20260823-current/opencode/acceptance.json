@@ -33,9 +33,7 @@
           "text_delta": 1,
           "terminal": 1
         },
-        "processIds": [
-          44568
-        ],
+        "processIds": [44568],
         "processTreeCleaned": true
       },
       "resumeRun": {
@@ -64,9 +62,7 @@
           "text_delta": 1,
           "terminal": 1
         },
-        "processIds": [
-          50784
-        ],
+        "processIds": [50784],
         "processTreeCleaned": true
       },
       "filePath": "D:\\Coding\\项目ORDINE\\.worktrees\\cod-369-runtime-mcp-compatibility\\.artifacts\\cod-369-windows-20260823-current\\opencode\\opencode\\acceptance.txt",
@@ -87,9 +83,7 @@
           "session": 1,
           "terminal": 1
         },
-        "processIds": [
-          18004
-        ],
+        "processIds": [18004],
         "processTreeCleaned": true
       }
     }

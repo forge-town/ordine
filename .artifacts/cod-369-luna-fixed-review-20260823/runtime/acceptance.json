@@ -33,9 +33,7 @@
           "usage": 1,
           "terminal": 1
         },
-        "processIds": [
-          16436
-        ],
+        "processIds": [16436],
         "processTreeCleaned": true
       },
       "resumeRun": {
@@ -64,9 +62,7 @@
           "usage": 1,
           "terminal": 1
         },
-        "processIds": [
-          20628
-        ],
+        "processIds": [20628],
         "processTreeCleaned": true
       },
       "filePath": "D:\\Coding\\项目ORDINE\\.worktrees\\cod-369-runtime-mcp-compatibility\\.artifacts\\cod-369-luna-fixed-review-20260823\\runtime\\codex\\acceptance.txt",
@@ -87,9 +83,7 @@
           "status": 2,
           "terminal": 1
         },
-        "processIds": [
-          48196
-        ],
+        "processIds": [48196],
         "processTreeCleaned": true
       }
     },
@@ -123,9 +117,7 @@
           "tool_result": 2,
           "terminal": 1
         },
-        "processIds": [
-          48848
-        ],
+        "processIds": [48848],
         "processTreeCleaned": true
       },
       "resumeRun": {
@@ -155,9 +147,7 @@
           "tool_result": 2,
           "terminal": 1
         },
-        "processIds": [
-          48544
-        ],
+        "processIds": [48544],
         "processTreeCleaned": true
       },
       "filePath": "D:\\Coding\\项目ORDINE\\.worktrees\\cod-369-runtime-mcp-compatibility\\.artifacts\\cod-369-luna-fixed-review-20260823\\runtime\\claude-code\\acceptance.txt",
@@ -188,9 +178,7 @@
           "tool_result": 1,
           "terminal": 1
         },
-        "processIds": [
-          41248
-        ],
+        "processIds": [41248],
         "processTreeCleaned": true
       }
     },
@@ -223,9 +211,7 @@
           "text_delta": 1,
           "terminal": 1
         },
-        "processIds": [
-          44188
-        ],
+        "processIds": [44188],
         "processTreeCleaned": true
       },
       "resumeRun": {
@@ -254,9 +240,7 @@
           "text_delta": 1,
           "terminal": 1
         },
-        "processIds": [
-          41052
-        ],
+        "processIds": [41052],
         "processTreeCleaned": true
       },
       "filePath": "D:\\Coding\\项目ORDINE\\.worktrees\\cod-369-runtime-mcp-compatibility\\.artifacts\\cod-369-luna-fixed-review-20260823\\runtime\\opencode\\acceptance.txt",
@@ -277,9 +261,7 @@
           "session": 1,
           "terminal": 1
         },
-        "processIds": [
-          18572
-        ],
+        "processIds": [18572],
         "processTreeCleaned": true
       }
     }

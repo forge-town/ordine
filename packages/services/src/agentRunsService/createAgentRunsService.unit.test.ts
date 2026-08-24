@@ -26,12 +26,10 @@ describe("Agent Run persistence boundary", () => {
     expect(redactSensitiveText("Authorization: Bearer secret-token-value")).not.toContain(
       "secret-token-value",
     );
-    expect(redactSensitiveText(`credential ${standaloneKey}`)).toBe(
-      "credential sk-[REDACTED]",
+    expect(redactSensitiveText(`credential ${standaloneKey}`)).toBe("credential sk-[REDACTED]");
+    expect(redactSensitiveText("github ghp_abcdefghijklmnopqrstuvwxyz123456")).not.toContain(
+      "abcdefghijklmnopqrstuvwxyz123456",
     );
-    expect(
-      redactSensitiveText("github ghp_abcdefghijklmnopqrstuvwxyz123456"),
-    ).not.toContain("abcdefghijklmnopqrstuvwxyz123456");
     const terminal = sanitizeRuntimeEvent({
       type: "terminal",
       runtime: "codex",

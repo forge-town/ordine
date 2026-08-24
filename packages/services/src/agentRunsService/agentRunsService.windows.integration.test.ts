@@ -212,10 +212,7 @@ describe.skipIf(!enabled)("COD-369 Windows runtime acceptance", () => {
         expect(resumeRun.usage).not.toBeNull();
         expect(runtimeEvidence.resumeRun.processTreeCleaned).toBe(true);
         const finalBytes = await readFile(filePath);
-        expect(nonEmptyUtf8Lines(finalBytes.toString("utf8"))).toEqual([
-          firstLine,
-          resumeLine,
-        ]);
+        expect(nonEmptyUtf8Lines(finalBytes.toString("utf8"))).toEqual([firstLine, resumeLine]);
         runtimeEvidence.filePath = filePath;
         runtimeEvidence.fileSha256 = createHash("sha256").update(finalBytes).digest("hex");
 

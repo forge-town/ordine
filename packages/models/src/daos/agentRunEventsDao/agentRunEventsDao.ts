@@ -13,12 +13,7 @@ export const createAgentRunEventsDao = (executor: DbExecutor) => ({
     return executor
       .select()
       .from(agentRunEventsTable)
-      .where(
-        and(
-          eq(agentRunEventsTable.runId, runId),
-          gt(agentRunEventsTable.sequence, sequence),
-        ),
-      )
+      .where(and(eq(agentRunEventsTable.runId, runId), gt(agentRunEventsTable.sequence, sequence)))
       .orderBy(asc(agentRunEventsTable.sequence));
   },
 });

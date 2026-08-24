@@ -41,18 +41,12 @@ const targetTriple =
       ? `${arch}-apple-darwin`
       : `${arch}-unknown-linux-gnu`;
 const executableSuffix = process.platform === "win32" ? ".exe" : "";
-cpSync(
-  process.execPath,
-  resolve(BINARIES_DIR, `ordine-server-${targetTriple}${executableSuffix}`),
-);
+cpSync(process.execPath, resolve(BINARIES_DIR, `ordine-server-${targetTriple}${executableSuffix}`));
 
 // 4. Build a standalone MCP sidecar. Client configs point to this absolute
 // binary and never depend on a globally-installed `ordine` command.
 console.log("Building ordine-mcp sidecar...");
-const mcpSidecar = resolve(
-  BINARIES_DIR,
-  `ordine-mcp-${targetTriple}${executableSuffix}`,
-);
+const mcpSidecar = resolve(BINARIES_DIR, `ordine-mcp-${targetTriple}${executableSuffix}`);
 execFileSync(
   process.execPath,
   ["build", "../cli/src/mcp-sidecar.ts", "--compile", "--outfile", mcpSidecar],

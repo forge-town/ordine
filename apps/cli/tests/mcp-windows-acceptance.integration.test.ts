@@ -173,7 +173,8 @@ describe.skipIf(!enabled)("COD-369 Windows MCP acceptance", () => {
         expect(targetReport.finalStatus.status).toBe("absent");
         expect(targetReport.finalStatus.evidence?.registered).toBe(false);
       } catch (error) {
-        targetReport.error = error instanceof Error ? error.stack ?? error.message : String(error);
+        targetReport.error =
+          error instanceof Error ? (error.stack ?? error.message) : String(error);
         throw error;
       } finally {
         if (installed) {

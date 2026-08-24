@@ -12,11 +12,11 @@ Credentials, desktop tokens, prompts, model output, and native session handles a
 
 ## Real local Agent runs
 
-| Runtime | Version | First run | Native resume | Cancel | Durable evidence | PID cleanup | File SHA-256 |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| Codex | 0.149.0 | `8275626a-5b5b-4349-b466-f5ead86af63e` completed | `0df59620-249d-4c5c-9461-bdb3126b3678` completed | `f315a4a7-b0d1-47b2-9a3f-fefb26263483` cancelled | session, message, tools, artifact, usage, terminal | clean | `3c1c8dfddcbc0bcab9ae62037a6cfde58f16fbcd54bc302f47969b38b77b2db4` |
-| Claude Code | 2.1.207 | `4cea4795-4db7-45f8-8f80-8068b2940c31` completed | `b1d8a4b0-5886-419b-9a0b-bf80cf36cc18` completed | `ee2fda83-94cb-4a93-8f0c-1b78cdf8460f` cancelled | session, thinking, text, tools, usage, terminal | clean | `969c04fb78922d47fbaee8dc87675bfac6dffcabd50063944b0c126fa8cbd559` |
-| OpenCode | 1.18.21 | `a89a22f9-33f8-47b6-a4bf-f8e61a6ad11e` completed | `a6a3783b-5b1c-4f4d-bf44-a06e63e40581` completed | `3d5ea2ac-a52a-4180-be35-29369d80a880` cancelled | session, text, tools, usage, terminal | clean | `48b772f05316f72b102652bf8b44a908c7ee5c00a802d775bdd85bd3a3812d16` |
+| Runtime     | Version | First run                                        | Native resume                                    | Cancel                                           | Durable evidence                                   | PID cleanup | File SHA-256                                                       |
+| ----------- | ------- | ------------------------------------------------ | ------------------------------------------------ | ------------------------------------------------ | -------------------------------------------------- | ----------- | ------------------------------------------------------------------ |
+| Codex       | 0.149.0 | `8275626a-5b5b-4349-b466-f5ead86af63e` completed | `0df59620-249d-4c5c-9461-bdb3126b3678` completed | `f315a4a7-b0d1-47b2-9a3f-fefb26263483` cancelled | session, message, tools, artifact, usage, terminal | clean       | `3c1c8dfddcbc0bcab9ae62037a6cfde58f16fbcd54bc302f47969b38b77b2db4` |
+| Claude Code | 2.1.207 | `4cea4795-4db7-45f8-8f80-8068b2940c31` completed | `b1d8a4b0-5886-419b-9a0b-bf80cf36cc18` completed | `ee2fda83-94cb-4a93-8f0c-1b78cdf8460f` cancelled | session, thinking, text, tools, usage, terminal    | clean       | `969c04fb78922d47fbaee8dc87675bfac6dffcabd50063944b0c126fa8cbd559` |
+| OpenCode    | 1.18.21 | `a89a22f9-33f8-47b6-a4bf-f8e61a6ad11e` completed | `a6a3783b-5b1c-4f4d-bf44-a06e63e40581` completed | `3d5ea2ac-a52a-4180-be35-29369d80a880` cancelled | session, text, tools, usage, terminal              | clean       | `48b772f05316f72b102652bf8b44a908c7ee5c00a802d775bdd85bd3a3812d16` |
 
 The machine-readable reports are stored in each runtime directory as `acceptance.json`. Every recorded acceptance command reached exit code 0.
 
