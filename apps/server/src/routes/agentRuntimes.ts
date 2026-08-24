@@ -1,6 +1,6 @@
 import { Hono, type Context } from "hono";
 import { homedir } from "node:os";
-import { basename, dirname, extname, join } from "node:path";
+import { extname, join, posix, win32 } from "node:path";
 import { Result, ResultAsync } from "neverthrow";
 import { z } from "zod/v4";
 import {
@@ -101,12 +101,13 @@ export const resolveDesktopMcpSidecarPath = (
   platform: NodeJS.Platform = process.platform,
 ): string => {
   if (configuredPath) return configuredPath;
-  const executableName = basename(executablePath);
+  const pathApi = platform === "win32" ? win32 : posix;
+  const executableName = pathApi.basename(executablePath);
   const bundledSidecarName = /^ordine-server(?:-|\.)/i.test(executableName)
     ? executableName.replace(/^ordine-server/i, "ordine-mcp")
     : `ordine-mcp${platform === "win32" ? ".exe" : ""}`;
 
-  return join(dirname(executablePath), bundledSidecarName);
+  return pathApi.join(pathApi.dirname(executablePath), bundledSidecarName);
 };
 
 agentRuntimesRoutes.post("/:id/connection-tests", async (context) => {
