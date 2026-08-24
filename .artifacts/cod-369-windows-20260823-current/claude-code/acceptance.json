@@ -34,9 +34,7 @@
           "text_delta": 11,
           "terminal": 1
         },
-        "processIds": [
-          48252
-        ],
+        "processIds": [48252],
         "processTreeCleaned": true
       },
       "resumeRun": {
@@ -66,9 +64,7 @@
           "text_delta": 14,
           "terminal": 1
         },
-        "processIds": [
-          21572
-        ],
+        "processIds": [21572],
         "processTreeCleaned": true
       },
       "filePath": "D:\\Coding\\项目ORDINE\\.worktrees\\cod-369-runtime-mcp-compatibility\\.artifacts\\cod-369-windows-20260823-current\\claude-code\\claude-code\\acceptance.txt",
@@ -98,9 +94,7 @@
           "tool_result": 1,
           "terminal": 1
         },
-        "processIds": [
-          56548
-        ],
+        "processIds": [56548],
         "processTreeCleaned": true
       }
     }

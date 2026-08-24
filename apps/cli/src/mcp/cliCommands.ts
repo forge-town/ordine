@@ -76,12 +76,7 @@ const launchSpec = (options: InstallOptions): McpLaunchSpec => {
 
   return {
     command: isAbsolute(command) ? command : resolve(command),
-    args: [
-      resolve(cliFile),
-      "mcp",
-      "serve",
-      ...serverArgs,
-    ],
+    args: [resolve(cliFile), "mcp", "serve", ...serverArgs],
     env: {
       ORDINE_DESKTOP_AUTH_TOKEN_FILE: tokenFile,
       ...parseEnvironment(options.env),
@@ -115,7 +110,10 @@ const addInstallerOptions = (command: Command): Command =>
     .option("--policy <mode>", "MCP policy: safe or yolo", "safe")
     .option("--allow-write", "Allow reversible write tools in safe mode")
     .option("--allow-irreversible", "Allow delete/irreversible tools in safe mode")
-    .option("--command <path>", "Absolute Node-compatible runtime path (defaults to process.execPath)")
+    .option(
+      "--command <path>",
+      "Absolute Node-compatible runtime path (defaults to process.execPath)",
+    )
     .option("--cli-file <path>", "Absolute ORDINE CLI JavaScript file (defaults to current entry)")
     .option("--sidecar <path>", "Absolute standalone ordine-mcp sidecar path")
     .option("--env <KEY=VALUE>", "Environment passed to the MCP server", collect, []);

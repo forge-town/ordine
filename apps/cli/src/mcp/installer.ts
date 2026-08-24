@@ -240,10 +240,7 @@ export const runInstallCommand: CommandRunner = async (bin, args) => {
 
 type RegistrationState = "absent" | "installed" | "drifted";
 
-const cliRegistrationState = (
-  plan: CliInstallPlan,
-  result: CommandResult,
-): RegistrationState => {
+const cliRegistrationState = (plan: CliInstallPlan, result: CommandResult): RegistrationState => {
   if (result.exitCode !== 0) return "absent";
   const output = `${result.stdout}\n${result.stderr}`;
   if (plan.verifyOutputIncludes && !output.includes(plan.verifyOutputIncludes)) return "absent";
@@ -533,7 +530,8 @@ export const doctorMcpTarget = async ({
           ? `${context.serverName} is registered through ${plan.bin}.`
           : state === "drifted"
             ? `${context.serverName} exists in ${plan.displayName} but its launch command differs from ORDINE.`
-            : current.stderr.trim() || `${context.serverName} is not registered through ${plan.bin}.`,
+            : current.stderr.trim() ||
+              `${context.serverName} is not registered through ${plan.bin}.`,
     };
   })();
   const registrationState = registration.state;

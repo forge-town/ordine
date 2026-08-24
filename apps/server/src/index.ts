@@ -26,10 +26,13 @@ setInterval(async () => {
   }
 }, EXPIRE_CHECK_INTERVAL_MS);
 
-setInterval(async () => {
-  const deleted = await agentRunsService.deleteExpired();
-  if (deleted > 0) console.log(`[agent-runs] Deleted ${deleted} expired run(s)`);
-}, 24 * 60 * 60 * 1000);
+setInterval(
+  async () => {
+    const deleted = await agentRunsService.deleteExpired();
+    if (deleted > 0) console.log(`[agent-runs] Deleted ${deleted} expired run(s)`);
+  },
+  24 * 60 * 60 * 1000,
+);
 
 serve({ fetch: app.fetch, port, hostname }, (info) => {
   console.log(`Server running at http://${hostname}:${info.port}`);

@@ -30,7 +30,9 @@ export const probeMcpProtocol = async (
     args: spec.args,
     env: {
       ...Object.fromEntries(
-        Object.entries(process.env).filter((entry): entry is [string, string] => entry[1] !== undefined),
+        Object.entries(process.env).filter(
+          (entry): entry is [string, string] => entry[1] !== undefined,
+        ),
       ),
       ...spec.env,
     },
@@ -45,7 +47,10 @@ export const probeMcpProtocol = async (
     toolCount: 0,
   };
   const timeout = AbortSignal.timeout(timeoutMs);
-  const connect = await ResultAsync.fromPromise(client.connect(transport, { signal: timeout }), errorMessage);
+  const connect = await ResultAsync.fromPromise(
+    client.connect(transport, { signal: timeout }),
+    errorMessage,
+  );
   if (connect.isErr()) {
     await transport.close();
 
@@ -54,7 +59,10 @@ export const probeMcpProtocol = async (
   state.commandLaunchable = true;
   state.initialize = true;
 
-  const listed = await ResultAsync.fromPromise(client.listTools(undefined, { signal: timeout }), errorMessage);
+  const listed = await ResultAsync.fromPromise(
+    client.listTools(undefined, { signal: timeout }),
+    errorMessage,
+  );
   if (listed.isErr()) {
     await client.close();
 
@@ -69,11 +77,7 @@ export const probeMcpProtocol = async (
   }
 
   const called = await ResultAsync.fromPromise(
-    client.callTool(
-      { name: "ordine.list_jobs", arguments: {} },
-      undefined,
-      { signal: timeout },
-    ),
+    client.callTool({ name: "ordine.list_jobs", arguments: {} }, undefined, { signal: timeout }),
     errorMessage,
   );
   await client.close();

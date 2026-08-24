@@ -33,9 +33,7 @@
           "usage": 1,
           "terminal": 1
         },
-        "processIds": [
-          17152
-        ],
+        "processIds": [17152],
         "processTreeCleaned": true
       },
       "resumeRun": {
@@ -64,9 +62,7 @@
           "usage": 1,
           "terminal": 1
         },
-        "processIds": [
-          45184
-        ],
+        "processIds": [45184],
         "processTreeCleaned": true
       },
       "filePath": "D:\\Coding\\项目ORDINE\\.worktrees\\cod-369-runtime-mcp-compatibility\\.artifacts\\cod-369-windows-20260823-current\\codex\\codex\\acceptance.txt",
@@ -90,9 +86,7 @@
           "tool_update": 1,
           "terminal": 1
         },
-        "processIds": [
-          600
-        ],
+        "processIds": [600],
         "processTreeCleaned": true
       }
     }

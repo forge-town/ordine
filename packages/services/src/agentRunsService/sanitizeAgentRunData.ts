@@ -3,7 +3,8 @@ import { RuntimeEventSchema, type RuntimeEvent } from "@repo/schemas";
 
 const MAX_EVENT_STRING_CHARS = 64 * 1024;
 const MAX_EVENT_JSON_CHARS = 256 * 1024;
-const SENSITIVE_KEY = /(?:authorization|api[-_]?key|access[-_]?token|refresh[-_]?token|password|secret|cookie)/i;
+const SENSITIVE_KEY =
+  /(?:authorization|api[-_]?key|access[-_]?token|refresh[-_]?token|password|secret|cookie)/i;
 const CREDENTIAL_PATTERNS: ReadonlyArray<{
   pattern: RegExp;
   replacement: (match: string) => string;

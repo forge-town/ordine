@@ -7,7 +7,10 @@ const getBaseUrl = (): string => getEnv().ORDINE_API_URL;
 const getHeaders = async (): Promise<Record<string, string>> => {
   const { ORDINE_DESKTOP_AUTH_TOKEN, ORDINE_DESKTOP_AUTH_TOKEN_FILE } = getEnv();
   const tokenFromFile = ORDINE_DESKTOP_AUTH_TOKEN_FILE
-    ? await ResultAsync.fromPromise(readFile(ORDINE_DESKTOP_AUTH_TOKEN_FILE, "utf8"), () => undefined)
+    ? await ResultAsync.fromPromise(
+        readFile(ORDINE_DESKTOP_AUTH_TOKEN_FILE, "utf8"),
+        () => undefined,
+      )
     : null;
   const token = tokenFromFile?.isOk() ? tokenFromFile.value.trim() : ORDINE_DESKTOP_AUTH_TOKEN;
 
