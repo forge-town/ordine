@@ -53,6 +53,8 @@ vi.mock("@refinedev/core", async (importOriginal) => ({
           : [],
     },
   }),
+  useCustom: () => ({ result: { data: [] }, query: { isLoading: false } }),
+  useOne: () => ({ result: undefined, query: { isLoading: false } }),
   useUpdate: () => ({ mutate: vi.fn(), mutation: { isPending: false } }),
   useCreate: () => ({ mutate: vi.fn(), mutation: { isPending: false } }),
 }));
