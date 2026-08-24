@@ -45,16 +45,6 @@ export type DashboardDistillationPreview = {
   summary: string;
 };
 
-export type DashboardMetrics = {
-  activity: DashboardActivityDatum[];
-  statuses: DashboardStatusDatum[];
-  pipelines: DashboardPipelineDatum[];
-  artifactMix: DashboardArtifactDatum[];
-  snapshot: DashboardSnapshotMetric[];
-  recentJobs: Job[];
-  recentDistillations: DashboardDistillationPreview[];
-};
-
 const getDayKey = (date: Date) => date.toISOString().slice(0, 10);
 
 const formatDayLabel = (date: Date) =>
@@ -263,21 +253,6 @@ export const buildRecentDistillations = (
         distillation.summary ||
         (distillation.result?.type === "completed" ? distillation.result.summary : ""),
     }));
-
-export const buildDashboardMetrics = (
-  jobs: Job[],
-  pipelines: PipelineData[],
-  projectsCount: number,
-  distillations: Distillation[],
-): DashboardMetrics => ({
-  activity: buildActivity(jobs),
-  statuses: buildStatuses(jobs),
-  pipelines: buildPipelineRows(jobs, pipelines),
-  artifactMix: buildArtifactMix(distillations),
-  snapshot: buildSnapshot(jobs, pipelines, projectsCount, distillations),
-  recentJobs: buildRecentJobs(jobs),
-  recentDistillations: buildRecentDistillations(distillations),
-});
 
 export const buildRecentJobs = (jobs: Job[]): Job[] =>
   [...jobs]
