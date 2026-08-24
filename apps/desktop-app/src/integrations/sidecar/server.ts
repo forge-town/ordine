@@ -115,5 +115,3 @@ export const stopServer = (): ResultAsync<void, Error> => {
     serverState.process = null;
   });
 };
-
-export const isServerRunning = (): boolean => serverState.process !== null;
