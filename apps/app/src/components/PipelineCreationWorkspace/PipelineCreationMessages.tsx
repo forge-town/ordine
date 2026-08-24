@@ -116,7 +116,10 @@ export const PipelineCreationMessages = ({
         onRemove={handleRemoveAttachment}
       />
       {proposal?.mode === "generate" && (
-        <div className="max-w-full rounded-xl border border-border bg-card p-4 text-sm shadow-sm">
+        <div
+          className="max-w-full rounded-xl border border-border bg-card p-4 text-sm shadow-sm"
+          data-testid="pipeline-generation-proposal"
+        >
           <div className="flex items-start gap-3">
             {isHome && (
               <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
