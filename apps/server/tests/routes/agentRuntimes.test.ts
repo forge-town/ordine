@@ -76,6 +76,13 @@ describe("agentRuntimesRoutes", () => {
     expect(resolveDesktopMcpSidecarPath("D:\\custom\\ordine-mcp.exe", "ignored", "win32")).toBe(
       "D:\\custom\\ordine-mcp.exe",
     );
+    expect(
+      resolveDesktopMcpSidecarPath(
+        undefined,
+        "/opt/ordine/ordine-server-x86_64-unknown-linux-gnu",
+        "linux",
+      ),
+    ).toBe("/opt/ordine/ordine-mcp-x86_64-unknown-linux-gnu");
   });
 
   it("serves the persisted catalog seed without waiting for a CLI scan", async () => {
