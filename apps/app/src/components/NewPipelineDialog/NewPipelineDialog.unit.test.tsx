@@ -1,5 +1,5 @@
 import { render } from "@/test/test-wrapper";
-import { screen, waitFor } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { NewPipelineDialog } from "./NewPipelineDialog";
@@ -257,7 +257,11 @@ describe("NewPipelineDialog", () => {
     await userEvent.click(screen.getByText("newPipelineDialog.send"));
 
     await waitFor(() => {
-      expect(screen.getByText("Review repository code")).toBeInTheDocument();
+      expect(
+        within(screen.getByTestId("pipeline-generation-proposal")).getByText(
+          "Review repository code",
+        ),
+      ).toBeInTheDocument();
     });
     expect(screen.getByText("newPipelineDialog.approve")).toBeInTheDocument();
     expect(screen.getByText("newPipelineDialog.revise")).toBeInTheDocument();
@@ -296,7 +300,11 @@ describe("NewPipelineDialog", () => {
         excludeProposalId: null,
         signal: expect.any(AbortSignal),
       });
-      expect(screen.getByText("Review repository code")).toBeInTheDocument();
+      expect(
+        within(screen.getByTestId("pipeline-generation-proposal")).getByText(
+          "Review repository code",
+        ),
+      ).toBeInTheDocument();
     });
     expect(screen.getByText("newPipelineDialog.approve")).toBeInTheDocument();
   });
@@ -338,7 +346,8 @@ describe("NewPipelineDialog", () => {
     await waitFor(() => {
       expect(mockSupersedeProposal).toHaveBeenCalledWith("session-1", "proposal-1");
     });
-    expect(screen.queryByText("Review repository code")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("pipeline-generation-proposal")).not.toBeInTheDocument();
+    expect(screen.getByText("Review repository code")).toBeInTheDocument();
   });
 
   it("supersedes the active proposal when revising it", async () => {
@@ -378,7 +387,8 @@ describe("NewPipelineDialog", () => {
     await waitFor(() => {
       expect(mockSupersedeProposal).toHaveBeenCalledWith("session-1", "proposal-1");
     });
-    expect(screen.queryByText("Review repository code")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("pipeline-generation-proposal")).not.toBeInTheDocument();
+    expect(screen.getByText("Review repository code")).toBeInTheDocument();
   });
 
   it("does not resurrect a rejected proposal in session fallback", async () => {
@@ -435,7 +445,8 @@ describe("NewPipelineDialog", () => {
     await waitFor(() => {
       expect(mockGetLatestReadyProposal).toHaveBeenCalled();
     });
-    expect(screen.queryByText("Review repository code")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("pipeline-generation-proposal")).not.toBeInTheDocument();
+    expect(screen.getByText("Review repository code")).toBeInTheDocument();
   });
 
   it("renders a follow-up question from session fallback when the stream misses question", async () => {
