@@ -47,7 +47,7 @@ test.describe("Job execution workflow", () => {
     await expect(page.locator(".react-flow__node-operation")).toHaveCount(1);
 
     await saveCanvas(page);
-    const runButton = page.getByRole("button", { name: "Run Test" });
+    const runButton = page.getByTestId("canvas-v2-run");
     await expect(runButton).toBeEnabled();
     await runButton.click();
     const runConsole = page.getByTestId("canvas-run-console");

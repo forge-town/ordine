@@ -143,16 +143,43 @@ const json = (route: Route, body: unknown, status = 200) =>
   });
 
 const mockCanvasAgent = async (page: Page) => {
-  const state = { messageIndex: 0 };
+  const sessionId = "canvas-e2e-session";
+  const runId = "canvas-e2e-run";
+  const question = "Which output should receive the review?";
+  const state = { messageIndex: 0, runCompleted: false };
   await page.route("**/api/**", async (route) => {
     const request = route.request();
     const pathname = new URL(request.url()).pathname;
     if (pathname === "/api/pipeline-agent-sessions" && request.method() === "POST") {
       await json(route, {
-        id: "canvas-e2e-session",
+        id: sessionId,
         entrypoint: "canvas-agent-panel",
         mode: "edit",
         status: "draft",
+      });
+
+      return;
+    }
+    if (/^\/api\/pipeline-agent-sessions\/[^/]+$/.test(pathname) && request.method() === "GET") {
+      await json(route, {
+        id: pathname.split("/").at(-1),
+        entrypoint: "canvas-agent-panel",
+        mode: "edit",
+        status: state.runCompleted ? "awaiting_user" : "draft",
+        latestProposalId: null,
+        createdPipelineId: null,
+        attachments: [],
+        messages: state.runCompleted
+          ? [
+              {
+                id: "canvas-e2e-question",
+                role: "assistant",
+                kind: "question",
+                content: question,
+              },
+            ]
+          : [],
+        proposals: [],
       });
 
       return;
@@ -164,9 +191,34 @@ const mockCanvasAgent = async (page: Page) => {
 
       return;
     }
-    if (pathname.endsWith("/plan") && request.method() === "POST") {
+    if (pathname.endsWith("/runs") && request.method() === "POST") {
+      await json(route, { runId }, 202);
+
+      return;
+    }
+    if (pathname.endsWith("/projection-run") && request.method() === "GET") {
+      await route.fulfill({ status: 204 });
+
+      return;
+    }
+    if (
+      pathname.endsWith("/events") &&
+      pathname.includes("/agent-runs/") &&
+      request.method() === "GET"
+    ) {
+      state.runCompleted = true;
       await route.fulfill({
-        body: `event: question\ndata: ${JSON.stringify({ question: "Which output should receive the review?" })}\n\n`,
+        body: `id: 1\ndata: ${JSON.stringify({
+          runId,
+          sequence: 1,
+          createdAt: "2026-08-24T00:00:00.000Z",
+          event: {
+            type: "terminal",
+            runtime: "codex",
+            timestamp: "2026-08-24T00:00:00.000Z",
+            status: "completed",
+          },
+        })}\n\n`,
         contentType: "text/event-stream",
         status: 200,
       });

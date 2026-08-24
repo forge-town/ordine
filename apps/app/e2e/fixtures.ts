@@ -56,10 +56,10 @@ export const expectCanvasTitle = async (page: Page, title: string) => {
 };
 
 export const saveCanvas = async (page: Page) => {
-  await page.getByRole("button", { name: "Workspace", exact: true }).click();
-  const workspace = page.getByTestId("canvas-workspace-sidebar-overlay");
-  await expect(workspace).toBeVisible();
-  await workspace.getByRole("button", { name: "Save", exact: true }).click();
+  await page
+    .getByTestId("canvas-top-chrome")
+    .getByRole("button", { name: "Save", exact: true })
+    .click();
   await expect(page.getByText("Pipeline saved", { exact: true })).toBeVisible();
 };
 

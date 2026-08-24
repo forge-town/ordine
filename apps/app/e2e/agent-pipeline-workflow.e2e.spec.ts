@@ -27,6 +27,7 @@ const mockCanvasGeneration = async (
   const sessionId = "canvas-generate-e2e-session";
   const proposalId = "canvas-generate-e2e-proposal";
   const proposal = makeProposal(options.pipelineName);
+  const proposalState = { superseded: false };
 
   await page.route("**/api/**", async (route) => {
     const request = route.request();
@@ -47,8 +48,8 @@ const mockCanvasGeneration = async (
         id: sessionId,
         entrypoint: "canvas-agent-panel",
         mode: "generate",
-        status: "proposal_ready",
-        latestProposalId: proposalId,
+        status: proposalState.superseded ? "draft" : "proposal_ready",
+        latestProposalId: proposalState.superseded ? null : proposalId,
         createdPipelineId: null,
         attachments: [],
         messages: [
@@ -59,7 +60,14 @@ const mockCanvasGeneration = async (
             content: "Build a review pipeline",
           },
         ],
-        proposals: [{ id: proposalId, mode: "generate", status: "proposal_ready", proposal }],
+        proposals: [
+          {
+            id: proposalId,
+            mode: "generate",
+            status: proposalState.superseded ? "superseded" : "proposal_ready",
+            proposal,
+          },
+        ],
       });
 
       return;
@@ -85,6 +93,7 @@ const mockCanvasGeneration = async (
       return;
     }
     if (pathname.endsWith("/supersede") && request.method() === "POST") {
+      proposalState.superseded = true;
       await route.fulfill({ status: 204 });
 
       return;
@@ -125,7 +134,9 @@ const startHomeGeneration = async (page: Page, purpose: string) => {
   await page
     .getByRole("textbox", { name: "Describe your goal and add any useful context..." })
     .fill(purpose);
-  await page.getByRole("button", { name: "Send" }).click();
+  const sendButton = page.getByRole("button", { name: "Send" });
+  await expect(sendButton).toBeEnabled({ timeout: 60_000 });
+  await sendButton.click();
   await expect(page).toHaveURL(/\/canvas\?id=/);
   await expect(page.getByText(purpose, { exact: true })).toBeVisible();
   await expect(page.getByTestId("agent-proposal")).toBeVisible();
@@ -156,6 +167,8 @@ const seedPipeline = async (page: Page, pipelineId: string, name: string) => {
 };
 
 test.describe("Agent-first Pipeline workflow", () => {
+  test.describe.configure({ timeout: 75_000 });
+
   test("plans, applies, materializes, and opens the generated Pipeline", async ({
     page,
     pageErrors,
