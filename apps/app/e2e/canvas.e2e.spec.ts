@@ -59,7 +59,12 @@ const finishRenderingSample = async (page: Page): Promise<RenderingMetric> =>
     };
     const state = browserWindow.__canvasRenderingSample;
     if (!state) {
-      return { frameCount: 0, maxFrameGapMs: 0, maxLongTaskMs: 0, p95FrameGapMs: 0 };
+      return {
+        frameCount: 0,
+        maxFrameGapMs: 0,
+        maxLongTaskMs: 0,
+        p95FrameGapMs: 0,
+      };
     }
     state.active = false;
     const frameGaps = [...state.frameGaps].sort((left, right) => left - right);
@@ -143,61 +148,95 @@ const json = (route: Route, body: unknown, status = 200) =>
   });
 
 const mockCanvasAgent = async (page: Page) => {
-  const sessionId = "canvas-e2e-session";
+  const threadId = "canvas-e2e-thread";
   const runId = "canvas-e2e-run";
   const question = "Which output should receive the review?";
-  const state = { messageIndex: 0, runCompleted: false };
+  const timestamp = "2026-08-24T00:00:00.000Z";
+  const state = { context: null as unknown, runCompleted: false };
+  const thread = () => ({
+    id: threadId,
+    title: "Review the connected nodes",
+    actor: "local-owner",
+    status: "active",
+    activeContext: state.context,
+    createdAt: timestamp,
+    updatedAt: timestamp,
+  });
   await page.route("**/api/**", async (route) => {
     const request = route.request();
     const pathname = new URL(request.url()).pathname;
-    if (pathname === "/api/pipeline-agent-sessions" && request.method() === "POST") {
+    if (pathname === "/api/agent-threads/capabilities" && request.method() === "GET") {
       await json(route, {
-        id: sessionId,
-        entrypoint: "canvas-agent-panel",
-        mode: "edit",
-        status: "draft",
+        enabled: true,
+        toolContractVersion: 1,
+        toolCount: 22,
+        runtimes: [
+          {
+            runtimeConfigId: "claude-code:node",
+            runtime: "claude-code",
+            name: "Claude Code",
+            supported: true,
+            reason: "Verified MCP-only control mode",
+          },
+        ],
       });
 
       return;
     }
-    if (/^\/api\/pipeline-agent-sessions\/[^/]+$/.test(pathname) && request.method() === "GET") {
-      await json(route, {
-        id: pathname.split("/").at(-1),
-        entrypoint: "canvas-agent-panel",
-        mode: "edit",
-        status: state.runCompleted ? "awaiting_user" : "draft",
-        latestProposalId: null,
-        createdPipelineId: null,
-        attachments: [],
-        messages: state.runCompleted
+    if (pathname === "/api/agent-threads" && request.method() === "GET") {
+      await json(route, []);
+
+      return;
+    }
+    if (pathname === "/api/agent-threads" && request.method() === "POST") {
+      state.context = (request.postDataJSON() as { context: unknown }).context;
+      await json(route, thread(), 201);
+
+      return;
+    }
+    if (pathname === `/api/agent-threads/${threadId}` && request.method() === "PATCH") {
+      state.context = (request.postDataJSON() as { context: unknown }).context;
+      await json(route, thread());
+
+      return;
+    }
+    if (pathname === `/api/agent-threads/${threadId}/messages` && request.method() === "GET") {
+      await json(
+        route,
+        state.runCompleted
           ? [
               {
                 id: "canvas-e2e-question",
+                sessionId: threadId,
                 role: "assistant",
                 kind: "question",
                 content: question,
+                context: state.context,
+                runId,
+                createdAt: timestamp,
               },
             ]
           : [],
-        proposals: [],
-      });
+      );
 
       return;
     }
-    if (pathname.endsWith("/messages") && request.method() === "POST") {
-      const input = request.postDataJSON() as { content: string; kind: string; role: string };
-      state.messageIndex += 1;
-      await json(route, { id: `canvas-e2e-message-${state.messageIndex}`, ...input });
+    if (
+      pathname === `/api/agent-threads/${threadId}/actions` ||
+      pathname === `/api/agent-threads/${threadId}/change-sets` ||
+      pathname === `/api/agent-threads/${threadId}/approvals`
+    ) {
+      await json(route, []);
 
       return;
     }
-    if (pathname.endsWith("/runs") && request.method() === "POST") {
+    if (pathname === `/api/agent-threads/${threadId}/runs/latest`) {
+      await route.fulfill({ status: 404 });
+
+      return;
+    }
+    if (pathname === `/api/agent-threads/${threadId}/runs` && request.method() === "POST") {
       await json(route, { runId }, 202);
-
-      return;
-    }
-    if (pathname.endsWith("/projection-run") && request.method() === "GET") {
-      await route.fulfill({ status: 204 });
 
       return;
     }
@@ -207,18 +246,34 @@ const mockCanvasAgent = async (page: Page) => {
       request.method() === "GET"
     ) {
       state.runCompleted = true;
-      await route.fulfill({
-        body: `id: 1\ndata: ${JSON.stringify({
+      const events = [
+        {
           runId,
           sequence: 1,
-          createdAt: "2026-08-24T00:00:00.000Z",
+          createdAt: timestamp,
+          event: {
+            type: "message",
+            runtime: "claude-code",
+            timestamp,
+            text: question,
+          },
+        },
+        {
+          runId,
+          sequence: 2,
+          createdAt: timestamp,
           event: {
             type: "terminal",
-            runtime: "codex",
-            timestamp: "2026-08-24T00:00:00.000Z",
+            runtime: "claude-code",
+            timestamp,
             status: "completed",
           },
-        })}\n\n`,
+        },
+      ];
+      await route.fulfill({
+        body: events
+          .map((event) => `id: ${event.sequence}\ndata: ${JSON.stringify(event)}\n\n`)
+          .join(""),
         contentType: "text/event-stream",
         status: 200,
       });
@@ -428,7 +483,9 @@ test.describe("Canvas editor", () => {
     await expect(page.getByTestId("canvas-v2-toolbar")).toBeVisible();
     await expect(page.getByTestId("canvas-top-chrome")).toBeVisible();
     await expect(page.getByTestId("canvas-component-panel")).toBeVisible();
-    await expect(page.getByTestId("canvas-agent-panel")).toBeVisible();
+    await expect(
+      page.getByTestId("canvas-agent-panel-shell").getByTestId("global-agent-panel"),
+    ).toBeVisible();
 
     await page.getByTestId("canvas-v2-state-legend-trigger").click();
     await expect(page.getByTestId("canvas-v2-state-legend")).toBeVisible();
@@ -568,12 +625,18 @@ test.describe("Canvas editor", () => {
     await page.getByTestId("canvas-edge-inspector-close").click();
 
     await measureInteraction(page, interactions, "send canvas Agent message", async () => {
-      await page.getByRole("textbox", { name: "Message" }).fill("Review the connected nodes");
-      await expect(page.getByTestId("agent-composer-send")).toBeEnabled();
-      await page.getByTestId("agent-composer-send").click();
+      const agentPanel = page.getByTestId("canvas-agent-panel-shell");
+      await agentPanel
+        .getByRole("textbox", { name: "Message ORDINE Agent" })
+        .fill("Review the connected nodes");
+      await expect(agentPanel.getByRole("button", { name: "Send to Agent" })).toBeEnabled();
+      await agentPanel.getByRole("button", { name: "Send to Agent" }).click();
       await expect(page.getByText("Which output should receive the review?")).toBeVisible();
     });
 
+    // Keep the sample window long enough to measure scheduler cadence instead
+    // of treating a faster Agent response as too few rendered frames.
+    await page.waitForTimeout(250);
     const rendering = await finishRenderingSample(page);
     await testInfo.attach("canvas-interaction-metrics", {
       body: JSON.stringify({ interactions, rendering }, null, 2),

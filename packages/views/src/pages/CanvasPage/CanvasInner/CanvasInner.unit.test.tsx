@@ -68,8 +68,8 @@ vi.mock("@tanstack/react-router", () => ({
   useNavigate: () => vi.fn(),
 }));
 
-vi.mock("../AgentPanel", () => ({
-  AgentPanel: () => <aside data-testid="canvas-agent-panel" />,
+vi.mock("../AgentControlBridge", () => ({
+  CanvasAgentControlPanel: () => <aside data-testid="canvas-agent-panel" />,
 }));
 
 const queryClient = new QueryClient({

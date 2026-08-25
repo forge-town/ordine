@@ -1,5 +1,5 @@
-import { expect, type Page, type Route } from "@playwright/test";
-import { test, navigateAndWait, expectCanvasTitle, expectNoJSErrors } from "./fixtures";
+import { expect, type Page, type Route, type TestInfo } from "@playwright/test";
+import { test, navigateAndWait, expectNoJSErrors } from "./fixtures";
 
 const json = (route: Route, body: unknown, status = 200) =>
   route.fulfill({
@@ -7,140 +7,6 @@ const json = (route: Route, body: unknown, status = 200) =>
     contentType: "application/json",
     status,
   });
-
-const makeProposal = (purpose: string) => ({
-  mode: "generate" as const,
-  purpose,
-  inputs: ["Repository folder"],
-  outputs: ["Markdown report"],
-  majorOperations: ["Review repository"],
-  executionFlow: ["Repository folder -> review -> report"],
-  assumptions: ["Repository is locally available"],
-  openQuestions: [],
-  readiness: "ready_for_generation" as const,
-});
-
-const mockCanvasGeneration = async (
-  page: Page,
-  options: { generatedPipelineId: string; pipelineName: string },
-) => {
-  const sessionId = "canvas-generate-e2e-session";
-  const proposalId = "canvas-generate-e2e-proposal";
-  const proposal = makeProposal(options.pipelineName);
-  const proposalState = { superseded: false };
-
-  await page.route("**/api/**", async (route) => {
-    const request = route.request();
-    const pathname = new URL(request.url()).pathname;
-
-    if (pathname === "/api/pipeline-agent-sessions" && request.method() === "POST") {
-      await json(route, {
-        id: sessionId,
-        entrypoint: "canvas-agent-panel",
-        mode: "generate",
-        status: "draft",
-      });
-
-      return;
-    }
-    if (pathname === `/api/pipeline-agent-sessions/${sessionId}` && request.method() === "GET") {
-      await json(route, {
-        id: sessionId,
-        entrypoint: "canvas-agent-panel",
-        mode: "generate",
-        status: proposalState.superseded ? "draft" : "proposal_ready",
-        latestProposalId: proposalState.superseded ? null : proposalId,
-        createdPipelineId: null,
-        attachments: [],
-        messages: [
-          {
-            id: "canvas-generate-e2e-message",
-            role: "user",
-            kind: "text",
-            content: "Build a review pipeline",
-          },
-        ],
-        proposals: [
-          {
-            id: proposalId,
-            mode: "generate",
-            status: proposalState.superseded ? "superseded" : "proposal_ready",
-            proposal,
-          },
-        ],
-      });
-
-      return;
-    }
-    if (pathname.endsWith("/messages") && request.method() === "POST") {
-      const input = request.postDataJSON() as { content: string; kind: string; role: string };
-      await json(route, { id: `canvas-generate-e2e-${Date.now()}`, ...input });
-
-      return;
-    }
-    if (pathname.endsWith("/plan") && request.method() === "POST") {
-      await route.fulfill({
-        body: `event: proposal_ready\ndata: ${JSON.stringify({ proposal, proposalId })}\n\n`,
-        contentType: "text/event-stream",
-        status: 200,
-      });
-
-      return;
-    }
-    if (pathname.endsWith("/approve") && request.method() === "POST") {
-      await route.fulfill({ status: 204 });
-
-      return;
-    }
-    if (pathname.endsWith("/supersede") && request.method() === "POST") {
-      proposalState.superseded = true;
-      await route.fulfill({ status: 204 });
-
-      return;
-    }
-    if (pathname.endsWith("/generate") && request.method() === "POST") {
-      await json(route, { pipelineId: options.generatedPipelineId });
-
-      return;
-    }
-    if (
-      pathname === `/api/pipelines/${options.generatedPipelineId}` &&
-      request.method() === "GET"
-    ) {
-      await json(route, {
-        id: options.generatedPipelineId,
-        name: options.pipelineName,
-        description: "Generated through the Canvas Agent panel",
-        sharedContext: "",
-        tags: ["agent-generated"],
-        timeoutMs: null,
-        status: "draft",
-        version: 1,
-        nodes: [],
-        edges: [],
-        createdAt: "2026-08-11T00:00:00.000Z",
-        updatedAt: "2026-08-11T00:00:00.000Z",
-      });
-
-      return;
-    }
-
-    await route.fallback();
-  });
-};
-
-const startHomeGeneration = async (page: Page, purpose: string) => {
-  await navigateAndWait(page, "/");
-  await page
-    .getByRole("textbox", { name: "Describe your goal and add any useful context..." })
-    .fill(purpose);
-  const sendButton = page.getByRole("button", { name: "Send" });
-  await expect(sendButton).toBeEnabled({ timeout: 60_000 });
-  await sendButton.click();
-  await expect(page).toHaveURL(/\/canvas\?id=/);
-  await expect(page.getByText(purpose, { exact: true })).toBeVisible();
-  await expect(page.getByTestId("agent-proposal")).toBeVisible();
-};
 
 const seedPipeline = async (page: Page, pipelineId: string, name: string) => {
   const response = await page.request.post("/api/trpc/pipelines.create?batch=1", {
@@ -150,12 +16,10 @@ const seedPipeline = async (page: Page, pipelineId: string, name: string) => {
           pipeline: {
             id: pipelineId,
             name,
-            description: "Generated through the Canvas Agent panel",
+            description: "",
             sharedContext: "",
-            tags: ["e2e"],
+            tags: ["agent-control-e2e"],
             timeoutMs: null,
-            status: "draft",
-            version: 1,
             nodes: [],
             edges: [],
           },
@@ -166,40 +30,355 @@ const seedPipeline = async (page: Page, pipelineId: string, name: string) => {
   expect(response.ok()).toBe(true);
 };
 
-test.describe("Agent-first Pipeline workflow", () => {
-  test.describe.configure({ timeout: 75_000 });
+const mockCanvasChangeSet = async (page: Page, pipelineId: string) => {
+  const threadId = "canvas-change-set-thread";
+  const runId = "canvas-change-set-run";
+  const actionId = "canvas-change-set-action";
+  const changeSetId = "canvas-change-set";
+  const timestamp = "2026-08-25T00:00:00.000Z";
+  const target = {
+    type: "pipeline" as const,
+    id: pipelineId,
+    label: "Agent Canvas E2E",
+  };
+  const promptNode = {
+    id: "agent-prompt-node",
+    type: "prompt" as const,
+    position: { x: 420, y: 260 },
+    data: {
+      nodeType: "prompt" as const,
+      label: "Agent Prompt",
+      prompt: "Review the repository",
+    },
+  };
+  const forwardAction = { type: "addNode" as const, node: promptNode };
+  const baseSnapshot = { nodes: [], edges: [] };
+  const draftSnapshot = { nodes: [promptNode], edges: [] };
+  const state = {
+    context: null as unknown,
+    ready: false,
+    applied: false,
+    rejected: false,
+  };
+  const currentStatus = () => {
+    if (state.applied) return "committed" as const;
+    if (state.rejected) return "rejected" as const;
+    if (state.ready) return "ready" as const;
 
-  test("plans, applies, materializes, and opens the generated Pipeline", async ({
+    return "drafting" as const;
+  };
+  const thread = () => ({
+    id: threadId,
+    title: "Build the Canvas step by step",
+    actor: "local-owner" as const,
+    status: "active" as const,
+    activeContext: state.context,
+    createdAt: timestamp,
+    updatedAt: timestamp,
+  });
+  const changeSet = () => ({
+    id: changeSetId,
+    threadId,
+    runId,
+    actor: "local-owner" as const,
+    kind: "agent-edit" as const,
+    originChangeSetId: null,
+    target,
+    baseVersion: 1,
+    revision: 1,
+    appliedVersion: state.applied ? 2 : null,
+    status: currentStatus(),
+    baseSnapshot,
+    draftSnapshot,
+    createdAt: timestamp,
+    updatedAt: timestamp,
+    committedAt: state.applied ? timestamp : null,
+  });
+  const actionRecord = {
+    id: actionId,
+    threadId,
+    runId,
+    changeSetId,
+    sequence: 1,
+    toolName: "ordine.add_node",
+    risk: "draft" as const,
+    status: "succeeded" as const,
+    target,
+    redactedInput: { nodeId: promptNode.id },
+    result: {
+      actionId,
+      status: "succeeded",
+      resources: [target],
+      summary: "Added prompt node",
+      warnings: [],
+    },
+    forwardAction,
+    inverseActions: [{ type: "removeNode" as const, nodeId: promptNode.id }],
+    idempotencyKey: "canvas-change-set-e2e",
+    createdAt: timestamp,
+    completedAt: timestamp,
+  };
+
+  await page.route("**/api/**", async (route) => {
+    const request = route.request();
+    const pathname = new URL(request.url()).pathname;
+
+    if (pathname === "/api/agent-threads/capabilities" && request.method() === "GET") {
+      await json(route, {
+        enabled: true,
+        toolContractVersion: 1,
+        toolCount: 22,
+        runtimes: [
+          {
+            runtimeConfigId: "claude-code:node",
+            runtime: "claude-code",
+            name: "Claude Code",
+            supported: true,
+            reason: "Verified MCP-only control mode",
+          },
+        ],
+      });
+
+      return;
+    }
+    if (pathname === "/api/agent-threads" && request.method() === "GET") {
+      await json(route, []);
+
+      return;
+    }
+    if (pathname === "/api/agent-threads" && request.method() === "POST") {
+      state.context = (request.postDataJSON() as { context: unknown }).context;
+      await json(route, thread(), 201);
+
+      return;
+    }
+    if (pathname === `/api/agent-threads/${threadId}` && request.method() === "PATCH") {
+      state.context = (request.postDataJSON() as { context: unknown }).context;
+      await json(route, thread());
+
+      return;
+    }
+    if (pathname === `/api/agent-threads/${threadId}/messages` && request.method() === "GET") {
+      await json(
+        route,
+        state.ready || state.applied || state.rejected
+          ? [
+              {
+                id: "canvas-change-set-message",
+                sessionId: threadId,
+                role: "assistant",
+                kind: "text",
+                content: "The Canvas draft is ready to review.",
+                context: state.context,
+                runId,
+                createdAt: timestamp,
+              },
+            ]
+          : [],
+      );
+
+      return;
+    }
+    if (pathname === `/api/agent-threads/${threadId}/actions` && request.method() === "GET") {
+      await json(route, state.ready || state.applied || state.rejected ? [actionRecord] : []);
+
+      return;
+    }
+    if (pathname === `/api/agent-threads/${threadId}/change-sets` && request.method() === "GET") {
+      await json(route, state.ready || state.applied || state.rejected ? [changeSet()] : []);
+
+      return;
+    }
+    if (pathname === `/api/agent-threads/${threadId}/approvals` && request.method() === "GET") {
+      await json(route, []);
+
+      return;
+    }
+    if (pathname === `/api/agent-threads/${threadId}/runs/latest` && request.method() === "GET") {
+      await route.fulfill({ status: 404 });
+
+      return;
+    }
+    if (pathname === `/api/agent-threads/${threadId}/runs` && request.method() === "POST") {
+      await json(route, { runId }, 202);
+
+      return;
+    }
+    if (pathname === `/api/agent-runs/${runId}/events` && request.method() === "GET") {
+      state.ready = true;
+      const result = {
+        actionId,
+        status: "succeeded" as const,
+        resources: [target],
+        summary: "Added prompt node",
+        warnings: [],
+      };
+      const events = [
+        {
+          runId,
+          sequence: 1,
+          createdAt: timestamp,
+          event: {
+            type: "action_started",
+            runtime: "claude-code",
+            timestamp,
+            actionId,
+            toolName: "ordine.add_node",
+            risk: "draft",
+            target,
+            summary: "Adding a prompt node",
+          },
+        },
+        {
+          runId,
+          sequence: 2,
+          createdAt: timestamp,
+          event: {
+            type: "draft_applied",
+            runtime: "claude-code",
+            timestamp,
+            actionId,
+            changeSetId,
+            pipelineId,
+            action: forwardAction,
+          },
+        },
+        {
+          runId,
+          sequence: 3,
+          createdAt: timestamp,
+          event: {
+            type: "action_succeeded",
+            runtime: "claude-code",
+            timestamp,
+            actionId,
+            result,
+          },
+        },
+        {
+          runId,
+          sequence: 4,
+          createdAt: timestamp,
+          event: {
+            type: "change_set_ready",
+            runtime: "claude-code",
+            timestamp,
+            changeSetId,
+            target,
+            baseVersion: 1,
+            actionCount: 1,
+            summary: "Canvas draft is ready",
+          },
+        },
+        {
+          runId,
+          sequence: 5,
+          createdAt: timestamp,
+          event: {
+            type: "terminal",
+            runtime: "claude-code",
+            timestamp,
+            status: "completed",
+          },
+        },
+      ];
+      await route.fulfill({
+        body: events
+          .map((event) => `id: ${event.sequence}\ndata: ${JSON.stringify(event)}\n\n`)
+          .join(""),
+        contentType: "text/event-stream",
+        status: 200,
+      });
+
+      return;
+    }
+    if (
+      pathname === `/api/agent-threads/${threadId}/change-sets/${changeSetId}/apply` &&
+      request.method() === "POST"
+    ) {
+      state.applied = true;
+      state.ready = false;
+      await json(route, {
+        type: "applied",
+        changeSet: changeSet(),
+        previousVersion: 1,
+        newVersion: 2,
+      });
+
+      return;
+    }
+    if (
+      pathname === `/api/agent-threads/${threadId}/change-sets/${changeSetId}/reject` &&
+      request.method() === "POST"
+    ) {
+      state.rejected = true;
+      state.ready = false;
+      await json(route, changeSet());
+
+      return;
+    }
+
+    await route.fallback();
+  });
+};
+
+const openSeededCanvas = async (page: Page, pipelineId: string) => {
+  await mockCanvasChangeSet(page, pipelineId);
+  await navigateAndWait(page, "/pipelines");
+  await seedPipeline(page, pipelineId, "Agent Canvas E2E");
+  await navigateAndWait(page, `/canvas?id=${pipelineId}`);
+  await expect(page.getByTestId("canvas-agent-panel-shell")).toBeVisible();
+};
+
+const createDraft = async (page: Page) => {
+  const panel = page.getByTestId("canvas-agent-panel-shell");
+  await panel
+    .getByRole("textbox", { name: "Message ORDINE Agent" })
+    .fill("Add a prompt node for repository review");
+  await panel.getByRole("button", { name: "Send to Agent" }).click();
+  await expect(page.locator(".react-flow__node-prompt")).toBeVisible();
+  await expect(panel.getByText("Canvas Change Set")).toBeVisible();
+  await expect(panel.getByText("1 action(s) · ready")).toBeVisible();
+  await expect(panel.getByText("ordine.add_node")).toBeVisible();
+  await expect(panel.getByText("succeeded", { exact: true })).toBeVisible();
+
+  return panel;
+};
+
+test.describe("Canvas Agent Control Change Set workflow", () => {
+  test.setTimeout(60_000);
+
+  test("streams a draft node and applies the authoritative Change Set", async ({
     page,
     pageErrors,
-  }, testInfo) => {
-    const runId = `${Date.now()}-${testInfo.workerIndex}-${testInfo.repeatEachIndex}`;
-    const pipelineName = `Agent Pipeline ${runId}`;
-    const generatedPipelineId = `agent-pipeline-${runId}`;
+  }, testInfo: TestInfo) => {
+    const pipelineId = `agent-control-apply-${Date.now()}-${testInfo.workerIndex}`;
+    await openSeededCanvas(page, pipelineId);
+    const panel = await createDraft(page);
 
-    await mockCanvasGeneration(page, { generatedPipelineId, pipelineName });
-    await startHomeGeneration(page, "Build a review pipeline");
-    await seedPipeline(page, generatedPipelineId, pipelineName);
+    await panel.getByRole("button", { name: "Apply", exact: true }).click();
+    await expect(panel.getByText("Canvas Change Set")).toHaveCount(0);
+    await expect(page.locator(".react-flow__node-prompt")).toHaveCount(1);
 
-    await page.getByTestId("agent-proposal-apply").click();
-    await expect(page).toHaveURL(new RegExp(`/canvas\\?id=${generatedPipelineId}$`));
-    await expectCanvasTitle(page, pipelineName);
+    await page.getByTestId("canvas-component-object-file").click();
+    await expect(page.locator(".react-flow__node")).toHaveCount(2);
     expectNoJSErrors(pageErrors);
   });
 
-  test("discards a generated Proposal and returns to the conversation", async ({
+  test("rejects the draft, restores the base graph, and unlocks manual editing", async ({
     page,
     pageErrors,
-  }) => {
-    const pipelineName = `Discardable pipeline ${Date.now()}`;
-    await mockCanvasGeneration(page, {
-      generatedPipelineId: `discarded-pipeline-${Date.now()}`,
-      pipelineName,
-    });
-    await startHomeGeneration(page, "Build a review pipeline");
-    await page.getByTestId("agent-proposal-reject").click();
-    await expect(page.getByTestId("agent-proposal")).toHaveCount(0);
-    await expect(page.getByRole("textbox", { name: "Message" })).toBeEnabled();
+  }, testInfo: TestInfo) => {
+    const pipelineId = `agent-control-reject-${Date.now()}-${testInfo.workerIndex}`;
+    await openSeededCanvas(page, pipelineId);
+    const panel = await createDraft(page);
+
+    await panel.getByRole("button", { name: "Reject", exact: true }).click();
+    await expect(panel.getByText("Canvas Change Set")).toHaveCount(0);
+    await expect(page.locator(".react-flow__node-prompt")).toHaveCount(0);
+
+    await page.getByTestId("canvas-component-object-file").click();
+    await expect(page.locator(".react-flow__node-file")).toHaveCount(1);
     expectNoJSErrors(pageErrors);
   });
 });

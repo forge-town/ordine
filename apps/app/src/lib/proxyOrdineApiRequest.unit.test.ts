@@ -42,4 +42,21 @@ describe("proxyOrdineApiRequest", () => {
       error: "Ordine API is unavailable. Start the API server and try again.",
     });
   });
+
+  it("degrades an unavailable Agent capabilities probe without emitting a page-level 503", async () => {
+    vi.spyOn(globalThis, "fetch").mockRejectedValue(new TypeError("fetch failed"));
+
+    const response = await proxyOrdineApiRequest(
+      new Request("http://localhost:9430/api/agent-threads/capabilities"),
+    );
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get("x-ordine-agent-control-state")).toBe("api-unavailable");
+    await expect(response.json()).resolves.toEqual({
+      enabled: false,
+      toolContractVersion: 1,
+      toolCount: 22,
+      runtimes: [],
+    });
+  });
 });
