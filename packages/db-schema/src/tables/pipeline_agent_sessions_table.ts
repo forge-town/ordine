@@ -1,5 +1,8 @@
 import { jsonb, pgTable, text, timestamp } from "drizzle-orm/pg-core";
 import type {
+  AgentContextEnvelope,
+  AgentControlActor,
+  AgentThreadStatus,
   PipelineAgentEntrypoint,
   PipelineAgentMode,
   PipelineAgentSessionStatus,
@@ -9,6 +12,10 @@ import { pipelinesTable } from "./pipelines_table";
 
 export const pipelineAgentSessionsTable = pgTable("pipeline_agent_sessions", {
   id: text("id").primaryKey(),
+  title: text("title").notNull().default("New agent thread"),
+  actor: text("actor").$type<AgentControlActor>().notNull().default("local-owner"),
+  threadStatus: text("thread_status").$type<AgentThreadStatus>().notNull().default("active"),
+  activeContext: jsonb("active_context").$type<AgentContextEnvelope | null>(),
   entrypoint: text("entrypoint").$type<PipelineAgentEntrypoint>().notNull(),
   mode: text("mode").$type<PipelineAgentMode>().notNull(),
   status: text("status").$type<PipelineAgentSessionStatus>().notNull(),

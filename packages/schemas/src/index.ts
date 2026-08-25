@@ -1,4 +1,5 @@
 export * from "./agent";
+export * from "./agent-control";
 export * from "./agent-runtime";
 export * from "./agent-trace";
 export * from "./artifact";

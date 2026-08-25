@@ -1,4 +1,5 @@
-import { eq, desc } from "drizzle-orm";
+import { and, eq, desc, sql } from "drizzle-orm";
+import type { PipelineGraphSnapshot } from "@repo/schemas";
 import { pipelinesTable } from "@repo/db-schema";
 import type { DbExecutor } from "../../types";
 
@@ -42,6 +43,35 @@ export class PipelinesDao {
       .returning();
 
     return updated;
+  }
+
+  async updateWithExpectedVersion(
+    id: string,
+    expectedVersion: number,
+    patch: Partial<Omit<typeof pipelinesTable.$inferInsert, "id" | "version">>,
+  ) {
+    const [updated] = await this.executor
+      .update(pipelinesTable)
+      .set({
+        ...patch,
+        version: sql`${pipelinesTable.version} + 1`,
+        updatedAt: new Date(),
+      })
+      .where(and(eq(pipelinesTable.id, id), eq(pipelinesTable.version, expectedVersion)))
+      .returning();
+
+    return updated;
+  }
+
+  async replaceGraphWithExpectedVersion(
+    id: string,
+    expectedVersion: number,
+    graph: PipelineGraphSnapshot,
+  ) {
+    return this.updateWithExpectedVersion(id, expectedVersion, {
+      nodes: graph.nodes,
+      edges: graph.edges,
+    });
   }
 
   async delete(id: string) {

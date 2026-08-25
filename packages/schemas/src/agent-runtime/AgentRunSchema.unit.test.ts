@@ -51,5 +51,35 @@ describe("AgentRunSchema", () => {
 
     expect(run.reasoningEffort).toBeNull();
     expect(run.speed).toBeNull();
+    expect(run.controlMode).toBe(false);
+    expect(run.allowedTools).toEqual([]);
+    expect(run.controlScopes).toEqual([]);
+  });
+
+  it("requires explicit MCP-only downscoping for control mode", () => {
+    const base = {
+      owner: { type: "agent-thread", id: "thread-1" },
+      runtimeConfigId: "local-claude-code",
+      cwd: "C:\\empty-control-dir",
+      prompt: "Use ORDINE tools",
+      rebuildPrompt: "Use ORDINE tools",
+      controlMode: true,
+      controlScopes: ["resources:read" as const],
+    };
+
+    expect(() => AgentRunRequestSchema.parse({ ...base, allowedTools: ["ordine.search"] })).toThrow(
+      /read-only/,
+    );
+    expect(() =>
+      AgentRunRequestSchema.parse({ ...base, permissionMode: "read-only", allowedTools: [] }),
+    ).toThrow(/allowlist/);
+    expect(
+      AgentRunRequestSchema.parse({
+        ...base,
+        permissionMode: "read-only",
+        fullAccessConfirmed: false,
+        allowedTools: ["ordine.search"],
+      }).controlMode,
+    ).toBe(true);
   });
 });
