@@ -120,6 +120,15 @@ const createRuntimeNotFoundError = (runtimeId?: string) => {
   return error;
 };
 
+const createRuntimeModelMismatchError = (runtimeId: string, model: string) => {
+  const error = new Error(
+    `Configured model ${model} is not available for Agent runtime ${runtimeId}`,
+  ) as Error & { code: string };
+  error.code = "PIPELINE_AGENT_RUNTIME_MODEL_MISMATCH";
+
+  return error;
+};
+
 const isCancellationError = (error: Error) =>
   (error as Error & { code?: string }).code === "PIPELINE_AGENT_CANCELLED";
 
@@ -1219,8 +1228,19 @@ export const createPipelineAgentSessionsService = (
       const runtimePreference = settings.agentRuntimePreferences?.[runtimeId];
       const effectiveFirstOutputTimeoutSeconds =
         input?.firstOutputTimeoutSeconds ?? runtimePreference?.firstOutputTimeoutSeconds;
-      const effectiveModel =
-        input?.model ?? runtimePreference?.model ?? settings.defaultModel ?? undefined;
+      const effectiveModel = input?.model ?? runtimePreference?.model;
+      const runtimeModels =
+        selectedRuntime?.connection.mode === "local"
+          ? (selectedRuntime.connection.models ?? [])
+          : [];
+      if (
+        effectiveModel &&
+        runtimeModels.length > 0 &&
+        !runtimeModels.some((candidate) => candidate.id === effectiveModel)
+      ) {
+        finishActivity(sessionId, activity);
+        throw createRuntimeModelMismatchError(runtimeId, effectiveModel);
+      }
       const effectiveReasoningEffort = input?.reasoningEffort ?? runtimePreference?.reasoningEffort;
       const effectiveSpeed = input?.speed ?? runtimePreference?.speed;
       const effectiveFirstOutputTimeoutMs =

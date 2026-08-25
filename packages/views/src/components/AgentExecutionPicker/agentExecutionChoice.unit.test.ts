@@ -100,6 +100,22 @@ describe("agent execution choice", () => {
     });
   });
 
+  it("does not leak an incompatible legacy default model into the selected runtime", () => {
+    expect(
+      resolveAgentExecutionChoice(catalog, {
+        ...settings,
+        agentRuntimePreferences: {},
+        defaultModel: "kimi-for-coding/k2p6",
+      }),
+    ).toEqual({
+      runtimeConfigId: "local-codex",
+      model: "gpt-5.6",
+      reasoningEffort: "medium",
+      speed: "standard",
+      firstOutputTimeoutSeconds: 45,
+    });
+  });
+
   it("clears stale reasoning and speed when a model changes", () => {
     expect(
       changeExecutionModel(
