@@ -9,9 +9,11 @@ import {
   createJobsDao,
   createJobTracesDao,
   createOperationsDao,
+  createOperationRegistryRepository,
   createPipelineRunsDao,
   createPipelinesDao,
   createSettingsDao,
+  type DbConnection,
   type DbExecutor,
 } from "@repo/models";
 import { errAsync, ResultAsync } from "neverthrow";
@@ -176,7 +178,7 @@ export interface PendingOperationInput {
   sourceSkillId?: string;
 }
 
-export const createPipelinesService = (db: DbExecutor, options: PipelinesServiceOptions = {}) => {
+export const createPipelinesService = (db: DbConnection, options: PipelinesServiceOptions = {}) => {
   const agentRuntimesDao = createAgentRuntimesDao(db);
   const conversationMessagesDao = createConversationMessagesDao(db);
   const dao = createPipelinesDao(db);
@@ -185,6 +187,7 @@ export const createPipelinesService = (db: DbExecutor, options: PipelinesService
   const pipelineRunsDao = createPipelineRunsDao(db);
   const jobTracesDao = createJobTracesDao(db);
   const operationsDao = createOperationsDao(db);
+  const operationRegistryRepository = createOperationRegistryRepository(db);
   const settingsDao = createSettingsDao(db);
   const getCapabilityCatalog = (executor: DbExecutor) =>
     options.capabilityCatalog ??
@@ -210,14 +213,21 @@ export const createPipelinesService = (db: DbExecutor, options: PipelinesService
     );
 
   const create = (pipeline: Parameters<typeof dao.create>[0]) =>
-    checkPipelineOperationReferences({
-      nodes: pipeline.nodes ?? [],
-      operationsDao,
-      pipelineId: pipeline.id,
-    }).andThen(() =>
-      ResultAsync.fromPromise(dao.create(pipeline), (error) =>
-        toServiceError(error, "Create Pipeline"),
-      ),
+    ResultAsync.fromPromise(
+      operationRegistryRepository.runSerializable(async ({ operationsDao, pipelinesDao }) => {
+        const referenceCheck = await checkPipelineOperationReferences({
+          nodes: pipeline.nodes ?? [],
+          operationsDao,
+          pipelineId: pipeline.id,
+        });
+        if (referenceCheck.isErr()) throw referenceCheck.error;
+
+        return pipelinesDao.create(pipeline);
+      }),
+      (error) =>
+        error instanceof PipelineOperationReferencesError
+          ? error
+          : toServiceError(error, "Create Pipeline"),
     );
 
   const createWithPendingOperations = (
@@ -225,17 +235,17 @@ export const createPipelinesService = (db: DbExecutor, options: PipelinesService
     pendingOperations: PendingOperationInput[],
   ) =>
     ResultAsync.fromPromise(
-      db.transaction(async (transaction) => {
-        await insertPendingOperations(transaction, pendingOperations);
+      operationRegistryRepository.runSerializable(async (transaction) => {
+        await insertPendingOperations(transaction.executor, pendingOperations);
 
         const referenceCheck = await checkPipelineOperationReferences({
           nodes: pipeline.nodes ?? [],
-          operationsDao: createOperationsDao(transaction),
+          operationsDao: transaction.operationsDao,
           pipelineId: pipeline.id,
         });
         if (referenceCheck.isErr()) throw referenceCheck.error;
 
-        return createPipelinesDao(transaction).create(pipeline);
+        return transaction.pipelinesDao.create(pipeline);
       }),
       (error) =>
         error instanceof PipelineOperationReferencesError
@@ -244,21 +254,25 @@ export const createPipelinesService = (db: DbExecutor, options: PipelinesService
     );
 
   const update = (id: string, patch: Parameters<typeof dao.update>[1]) =>
-    ResultAsync.fromPromise(dao.findById(id), (error) =>
-      toServiceError(error, "Load Pipeline for update"),
-    ).andThen((pipeline) => {
-      if (!pipeline) return errAsync(new NotFoundError("Pipeline", id));
+    ResultAsync.fromPromise(
+      operationRegistryRepository.runSerializable(async ({ operationsDao, pipelinesDao }) => {
+        const pipeline = await pipelinesDao.findById(id);
+        if (!pipeline) throw new NotFoundError("Pipeline", id);
 
-      return checkPipelineOperationReferences({
-        nodes: patch.nodes ?? pipeline.nodes ?? [],
-        operationsDao,
-        pipelineId: id,
-      }).andThen(() =>
-        ResultAsync.fromPromise(dao.update(id, patch), (error) =>
-          toServiceError(error, "Update Pipeline"),
-        ),
-      );
-    });
+        const referenceCheck = await checkPipelineOperationReferences({
+          nodes: patch.nodes ?? pipeline.nodes ?? [],
+          operationsDao,
+          pipelineId: id,
+        });
+        if (referenceCheck.isErr()) throw referenceCheck.error;
+
+        return pipelinesDao.update(id, patch);
+      }),
+      (error) =>
+        error instanceof PipelineOperationReferencesError || error instanceof NotFoundError
+          ? error
+          : toServiceError(error, "Update Pipeline"),
+    );
 
   return {
     getAll: () => dao.findMany(),

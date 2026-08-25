@@ -19,6 +19,10 @@ vi.mock("@repo/models", () => ({
   createConnectorsDao: () => ({ findMany: vi.fn().mockResolvedValue([]) }),
   createOperationsDao: () => mockDao,
   createPipelinesDao: () => mockPipelinesDao,
+  createOperationRegistryRepository: () => ({
+    runSerializable: async (callback: (transaction: unknown) => Promise<unknown>) =>
+      callback({ operationsDao: mockDao, pipelinesDao: mockPipelinesDao }),
+  }),
   createSkillsDao: () => ({
     findMany: vi.fn().mockResolvedValue([]),
     seedIfEmpty: vi.fn().mockResolvedValue(undefined),

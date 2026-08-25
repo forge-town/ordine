@@ -76,6 +76,29 @@ vi.mock("@repo/models", () => ({
   createAgentSpansDao: () => ({}),
   createOperationsDao: (executor: { operationsDao?: typeof mockOperationsDao }) =>
     executor?.operationsDao ?? mockOperationsDao,
+  createOperationRegistryRepository: (executor: {
+    transaction?: (
+      callback: (transaction: unknown) => Promise<unknown>,
+      config?: unknown,
+    ) => Promise<unknown>;
+    operationsDao?: typeof mockOperationsDao;
+    pipelinesDao?: typeof mockDao;
+  }) => ({
+    runSerializable: (callback: (transaction: unknown) => Promise<unknown>) => {
+      const run = (transaction: typeof executor) =>
+        callback({
+          executor: transaction,
+          operationsDao: transaction?.operationsDao ?? mockOperationsDao,
+          pipelinesDao: transaction?.pipelinesDao ?? mockDao,
+        });
+
+      return executor?.transaction
+        ? executor.transaction((transaction) => run(transaction as typeof executor), {
+            isolationLevel: "serializable",
+          })
+        : run(executor);
+    },
+  }),
   createSettingsDao: () => mockSettingsDao,
   createSkillsDao: () => ({
     findMany: vi.fn().mockResolvedValue([]),

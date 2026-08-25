@@ -1557,6 +1557,9 @@ describe("createPipelineAgentSessionsService", () => {
         edges: [],
       }),
     );
+    expect(mockDb.transaction).toHaveBeenCalledWith(expect.any(Function), {
+      isolationLevel: "serializable",
+    });
     expect(mockSessionsDao.update).toHaveBeenLastCalledWith(
       "session-1",
       expect.objectContaining({
