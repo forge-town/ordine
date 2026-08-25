@@ -33,7 +33,7 @@ describe("CanvasEmptyState", () => {
       "pointer-events-none",
       "absolute",
       "inset-0",
-      "z-10",
+      "z-[1]",
       "grid",
       "place-items-center",
       "px-6",

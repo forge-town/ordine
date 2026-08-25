@@ -49,7 +49,7 @@ const defaultEdgeOptions = {
   type: "semantic" as const,
 };
 
-const proOpts = { hideAttribution: false };
+const proOpts = { hideAttribution: true };
 const snapGrid: [number, number] = [24, 24];
 const nodePortRemeasureDelayMs = 220;
 

@@ -2,39 +2,27 @@ import { useEffect, type ReactNode } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { useStore } from "zustand";
 import {
-  Activity,
-  BookOpen,
   Bot,
-  Box,
-  Boxes,
-  ChevronDown,
-  Cpu,
+  CalendarClock,
   ExternalLink,
-  FlaskConical,
-  Gauge,
   Layers,
-  Plug,
+  MessageSquare,
   Puzzle,
   Search,
   Settings,
   SquarePen,
   Workflow,
-  Zap,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
-  SidebarSeparator,
   SidebarTrigger,
   useSidebar,
 } from "@repo/ui/sidebar";
@@ -45,31 +33,17 @@ import {
   DropdownMenuTrigger,
 } from "@repo/ui/dropdown-menu";
 import { Button } from "@repo/ui/button";
-import { cn } from "@repo/ui/lib/utils";
 import { useSidebarStore } from "../store/sidebarStore";
-import { NavGroup, NavItems, type NavItem } from "./NavGroup";
+import { NavGroup, type NavItem } from "./NavGroup";
 import { DefaultUserFooter, ProjectSwitcher } from "./ProjectSwitcher";
 import { NotificationCenter } from "./NotificationCenter";
 
-const assemblyItems: NavItem[] = [
+const mainItems: NavItem[] = [
   { labelKey: "nav.pipelines", icon: Layers, to: "/pipelines", exact: true },
-  { labelKey: "nav.components", icon: Boxes, to: "/components" },
-  { labelKey: "nav.operations", icon: Zap, to: "/pipelines/operations" },
-  { labelKey: "nav.objects", icon: Box, to: "/pipelines/objects" },
-];
-
-const monitorItems: NavItem[] = [
-  { labelKey: "nav.jobs", icon: Activity, to: "/pipelines/jobs" },
-  { labelKey: "nav.items.usage", icon: Gauge, to: "/usage" },
-  { labelKey: "nav.distillations", icon: FlaskConical, to: "/distillations" },
-];
-
-const capabilityItems: NavItem[] = [
-  { labelKey: "nav.agents", icon: Bot, to: "/agents" },
-  { labelKey: "nav.items.localAgents", icon: Cpu, to: "/local-agents" },
-  { labelKey: "nav.skills", icon: BookOpen, to: "/skills" },
-  { labelKey: "nav.items.connectors", icon: Plug, to: "/connectors" },
+  { labelKey: "nav.schedule", icon: CalendarClock, to: "/schedule" },
   { labelKey: "nav.plugins", icon: Puzzle, to: "/plugins" },
+  { labelKey: "nav.agents", icon: Bot, to: "/agents" },
+  { labelKey: "nav.conversations", icon: MessageSquare, to: "/assistant" },
 ];
 
 export interface AppSidebarProps {
@@ -116,9 +90,7 @@ export const AppSidebar = ({
   const { t } = useTranslation();
   const { state: sidebarState } = useSidebar();
   const store = useSidebarStore();
-  const capabilitiesOpen = useStore(store, (state) => state.capabilitiesOpen);
   const handleSidebarLocationChange = useStore(store, (state) => state.handleSidebarLocationChange);
-  const handleCapabilitiesToggle = useStore(store, (state) => state.handleCapabilitiesToggle);
   const handleDefaultSearch = useStore(store, (state) => state.handleSearchButtonClick);
   const handleSearchClick = handleSearch ?? handleDefaultSearch;
   const currentPath = location.pathname;
@@ -171,46 +143,11 @@ export const AppSidebar = ({
 
       <SidebarContent className="py-2">
         <NavGroup
-          ariaLabel={t("nav.groups.assembly", { defaultValue: "Assembly" })}
+          ariaLabel={t("nav.groups.main", { defaultValue: "Main" })}
           currentPath={currentPath}
-          items={assemblyItems}
-          label={t("nav.groups.assembly", { defaultValue: "Assembly" })}
+          items={mainItems}
           t={t}
         />
-        <NavGroup
-          ariaLabel={t("nav.groups.monitor", { defaultValue: "Monitor" })}
-          currentPath={currentPath}
-          items={monitorItems}
-          label={t("nav.groups.monitor", { defaultValue: "Monitor" })}
-          t={t}
-        />
-        <SidebarSeparator className="my-1 bg-sidebar-border/60" />
-        <SidebarGroup
-          aria-label={t("nav.groups.capabilities", { defaultValue: "Capabilities" })}
-          className="px-2! py-0!"
-        >
-          <SidebarGroupLabel
-            className="h-7 px-2 text-[11px] font-medium uppercase text-foreground/70 group-data-[collapsible=icon]:sr-only"
-            render={
-              <button
-                aria-expanded={capabilitiesOpen}
-                className="flex w-full items-center gap-2 rounded-md text-left hover:text-foreground"
-                type="button"
-                onClick={handleCapabilitiesToggle}
-              />
-            }
-          >
-            <span>{t("nav.groups.capabilities", { defaultValue: "Capabilities" })}</span>
-            <ChevronDown
-              className={cn("ml-auto transition-transform", !capabilitiesOpen && "-rotate-90")}
-            />
-          </SidebarGroupLabel>
-          {capabilitiesOpen && (
-            <SidebarGroupContent>
-              <NavItems currentPath={currentPath} items={capabilityItems} t={t} />
-            </SidebarGroupContent>
-          )}
-        </SidebarGroup>
       </SidebarContent>
 
       <SidebarFooter className="border-t p-2">

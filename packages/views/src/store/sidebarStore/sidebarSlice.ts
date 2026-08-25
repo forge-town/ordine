@@ -4,22 +4,7 @@ import { SidebarView, type SidebarViewType } from "./sidebarView";
 const isPipelinePathname = (pathname: string): boolean =>
   pathname.startsWith("/canvas") || pathname.startsWith("/pipelines");
 
-const CAPABILITIES_OPEN_STORAGE_KEY = "ordine.sidebar.capabilitiesOpen";
 const CURRENT_PROJECT_STORAGE_KEY = "ordine.sidebar.currentProjectId";
-
-const readStoredCapabilitiesOpen = () => {
-  if (globalThis.localStorage === undefined) return false;
-
-  const value = globalThis.localStorage.getItem(CAPABILITIES_OPEN_STORAGE_KEY);
-
-  return value === null ? false : value === "true";
-};
-
-const writeStoredCapabilitiesOpen = (value: boolean) => {
-  if (globalThis.localStorage === undefined) return;
-
-  globalThis.localStorage.setItem(CAPABILITIES_OPEN_STORAGE_KEY, String(value));
-};
 
 const readStoredCurrentProjectId = (): string | null => {
   if (globalThis.localStorage === undefined) return null;
@@ -41,7 +26,6 @@ export interface SidebarSlice {
   view: SidebarViewType;
   searchOpen: boolean;
   newPipelineOpen: boolean;
-  capabilitiesOpen: boolean;
   currentProjectId: string | null;
 
   handleSidebarLocationChange: (pathname: string) => void;
@@ -50,7 +34,6 @@ export interface SidebarSlice {
   handleSidebarPipelineViewButtonClick: () => void;
   handleSearchButtonClick: () => void;
   handleNewPipelineButtonClick: () => void;
-  handleCapabilitiesToggle: () => void;
   setCurrentProjectId: (projectId: string | null) => void;
   syncCurrentProjectId: (projectIds: string[]) => void;
 }
@@ -59,7 +42,6 @@ export const createSidebarSlice: StateCreator<SidebarSlice> = (set, get) => ({
   view: SidebarView.Main,
   searchOpen: false,
   newPipelineOpen: false,
-  capabilitiesOpen: readStoredCapabilitiesOpen(),
   currentProjectId: readStoredCurrentProjectId(),
 
   handleSidebarLocationChange: (pathname) =>
@@ -69,11 +51,6 @@ export const createSidebarSlice: StateCreator<SidebarSlice> = (set, get) => ({
   handleSidebarPipelineViewButtonClick: () => set({ view: SidebarView.Pipeline }),
   handleSearchButtonClick: () => set({ searchOpen: true }),
   handleNewPipelineButtonClick: () => set({ newPipelineOpen: true }),
-  handleCapabilitiesToggle: () => {
-    const capabilitiesOpen = !get().capabilitiesOpen;
-    writeStoredCapabilitiesOpen(capabilitiesOpen);
-    set({ capabilitiesOpen });
-  },
   setCurrentProjectId: (currentProjectId) => {
     writeStoredCurrentProjectId(currentProjectId);
     set({ currentProjectId });
