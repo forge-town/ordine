@@ -3,6 +3,7 @@ import { err } from "neverthrow";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
+  create: vi.fn(),
   generateStructure: vi.fn(),
   getById: vi.fn(),
   proposeActions: vi.fn(),
@@ -13,7 +14,7 @@ vi.mock("../../src/services.js", () => ({
   pipelinesService: {
     getAll: vi.fn(),
     getById: mocks.getById,
-    create: vi.fn(),
+    create: mocks.create,
     update: vi.fn(),
     delete: vi.fn(),
     generateStructure: mocks.generateStructure,
@@ -35,10 +36,42 @@ const makeApp = () => {
 
 describe("pipelinesRoutes", () => {
   beforeEach(() => {
+    mocks.create.mockReset();
     mocks.generateStructure.mockReset();
     mocks.proposeActions.mockReset();
     mocks.startRun.mockReset();
     mocks.getById.mockReset();
+  });
+
+  it("rejects saving a Pipeline that references a missing Operation", async () => {
+    const missingOperationError = Object.assign(
+      new Error('Pipeline p1 references missing Operation "op-missing" at node "operation-node"'),
+      {
+        code: "PIPELINE_OPERATION_MISSING",
+        pipelineId: "p1",
+        missingOperations: [{ nodeId: "operation-node", operationId: "op-missing" }],
+      },
+    );
+    mocks.create.mockResolvedValue(err(missingOperationError));
+
+    const response = await makeApp().request("/pipelines", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        id: "p1",
+        name: "Broken Pipeline",
+        nodes: [],
+        edges: [],
+      }),
+    });
+
+    expect(response.status).toBe(409);
+    expect(await response.json()).toEqual({
+      code: "PIPELINE_OPERATION_MISSING",
+      error: 'Pipeline p1 references missing Operation "op-missing" at node "operation-node"',
+      pipelineId: "p1",
+      missingOperations: [{ nodeId: "operation-node", operationId: "op-missing" }],
+    });
   });
 
   it("returns 400 when generate-structure receives invalid JSON", async () => {
@@ -227,6 +260,36 @@ describe("pipelinesRoutes", () => {
     expect(await response.json()).toEqual({
       code: "AGENT_RUNTIME_NOT_FOUND",
       error: "No configured Agent runtime is available for this Pipeline run",
+    });
+  });
+
+  it("returns missing Operation details before starting a Pipeline run", async () => {
+    const missingOperationError = Object.assign(
+      new Error(
+        'Pipeline p1 references missing Operation "op_new_search_hackathons" at node "search-node"',
+      ),
+      {
+        code: "PIPELINE_OPERATION_MISSING",
+        pipelineId: "p1",
+        missingOperations: [{ nodeId: "search-node", operationId: "op_new_search_hackathons" }],
+      },
+    );
+    mocks.getById.mockResolvedValue({ id: "p1" });
+    mocks.startRun.mockResolvedValue(err(missingOperationError));
+
+    const response = await makeApp().request("/pipelines/p1/run", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({}),
+    });
+
+    expect(response.status).toBe(409);
+    expect(await response.json()).toEqual({
+      code: "PIPELINE_OPERATION_MISSING",
+      error:
+        'Pipeline p1 references missing Operation "op_new_search_hackathons" at node "search-node"',
+      pipelineId: "p1",
+      missingOperations: [{ nodeId: "search-node", operationId: "op_new_search_hackathons" }],
     });
   });
 });

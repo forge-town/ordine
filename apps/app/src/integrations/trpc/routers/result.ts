@@ -10,6 +10,9 @@ const codeForError = (error: unknown) => {
     return "BAD_REQUEST";
   }
   if (error instanceof Error && error.name.endsWith("NotFoundError")) return "NOT_FOUND";
+  if (error instanceof Error && error.name === "PipelineOperationReferencesError") {
+    return "CONFLICT";
+  }
   if (error instanceof Error && error.name === "ConflictError") return "CONFLICT";
   if (error instanceof Error && error.name === "InvalidJobStatusError") return "CONFLICT";
 

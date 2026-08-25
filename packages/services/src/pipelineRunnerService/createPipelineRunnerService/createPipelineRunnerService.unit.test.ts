@@ -23,6 +23,7 @@ type EngineDepsBuildOptionsMock = {
 const {
   mockJobsDao,
   mockConnectorsDao,
+  mockOperationsDao,
   mockPipelinesDao,
   mockAgentRuntimesDao,
   mockMcpInjections,
@@ -45,6 +46,9 @@ const {
     },
     mockConnectorsDao: {
       findMany: vi.fn().mockResolvedValue([]),
+    },
+    mockOperationsDao: {
+      findById: vi.fn(),
     },
     mockPipelinesDao: {
       findById: vi.fn(),
@@ -77,7 +81,7 @@ vi.mock("@repo/logger", () => ({
 
 vi.mock("@repo/models", () => ({
   createAgentsDao: vi.fn(() => ({})),
-  createOperationsDao: vi.fn(() => ({})),
+  createOperationsDao: vi.fn(() => mockOperationsDao),
   createPipelinesDao: vi.fn(() => mockPipelinesDao),
   createJobsDao: vi.fn(() => mockJobsDao),
   createJobTracesDao: vi.fn(() => ({})),
@@ -127,6 +131,7 @@ describe("createPipelineRunnerService run controls", () => {
     mockJobsDao.updateStatus.mockResolvedValue(undefined);
     mockMcpInjections.length = 0;
     mockConnectorsDao.findMany.mockResolvedValue([]);
+    mockOperationsDao.findById.mockReset();
     mockPipelinesDao.findById.mockResolvedValue({
       id: "pipe-1",
       name: "Pipe",
@@ -381,6 +386,41 @@ describe("createPipelineRunnerService run controls", () => {
     if (result.isErr()) {
       expect(result.error).toBeInstanceOf(AgentRuntimeNotFoundError);
       expect(result.error.message).toContain("missing-runtime");
+    }
+    expect(mockJobsDao.create).not.toHaveBeenCalled();
+    expect(mockPipelineRunExecutorRun).not.toHaveBeenCalled();
+  });
+
+  it("rejects a run before creating a job when an Operation reference is missing", async () => {
+    mockPipelinesDao.findById.mockResolvedValueOnce({
+      id: "pipe-1",
+      name: "Pipe",
+      description: "Pipeline description",
+      projectId: null,
+      nodes: [
+        {
+          id: "search-node",
+          type: "operation",
+          data: {
+            nodeType: "operation",
+            operationId: "op_new_search_hackathons",
+            operationName: "Search recent hackathons",
+          },
+        },
+      ],
+      edges: [],
+    });
+    const service = makeService();
+
+    const result = await service.startRun({ pipelineId: "pipe-1" });
+
+    expect(result.isErr()).toBe(true);
+    if (result.isErr()) {
+      expect(result.error).toMatchObject({
+        code: "PIPELINE_OPERATION_MISSING",
+        pipelineId: "pipe-1",
+        missingOperations: [{ nodeId: "search-node", operationId: "op_new_search_hackathons" }],
+      });
     }
     expect(mockJobsDao.create).not.toHaveBeenCalled();
     expect(mockPipelineRunExecutorRun).not.toHaveBeenCalled();

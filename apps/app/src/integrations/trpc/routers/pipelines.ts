@@ -43,7 +43,7 @@ export const pipelinesRouter = router({
         );
       }
 
-      return pipelinesService.create(pipeline);
+      return unwrapResult(await pipelinesService.create(pipeline));
     }),
 
   update: publicProcedure
@@ -56,12 +56,14 @@ export const pipelinesRouter = router({
         }),
       }),
     )
-    .mutation(({ input }) =>
-      pipelinesService.update(input.id, {
-        ...input.patch,
-        nodes: input.patch.nodes as never,
-        edges: input.patch.edges as never,
-      }),
+    .mutation(async ({ input }) =>
+      unwrapResult(
+        await pipelinesService.update(input.id, {
+          ...input.patch,
+          nodes: input.patch.nodes as never,
+          edges: input.patch.edges as never,
+        }),
+      ),
     ),
 
   delete: publicProcedure

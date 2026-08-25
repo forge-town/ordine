@@ -1707,7 +1707,7 @@ export const createPipelineAgentSessionsService = (
               assertActivityActive(sessionId, activity);
             }
 
-            const createdPipeline = await transactionalPipelinesService.create({
+            const createPipelineResult = await transactionalPipelinesService.create({
               id: crypto.randomUUID(),
               name: pipelineName,
               description: pipelineDescription,
@@ -1716,6 +1716,8 @@ export const createPipelineAgentSessionsService = (
               nodes: generated.nodes,
               edges: generated.edges,
             });
+            if (createPipelineResult.isErr()) throw createPipelineResult.error;
+            const createdPipeline = createPipelineResult.value;
             assertActivityActive(sessionId, activity);
             if (generateProposal.schedule) {
               const enabled = generateProposal.schedule.enabled;

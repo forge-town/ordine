@@ -1,8 +1,9 @@
-import { Hono } from "hono";
+import { Hono, type Context } from "hono";
 import { ResultAsync } from "neverthrow";
 import { z } from "zod/v4";
 import {
   PipelineGraphSnapshotSchema,
+  PipelineOperationReferenceDiagnosticSchema,
   ProposeAttachmentSchema,
   ProposePendingOperationSchema,
 } from "@repo/schemas";
@@ -13,6 +14,19 @@ export const pipelinesRoutes = new Hono();
 const isOperationValidationError = (error: Error): error is Error & { issues: unknown[] } =>
   error.name === "CapabilityCatalogValidationError" ||
   error.name === "OperationConfigValidationError";
+
+const missingOperationResponse = (c: Context, error: unknown) => {
+  const diagnostic = PipelineOperationReferenceDiagnosticSchema.safeParse(error);
+  if (!diagnostic.success) return null;
+
+  return c.json(
+    {
+      ...diagnostic.data,
+      error: error instanceof Error ? error.message : "Pipeline references a missing Operation",
+    },
+    409,
+  );
+};
 
 const proposeActionsBodySchema = z.object({
   attachments: z.array(ProposeAttachmentSchema).optional(),
@@ -94,6 +108,9 @@ pipelinesRoutes.post("/", async (c) => {
       parsedPendingOperations.data,
     );
     if (result.isErr()) {
+      const missingOperation = missingOperationResponse(c, result.error);
+      if (missingOperation) return missingOperation;
+
       return isOperationValidationError(result.error)
         ? c.json({ error: result.error.message, issues: result.error.issues }, 422)
         : c.json({ error: "Failed to create pipeline" }, 500);
@@ -101,9 +118,15 @@ pipelinesRoutes.post("/", async (c) => {
 
     return c.json(result.value, 201);
   }
-  const pipeline = await pipelinesService.create(pipelineData);
+  const result = await pipelinesService.create(pipelineData);
+  if (result.isErr()) {
+    const missingOperation = missingOperationResponse(c, result.error);
+    if (missingOperation) return missingOperation;
 
-  return c.json(pipeline, 201);
+    return c.json({ error: "Failed to create pipeline" }, 500);
+  }
+
+  return c.json(result.value, 201);
 });
 
 pipelinesRoutes.put("/", async (c) => {
@@ -111,13 +134,25 @@ pipelinesRoutes.put("/", async (c) => {
   const existing = await pipelinesService.getById(body.id);
   if (existing) {
     const { id: _, ...patch } = body;
-    const updated = await pipelinesService.update(body.id, patch);
+    const result = await pipelinesService.update(body.id, patch);
+    if (result.isErr()) {
+      const missingOperation = missingOperationResponse(c, result.error);
+      if (missingOperation) return missingOperation;
 
-    return c.json(updated);
+      return c.json({ error: result.error.message }, 500);
+    }
+
+    return c.json(result.value);
   }
-  const pipeline = await pipelinesService.create(body);
+  const result = await pipelinesService.create(body);
+  if (result.isErr()) {
+    const missingOperation = missingOperationResponse(c, result.error);
+    if (missingOperation) return missingOperation;
 
-  return c.json(pipeline, 201);
+    return c.json({ error: result.error.message }, 500);
+  }
+
+  return c.json(result.value, 201);
 });
 
 pipelinesRoutes.get("/:id", async (c) => {
@@ -131,9 +166,15 @@ pipelinesRoutes.get("/:id", async (c) => {
 pipelinesRoutes.patch("/:id", async (c) => {
   const id = c.req.param("id");
   const body = await c.req.json();
-  const pipeline = await pipelinesService.update(id, body);
+  const result = await pipelinesService.update(id, body);
+  if (result.isErr()) {
+    const missingOperation = missingOperationResponse(c, result.error);
+    if (missingOperation) return missingOperation;
 
-  return c.json(pipeline);
+    return c.json({ error: result.error.message }, 500);
+  }
+
+  return c.json(result.value);
 });
 
 pipelinesRoutes.delete("/:id", async (c) => {
@@ -202,6 +243,9 @@ pipelinesRoutes.post("/:id/run", async (c) => {
   });
 
   if (result.isErr()) {
+    const missingOperation = missingOperationResponse(c, result.error);
+    if (missingOperation) return missingOperation;
+
     const runtimeMissing =
       (result.error as Error & { code?: string }).code === "AGENT_RUNTIME_NOT_FOUND";
 

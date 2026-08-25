@@ -25,6 +25,11 @@ import {
 import { buildMcpConnectorInjection } from "../../connectorsService";
 import { hydrateConnectorCredentials } from "../../capabilityHarvestService";
 import type { AgentRunController, McpConnectorInjectionProvider } from "@repo/agent-engine";
+import {
+  checkPipelineOperationReferences,
+  type PipelineOperationReferencesError,
+} from "../../pipelinesService/checkPipelineOperationReferences";
+import type { ServiceError } from "../../serviceErrors";
 
 export interface PipelineRunnerServiceOptions {
   encryptionSecret?: string;
@@ -204,11 +209,26 @@ export const createPipelineRunnerService = (
       reasoningEffort?: string;
       speed?: string;
       firstOutputTimeoutMs?: number;
-    }): Promise<Result<{ jobId: string }, PipelineNotFoundError | AgentRuntimeNotFoundError>> => {
+    }): Promise<
+      Result<
+        { jobId: string },
+        | PipelineNotFoundError
+        | AgentRuntimeNotFoundError
+        | PipelineOperationReferencesError
+        | ServiceError
+      >
+    > => {
       const pipeline = await pipelinesDao.findById(opts.pipelineId);
       if (!pipeline) {
         return err(new PipelineNotFoundError(opts.pipelineId));
       }
+
+      const operationReferenceCheck = await checkPipelineOperationReferences({
+        nodes: pipeline.nodes,
+        operationsDao,
+        pipelineId: pipeline.id,
+      });
+      if (operationReferenceCheck.isErr()) return err(operationReferenceCheck.error);
 
       const [settingsRecord, allRuntimes] = await Promise.all([
         settingsDao.get(),

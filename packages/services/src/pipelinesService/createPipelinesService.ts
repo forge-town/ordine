@@ -33,6 +33,10 @@ import {
 } from "../capabilityCatalogService";
 import { ConflictError, NotFoundError, ServiceError, toServiceError } from "../serviceErrors";
 import { PIPELINE_CANVAS_SKILL_CONTEXT } from "./pipelineCanvasSkillContext";
+import {
+  checkPipelineOperationReferences,
+  PipelineOperationReferencesError,
+} from "./checkPipelineOperationReferences";
 import { MAX_SNAPSHOT_CHARS, truncate } from "./promptText";
 import {
   CAPABILITY_ASSIGNMENT_SYSTEM_PROMPT,
@@ -205,6 +209,17 @@ export const createPipelinesService = (db: DbExecutor, options: PipelinesService
       (error) => toServiceError(error, "Create pending operations"),
     );
 
+  const create = (pipeline: Parameters<typeof dao.create>[0]) =>
+    checkPipelineOperationReferences({
+      nodes: pipeline.nodes ?? [],
+      operationsDao,
+      pipelineId: pipeline.id,
+    }).andThen(() =>
+      ResultAsync.fromPromise(dao.create(pipeline), (error) =>
+        toServiceError(error, "Create Pipeline"),
+      ),
+    );
+
   const createWithPendingOperations = (
     pipeline: Parameters<typeof dao.create>[0],
     pendingOperations: PendingOperationInput[],
@@ -213,15 +228,42 @@ export const createPipelinesService = (db: DbExecutor, options: PipelinesService
       db.transaction(async (transaction) => {
         await insertPendingOperations(transaction, pendingOperations);
 
+        const referenceCheck = await checkPipelineOperationReferences({
+          nodes: pipeline.nodes ?? [],
+          operationsDao: createOperationsDao(transaction),
+          pipelineId: pipeline.id,
+        });
+        if (referenceCheck.isErr()) throw referenceCheck.error;
+
         return createPipelinesDao(transaction).create(pipeline);
       }),
-      (error) => toServiceError(error, "Create pipeline with pending operations"),
+      (error) =>
+        error instanceof PipelineOperationReferencesError
+          ? error
+          : toServiceError(error, "Create pipeline with pending operations"),
     );
+
+  const update = (id: string, patch: Parameters<typeof dao.update>[1]) =>
+    ResultAsync.fromPromise(dao.findById(id), (error) =>
+      toServiceError(error, "Load Pipeline for update"),
+    ).andThen((pipeline) => {
+      if (!pipeline) return errAsync(new NotFoundError("Pipeline", id));
+
+      return checkPipelineOperationReferences({
+        nodes: patch.nodes ?? pipeline.nodes ?? [],
+        operationsDao,
+        pipelineId: id,
+      }).andThen(() =>
+        ResultAsync.fromPromise(dao.update(id, patch), (error) =>
+          toServiceError(error, "Update Pipeline"),
+        ),
+      );
+    });
 
   return {
     getAll: () => dao.findMany(),
     getById: (id: string) => dao.findById(id),
-    create: (...args: Parameters<typeof dao.create>) => dao.create(...args),
+    create,
     createPendingOperations,
     createWithPendingOperations,
     updateOperationExecutors: (
@@ -276,7 +318,7 @@ export const createPipelinesService = (db: DbExecutor, options: PipelinesService
           ),
       );
     },
-    update: (...args: Parameters<typeof dao.update>) => dao.update(...args),
+    update,
     delete: async (id: string) => {
       await pipelineRunsDao.deleteByPipelineId(id);
       await dao.delete(id);

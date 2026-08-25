@@ -96,7 +96,7 @@ describe("Pipelines API", () => {
   });
 
   it("POST /api/pipelines creates pipeline", async () => {
-    mockPipelinesService.create.mockResolvedValueOnce(mockPipeline as never);
+    mockPipelinesService.create.mockResolvedValueOnce(ok(mockPipeline) as never);
     const res = await app.request("/api/pipelines", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -172,10 +172,12 @@ describe("Pipelines API", () => {
   });
 
   it("PATCH /api/pipelines/:id updates pipeline", async () => {
-    mockPipelinesService.update.mockResolvedValueOnce({
-      ...mockPipeline,
-      name: "Updated",
-    } as never);
+    mockPipelinesService.update.mockResolvedValueOnce(
+      ok({
+        ...mockPipeline,
+        name: "Updated",
+      }) as never,
+    );
     const res = await app.request("/api/pipelines/pipe-1", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -200,7 +202,7 @@ describe("Pipelines API", () => {
 
   it("PUT /api/pipelines upserts - creates when new", async () => {
     mockPipelinesService.getById.mockResolvedValueOnce(null as never);
-    mockPipelinesService.create.mockResolvedValueOnce(mockPipeline as never);
+    mockPipelinesService.create.mockResolvedValueOnce(ok(mockPipeline) as never);
     const res = await app.request("/api/pipelines", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -212,7 +214,7 @@ describe("Pipelines API", () => {
 
   it("PUT /api/pipelines upserts - updates when existing", async () => {
     mockPipelinesService.getById.mockResolvedValueOnce(mockPipeline as never);
-    mockPipelinesService.update.mockResolvedValueOnce(mockPipeline as never);
+    mockPipelinesService.update.mockResolvedValueOnce(ok(mockPipeline) as never);
     const res = await app.request("/api/pipelines", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },

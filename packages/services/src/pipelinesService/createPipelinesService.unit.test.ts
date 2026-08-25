@@ -178,14 +178,99 @@ describe("createPipelinesService", () => {
   it("create delegates to dao.create", async () => {
     const svc = createPipelinesService({} as never);
     const data = { name: "pipeline" } as never;
-    await svc.create(data);
+    const result = await svc.create(data);
+
+    expect(result.isOk()).toBe(true);
+    expect(mockDao.create).toHaveBeenCalledWith(data);
+  });
+
+  it("rejects a Pipeline that references an Operation missing from persistence", async () => {
+    const svc = createPipelinesService({} as never);
+    const data = {
+      id: "pipeline-missing-operation",
+      name: "Broken Pipeline",
+      nodes: [
+        {
+          id: "search-node",
+          type: "operation",
+          data: {
+            nodeType: "operation",
+            operationId: "op_new_search_hackathons",
+            operationName: "Search recent hackathons",
+          },
+        },
+      ],
+    } as never;
+
+    const result = await svc.create(data);
+
+    expect(result.isErr()).toBe(true);
+    if (result.isErr()) {
+      expect(result.error).toMatchObject({
+        name: "PipelineOperationReferencesError",
+        code: "PIPELINE_OPERATION_MISSING",
+        pipelineId: "pipeline-missing-operation",
+        missingOperations: [{ nodeId: "search-node", operationId: "op_new_search_hackathons" }],
+      });
+    }
+    expect(mockDao.create).not.toHaveBeenCalled();
+  });
+
+  it("saves a Pipeline when all referenced Operations exist", async () => {
+    mockOperationsDao.findById.mockResolvedValueOnce({ id: "op-existing" });
+    const svc = createPipelinesService({} as never);
+    const data = {
+      id: "pipeline-valid",
+      name: "Valid Pipeline",
+      nodes: [
+        {
+          id: "operation-node",
+          type: "operation",
+          data: {
+            nodeType: "operation",
+            operationId: "op-existing",
+            operationName: "Existing Operation",
+          },
+        },
+      ],
+    } as never;
+
+    const result = await svc.create(data);
+
+    expect(result.isOk()).toBe(true);
+    expect(mockOperationsDao.findById).toHaveBeenCalledWith("op-existing");
     expect(mockDao.create).toHaveBeenCalledWith(data);
   });
 
   it("update delegates to dao.update", async () => {
     const svc = createPipelinesService({} as never);
-    await svc.update("p1", { name: "updated" } as never);
+    const result = await svc.update("p1", { name: "updated" } as never);
+
+    expect(result.isOk()).toBe(true);
     expect(mockDao.update).toHaveBeenCalledWith("p1", { name: "updated" });
+  });
+
+  it("rejects an update that introduces a missing Operation reference", async () => {
+    mockDao.findById.mockResolvedValueOnce({ id: "p1", nodes: [] });
+    const svc = createPipelinesService({} as never);
+    const patch = {
+      nodes: [
+        {
+          id: "missing-node",
+          type: "operation",
+          data: {
+            nodeType: "operation",
+            operationId: "op-missing",
+            operationName: "Missing",
+          },
+        },
+      ],
+    } as never;
+
+    const result = await svc.update("p1", patch);
+
+    expect(result.isErr()).toBe(true);
+    expect(mockDao.update).not.toHaveBeenCalled();
   });
 
   it("delete delegates to dao.delete", async () => {
