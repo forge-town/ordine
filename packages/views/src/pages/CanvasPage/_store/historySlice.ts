@@ -16,6 +16,8 @@
  */
 
 import { produceWithPatches, applyPatches, enablePatches, type Patch } from "immer";
+import { ResultAsync } from "neverthrow";
+import type { PipelineGraphSnapshot } from "@repo/schemas";
 import type { CanvasPageStoreSlice } from "./canvasPageStore";
 import { sortParentBeforeChildren, type PipelineNode, type PipelineEdge } from "./canvasSlice";
 
@@ -38,7 +40,8 @@ export type CommandType =
   | "GROUP_NODES"
   | "UNGROUP_COMPOUND"
   | "CLEAR_CANVAS"
-  | "APPLY_AGENT_PROPOSAL";
+  | "APPLY_AGENT_PROPOSAL"
+  | "APPLY_AGENT_CHANGESET";
 
 export interface CommandMeta {
   type: CommandType;
@@ -58,7 +61,29 @@ export interface HistoryEntry {
   command: CommandMeta;
   patches: Patch[];
   inversePatches: Patch[];
+  remote?: {
+    changeSetId: string;
+    version: number;
+  };
 }
+
+export type AgentHistoryGateway = {
+  revert: (
+    changeSetId: string,
+    expectedVersion: number,
+  ) => Promise<{ snapshot: PipelineGraphSnapshot; newVersion: number }>;
+  redo: (
+    changeSetId: string,
+    expectedVersion: number,
+  ) => Promise<{ snapshot: PipelineGraphSnapshot; newVersion: number }>;
+  reportError: (message: string) => void;
+};
+
+let agentHistoryGateway: AgentHistoryGateway | null = null;
+
+export const setAgentHistoryGateway = (gateway: AgentHistoryGateway | null) => {
+  agentHistoryGateway = gateway;
+};
 
 // ─── The canvas sub-state that history operates on ───────────────────────────
 
@@ -94,6 +119,14 @@ export interface HistorySlice {
   /** Record a mutation that React Flow already applied to the live canvas state. */
   recordStateTransition: (command: CommandMeta, previous: CanvasHistoryState) => void;
 
+  recordAgentChangeSet: (
+    changeSetId: string,
+    previousVersion: number,
+    newVersion: number,
+    previous: PipelineGraphSnapshot,
+    next: PipelineGraphSnapshot,
+  ) => void;
+
   handleUndo: () => void;
   handleRedo: () => void;
   clearHistory: () => void;
@@ -121,6 +154,7 @@ export const createHistorySlice = (
 
   recordCommand(command, mutate) {
     const state = get();
+    if (state.isAgentStructureLocked) return;
     const current: CanvasHistoryState = {
       nodes: state.nodes,
       edges: state.edges,
@@ -156,6 +190,7 @@ export const createHistorySlice = (
 
   recordStateTransition(command, previous) {
     const state = get();
+    if (state.isAgentStructureLocked) return;
     const current: CanvasHistoryState = {
       nodes: state.nodes,
       edges: state.edges,
@@ -186,12 +221,67 @@ export const createHistorySlice = (
     });
   },
 
+  recordAgentChangeSet(changeSetId, previousVersion, newVersion, previous, next) {
+    const [, patches, inversePatches] = produceWithPatches(
+      { nodes: previous.nodes as PipelineNode[], edges: previous.edges as PipelineEdge[] },
+      (draft) => {
+        draft.nodes = next.nodes as PipelineNode[];
+        draft.edges = next.edges as PipelineEdge[];
+      },
+    );
+    const entry: HistoryEntry = {
+      id: `hist-agent-${changeSetId}`,
+      command: {
+        type: "APPLY_AGENT_CHANGESET",
+        label: "Apply Agent Change Set",
+        payload: { changeSetId, previousVersion, newVersion },
+      },
+      patches,
+      inversePatches,
+      remote: { changeSetId, version: newVersion },
+    };
+    set((state) => {
+      const history = [...state._history.slice(-(state._maxHistory - 1)), entry];
+
+      return {
+        _history: history,
+        _future: [],
+        canUndo: true,
+        canRedo: false,
+      };
+    });
+  },
+
   handleUndo() {
     const { _history, _future } = get();
     if (_history.length === 0) return;
 
     const entry = _history.at(-1);
     if (!entry) return;
+    if (entry.remote) {
+      if (!agentHistoryGateway) return;
+      void ResultAsync.fromPromise(
+        agentHistoryGateway.revert(entry.remote.changeSetId, entry.remote.version),
+        (error) => (error instanceof Error ? error : new Error(String(error))),
+      ).match(
+        ({ snapshot, newVersion }) => {
+          const history = get()._history.slice(0, -1);
+          const futureEntry = { ...entry, remote: { ...entry.remote!, version: newVersion } };
+          const snapshotState = toCanvasHistoryState(snapshot);
+          set({
+            ...snapshotState,
+            pipelineVersion: newVersion,
+            _history: history,
+            _future: [futureEntry, ...get()._future],
+            canUndo: history.length > 0,
+            canRedo: true,
+          });
+        },
+        (error) => agentHistoryGateway?.reportError(error.message),
+      );
+
+      return;
+    }
     const state = get();
     const current: CanvasHistoryState = {
       nodes: state.nodes,
@@ -217,6 +307,29 @@ export const createHistorySlice = (
     if (_future.length === 0) return;
 
     const entry = _future[0];
+    if (entry.remote) {
+      if (!agentHistoryGateway) return;
+      void ResultAsync.fromPromise(
+        agentHistoryGateway.redo(entry.remote.changeSetId, entry.remote.version),
+        (error) => (error instanceof Error ? error : new Error(String(error))),
+      ).match(
+        ({ snapshot, newVersion }) => {
+          const historyEntry = { ...entry, remote: { ...entry.remote!, version: newVersion } };
+          const future = get()._future.slice(1);
+          set({
+            ...toCanvasHistoryState(snapshot),
+            pipelineVersion: newVersion,
+            _history: [...get()._history, historyEntry],
+            _future: future,
+            canUndo: true,
+            canRedo: future.length > 0,
+          });
+        },
+        (error) => agentHistoryGateway?.reportError(error.message),
+      );
+
+      return;
+    }
     const state = get();
     const current: CanvasHistoryState = {
       nodes: state.nodes,
@@ -240,4 +353,9 @@ export const createHistorySlice = (
   clearHistory() {
     set({ _history: [], _future: [], canUndo: false, canRedo: false });
   },
+});
+
+const toCanvasHistoryState = (snapshot: PipelineGraphSnapshot): CanvasHistoryState => ({
+  nodes: sortNodesAfterHistoryPatch(snapshot.nodes as PipelineNode[]),
+  edges: snapshot.edges as PipelineEdge[],
 });

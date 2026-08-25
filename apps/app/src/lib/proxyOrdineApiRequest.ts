@@ -23,6 +23,18 @@ export const proxyOrdineApiRequest = async (request: Request) => {
   const result = await ResultAsync.fromPromise(fetch(upstreamRequest), toProxyError);
 
   if (result.isErr()) {
+    if (request.method === "GET" && requestUrl.pathname === "/api/agent-threads/capabilities") {
+      return Response.json(
+        {
+          enabled: false,
+          toolContractVersion: 1,
+          toolCount: 22,
+          runtimes: [],
+        },
+        { headers: { "x-ordine-agent-control-state": "api-unavailable" } },
+      );
+    }
+
     return Response.json(
       {
         error: "Ordine API is unavailable. Start the API server and try again.",

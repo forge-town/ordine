@@ -9,8 +9,10 @@ import {
 import { createUISlice, type UISlice } from "./uiSlice";
 import { createHistorySlice, type HistorySlice } from "./historySlice";
 import { createActionsSlice, type ActionsSlice } from "./actionsSlice";
+import { createAgentControlSlice, type AgentControlSlice } from "./agentControlSlice";
 
-export interface CanvasPageState extends CanvasSlice, UISlice, HistorySlice, ActionsSlice {}
+export interface CanvasPageState
+  extends CanvasSlice, UISlice, HistorySlice, ActionsSlice, AgentControlSlice {}
 
 export type CanvasPageStoreSlice<T = CanvasPageState> = StateCreator<CanvasPageState, [], [], T>;
 
@@ -22,6 +24,7 @@ export const createCanvasPageStore = (
   pipelineId?: string | null,
   pipelineName?: string,
   pipelineSharedContext?: string,
+  pipelineVersion?: number,
 ) => {
   return createStore<CanvasPageState>()((set, get) => ({
     ...createCanvasSlice(
@@ -45,6 +48,11 @@ export const createCanvasPageStore = (
     ...createActionsSlice(
       set as Parameters<CanvasPageStoreSlice>[0],
       get as Parameters<CanvasPageStoreSlice>[1],
+    ),
+    ...createAgentControlSlice(
+      set as Parameters<CanvasPageStoreSlice>[0],
+      get as Parameters<CanvasPageStoreSlice>[1],
+      pipelineVersion ?? 1,
     ),
   }));
 };

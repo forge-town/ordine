@@ -16,6 +16,7 @@ import { Route as LayoutRouteImport } from "./routes/_layout";
 import { Route as LayoutIndexRouteImport } from "./routes/_layout/index";
 import { Route as ApiPipelineAgentSessionsRouteImport } from "./routes/api/pipeline-agent-sessions";
 import { Route as ApiLocalSessionRouteImport } from "./routes/api/local-session";
+import { Route as ApiAgentThreadsRouteImport } from "./routes/api/agent-threads";
 import { Route as LayoutUsageRouteImport } from "./routes/_layout/usage";
 import { Route as LayoutSkillsRouteImport } from "./routes/_layout/skills";
 import { Route as LayoutSettingsRouteImport } from "./routes/_layout/settings";
@@ -37,6 +38,7 @@ import { Route as ApiPipelinesSplatRouteImport } from "./routes/api/pipelines.$"
 import { Route as ApiPipelineAgentSessionsSplatRouteImport } from "./routes/api/pipeline-agent-sessions.$";
 import { Route as ApiOperationsSplatRouteImport } from "./routes/api/operations.$";
 import { Route as ApiAuthSplatRouteImport } from "./routes/api/auth.$";
+import { Route as ApiAgentThreadsSplatRouteImport } from "./routes/api/agent-threads.$";
 import { Route as ApiAgentRuntimesSplatRouteImport } from "./routes/api/agent-runtimes.$";
 import { Route as ApiAgentRunsSplatRouteImport } from "./routes/api/agent-runs.$";
 import { Route as LayoutPipelinesJobsRouteImport } from "./routes/_layout/pipelines.jobs";
@@ -87,6 +89,11 @@ const ApiPipelineAgentSessionsRoute = ApiPipelineAgentSessionsRouteImport.update
 const ApiLocalSessionRoute = ApiLocalSessionRouteImport.update({
   id: "/api/local-session",
   path: "/api/local-session",
+  getParentRoute: () => rootRouteImport,
+} as any);
+const ApiAgentThreadsRoute = ApiAgentThreadsRouteImport.update({
+  id: "/api/agent-threads",
+  path: "/api/agent-threads",
   getParentRoute: () => rootRouteImport,
 } as any);
 const LayoutUsageRoute = LayoutUsageRouteImport.update({
@@ -194,6 +201,11 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   path: "/api/auth/$",
   getParentRoute: () => rootRouteImport,
 } as any);
+const ApiAgentThreadsSplatRoute = ApiAgentThreadsSplatRouteImport.update({
+  id: "/$",
+  path: "/$",
+  getParentRoute: () => ApiAgentThreadsRoute,
+} as any);
 const ApiAgentRuntimesSplatRoute = ApiAgentRuntimesSplatRouteImport.update({
   id: "/api/agent-runtimes/$",
   path: "/api/agent-runtimes/$",
@@ -300,12 +312,14 @@ export interface FileRoutesByFullPath {
   "/settings": typeof LayoutSettingsRoute;
   "/skills": typeof LayoutSkillsRoute;
   "/usage": typeof LayoutUsageRoute;
+  "/api/agent-threads": typeof ApiAgentThreadsRouteWithChildren;
   "/api/local-session": typeof ApiLocalSessionRoute;
   "/api/pipeline-agent-sessions": typeof ApiPipelineAgentSessionsRouteWithChildren;
   "/distillations/$distillationId": typeof LayoutDistillationsDistillationIdRoute;
   "/distillations/new": typeof LayoutDistillationsNewRoute;
   "/pipelines/$pipelineId": typeof LayoutPipelinesPipelineIdRoute;
   "/pipelines/jobs": typeof LayoutPipelinesJobsRouteWithChildren;
+  "/api/agent-threads/$": typeof ApiAgentThreadsSplatRoute;
   "/api/agent-runs/$": typeof ApiAgentRunsSplatRoute;
   "/api/agent-runtimes/$": typeof ApiAgentRuntimesSplatRoute;
   "/api/auth/$": typeof ApiAuthSplatRoute;
@@ -342,12 +356,14 @@ export interface FileRoutesByTo {
   "/settings": typeof LayoutSettingsRoute;
   "/skills": typeof LayoutSkillsRoute;
   "/usage": typeof LayoutUsageRoute;
+  "/api/agent-threads": typeof ApiAgentThreadsRouteWithChildren;
   "/api/local-session": typeof ApiLocalSessionRoute;
   "/api/pipeline-agent-sessions": typeof ApiPipelineAgentSessionsRouteWithChildren;
   "/": typeof LayoutIndexRoute;
   "/distillations/$distillationId": typeof LayoutDistillationsDistillationIdRoute;
   "/distillations/new": typeof LayoutDistillationsNewRoute;
   "/pipelines/$pipelineId": typeof LayoutPipelinesPipelineIdRoute;
+  "/api/agent-threads/$": typeof ApiAgentThreadsSplatRoute;
   "/api/agent-runs/$": typeof ApiAgentRunsSplatRoute;
   "/api/agent-runtimes/$": typeof ApiAgentRuntimesSplatRoute;
   "/api/auth/$": typeof ApiAuthSplatRoute;
@@ -389,6 +405,7 @@ export interface FileRoutesById {
   "/_layout/settings": typeof LayoutSettingsRoute;
   "/_layout/skills": typeof LayoutSkillsRoute;
   "/_layout/usage": typeof LayoutUsageRoute;
+  "/api/agent-threads": typeof ApiAgentThreadsRouteWithChildren;
   "/api/local-session": typeof ApiLocalSessionRoute;
   "/api/pipeline-agent-sessions": typeof ApiPipelineAgentSessionsRouteWithChildren;
   "/_layout/": typeof LayoutIndexRoute;
@@ -396,6 +413,7 @@ export interface FileRoutesById {
   "/_layout/distillations/new": typeof LayoutDistillationsNewRoute;
   "/_layout/pipelines/$pipelineId": typeof LayoutPipelinesPipelineIdRoute;
   "/_layout/pipelines/jobs": typeof LayoutPipelinesJobsRouteWithChildren;
+  "/api/agent-threads/$": typeof ApiAgentThreadsSplatRoute;
   "/api/agent-runs/$": typeof ApiAgentRunsSplatRoute;
   "/api/agent-runtimes/$": typeof ApiAgentRuntimesSplatRoute;
   "/api/auth/$": typeof ApiAuthSplatRoute;
@@ -438,12 +456,14 @@ export interface FileRouteTypes {
     | "/settings"
     | "/skills"
     | "/usage"
+    | "/api/agent-threads"
     | "/api/local-session"
     | "/api/pipeline-agent-sessions"
     | "/distillations/$distillationId"
     | "/distillations/new"
     | "/pipelines/$pipelineId"
     | "/pipelines/jobs"
+    | "/api/agent-threads/$"
     | "/api/agent-runs/$"
     | "/api/agent-runtimes/$"
     | "/api/auth/$"
@@ -480,12 +500,14 @@ export interface FileRouteTypes {
     | "/settings"
     | "/skills"
     | "/usage"
+    | "/api/agent-threads"
     | "/api/local-session"
     | "/api/pipeline-agent-sessions"
     | "/"
     | "/distillations/$distillationId"
     | "/distillations/new"
     | "/pipelines/$pipelineId"
+    | "/api/agent-threads/$"
     | "/api/agent-runs/$"
     | "/api/agent-runtimes/$"
     | "/api/auth/$"
@@ -526,6 +548,7 @@ export interface FileRouteTypes {
     | "/_layout/settings"
     | "/_layout/skills"
     | "/_layout/usage"
+    | "/api/agent-threads"
     | "/api/local-session"
     | "/api/pipeline-agent-sessions"
     | "/_layout/"
@@ -533,6 +556,7 @@ export interface FileRouteTypes {
     | "/_layout/distillations/new"
     | "/_layout/pipelines/$pipelineId"
     | "/_layout/pipelines/jobs"
+    | "/api/agent-threads/$"
     | "/api/agent-runs/$"
     | "/api/agent-runtimes/$"
     | "/api/auth/$"
@@ -562,6 +586,7 @@ export interface RootRouteChildren {
   CanvasRoute: typeof CanvasRoute;
   LoginRoute: typeof LoginRoute;
   SignUpRoute: typeof SignUpRoute;
+  ApiAgentThreadsRoute: typeof ApiAgentThreadsRouteWithChildren;
   ApiLocalSessionRoute: typeof ApiLocalSessionRoute;
   ApiPipelineAgentSessionsRoute: typeof ApiPipelineAgentSessionsRouteWithChildren;
   ApiAgentRunsSplatRoute: typeof ApiAgentRunsSplatRoute;
@@ -621,6 +646,13 @@ declare module "@tanstack/react-router" {
       path: "/api/local-session";
       fullPath: "/api/local-session";
       preLoaderRoute: typeof ApiLocalSessionRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/api/agent-threads": {
+      id: "/api/agent-threads";
+      path: "/api/agent-threads";
+      fullPath: "/api/agent-threads";
+      preLoaderRoute: typeof ApiAgentThreadsRouteImport;
       parentRoute: typeof rootRouteImport;
     };
     "/_layout/usage": {
@@ -769,6 +801,13 @@ declare module "@tanstack/react-router" {
       fullPath: "/api/auth/$";
       preLoaderRoute: typeof ApiAuthSplatRouteImport;
       parentRoute: typeof rootRouteImport;
+    };
+    "/api/agent-threads/$": {
+      id: "/api/agent-threads/$";
+      path: "/$";
+      fullPath: "/api/agent-threads/$";
+      preLoaderRoute: typeof ApiAgentThreadsSplatRouteImport;
+      parentRoute: typeof ApiAgentThreadsRoute;
     };
     "/api/agent-runtimes/$": {
       id: "/api/agent-runtimes/$";
@@ -1004,6 +1043,18 @@ const LayoutRouteChildren: LayoutRouteChildren = {
 
 const LayoutRouteWithChildren = LayoutRoute._addFileChildren(LayoutRouteChildren);
 
+interface ApiAgentThreadsRouteChildren {
+  ApiAgentThreadsSplatRoute: typeof ApiAgentThreadsSplatRoute;
+}
+
+const ApiAgentThreadsRouteChildren: ApiAgentThreadsRouteChildren = {
+  ApiAgentThreadsSplatRoute: ApiAgentThreadsSplatRoute,
+};
+
+const ApiAgentThreadsRouteWithChildren = ApiAgentThreadsRoute._addFileChildren(
+  ApiAgentThreadsRouteChildren,
+);
+
 interface ApiPipelineAgentSessionsRouteChildren {
   ApiPipelineAgentSessionsSplatRoute: typeof ApiPipelineAgentSessionsSplatRoute;
 }
@@ -1021,6 +1072,7 @@ const rootRouteChildren: RootRouteChildren = {
   CanvasRoute: CanvasRoute,
   LoginRoute: LoginRoute,
   SignUpRoute: SignUpRoute,
+  ApiAgentThreadsRoute: ApiAgentThreadsRouteWithChildren,
   ApiLocalSessionRoute: ApiLocalSessionRoute,
   ApiPipelineAgentSessionsRoute: ApiPipelineAgentSessionsRouteWithChildren,
   ApiAgentRunsSplatRoute: ApiAgentRunsSplatRoute,

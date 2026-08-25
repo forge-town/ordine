@@ -4,6 +4,7 @@ import { RouterProvider, createRouter } from "@tanstack/react-router";
 import { Refine } from "@refinedev/core";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { PlatformProvider } from "@repo/views/platform";
+import { GlobalAgentControlProvider } from "@repo/views/GlobalAgentControl";
 import { routeTree } from "./routeTree.gen";
 import { dataProvider } from "./integrations/refine/dataProvider";
 import { desktopPlatform } from "./integrations/platform";
@@ -29,7 +30,9 @@ if (rootElement) {
         <QueryClientProvider client={queryClient}>
           <Refine dataProvider={dataProvider}>
             <PlatformProvider value={desktopPlatform}>
-              <RouterProvider router={router} />
+              <GlobalAgentControlProvider>
+                <RouterProvider router={router} />
+              </GlobalAgentControlProvider>
             </PlatformProvider>
           </Refine>
         </QueryClientProvider>

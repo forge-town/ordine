@@ -344,3 +344,79 @@
     transition-duration: 0.01ms !important;
   }
 }
+.agent-canvas-node-enter {
+  animation: agent-canvas-node-enter 220ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  transform-origin: center;
+}
+
+.agent-canvas-node-update {
+  animation: agent-canvas-node-update 480ms ease-out both;
+}
+
+.agent-canvas-node-exit {
+  animation: agent-canvas-node-exit 140ms ease-in both;
+  pointer-events: none;
+}
+
+.agent-canvas-edge-enter {
+  animation: agent-canvas-edge-enter 280ms ease-out both;
+  stroke-dasharray: 18 220;
+}
+
+.agent-canvas-edge-exit {
+  animation: agent-canvas-edge-exit 140ms ease-in both;
+}
+
+@keyframes agent-canvas-node-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes agent-canvas-node-update {
+  0%, 100% {
+    filter: none;
+  }
+  35% {
+    filter: drop-shadow(0 0 10px color-mix(in srgb, var(--primary) 42%, transparent));
+  }
+}
+
+@keyframes agent-canvas-node-exit {
+  to {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+}
+
+@keyframes agent-canvas-edge-enter {
+  from {
+    opacity: 0.35;
+    stroke-dashoffset: 238;
+  }
+  to {
+    opacity: 1;
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes agent-canvas-edge-exit {
+  to {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .agent-canvas-node-enter,
+  .agent-canvas-node-update,
+  .agent-canvas-node-exit,
+  .agent-canvas-edge-enter,
+  .agent-canvas-edge-exit {
+    animation: none;
+  }
+}

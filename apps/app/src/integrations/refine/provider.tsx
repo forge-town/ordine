@@ -6,12 +6,15 @@ import { dataProvider } from "./dataProvider";
 import { notificationProvider } from "./notificationProvider";
 import { webPlatform } from "../platform";
 import { webAuth } from "../auth";
+import { GlobalAgentControlProvider } from "@repo/views/GlobalAgentControl";
 
 export const RefineProvider: FC<PropsWithChildren> = ({ children }) => {
   return (
     <Refine dataProvider={dataProvider} notificationProvider={notificationProvider}>
       <PlatformProvider value={webPlatform}>
-        <AuthProvider value={webAuth}>{children}</AuthProvider>
+        <GlobalAgentControlProvider>
+          <AuthProvider value={webAuth}>{children}</AuthProvider>
+        </GlobalAgentControlProvider>
       </PlatformProvider>
     </Refine>
   );
