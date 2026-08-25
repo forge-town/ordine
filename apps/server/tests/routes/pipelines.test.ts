@@ -292,4 +292,24 @@ describe("pipelinesRoutes", () => {
       missingOperations: [{ nodeId: "search-node", operationId: "op_new_search_hackathons" }],
     });
   });
+
+  it("returns an internal error when the Operation registry lookup fails", async () => {
+    const serviceError = Object.assign(new Error("Check Pipeline p1 Operation references failed"), {
+      name: "ServiceError",
+    });
+    mocks.getById.mockResolvedValue({ id: "p1" });
+    mocks.startRun.mockResolvedValue(err(serviceError));
+
+    const response = await makeApp().request("/pipelines/p1/run", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({}),
+    });
+
+    expect(response.status).toBe(500);
+    expect(await response.json()).toEqual({
+      code: "PIPELINE_RUN_FAILED",
+      error: "Check Pipeline p1 Operation references failed",
+    });
+  });
 });

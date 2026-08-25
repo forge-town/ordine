@@ -76,7 +76,27 @@ operationsRoutes.delete("/:id", async (c) => {
   const id = c.req.param("id");
   const existing = await operationsService.getById(id);
   if (!existing) return c.json({ error: "Operation not found" }, 404);
-  await operationsService.delete(id);
+  const result = await operationsService.delete(id);
+  if (result.isErr()) {
+    const error = result.error as Error & {
+      code?: string;
+      operationId?: string;
+      pipelineIds?: string[];
+    };
+    if (error.code === "OPERATION_IN_USE") {
+      return c.json(
+        {
+          error: error.message,
+          code: error.code,
+          operationId: error.operationId,
+          pipelineIds: error.pipelineIds,
+        },
+        409,
+      );
+    }
+
+    return c.json({ error: "Failed to delete operation" }, 500);
+  }
 
   return c.body(null, 204);
 });

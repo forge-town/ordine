@@ -49,7 +49,7 @@ export const operationsRouter = router({
 
   delete: publicProcedure
     .input(z.object({ id: z.string() }))
-    .mutation(({ input }) => operationsService.delete(input.id)),
+    .mutation(async ({ input }) => unwrapResult(await operationsService.delete(input.id))),
 
   run: publicProcedure
     .input(

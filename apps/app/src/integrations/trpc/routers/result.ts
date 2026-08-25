@@ -13,7 +13,7 @@ const codeForError = (error: unknown) => {
   if (error instanceof Error && error.name === "PipelineOperationReferencesError") {
     return "CONFLICT";
   }
-  if (error instanceof Error && error.name === "ConflictError") return "CONFLICT";
+  if (error instanceof Error && error.name.endsWith("ConflictError")) return "CONFLICT";
   if (error instanceof Error && error.name === "InvalidJobStatusError") return "CONFLICT";
 
   return "INTERNAL_SERVER_ERROR";

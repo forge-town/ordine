@@ -11,6 +11,7 @@ const mocks = vi.hoisted(() => ({
   connectorsGetAll: vi.fn(),
   agentsGetAll: vi.fn(),
   operationsCreate: vi.fn(),
+  operationsDelete: vi.fn(),
   projectsCreate: vi.fn(),
   pipelinesGetById: vi.fn(),
   pipelineStartRun: vi.fn(),
@@ -44,7 +45,7 @@ vi.mock("./services", () => ({
   jobsService: {},
   operationOutputItemTemplatesService: {},
   operationRunnerService: {},
-  operationsService: { create: mocks.operationsCreate },
+  operationsService: { create: mocks.operationsCreate, delete: mocks.operationsDelete },
   pipelineAssetsService: {
     getAll: mocks.pipelineAssetsGetAll,
     getUsageCount: mocks.pipelineAssetsGetUsageCount,
@@ -103,6 +104,7 @@ beforeEach(() => {
   mocks.connectorsGetAll.mockResolvedValue(ok([]));
   mocks.agentsGetAll.mockResolvedValue([]);
   mocks.operationsCreate.mockResolvedValue(ok({ id: "op-1" }));
+  mocks.operationsDelete.mockResolvedValue(ok(undefined));
   mocks.projectsCreate.mockResolvedValue(ok({ id: "project-1", name: "Inbox" }));
   mocks.pipelinesGetById.mockResolvedValue(null);
   mocks.conversationsClearAll.mockResolvedValue(ok(undefined));
@@ -193,6 +195,17 @@ describe("domain tRPC routers", () => {
     });
   });
 
+  it("maps deleting an in-use Operation to CONFLICT", async () => {
+    const inUse = new Error("Operation op-1 is referenced by Pipeline pipeline-1");
+    inUse.name = "OperationInUseConflictError";
+    mocks.operationsDelete.mockResolvedValueOnce(err(inUse));
+    const caller = domainRouter.createCaller({ session: null });
+
+    await expect(caller.operations.delete({ id: "op-1" })).rejects.toMatchObject({
+      code: "CONFLICT",
+    });
+  });
+
   it("generates a project id at the route boundary", async () => {
     mocks.projectsCreate.mockImplementation(async (input) => ok(input));
     const caller = domainRouter.createCaller({ session: null });
@@ -224,6 +237,33 @@ describe("domain tRPC routers", () => {
       code: "NOT_FOUND",
     });
     expect(mocks.pipelineStartRun).not.toHaveBeenCalled();
+  });
+
+  it("maps missing Operation references during a run to CONFLICT", async () => {
+    const missingOperation = new Error("Pipeline references a missing Operation");
+    Object.assign(missingOperation, {
+      name: "PipelineOperationReferencesError",
+      code: "PIPELINE_OPERATION_MISSING",
+    });
+    mocks.pipelinesGetById.mockResolvedValueOnce({ id: "pipeline-1" });
+    mocks.pipelineStartRun.mockResolvedValueOnce(err(missingOperation));
+    const caller = domainRouter.createCaller({ session: null });
+
+    await expect(caller.pipelines.run({ id: "pipeline-1" })).rejects.toMatchObject({
+      code: "CONFLICT",
+    });
+  });
+
+  it("maps Operation registry lookup failures during a run to INTERNAL_SERVER_ERROR", async () => {
+    const serviceError = new Error("Check Pipeline pipeline-1 Operation references failed");
+    serviceError.name = "ServiceError";
+    mocks.pipelinesGetById.mockResolvedValueOnce({ id: "pipeline-1" });
+    mocks.pipelineStartRun.mockResolvedValueOnce(err(serviceError));
+    const caller = domainRouter.createCaller({ session: null });
+
+    await expect(caller.pipelines.run({ id: "pipeline-1" })).rejects.toMatchObject({
+      code: "INTERNAL_SERVER_ERROR",
+    });
   });
 
   it("exposes authenticated job controls for checkpoint handling", async () => {

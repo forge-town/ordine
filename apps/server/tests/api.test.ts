@@ -350,9 +350,33 @@ describe("Operations API", () => {
 
   it("DELETE /api/operations/:id removes operation", async () => {
     mockOperationsService.getById.mockResolvedValueOnce(mockOp as never);
-    mockOperationsService.delete.mockResolvedValueOnce(undefined as never);
+    mockOperationsService.delete.mockResolvedValueOnce(ok(undefined) as never);
     const res = await app.request("/api/operations/op-1", { method: "DELETE" });
     expect(res.status).toBe(204);
+  });
+
+  it("DELETE /api/operations/:id returns a structured conflict while it is in use", async () => {
+    const error = Object.assign(new Error("Operation op-1 is referenced by Pipeline pipe-1"), {
+      name: "OperationInUseConflictError",
+      code: "OPERATION_IN_USE",
+      operationId: "op-1",
+      pipelineIds: ["pipe-1"],
+    });
+    mockOperationsService.getById.mockResolvedValueOnce(mockOp as never);
+    mockOperationsService.delete.mockResolvedValueOnce({
+      isErr: () => true,
+      error,
+    } as never);
+
+    const res = await app.request("/api/operations/op-1", { method: "DELETE" });
+
+    expect(res.status).toBe(409);
+    expect(await res.json()).toEqual({
+      error: error.message,
+      code: "OPERATION_IN_USE",
+      operationId: "op-1",
+      pipelineIds: ["pipe-1"],
+    });
   });
 
   it("DELETE /api/operations/:id returns 404 for missing", async () => {

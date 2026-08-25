@@ -101,11 +101,15 @@ export const pipelinesRouter = router({
       });
 
       if (result.isErr()) {
+        const errorCode = (result.error as Error & { code?: string }).code;
+        const pipelineMissing = result.error.name === "PipelineNotFoundError";
         throw new TRPCError({
           code:
-            (result.error as Error & { code?: string }).code === "AGENT_RUNTIME_NOT_FOUND"
+            errorCode === "AGENT_RUNTIME_NOT_FOUND" || errorCode === "PIPELINE_OPERATION_MISSING"
               ? "CONFLICT"
-              : "NOT_FOUND",
+              : pipelineMissing
+                ? "NOT_FOUND"
+                : "INTERNAL_SERVER_ERROR",
           message: result.error.message,
         });
       }

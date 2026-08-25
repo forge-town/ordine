@@ -30,7 +30,7 @@ export const checkPipelineOperationReferences = ({
   pipelineId: string;
 }): ResultAsync<void, PipelineOperationReferencesError | ServiceError> => {
   const references = nodes.flatMap((node) =>
-    node.data.nodeType === "operation" && node.data.operationId
+    node.data.nodeType === "operation"
       ? [{ nodeId: node.id, operationId: node.data.operationId }]
       : [],
   );

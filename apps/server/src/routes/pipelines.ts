@@ -246,15 +246,20 @@ pipelinesRoutes.post("/:id/run", async (c) => {
     const missingOperation = missingOperationResponse(c, result.error);
     if (missingOperation) return missingOperation;
 
-    const runtimeMissing =
-      (result.error as Error & { code?: string }).code === "AGENT_RUNTIME_NOT_FOUND";
+    const error = result.error as Error & { code?: string };
+    const runtimeMissing = error.code === "AGENT_RUNTIME_NOT_FOUND";
+    const pipelineMissing = error.name === "PipelineNotFoundError";
 
     return c.json(
       {
-        code: runtimeMissing ? "AGENT_RUNTIME_NOT_FOUND" : "PIPELINE_NOT_FOUND",
-        error: result.error.message,
+        code: runtimeMissing
+          ? "AGENT_RUNTIME_NOT_FOUND"
+          : pipelineMissing
+            ? "PIPELINE_NOT_FOUND"
+            : "PIPELINE_RUN_FAILED",
+        error: error.message,
       },
-      runtimeMissing ? 409 : 404,
+      runtimeMissing ? 409 : pipelineMissing ? 404 : 500,
     );
   }
 

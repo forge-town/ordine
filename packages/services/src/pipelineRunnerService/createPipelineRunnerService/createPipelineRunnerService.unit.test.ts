@@ -425,4 +425,38 @@ describe("createPipelineRunnerService run controls", () => {
     expect(mockJobsDao.create).not.toHaveBeenCalled();
     expect(mockPipelineRunExecutorRun).not.toHaveBeenCalled();
   });
+
+  it("rejects a legacy run with a blank Operation registry id before creating a job", async () => {
+    mockPipelinesDao.findById.mockResolvedValueOnce({
+      id: "pipe-1",
+      name: "Pipe",
+      description: "Pipeline description",
+      projectId: null,
+      nodes: [
+        {
+          id: "operation-node",
+          type: "operation",
+          data: {
+            nodeType: "operation",
+            operationId: "",
+            operationName: "",
+          },
+        },
+      ],
+      edges: [],
+    });
+    const service = makeService();
+
+    const result = await service.startRun({ pipelineId: "pipe-1" });
+
+    expect(result.isErr()).toBe(true);
+    if (result.isErr()) {
+      expect(result.error).toMatchObject({
+        code: "PIPELINE_OPERATION_MISSING",
+        missingOperations: [{ nodeId: "operation-node", operationId: "" }],
+      });
+    }
+    expect(mockJobsDao.create).not.toHaveBeenCalled();
+    expect(mockPipelineRunExecutorRun).not.toHaveBeenCalled();
+  });
 });

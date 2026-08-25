@@ -2,7 +2,7 @@ import { z } from "zod/v4";
 
 export const MissingPipelineOperationSchema = z.object({
   nodeId: z.string().min(1),
-  operationId: z.string().min(1),
+  operationId: z.string(),
 });
 export type MissingPipelineOperation = z.infer<typeof MissingPipelineOperationSchema>;
 

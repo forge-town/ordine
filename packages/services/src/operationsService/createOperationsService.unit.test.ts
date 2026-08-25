@@ -1,4 +1,5 @@
-import { describe, it, expect, vi } from "vitest";
+import { beforeEach, describe, it, expect, vi } from "vitest";
+import { ok } from "neverthrow";
 
 const mockDao = {
   findMany: vi
@@ -9,11 +10,15 @@ const mockDao = {
   update: vi.fn().mockResolvedValue({ id: "o1", createdAt: new Date(0), updatedAt: new Date(0) }),
   delete: vi.fn().mockResolvedValue(undefined),
 };
+const mockPipelinesDao = {
+  findMany: vi.fn().mockResolvedValue([]),
+};
 
 vi.mock("@repo/models", () => ({
   createCapabilityRiskOverridesDao: () => ({ findMany: vi.fn().mockResolvedValue([]) }),
   createConnectorsDao: () => ({ findMany: vi.fn().mockResolvedValue([]) }),
   createOperationsDao: () => mockDao,
+  createPipelinesDao: () => mockPipelinesDao,
   createSkillsDao: () => ({
     findMany: vi.fn().mockResolvedValue([]),
     seedIfEmpty: vi.fn().mockResolvedValue(undefined),
@@ -23,6 +28,12 @@ vi.mock("@repo/models", () => ({
 import { createOperationsService } from "./createOperationsService";
 
 describe("createOperationsService", () => {
+  beforeEach(() => {
+    mockDao.delete.mockClear();
+    mockPipelinesDao.findMany.mockReset();
+    mockPipelinesDao.findMany.mockResolvedValue([]);
+  });
+
   it("getAll delegates to dao.findMany", async () => {
     const svc = createOperationsService({} as never);
     const result = await svc.getAll();
@@ -77,7 +88,37 @@ describe("createOperationsService", () => {
 
   it("delete delegates to dao.delete", async () => {
     const svc = createOperationsService({} as never);
-    await svc.delete("o1");
+    const result = await svc.delete("o1");
+
+    expect(result).toEqual(ok(undefined));
     expect(mockDao.delete).toHaveBeenCalledWith("o1");
+  });
+
+  it("rejects deleting an Operation referenced by a saved Pipeline", async () => {
+    mockPipelinesDao.findMany.mockResolvedValueOnce([
+      {
+        id: "pipeline-1",
+        nodes: [
+          {
+            id: "operation-node",
+            data: { nodeType: "operation", operationId: "o1" },
+          },
+        ],
+      },
+    ]);
+    const svc = createOperationsService({} as never);
+
+    const result = await svc.delete("o1");
+
+    expect(result.isErr()).toBe(true);
+    if (result.isErr()) {
+      expect(result.error).toMatchObject({
+        name: "OperationInUseConflictError",
+        code: "OPERATION_IN_USE",
+        operationId: "o1",
+        pipelineIds: ["pipeline-1"],
+      });
+    }
+    expect(mockDao.delete).not.toHaveBeenCalled();
   });
 });
