@@ -78,6 +78,7 @@ export interface AgentRunOptions {
   fullAccessConfirmed?: boolean;
   firstOutputTimeoutMs?: number;
   githubToken?: string;
+  environment?: Readonly<Record<string, string>>;
   ssh?: SshConnectionOptions;
   connectorInjection?: McpConnectorInjection;
   getMcpConnectorInjection?: McpConnectorInjectionProvider;

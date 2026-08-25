@@ -5,10 +5,6 @@ import { publicMcpTools, type McpApiClient } from "./toolCatalog";
 export const McpResourceUriSchema = z.enum([
   "ordine://workspace/context",
   "ordine://catalog/tools",
-  "ordine://api/pipelines",
-  "ordine://api/skills",
-  "ordine://api/operations",
-  "ordine://api/jobs",
 ]);
 export type McpResourceUri = z.infer<typeof McpResourceUriSchema>;
 
@@ -27,49 +23,14 @@ const resources = [
     description: "Risk-annotated tools exposed by the ORDINE MCP server.",
     mimeType: "application/json",
   },
-  {
-    uri: "ordine://api/pipelines",
-    name: "ordine-pipelines",
-    title: "ORDINE pipelines",
-    description: "Live pipeline catalog from the ORDINE API.",
-    mimeType: "application/json",
-  },
-  {
-    uri: "ordine://api/skills",
-    name: "ordine-skills",
-    title: "ORDINE skills",
-    description: "Live skill catalog from the ORDINE API.",
-    mimeType: "application/json",
-  },
-  {
-    uri: "ordine://api/operations",
-    name: "ordine-operations",
-    title: "ORDINE operations",
-    description: "Live operation catalog from the ORDINE API.",
-    mimeType: "application/json",
-  },
-  {
-    uri: "ordine://api/jobs",
-    name: "ordine-jobs",
-    title: "ORDINE jobs",
-    description: "Live job catalog from the ORDINE API.",
-    mimeType: "application/json",
-  },
 ] as const;
-
-const apiPathByUri: Partial<Record<McpResourceUri, string>> = {
-  "ordine://api/pipelines": "/api/pipelines",
-  "ordine://api/skills": "/api/skills",
-  "ordine://api/operations": "/api/operations",
-  "ordine://api/jobs": "/api/jobs",
-};
 
 export const publicMcpResources = () => resources.map((resource) => ({ ...resource }));
 
 export const readMcpResource = async ({
   uri,
   policy,
-  apiClient,
+  apiClient: _apiClient,
 }: {
   uri: string;
   policy: McpPolicy;
@@ -86,8 +47,8 @@ export const readMcpResource = async ({
           mimeType: "application/json",
           text: JSON.stringify(
             {
-              cwd: process.cwd(),
               apiUrl: process.env.ORDINE_API_URL ?? "http://localhost:9433",
+              threadId: "agent-control-stdio-local-owner",
               policy,
             },
             null,
@@ -108,20 +69,5 @@ export const readMcpResource = async ({
       ],
     };
   }
-  const path = apiPathByUri[value];
-  if (!path) throw new Error(`ORDINE resource is not readable: ${value}`);
-  const response = await apiClient.get(path);
-  if (!response.ok) {
-    throw new Error(`Failed to read ${value}: ${response.status} ${response.message}`);
-  }
-
-  return {
-    contents: [
-      {
-        uri: value,
-        mimeType: "application/json",
-        text: JSON.stringify(response.data, null, 2),
-      },
-    ],
-  };
+  throw new Error(`ORDINE resource is not readable: ${value}`);
 };
