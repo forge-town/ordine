@@ -7,8 +7,8 @@ const fakeMcpServer = resolve(
   "../../../packages/agent/src/mcp/mcpFakeServer.mjs",
 );
 
-const fillStdioConnectorForm = async (page: Page, command: string) => {
-  await page.getByRole("textbox", { name: "Name" }).fill("QA Fake MCP");
+const fillStdioConnectorForm = async (page: Page, name: string, command: string) => {
+  await page.getByRole("textbox", { name: "Name" }).fill(name);
   await page.getByRole("textbox", { name: "Command" }).fill(command);
   await page.getByRole("textbox", { name: "Arguments" }).fill(fakeMcpServer);
   await page.getByRole("textbox", { name: "Scopes" }).fill("files, write");
@@ -18,15 +18,18 @@ test.describe("Connectors Page", () => {
   test("creates, connects, invalidates edited config, and surfaces handshake failures", async ({
     page,
     pageErrors,
-  }) => {
+  }, testInfo) => {
+    const testRunId = `${Date.now()}-${testInfo.workerIndex}-${testInfo.repeatEachIndex}`;
+    const connectorName = `QA Fake MCP ${testRunId}`;
+    const directApiName = `QA Direct API ${testRunId}`;
     await navigateAndWait(page, "/connectors");
     await expect(page.getByText("Local User", { exact: true })).toBeVisible();
 
     await page.getByRole("button", { name: "Add connector" }).click();
-    await fillStdioConnectorForm(page, "node");
+    await fillStdioConnectorForm(page, connectorName, "node");
     await page.getByRole("button", { name: "Add connector" }).last().click();
 
-    const connectorCard = page.getByRole("article").filter({ hasText: "QA Fake MCP" });
+    const connectorCard = page.getByRole("article").filter({ hasText: connectorName });
     await expect(connectorCard).toContainText("Needs setup");
     await connectorCard.getByRole("button", { name: "Test" }).click();
     await expect(connectorCard).toContainText("Connected");
@@ -42,11 +45,11 @@ test.describe("Connectors Page", () => {
     await expect(connectorCard).toContainText("Error");
 
     await page.getByRole("button", { name: "Add connector" }).click();
-    await page.getByRole("textbox", { name: "Name" }).fill("QA Direct API");
+    await page.getByRole("textbox", { name: "Name" }).fill(directApiName);
     await page.getByRole("combobox", { name: "Method" }).selectOption("direct-api");
     await page.getByRole("button", { name: "Add connector" }).last().click();
 
-    const directApiCard = page.getByRole("article").filter({ hasText: "QA Direct API" });
+    const directApiCard = page.getByRole("article").filter({ hasText: directApiName });
     await expect(directApiCard).toContainText("Needs setup");
     await expect(directApiCard.getByRole("button", { name: "Test" })).toHaveCount(0);
 
