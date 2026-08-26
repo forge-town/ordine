@@ -69,6 +69,7 @@ type ResolvedRuntime = {
   path: string;
   version: string | null;
   fingerprint: string;
+  resolutionWarning: string | null;
   supportsPartialMessages: boolean;
   supportsPermissionBypass: boolean;
   supportsReasoningEffort: boolean;
@@ -117,6 +118,106 @@ export class AgentControlModeUnsupportedError extends Error {
 
 const toError = (error: unknown): Error =>
   error instanceof Error ? error : new Error(String(error));
+
+type RuntimeExecutableResolutionInput = {
+  runtime: AgentRuntime;
+  configuredPath?: string;
+  configuredVersion?: string;
+  detectedPath?: string;
+  detectedVersion?: string;
+  readExecutable: (path: string) => Promise<Uint8Array>;
+  probeCapabilities: typeof probeRuntimeCapabilities;
+};
+
+export const resolveRuntimeExecutable = async ({
+  runtime,
+  configuredPath,
+  configuredVersion,
+  detectedPath,
+  detectedVersion,
+  readExecutable,
+  probeCapabilities,
+}: RuntimeExecutableResolutionInput): Promise<ResolvedRuntime> => {
+  const duplicateDetectedPath =
+    Boolean(configuredPath && detectedPath) &&
+    (process.platform === "win32"
+      ? detectedPath?.toLowerCase() === configuredPath?.toLowerCase()
+      : detectedPath === configuredPath);
+  const candidates = [
+    ...(configuredPath
+      ? [
+          {
+            path: configuredPath,
+            version:
+              configuredVersion ?? (duplicateDetectedPath ? detectedVersion : undefined) ?? null,
+            source: "configured" as const,
+          },
+        ]
+      : []),
+    ...(detectedPath && !duplicateDetectedPath
+      ? [{ path: detectedPath, version: detectedVersion ?? null, source: "detected" as const }]
+      : []),
+  ];
+  const failures: string[] = [];
+
+  for (const candidate of candidates) {
+    if (!isAbsolute(candidate.path)) {
+      failures.push(`${candidate.source} path is not absolute: ${candidate.path}`);
+      continue;
+    }
+    const bytesResult = await ResultAsync.fromPromise(readExecutable(candidate.path), toError);
+    if (bytesResult.isErr()) {
+      failures.push(
+        `${candidate.source} path is not readable: ${candidate.path} (${bytesResult.error.message})`,
+      );
+      continue;
+    }
+    const capabilitiesResult = await ResultAsync.fromPromise(
+      probeCapabilities({ runtime, path: candidate.path }),
+      toError,
+    );
+    if (capabilitiesResult.isErr()) {
+      failures.push(
+        `${candidate.source} path capability probe failed: ${candidate.path} (${capabilitiesResult.error.message})`,
+      );
+      continue;
+    }
+    const capabilities = capabilitiesResult.value;
+    const missingCapabilities = [
+      capabilities.structuredOutput ? null : "structured_output",
+      capabilities.resume ? null : "native_resume",
+      runtime !== "claude-code" || capabilities.sessionId ? null : "session_id",
+    ].filter((value): value is string => value !== null);
+    if (missingCapabilities.length > 0) {
+      failures.push(
+        `${candidate.source} path is missing ${missingCapabilities.join(", ")}: ${candidate.path}`,
+      );
+      continue;
+    }
+
+    return {
+      path: candidate.path,
+      version: candidate.version,
+      fingerprint: createHash("sha256").update(bytesResult.value).digest("hex"),
+      resolutionWarning:
+        candidate.source === "detected" && configuredPath
+          ? `Configured ${runtime} executable was unusable; ORDINE selected the freshly detected PATH executable ${candidate.path}.`
+          : null,
+      supportsPartialMessages: capabilities.partialMessages,
+      supportsPermissionBypass: capabilities.skipPermissions,
+      supportsReasoningEffort: capabilities.reasoningEffort,
+      supportsVariant: capabilities.variant,
+      supportsAutoPermissions: capabilities.autoPermissions,
+      supportsResume: capabilities.resume,
+    };
+  }
+
+  throw new Error(
+    candidates.length === 0
+      ? `Absolute executable path is unavailable for ${runtime}`
+      : `No usable ${runtime} executable was found. ${failures.join("; ")}`,
+  );
+};
 
 const toPublicRun = (record: AgentRunRecord): AgentRun =>
   AgentRunSchema.parse({
@@ -330,41 +431,16 @@ export const createAgentRunsService = (
     }
     const detected = await scan();
     const matched = detected.find((candidate) => candidate.type === config.type);
-    const configuredPath = config.connection.path;
-    const executablePath = configuredPath ?? matched?.path;
-    if (!executablePath || !isAbsolute(executablePath)) {
-      throw new Error(`Absolute executable path is unavailable for ${config.type}`);
-    }
-    const bytesResult = await ResultAsync.fromPromise(readExecutable(executablePath), toError);
-    if (bytesResult.isErr()) {
-      throw new Error(`Runtime executable is not readable: ${executablePath}`, {
-        cause: bytesResult.error,
-      });
-    }
-    const fingerprint = createHash("sha256").update(bytesResult.value).digest("hex");
-    const capabilities = await probeCapabilities({ runtime: config.type, path: executablePath });
-    const missingCapabilities = [
-      !capabilities.structuredOutput ? "structured_output" : null,
-      !capabilities.resume ? "native_resume" : null,
-      config.type === "claude-code" && !capabilities.sessionId ? "session_id" : null,
-    ].filter((value): value is string => value !== null);
-    if (missingCapabilities.length > 0) {
-      throw new Error(
-        `${config.type} CLI is missing required capabilities: ${missingCapabilities.join(", ")}`,
-      );
-    }
 
-    return {
-      path: executablePath,
-      version: config.connection.version ?? matched?.version ?? null,
-      fingerprint,
-      supportsPartialMessages: capabilities.partialMessages,
-      supportsPermissionBypass: capabilities.skipPermissions,
-      supportsReasoningEffort: capabilities.reasoningEffort,
-      supportsVariant: capabilities.variant,
-      supportsAutoPermissions: capabilities.autoPermissions,
-      supportsResume: capabilities.resume,
-    };
+    return resolveRuntimeExecutable({
+      runtime: config.type,
+      configuredPath: config.connection.path,
+      configuredVersion: config.connection.version,
+      detectedPath: matched?.path,
+      detectedVersion: matched?.version,
+      readExecutable,
+      probeCapabilities,
+    });
   };
 
   const getRunRecord = async (runId: string): Promise<AgentRunRecord> => {
@@ -467,6 +543,17 @@ export const createAgentRunsService = (
       });
     }
     const resolvedRuntime = resolvedResult.value;
+    if (resolvedRuntime.resolutionWarning) {
+      await persistEvent(
+        runId,
+        runtimeEvent(runtime, {
+          type: "diagnostic",
+          level: "warning",
+          code: "RUNTIME_PATH_FALLBACK",
+          message: resolvedRuntime.resolutionWarning,
+        }),
+      );
+    }
     const startedAt = new Date();
     const running = await runsDao.transition(runId, ["queued"], {
       status: active.controller.signal.aborted ? "cancelling" : "running",

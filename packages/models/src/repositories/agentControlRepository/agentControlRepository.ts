@@ -290,6 +290,7 @@ export class AgentControlRepository {
       const nextSourceStatus = kind === "revert" ? "reverted" : "committed";
       const updatedSource = await changeSetsDao.transition(source.id, [source.status], {
         status: nextSourceStatus,
+        appliedVersion: updatedPipeline.version,
       });
       if (!updatedSource) throw new Error(`Change Set ${source.id} changed during ${kind}`);
 

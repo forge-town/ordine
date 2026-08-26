@@ -315,7 +315,10 @@ const truncateNodeStrings = (value: unknown, depth = 0): unknown => {
   );
 };
 
-export const createCanvasControl = (db: DbConnection) => {
+export const createCanvasControl = (
+  db: DbConnection,
+  digestArguments: (input: unknown) => string,
+) => {
   const actionsDao = createAgentActionsDao(db);
   const changeSetsDao = createAgentChangeSetsDao(db);
   const operationsDao = createOperationsDao(db);
@@ -488,6 +491,7 @@ export const createCanvasControl = (db: DbConnection) => {
       runId,
       risk,
       redactedInput,
+      argumentDigest,
       onStarted,
     }: {
       toolName: CanvasMutationToolName;
@@ -496,6 +500,7 @@ export const createCanvasControl = (db: DbConnection) => {
       runId: string | null;
       risk: AgentControlRisk;
       redactedInput: Record<string, unknown>;
+      argumentDigest: string;
       onStarted?: (actionId: string) => Promise<void>;
     }): Promise<Result<CanvasMutationValue, CanvasControlError>> {
       const candidateActionId = randomUUID();
@@ -509,6 +514,18 @@ export const createCanvasControl = (db: DbConnection) => {
       const metadata = changeSetInput(input);
       const existing = await actionsDao.findByIdempotency(threadId, toolName, metadata.callId);
       if (existing) {
+        const persistedDigest = existing.argumentDigest ?? digestArguments(existing.redactedInput);
+        if (persistedDigest !== argumentDigest) {
+          return err(
+            canvasError(
+              existing.id,
+              "IDEMPOTENCY_ARGUMENT_MISMATCH",
+              "callId was already used with different Canvas arguments; retry with a new callId.",
+              false,
+              { field: "callId" },
+            ),
+          );
+        }
         const stored = parseStoredResult(existing.id, existing.status, existing.result);
         const storedAction = existing.changeSetId
           ? await changeSetsDao.findById(existing.changeSetId)
@@ -635,9 +652,24 @@ export const createCanvasControl = (db: DbConnection) => {
         forwardAction: null,
         inverseActions: null,
         idempotencyKey: metadata.callId,
+        argumentDigest,
         completedAt: null,
       });
       if (!persistedAction.created) {
+        const persistedDigest =
+          persistedAction.action.argumentDigest ??
+          digestArguments(persistedAction.action.redactedInput);
+        if (persistedDigest !== argumentDigest) {
+          return err(
+            canvasError(
+              persistedAction.action.id,
+              "IDEMPOTENCY_ARGUMENT_MISMATCH",
+              "callId was already used with different Canvas arguments; retry with a new callId.",
+              false,
+              { field: "callId" },
+            ),
+          );
+        }
         const replayedChangeSet = persistedAction.action.changeSetId
           ? await changeSetsDao.findById(persistedAction.action.changeSetId)
           : null;

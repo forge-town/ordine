@@ -26,6 +26,9 @@ const CONTROL_SCOPES = AgentControlScopeSchema.options satisfies readonly AgentC
 const CONTROL_SERVER_KEY = "ordine_control";
 const CONTROL_TEMP_PREFIX = "ordine-agent-control-";
 const CONTROL_CWD_RETENTION_MS = 10 * 60 * 1000;
+const CONTROL_RUNTIME = "codex";
+const CONTROL_MODEL = "gpt-5.6-luna";
+const CONTROL_REASONING_EFFORT = "xhigh";
 const controlCwdCleanupTimers = new Map<string, ReturnType<typeof setTimeout>>();
 const CLAUDE_CONTROL_ENV_KEYS = [
   "ANTHROPIC_API_KEY",
@@ -63,27 +66,35 @@ const loadClaudeControlEnvironment = async (): Promise<Record<string, string>> =
 const runtimeControlSupport = (runtime: string) => {
   if (runtime === "claude-code") {
     return {
-      supported: true,
-      reason: "Claude Code exposes a native tool allowlist verified by ORDINE control mode.",
+      supported: false,
+      reason: "This release locks Agent Control to the verified Codex Luna xhigh profile.",
+      controlModel: null,
+      controlReasoningEffort: null,
     } as const;
   }
   if (runtime === "opencode") {
     return {
       supported: false,
       reason: "OpenCode MCP-only wildcard permission isolation has not passed the machine probe.",
+      controlModel: null,
+      controlReasoningEffort: null,
     } as const;
   }
   if (runtime === "codex") {
     return {
       supported: true,
       reason:
-        "Codex control mode uses an explicitly confirmed full-access run in an empty temporary cwd with isolated HOME/config and run-scoped ORDINE MCP capability.",
+        "Codex Luna xhigh uses an explicitly confirmed full-access run in an empty temporary cwd with isolated HOME/config and run-scoped ORDINE MCP capability.",
+      controlModel: CONTROL_MODEL,
+      controlReasoningEffort: CONTROL_REASONING_EFFORT,
     } as const;
   }
 
   return {
     supported: false,
     reason: `${runtime} is not supported by the run-scoped Agent Control runtime.`,
+    controlModel: null,
+    controlReasoningEffort: null,
   } as const;
 };
 
@@ -127,8 +138,8 @@ const StartRunSchema = z
     message: z.string().trim().min(1).max(100_000),
     context: AgentContextEnvelopeSchema.optional(),
     runtimeId: z.string().min(1).optional(),
-    model: z.string().min(1).optional(),
-    reasoningEffort: z.string().min(1).optional(),
+    model: z.literal(CONTROL_MODEL).optional(),
+    reasoningEffort: z.literal(CONTROL_REASONING_EFFORT).optional(),
     speed: z.string().min(1).optional(),
     firstOutputTimeoutSeconds: z.number().int().min(0).max(3600).optional(),
   })
@@ -194,24 +205,24 @@ const startControlRun = async ({
   message,
   context,
   runtimeId,
-  model,
-  reasoningEffort,
   speed,
   firstOutputTimeoutSeconds,
+  resumeFromRunId: requestedResumeFromRunId,
 }: z.infer<typeof StartRunSchema> & {
   threadId: string;
   context: z.infer<typeof AgentContextEnvelopeSchema>;
+  resumeFromRunId?: string;
 }) => {
   const runtimes = await agentRuntimesService.getAll();
   const selected = runtimeId
     ? runtimes.find((runtime) => runtime.id === runtimeId)
-    : runtimes.find((runtime) => runtime.type === "claude-code");
+    : runtimes.find((runtime) => runtime.type === CONTROL_RUNTIME);
   if (!selected) {
     return err(
       new Error(
         runtimeId
           ? `Configured Agent runtime not found: ${runtimeId}`
-          : "No Claude Code runtime is configured for Agent Control mode",
+          : "No Codex runtime is configured for Agent Control mode",
       ),
     );
   }
@@ -219,11 +230,24 @@ const startControlRun = async ({
   if (!support.supported) {
     return err(new Error(`${selected.type} controlModeUnsupported: ${support.reason}`));
   }
-  const previous = await agentRunsService.getLatestByOwner("agent-thread", threadId);
+  const previous = requestedResumeFromRunId
+    ? await agentRunsService.getById(requestedResumeFromRunId)
+    : await agentRunsService.getLatestByOwner("agent-thread", threadId);
   const canResume =
     previous?.status === "completed" &&
+    previous.owner.type === "agent-thread" &&
+    previous.owner.id === threadId &&
     previous.runtimeConfigId === selected.id &&
+    previous.model === CONTROL_MODEL &&
+    previous.reasoningEffort === CONTROL_REASONING_EFFORT &&
     (await isReusableControlCwd(previous.cwd));
+  if (requestedResumeFromRunId && !canResume) {
+    return err(
+      new Error(
+        `Agent Control cannot resume the requested original run ${requestedResumeFromRunId}; its native session, runtime profile, owner, or isolated cwd is no longer reusable.`,
+      ),
+    );
+  }
   const cwd = canResume ? previous.cwd : await mkdtemp(join(tmpdir(), CONTROL_TEMP_PREFIX));
   const pendingCleanup = controlCwdCleanupTimers.get(cwd);
   if (pendingCleanup) globalThis.clearTimeout(pendingCleanup);
@@ -243,8 +267,8 @@ const startControlRun = async ({
         owner: { type: "agent-thread", id: threadId },
         runtimeConfigId: selected.id,
         cwd,
-        model,
-        reasoningEffort,
+        model: CONTROL_MODEL,
+        reasoningEffort: CONTROL_REASONING_EFFORT,
         speed,
         firstOutputTimeoutMs:
           firstOutputTimeoutSeconds === undefined ? undefined : firstOutputTimeoutSeconds * 1000,
@@ -342,6 +366,16 @@ const completeControlRun = async ({
       run.id,
       run.status === "cancelled" ? "cancelled" : "failed",
     );
+    const failureCode = run.errorCode ? ` [${run.errorCode}]` : "";
+    const failureDetail = run.errorMessage ?? `Agent run ended with status ${run.status}.`;
+    await agentThreadsService.addMessage({
+      threadId,
+      role: "system",
+      kind: "progress",
+      content: `Agent run ${run.status}${failureCode}: ${failureDetail}`,
+      context,
+      runId: run.id,
+    });
 
     return;
   }
@@ -359,6 +393,7 @@ const completeControlRun = async ({
     message: FINISH_REMINDER,
     context,
     runtimeId: run.runtimeConfigId,
+    resumeFromRunId: run.id,
     ...runtimeOptions,
   });
   if (reminder.isErr()) {
@@ -383,7 +418,7 @@ const completeControlRun = async ({
       runId: reminderRun.id,
     });
   }
-  const finalAudit = await agentControlService.getCanvasRunCompletion(run.id);
+  const finalAudit = await agentControlService.getCanvasRunCompletion(reminderRun.id);
   if (reminderRun.status === "completed" && finalAudit.complete) return;
   await agentControlService.rollbackDraftsForRun(run.id, "failed");
   await agentThreadsService.addMessage({
@@ -616,8 +651,9 @@ agentThreadsRoutes.post("/:threadId/approvals/:approvalId/approve", async (conte
       message: resumeMessage,
       context: activeContext,
       runtimeId: originalRun.runtimeConfigId,
-      model: originalRun.model ?? undefined,
-      reasoningEffort: originalRun.reasoningEffort ?? undefined,
+      resumeFromRunId: originalRun.id,
+      model: CONTROL_MODEL,
+      reasoningEffort: CONTROL_REASONING_EFFORT,
       speed: originalRun.speed ?? undefined,
     });
     if (resumed.isErr()) {
@@ -644,8 +680,8 @@ agentThreadsRoutes.post("/:threadId/approvals/:approvalId/approve", async (conte
           runId: resume.runId,
           context: activeContext,
           runtimeOptions: {
-            model: originalRun.model ?? undefined,
-            reasoningEffort: originalRun.reasoningEffort ?? undefined,
+            model: CONTROL_MODEL,
+            reasoningEffort: CONTROL_REASONING_EFFORT,
             speed: originalRun.speed ?? undefined,
           },
         }),

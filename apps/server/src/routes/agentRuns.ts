@@ -61,7 +61,7 @@ agentRunsRoutes.get("/:id/events", async (context) => {
         if (state.closed || envelope.sequence <= state.lastSequence) return;
         state.lastSequence = envelope.sequence;
         controller.enqueue(encodeEvent(envelope));
-        if (envelope.event.type === "terminal" && !run.controlMode) close();
+        if (envelope.event.type === "terminal") close();
       };
       state.unsubscribe = agentRunsService.subscribe(runId, (envelope) => {
         if (state.replaying) {
@@ -83,7 +83,7 @@ agentRunsRoutes.get("/:id/events", async (context) => {
       state.replaying = false;
       if (state.closed) return;
       const currentRun = await agentRunsService.getById(runId);
-      if (!currentRun || (TERMINAL_STATUSES.has(currentRun.status) && !currentRun.controlMode)) {
+      if (!currentRun || TERMINAL_STATUSES.has(currentRun.status)) {
         close();
 
         return;

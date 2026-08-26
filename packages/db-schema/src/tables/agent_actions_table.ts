@@ -26,6 +26,7 @@ export const agentActionsTable = pgTable(
     forwardAction: jsonb("forward_action").$type<PipelineAction | null>(),
     inverseActions: jsonb("inverse_actions").$type<PipelineAction[] | null>(),
     idempotencyKey: text("idempotency_key"),
+    argumentDigest: text("argument_digest"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     completedAt: timestamp("completed_at"),
   },

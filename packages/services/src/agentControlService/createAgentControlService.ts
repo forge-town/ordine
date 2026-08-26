@@ -225,7 +225,10 @@ const normalizeForDigest = (value: unknown): unknown => {
 
   return Object.fromEntries(
     Object.entries(value as Record<string, unknown>)
-      .filter(([key]) => key !== "approvalRequestId")
+      .filter(
+        ([key]) =>
+          !["approvalRequestId", "callId", "changeSetId", "runId", "threadId"].includes(key),
+      )
       .sort(([left], [right]) => left.localeCompare(right))
       .map(([key, child]) => [key, normalizeForDigest(child)]),
   );
@@ -235,6 +238,27 @@ export const digestAgentControlArguments = (input: unknown): string =>
   createHash("sha256")
     .update(JSON.stringify(normalizeForDigest(input)))
     .digest("hex");
+
+const persistedArgumentDigest = (action: PersistedAction): string =>
+  action.argumentDigest ?? digestAgentControlArguments(action.redactedInput);
+
+const idempotencyMismatchResult = (
+  action: PersistedAction,
+  argumentDigest: string,
+  resources: AgentResourceRef[],
+): AgentControlToolResult | null =>
+  persistedArgumentDigest(action) === argumentDigest
+    ? null
+    : failureResult({
+        actionId: action.id,
+        error: {
+          code: "IDEMPOTENCY_ARGUMENT_MISMATCH",
+          message: "callId was already used with different arguments; retry with a new callId.",
+          retryable: false,
+          field: "callId",
+        },
+        resources,
+      });
 
 const callIdFrom = (input: unknown): string | null => {
   if (!input || typeof input !== "object" || Array.isArray(input)) return null;
@@ -320,7 +344,7 @@ export const createAgentControlService = (
   const pipelinesDao = createPipelinesDao(db);
   const repository = createAgentControlRepository(db);
   const resources = createResourceControl(db);
-  const canvas = createCanvasControl(db);
+  const canvas = createCanvasControl(db, digestAgentControlArguments);
   const preflight = createExecutionPreflight(db);
   const canvasMutationQueues = new Map<string, Promise<void>>();
 
@@ -358,9 +382,11 @@ export const createAgentControlService = (
 
   const ensureThread = async (context: AgentControlInvocationContext): Promise<string> => {
     const id = context.threadId ?? `agent-control-${context.audience}-local-owner`;
+    const applicationThread = context.audience === "internal-run" && Boolean(context.threadId);
     const existing = await threadsDao.ensure({
       id,
       title: context.threadId ? "Agent thread" : `${context.audience} Agent Control`,
+      entrypoint: applicationThread ? "global-agent-bar" : "agent-control-external",
     });
     if (!existing) throw new Error(`Unable to create or load Agent thread ${id}`);
 
@@ -700,6 +726,7 @@ export const createAgentControlService = (
     reasons: string[];
   }): Promise<AgentControlToolResult> => {
     const callId = callIdFrom(input)!;
+    const argumentDigest = digestAgentControlArguments(input);
     const approvalId = randomUUID();
     const expiresAt = new Date(Date.now() + APPROVAL_TTL_MS);
     const summary = reasons.length
@@ -734,6 +761,7 @@ export const createAgentControlService = (
         forwardAction: null,
         inverseActions: null,
         idempotencyKey: callId,
+        argumentDigest,
         completedAt: null,
       },
       approval: {
@@ -743,7 +771,7 @@ export const createAgentControlService = (
         actionId,
         toolName: definition.name,
         callId,
-        argumentDigest: digestAgentControlArguments(input),
+        argumentDigest,
         targetType: target?.type ?? null,
         targetId: target?.id ?? null,
         resourceVersion: resourceVersion ?? null,
@@ -753,7 +781,7 @@ export const createAgentControlService = (
         consumedAt: null,
       },
     });
-    if (persisted.approval.argumentDigest !== digestAgentControlArguments(input)) {
+    if (persisted.approval.argumentDigest !== argumentDigest) {
       return failureResult({
         actionId: persisted.action.id,
         error: {
@@ -876,6 +904,7 @@ export const createAgentControlService = (
     invocation.resources = target ? [target] : [];
     const redactedInput = redactAgentControlInput(definition, input);
     const callId = callIdFrom(input);
+    const argumentDigest = digestAgentControlArguments(input);
 
     if (definition.risk === "draft" && definition.name !== "ordine.finish_canvas_edit") {
       const mutation = await serializeCanvasMutation(
@@ -888,6 +917,7 @@ export const createAgentControlService = (
             runId,
             risk: definition.risk,
             redactedInput,
+            argumentDigest,
             onStarted: (actionId) => {
               invocation.actionId = actionId;
 
@@ -947,6 +977,10 @@ export const createAgentControlService = (
       ? await actionsDao.findByIdempotency(threadId, definition.name, callId)
       : null;
     if (existing) invocation.actionId = existing.id;
+    const mismatch = existing
+      ? idempotencyMismatchResult(existing, argumentDigest, target ? [target] : [])
+      : null;
+    if (mismatch) return mismatch;
     if (existing && existing.status !== "approval_required") return replayResult(existing);
 
     const preflightResult = await executionPreflight(
@@ -971,10 +1005,16 @@ export const createAgentControlService = (
           forwardAction: null,
           inverseActions: null,
           idempotencyKey: callId,
+          argumentDigest,
           completedAt: null,
         });
         invocation.actionId = persisted.action.id;
-        if (!persisted.created) return replayResult(persisted.action);
+        if (!persisted.created) {
+          return (
+            idempotencyMismatchResult(persisted.action, argumentDigest, target ? [target] : []) ??
+            replayResult(persisted.action)
+          );
+        }
         await emit(runId, {
           type: "action_started",
           actionId: persisted.action.id,
@@ -1079,10 +1119,16 @@ export const createAgentControlService = (
         forwardAction: null,
         inverseActions: null,
         idempotencyKey: callId,
+        argumentDigest,
         completedAt: null,
       });
       invocation.actionId = persisted.action.id;
-      if (!persisted.created) return replayResult(persisted.action);
+      if (!persisted.created) {
+        return (
+          idempotencyMismatchResult(persisted.action, argumentDigest, target ? [target] : []) ??
+          replayResult(persisted.action)
+        );
+      }
       await emit(runId, {
         type: "action_started",
         actionId: persisted.action.id,

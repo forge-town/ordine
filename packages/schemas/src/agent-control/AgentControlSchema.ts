@@ -211,6 +211,8 @@ export const AgentControlRuntimeCapabilitySchema = z.object({
   name: z.string().min(1),
   supported: z.boolean(),
   reason: z.string().min(1),
+  controlModel: z.string().min(1).nullable().default(null),
+  controlReasoningEffort: z.string().min(1).nullable().default(null),
 });
 export type AgentControlRuntimeCapability = z.infer<typeof AgentControlRuntimeCapabilitySchema>;
 

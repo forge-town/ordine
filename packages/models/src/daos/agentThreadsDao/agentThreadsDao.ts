@@ -1,6 +1,6 @@
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq, notLike } from "drizzle-orm";
 import { pipelineAgentSessionsTable } from "@repo/db-schema";
-import type { AgentContextEnvelope } from "@repo/schemas";
+import type { AgentContextEnvelope, PipelineAgentEntrypoint } from "@repo/schemas";
 import type { DbExecutor } from "../../types";
 
 export class AgentThreadsDao {
@@ -10,6 +10,12 @@ export class AgentThreadsDao {
     return this.executor
       .select()
       .from(pipelineAgentSessionsTable)
+      .where(
+        and(
+          eq(pipelineAgentSessionsTable.entrypoint, "global-agent-bar"),
+          notLike(pipelineAgentSessionsTable.id, "agent-control-%-local-owner"),
+        ),
+      )
       .orderBy(desc(pipelineAgentSessionsTable.updatedAt));
   }
 
@@ -17,7 +23,13 @@ export class AgentThreadsDao {
     const rows = await this.executor
       .select()
       .from(pipelineAgentSessionsTable)
-      .where(eq(pipelineAgentSessionsTable.id, id))
+      .where(
+        and(
+          eq(pipelineAgentSessionsTable.id, id),
+          eq(pipelineAgentSessionsTable.entrypoint, "global-agent-bar"),
+          notLike(pipelineAgentSessionsTable.id, "agent-control-%-local-owner"),
+        ),
+      )
       .limit(1);
 
     return rows[0] ?? null;
@@ -44,7 +56,12 @@ export class AgentThreadsDao {
     return rows[0]!;
   }
 
-  async ensure(data: { id: string; title: string; activeContext?: AgentContextEnvelope | null }) {
+  async ensure(data: {
+    id: string;
+    title: string;
+    entrypoint: Extract<PipelineAgentEntrypoint, "global-agent-bar" | "agent-control-external">;
+    activeContext?: AgentContextEnvelope | null;
+  }) {
     const now = new Date();
     await this.executor
       .insert(pipelineAgentSessionsTable)
@@ -52,7 +69,6 @@ export class AgentThreadsDao {
         ...data,
         actor: "local-owner",
         threadStatus: "active",
-        entrypoint: "global-agent-bar",
         mode: "edit",
         status: "draft",
         pipelineId: data.activeContext?.pipelineId ?? null,
@@ -62,7 +78,37 @@ export class AgentThreadsDao {
       })
       .onConflictDoNothing({ target: pipelineAgentSessionsTable.id });
 
-    return this.findById(data.id);
+    const rows = await this.executor
+      .select()
+      .from(pipelineAgentSessionsTable)
+      .where(
+        and(
+          eq(pipelineAgentSessionsTable.id, data.id),
+          eq(pipelineAgentSessionsTable.entrypoint, data.entrypoint),
+        ),
+      )
+      .limit(1);
+
+    const existing = rows[0] ?? null;
+    if (existing) return existing;
+    const legacyExternalId =
+      data.entrypoint === "agent-control-external" &&
+      /^agent-control-(?:internal-run|public-readwrite|public-readonly|stdio)-local-owner$/.test(
+        data.id,
+      );
+    if (!legacyExternalId) return null;
+    const migrated = await this.executor
+      .update(pipelineAgentSessionsTable)
+      .set({ entrypoint: "agent-control-external", updatedAt: now })
+      .where(
+        and(
+          eq(pipelineAgentSessionsTable.id, data.id),
+          eq(pipelineAgentSessionsTable.entrypoint, "global-agent-bar"),
+        ),
+      )
+      .returning();
+
+    return migrated[0] ?? null;
   }
 
   async update(
@@ -75,7 +121,13 @@ export class AgentThreadsDao {
     const rows = await this.executor
       .update(pipelineAgentSessionsTable)
       .set({ ...patch, updatedAt: new Date() })
-      .where(eq(pipelineAgentSessionsTable.id, id))
+      .where(
+        and(
+          eq(pipelineAgentSessionsTable.id, id),
+          eq(pipelineAgentSessionsTable.entrypoint, "global-agent-bar"),
+          notLike(pipelineAgentSessionsTable.id, "agent-control-%-local-owner"),
+        ),
+      )
       .returning();
 
     return rows[0] ?? null;

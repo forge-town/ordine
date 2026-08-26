@@ -39,8 +39,8 @@ describe("agentRunsRoutes", () => {
     mocks.subscribe.mockReturnValue(() => undefined);
   });
 
-  it("replays exactly after Last-Event-ID and includes the terminal event", async () => {
-    mocks.getById.mockResolvedValue({ id: "run-1", status: "completed" });
+  it("replays and closes a control-mode stream after its terminal event", async () => {
+    mocks.getById.mockResolvedValue({ id: "run-1", status: "completed", controlMode: true });
     mocks.getEvents.mockResolvedValue([terminalEnvelope]);
 
     const response = await makeApp().request("/agent-runs/run-1/events", {
