@@ -474,7 +474,7 @@ export const CanvasComponentPanel = ({
                   {!collapsedComponentCategories[group.category] && (
                     <div className="space-y-0.5">
                       {group.entries.length === 0 ? (
-                        <div className="px-2 py-1 text-[11px] text-muted-foreground/70">
+                        <div className="px-2 py-1 text-[11px] text-muted-foreground">
                           {t("canvas.componentPanel.emptyGroup", {
                             defaultValue: "No components",
                           })}
@@ -495,7 +495,7 @@ export const CanvasComponentPanel = ({
                     </div>
                     <div className="space-y-0.5">
                       {compoundItems.length === 0 ? (
-                        <div className="px-2 py-1 text-[11px] text-muted-foreground/70">
+                        <div className="px-2 py-1 text-[11px] text-muted-foreground">
                           {t("canvas.componentPanel.emptyGroup", {
                             defaultValue: "No components",
                           })}

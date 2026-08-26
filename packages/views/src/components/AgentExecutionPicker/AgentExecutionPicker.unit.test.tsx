@@ -100,6 +100,28 @@ describe("AgentExecutionPicker", () => {
     expect(screen.getByText("Experimental")).toBeInTheDocument();
   });
 
+  it("keeps launchable CLIs disabled when Agent Control has not accepted them", async () => {
+    const user = userEvent.setup();
+    render(
+      <AgentExecutionPicker
+        catalog={[catalogEntry()]}
+        choice={{ runtimeConfigId: "local-codex", model: "gpt-5.6" }}
+        runtimeDisabledReasons={{ "local-codex": "Control probe failed" }}
+        onChange={vi.fn()}
+        onRuntimeChange={vi.fn()}
+      />,
+    );
+
+    await user.click(screen.getByTestId("agent-execution-picker-trigger"));
+
+    expect(screen.getByTestId("agent-execution-runtime-codex")).toBeDisabled();
+    expect(screen.getByTestId("agent-execution-runtime-codex")).toHaveAttribute(
+      "title",
+      "Control probe failed",
+    );
+    expect(screen.getByText("Control mode not accepted")).toBeInTheDocument();
+  });
+
   it("searches the live catalog and accepts a custom model ID", async () => {
     const user = userEvent.setup();
     const handleChange = vi.fn();

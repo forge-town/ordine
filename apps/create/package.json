@@ -25,7 +25,7 @@
   },
   "scripts": {
     "build:cli": "bun build ./src/index.ts --target=node --format=esm --outfile=./dist/index.js",
-    "build:app": "rm -rf app && cp -r ../app/.output app",
+    "build:app": "bun ./src/copyAppBuild.ts",
     "build": "bun run build:cli && bun run build:app",
     "check-types": "tsc --noEmit",
     "lint": "oxlint --config ./.oxlintrc.json src/",

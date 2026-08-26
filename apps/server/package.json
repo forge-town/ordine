@@ -13,8 +13,10 @@
   },
   "dependencies": {
     "@hono/node-server": "^1.14.3",
+    "@modelcontextprotocol/sdk": "^1.29.0",
     "@ordine/cli": "workspace:*",
     "@repo/agent": "workspace:*",
+    "@repo/agent-control": "workspace:*",
     "@repo/agent-engine": "workspace:*",
     "@repo/db": "workspace:*",
     "@repo/schemas": "workspace:*",

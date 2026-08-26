@@ -4,7 +4,11 @@ import {
   type AgentRunOptions,
   type AgentRunOutcome,
 } from "@repo/agent-engine";
-import { getLocalAgentRuntimeId, type AgentRunEventEnvelope } from "@repo/schemas";
+import {
+  getLocalAgentRuntimeId,
+  RuntimeEventSchema,
+  type AgentRunEventEnvelope,
+} from "@repo/schemas";
 import type { createAgentRunsService } from "./createAgentRunsService";
 
 type AgentRunsService = ReturnType<typeof createAgentRunsService>;
@@ -14,7 +18,9 @@ const deliverEvent = async (
   options: AgentRunOptions,
   envelope: AgentRunEventEnvelope,
 ): Promise<void> => {
-  const event = envelope.event;
+  const parsed = RuntimeEventSchema.safeParse(envelope.event);
+  if (!parsed.success) return;
+  const event = parsed.data;
   await options.onRuntimeEvent?.(event);
   if (event.type === "text_delta" || event.type === "message") {
     await options.onTextDelta?.(event.text);

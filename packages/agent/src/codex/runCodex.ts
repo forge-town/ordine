@@ -31,6 +31,8 @@ export interface RunCodexOptions {
   onRuntimeEvent?: (event: RuntimeEvent) => Promise<void> | void;
   executablePath?: string;
   networkAccess?: boolean;
+  environment?: Readonly<Record<string, string>>;
+  agentControlMode?: boolean;
 }
 
 type CodexJsonEvent = {
@@ -48,6 +50,26 @@ const parseCodexJsonEvent = Result.fromThrowable(
 
 const CODEX_BIN = process.platform === "win32" ? "codex.cmd" : "codex";
 const CODEX_RESUME_PREFIX = "ordine-codex:";
+const CODEX_CONTROL_DISABLED_FEATURES = [
+  "apps",
+  "browser_use",
+  "browser_use_external",
+  "browser_use_full_cdp_access",
+  "computer_use",
+  "image_generation",
+  "in_app_browser",
+  "js_repl",
+  "multi_agent",
+  "plugins",
+  "search_tool",
+  "shell_tool",
+  "skill_mcp_dependency_install",
+  "skill_search",
+  "standalone_web_search",
+  "unified_exec",
+  "view_image",
+  "workspace_dependencies",
+] as const;
 
 type CodexResumeHandle = {
   version: 1;
@@ -237,10 +259,13 @@ const buildCodexMcpConfig = (
   return { configToml: lines.join("\n"), env };
 };
 
-const buildCodexRuntimeConfig = (mcpConfigToml: string): string =>
-  ['approval_policy = "never"', ...(mcpConfigToml ? ["", mcpConfigToml.trimEnd()] : []), ""].join(
-    "\n",
-  );
+const buildCodexRuntimeConfig = (mcpConfigToml: string, agentControlMode: boolean): string =>
+  [
+    'approval_policy = "never"',
+    ...(agentControlMode ? ['web_search = "disabled"'] : []),
+    ...(mcpConfigToml ? ["", mcpConfigToml.trimEnd()] : []),
+    "",
+  ].join("\n");
 
 const createIsolatedCodexHome = async (configToml: string): Promise<string> => {
   const isolatedHome = await mkdtemp(join(tmpdir(), "ordine-codex-home-"));
@@ -305,6 +330,8 @@ export const runCodex = async ({
   onRuntimeEvent,
   executablePath = CODEX_BIN,
   networkAccess = true,
+  environment,
+  agentControlMode = false,
 }: RunCodexOptions): Promise<string> => {
   if (sandbox === "danger-full-access" && !fullAccessConfirmed) {
     throw new Error("Codex danger-full-access requires explicit user confirmation");
@@ -318,8 +345,8 @@ export const runCodex = async ({
       ? `${userPrompt.slice(0, MAX_INPUT_CHARS)}\n\n... (truncated, ${userPrompt.length - MAX_INPUT_CHARS} chars omitted — use tools to explore the project)`
       : userPrompt;
   const codexMcpConfig = buildCodexMcpConfig(connectorInjection);
-  const scrubbedCodexConfig = buildCodexRuntimeConfig("");
-  const activeCodexConfig = buildCodexRuntimeConfig(codexMcpConfig.configToml);
+  const scrubbedCodexConfig = buildCodexRuntimeConfig("", agentControlMode);
+  const activeCodexConfig = buildCodexRuntimeConfig(codexMcpConfig.configToml, agentControlMode);
   const parsedResumeHandle = resumeSessionId ? decodeResumeHandle(resumeSessionId) : undefined;
   const isManagedResume = Boolean(resumeSessionId?.startsWith(CODEX_RESUME_PREFIX));
   if (isManagedResume && !parsedResumeHandle) {
@@ -352,7 +379,18 @@ export const runCodex = async ({
     ? ["exec", "resume", "--json", "--skip-git-repo-check", ...sandboxArgs]
     : ["exec", "--json", "--skip-git-repo-check", ...sandboxArgs];
 
-  args.push(...codexOpenDesignShellEnvironmentArgs(Object.keys(codexMcpConfig.env)));
+  if (agentControlMode) {
+    args.push("--strict-config", "--ignore-rules");
+    for (const feature of CODEX_CONTROL_DISABLED_FEATURES) {
+      args.push("--disable", feature);
+    }
+  }
+  args.push(
+    ...codexOpenDesignShellEnvironmentArgs([
+      ...Object.keys(environment ?? {}),
+      ...Object.keys(codexMcpConfig.env),
+    ]),
+  );
   if (!resumeSessionId) {
     args.push("-C", cwd);
   }
@@ -379,6 +417,7 @@ export const runCodex = async ({
         stdio: ["pipe", "pipe", "pipe"],
         env: {
           ...process.env,
+          ...environment,
           ...codexMcpConfig.env,
           CODEX_HOME: isolatedCodexHome,
         },

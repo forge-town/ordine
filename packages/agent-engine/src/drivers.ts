@@ -120,7 +120,13 @@ const reportConnectorInjectionSkipped = async (
 };
 
 const runLocalClaudeDirect = async (opts: AgentRunOptions): Promise<DriverResult> => {
-  const extraEnv = opts.githubToken ? { GITHUB_TOKEN: opts.githubToken } : undefined;
+  const extraEnv =
+    opts.environment || opts.githubToken
+      ? {
+          ...opts.environment,
+          ...(opts.githubToken ? { GITHUB_TOKEN: opts.githubToken } : {}),
+        }
+      : undefined;
   const selectedRuntimeTools = runtimeToolNames(opts);
   const effectiveTools = selectedRuntimeTools as ToolName[] | undefined;
 
@@ -213,6 +219,8 @@ const runCodexDirect = async (opts: AgentRunOptions): Promise<DriverResult> => {
     onRuntimeEvent: opts.onRuntimeEvent,
     executablePath: opts.executablePath,
     networkAccess: opts.networkAccess,
+    environment: opts.environment,
+    agentControlMode: opts.controlMode,
   });
 
   return { text, events: [] };

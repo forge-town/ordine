@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import { useDataProvider } from "@refinedev/core";
 import { ResultAsync } from "neverthrow";
 import { useStore } from "zustand";
-import type { Job, JobStatus } from "@repo/schemas";
+import { RuntimeEventSchema, type Job, type JobStatus } from "@repo/schemas";
 import { consumeAgentRunEventStream } from "../../../lib/agentRunEventsClient";
 import { usePlatform } from "../../../platform";
 import { ResourceName } from "../../../constants";
@@ -103,7 +103,10 @@ export const CanvasRunEventSynchronizer = () => {
               after: streamState.lastSequence,
               signal: abortController.signal,
               onEnvelope: (envelope) => {
-                dependenciesRef.current.applyNodeRuntimeEvent(nodeId, runId, envelope.event);
+                const runtimeEvent = RuntimeEventSchema.safeParse(envelope.event);
+                if (runtimeEvent.success) {
+                  dependenciesRef.current.applyNodeRuntimeEvent(nodeId, runId, runtimeEvent.data);
+                }
               },
             }),
             (cause) => (cause instanceof Error ? cause : new Error(String(cause))),

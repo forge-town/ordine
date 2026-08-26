@@ -203,16 +203,29 @@ describe("scanRuntimes", () => {
     });
   });
 
-  it("prefers exe paths when Windows where returns multiple matches", () => {
+  it("preserves Windows PATH order between executable files and command shims", () => {
     const path = firstPath("C:\\bin\\hermes.cmd\r\nC:\\bin\\hermes.exe\r\n", "win32");
 
-    expect(path).toBe("C:\\bin\\hermes.exe");
+    expect(path).toBe("C:\\bin\\hermes.cmd");
   });
 
   it("prefers Windows command shims over extensionless shell scripts", () => {
     const path = firstPath("C:\\bin\\claude\r\nC:\\bin\\claude.cmd\r\n", "win32");
 
     expect(path).toBe("C:\\bin\\claude.cmd");
+  });
+
+  it("does not let a later Microsoft Store executable override an npm command shim", () => {
+    const path = firstPath(
+      [
+        "C:\\Users\\owner\\AppData\\Roaming\\npm\\codex",
+        "C:\\Users\\owner\\AppData\\Roaming\\npm\\codex.cmd",
+        "C:\\Program Files\\WindowsApps\\OpenAI.Codex_1.0.0_x64__id\\codex.exe",
+      ].join("\r\n"),
+      "win32",
+    );
+
+    expect(path).toBe("C:\\Users\\owner\\AppData\\Roaming\\npm\\codex.cmd");
   });
 
   it("runs Windows command shim version checks through cmd.exe", () => {

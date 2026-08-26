@@ -4,6 +4,10 @@ export const envSchema = z.object({
   PORT: z.coerce.number().optional(),
   JOB_TIMEOUT_MS: z.coerce.number().optional(),
   ORDINE_AGENT_API_TOKEN: z.string().min(32).optional(),
+  ORDINE_AGENT_CONTROL_ENABLED: z
+    .enum(["true", "false"])
+    .default("true")
+    .transform((value) => value === "true"),
   DESKTOP_MODE: z
     .enum(["true", "false"])
     .default("false")

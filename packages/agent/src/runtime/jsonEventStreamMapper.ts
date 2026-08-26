@@ -212,13 +212,14 @@ const codexStructuredTool = (
   if (item["type"] === "mcp_tool_call") {
     const server = asString(item["server"]) ?? "mcp";
     const tool = asString(item["tool"]) ?? "tool";
+    const toolError = item["error"];
 
     return {
       id,
       name: `${server}.${tool}`,
       input: item["arguments"],
-      output: item["error"] ?? item["result"],
-      isError: item["status"] === "failed" || item["error"] !== undefined,
+      output: toolError ?? item["result"],
+      isError: item["status"] === "failed" || (toolError !== undefined && toolError !== null),
     };
   }
   if (item["type"] === "web_search") {

@@ -1,5 +1,6 @@
-import { index, boolean, jsonb, pgTable, text, timestamp } from "drizzle-orm/pg-core";
+import { index, boolean, integer, jsonb, pgTable, text, timestamp } from "drizzle-orm/pg-core";
 import type {
+  AgentControlScope,
   AgentRunPermissionMode,
   AgentRunStatus,
   AgentRunUsage,
@@ -32,6 +33,14 @@ export const agentRunsTable = pgTable(
       .notNull()
       .default("full-access"),
     networkAccess: boolean("network_access").notNull().default(true),
+    controlMode: boolean("control_mode").notNull().default(false),
+    allowedTools: jsonb("allowed_tools").$type<string[]>().notNull().default([]),
+    controlScopes: jsonb("control_scopes").$type<AgentControlScope[]>().notNull().default([]),
+    executorId: text("executor_id"),
+    leaseExpiresAt: timestamp("lease_expires_at"),
+    heartbeatAt: timestamp("heartbeat_at"),
+    cancelRequestedAt: timestamp("cancel_requested_at"),
+    terminalEventSequence: integer("terminal_event_sequence"),
     usage: jsonb("usage").$type<AgentRunUsage | null>(),
     resultText: text("result_text"),
     errorCode: text("error_code"),

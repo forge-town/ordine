@@ -1,5 +1,10 @@
 import { Result } from "neverthrow";
-import { RuntimeEventSchema, type RuntimeEvent } from "@repo/schemas";
+import {
+  AgentRunEventSchema,
+  RuntimeEventSchema,
+  type AgentRunEvent,
+  type RuntimeEvent,
+} from "@repo/schemas";
 
 const MAX_EVENT_STRING_CHARS = 64 * 1024;
 const MAX_EVENT_JSON_CHARS = 256 * 1024;
@@ -81,4 +86,23 @@ export const sanitizeRuntimeEvent = (event: RuntimeEvent): RuntimeEvent => {
       : sanitized;
 
   return RuntimeEventSchema.parse(bounded);
+};
+
+export const sanitizeAgentRunEvent = (event: AgentRunEvent): AgentRunEvent => {
+  const sanitized = sanitizeUnknown(event);
+  const serialized = serialize(sanitized);
+  const bounded =
+    serialized.isOk() && serialized.value.length > MAX_EVENT_JSON_CHARS
+      ? {
+          runtime: event.runtime,
+          timestamp: event.timestamp,
+          type: "diagnostic" as const,
+          level: "warning" as const,
+          code: "EVENT_TRUNCATED",
+          message: `Agent Run event exceeded ${MAX_EVENT_JSON_CHARS} serialized characters and was truncated`,
+          metadata: { originalType: event.type, reason: "serialized_size_limit" },
+        }
+      : sanitized;
+
+  return AgentRunEventSchema.parse(bounded);
 };

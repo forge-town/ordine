@@ -93,13 +93,13 @@ describe("runMigrations", () => {
 
     expect(first.isOk()).toBe(true);
     expect(second.isOk()).toBe(true);
-    expect([first._unsafeUnwrap(), second._unsafeUnwrap()].sort((a, b) => a - b)).toEqual([0, 10]);
+    expect([first._unsafeUnwrap(), second._unsafeUnwrap()].sort((a, b) => a - b)).toEqual([0, 12]);
 
     const db = postgres(resolvedDatabaseUrl, { onnotice: () => {} });
     const applied = await db.unsafe<{ name: string }[]>(
       `SELECT name FROM _ordine_migrations ORDER BY name`,
     );
-    expect(applied).toHaveLength(10);
+    expect(applied).toHaveLength(12);
     const [permissionColumn] = await db.unsafe<{ column_default: string | null }[]>(
       `SELECT column_default
          FROM information_schema.columns
@@ -118,7 +118,7 @@ describe("runMigrations", () => {
     const result = await runMigrations(resolvedDatabaseUrl, migrationsDir);
 
     expect(result.isOk()).toBe(true);
-    expect(result._unsafeUnwrap()).toBe(9);
+    expect(result._unsafeUnwrap()).toBe(11);
     const migrations = await db.unsafe<{ name: string }[]>(
       `SELECT name FROM _ordine_migrations ORDER BY name`,
     );
@@ -133,6 +133,8 @@ describe("runMigrations", () => {
       "0007_agent_runs.sql",
       "0008_agent_execution_preferences.sql",
       "0009_default_agent_full_access.sql",
+      "0010_agent_control_plane.sql",
+      "0011_agent_action_argument_digest.sql",
     ]);
     const projects = await db.unsafe<{ table_name: string }[]>(
       `SELECT table_name FROM information_schema.tables WHERE table_name = 'projects'`,
@@ -149,7 +151,7 @@ describe("runMigrations", () => {
     const result = await runMigrations(resolvedDatabaseUrl, migrationsDir);
 
     expect(result.isOk()).toBe(true);
-    expect(result._unsafeUnwrap()).toBe(9);
+    expect(result._unsafeUnwrap()).toBe(11);
 
     const migrations = await db.unsafe<{ name: string }[]>(
       `SELECT name FROM _ordine_migrations ORDER BY name`,
@@ -165,6 +167,8 @@ describe("runMigrations", () => {
       "0007_agent_runs.sql",
       "0008_agent_execution_preferences.sql",
       "0009_default_agent_full_access.sql",
+      "0010_agent_control_plane.sql",
+      "0011_agent_action_argument_digest.sql",
     ]);
 
     const columns = await db.unsafe<{ column_name: string; table_name: string }[]>(

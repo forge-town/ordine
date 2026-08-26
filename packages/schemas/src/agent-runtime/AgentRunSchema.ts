@@ -2,6 +2,7 @@ import { z } from "zod/v4";
 import { AgentRuntimeSchema } from "./AgentRuntimeSchema";
 import { AgentRunStatusSchema } from "./AgentRunStatusSchema";
 import { RuntimeEventSchema } from "./RuntimeEventSchema";
+import { AgentControlEventSchema, AgentControlScopeSchema } from "../agent-control";
 
 export const AgentRunPermissionModeSchema = z.enum(["read-only", "workspace-write", "full-access"]);
 export type AgentRunPermissionMode = z.infer<typeof AgentRunPermissionModeSchema>;
@@ -28,6 +29,8 @@ export const AgentRunRequestSchema = z
     networkAccess: z.boolean().default(true),
     fullAccessConfirmed: z.boolean().default(true),
     allowedTools: z.array(z.string().min(1)).default([]),
+    controlMode: z.boolean().default(false),
+    controlScopes: z.array(AgentControlScopeSchema).default([]),
     firstOutputTimeoutMs: z.number().int().min(0).max(3_600_000).optional(),
   })
   .superRefine((value, context) => {
@@ -38,8 +41,16 @@ export const AgentRunRequestSchema = z
         message: "full-access requires explicit user confirmation",
       });
     }
+    if (value.controlMode && value.allowedTools.length === 0) {
+      context.addIssue({
+        code: "custom",
+        path: ["allowedTools"],
+        message: "control-mode Agent Runs require an explicit non-empty tool allowlist",
+      });
+    }
   });
-export type AgentRunRequest = z.infer<typeof AgentRunRequestSchema>;
+export type AgentRunRequest = z.input<typeof AgentRunRequestSchema>;
+export type ParsedAgentRunRequest = z.output<typeof AgentRunRequestSchema>;
 
 export const AgentRunUsageSchema = z.object({
   inputTokens: z.number().int().nonnegative().optional(),
@@ -66,6 +77,9 @@ export const AgentRunSchema = z.object({
   resumeFromRunId: z.string().min(1).nullable(),
   permissionMode: AgentRunPermissionModeSchema,
   networkAccess: z.boolean(),
+  controlMode: z.boolean().default(false),
+  allowedTools: z.array(z.string().min(1)).default([]),
+  controlScopes: z.array(AgentControlScopeSchema).default([]),
   usage: AgentRunUsageSchema.nullable(),
   resultText: z.string().nullable(),
   errorCode: z.string().min(1).nullable(),
@@ -78,10 +92,13 @@ export const AgentRunSchema = z.object({
 });
 export type AgentRun = z.infer<typeof AgentRunSchema>;
 
+export const AgentRunEventSchema = z.union([RuntimeEventSchema, AgentControlEventSchema]);
+export type AgentRunEvent = z.infer<typeof AgentRunEventSchema>;
+
 export const AgentRunEventEnvelopeSchema = z.object({
   runId: z.string().min(1),
   sequence: z.number().int().nonnegative(),
   createdAt: z.iso.datetime(),
-  event: RuntimeEventSchema,
+  event: AgentRunEventSchema,
 });
 export type AgentRunEventEnvelope = z.infer<typeof AgentRunEventEnvelopeSchema>;

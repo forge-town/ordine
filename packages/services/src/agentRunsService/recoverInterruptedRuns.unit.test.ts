@@ -2,14 +2,20 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   createEvent: vi.fn(),
-  findManyUnfinished: vi.fn(),
+  findManyRecoverable: vi.fn(),
+  findTerminal: vi.fn(),
+  transitionRun: vi.fn(),
   updateRun: vi.fn(),
 }));
 
 vi.mock("@repo/models", () => ({
-  createAgentRunEventsDao: () => ({ create: mocks.createEvent }),
+  createAgentRunEventsDao: () => ({
+    create: mocks.createEvent,
+    findTerminalByRunId: mocks.findTerminal,
+  }),
   createAgentRunsDao: () => ({
-    findManyUnfinished: mocks.findManyUnfinished,
+    findManyRecoverable: mocks.findManyRecoverable,
+    transition: mocks.transitionRun,
     update: mocks.updateRun,
   }),
   createAgentRuntimesDao: () => ({}),
@@ -27,7 +33,7 @@ describe("Agent Run restart recovery", () => {
     const storedEvents: Array<{ runId: string; event: Record<string, unknown> }> = [];
     const observedEvents: Array<{ sequence: number; type: string }> = [];
 
-    mocks.findManyUnfinished.mockResolvedValue([
+    mocks.findManyRecoverable.mockResolvedValue([
       {
         id: "run-restarted",
         runtime: "codex",
@@ -50,6 +56,9 @@ describe("Agent Run restart recovery", () => {
     mocks.updateRun.mockImplementation(async (_runId: string, patch: Record<string, unknown>) => ({
       ...patch,
     }));
+    mocks.transitionRun.mockImplementation(
+      async (_runId: string, _from: string[], patch: Record<string, unknown>) => ({ ...patch }),
+    );
 
     const database = {
       transaction: async <T>(callback: (transaction: unknown) => Promise<T>) => callback({}),
@@ -59,7 +68,10 @@ describe("Agent Run restart recovery", () => {
       observedEvents.push({ sequence: envelope.sequence, type: envelope.event.type });
     });
 
-    await expect(service.recoverInterruptedRuns()).resolves.toBe(1);
+    await expect(service.recoverInterruptedRuns()).resolves.toEqual({
+      count: 1,
+      runIds: ["run-restarted"],
+    });
 
     expect(storedEvents).toHaveLength(2);
     expect(storedEvents.map(({ event }) => event.type)).toEqual(["diagnostic", "terminal"]);
@@ -72,14 +84,18 @@ describe("Agent Run restart recovery", () => {
       resultText: "partial result",
       sessionId: "thread-123",
     });
-    expect(mocks.updateRun).toHaveBeenCalledOnce();
-    expect(mocks.updateRun).toHaveBeenCalledWith(
+    expect(mocks.transitionRun).toHaveBeenCalledOnce();
+    expect(mocks.transitionRun).toHaveBeenCalledWith(
       "run-restarted",
+      ["queued", "running", "cancelling"],
       expect.objectContaining({
         status: "interrupted",
         errorCode: "SERVER_RESTART_INTERRUPTED",
       }),
     );
+    expect(mocks.updateRun).toHaveBeenCalledWith("run-restarted", {
+      terminalEventSequence: 2,
+    });
     expect(observedEvents).toEqual([
       { sequence: 1, type: "diagnostic" },
       { sequence: 2, type: "terminal" },

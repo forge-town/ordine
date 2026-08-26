@@ -1,7 +1,7 @@
-import { exec, execSync } from "node:child_process";
+import { exec, execFile, execSync } from "node:child_process";
 import { promisify } from "node:util";
 import { readFile, mkdir } from "node:fs/promises";
-import { statSync } from "node:fs";
+import { existsSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { ResultAsync, ok, okAsync, errAsync } from "neverthrow";
@@ -14,6 +14,24 @@ import {
 } from "@repo/schemas";
 
 const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
+
+const resolveBashExecutable = (): string => {
+  const configuredPath = process.env.ORDINE_BASH_PATH;
+  if (configuredPath) return configuredPath;
+
+  if (process.platform === "win32") {
+    const gitBashPath = join(
+      process.env.ProgramFiles ?? "C:\\Program Files",
+      "Git",
+      "bin",
+      "bash.exe",
+    );
+    if (existsSync(gitBashPath)) return gitBashPath;
+  }
+
+  return "bash";
+};
 
 export const safeParseConfig = (
   raw: OperationConfigInput,
@@ -74,6 +92,15 @@ export const runScript = (
       const cmd = buildCmd();
       if (cmd.startsWith("__UNSUPPORTED_LANG_")) {
         throw new ScriptExecutionError(`Unknown script language: ${lang}`);
+      }
+      if (lang === "bash") {
+        const { stdout } = await execFileAsync(
+          resolveBashExecutable(),
+          ["--noprofile", "--norc", "-c", command],
+          { env, timeout: 60_000 },
+        );
+
+        return stdout;
       }
       const { stdout } = await execAsync(cmd, { env, timeout: 60_000 });
 
