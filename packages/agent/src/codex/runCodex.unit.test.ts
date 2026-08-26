@@ -609,6 +609,50 @@ describe("runCodex", () => {
     expect(fullWritten.length).toBeLessThan(longPrompt.length);
     expect(fullWritten).toContain("truncated");
   });
+
+  it("locks Agent Control runs to MCP-only features and forwards the isolated environment", async () => {
+    const promise = runCodex({
+      systemPrompt: "sys",
+      userPrompt: "user",
+      cwd: "/tmp/control",
+      sandbox: "read-only",
+      networkAccess: false,
+      agentControlMode: true,
+      environment: {
+        HOME: "/tmp/control/home",
+        USERPROFILE: "/tmp/control/home",
+        ORDINE_AGENT_CONTROL_MODE: "1",
+        CODEX_HOME: "/must/not/win",
+      },
+    });
+
+    await waitForSpawn();
+    testState.mockProc.stdout.push("ok");
+    testState.mockProc.stdout.push(null);
+    testState.mockProc.stderr.push(null);
+    testState.mockProc.emit("close", 0);
+    await promise;
+
+    const [, args, spawnOpts] = spawnMock.mock.calls[0] as unknown as [
+      string,
+      string[],
+      { env: Record<string, string | undefined> },
+    ];
+    expect(args).toContain("--strict-config");
+    expect(args).toContain("--ignore-rules");
+    const disabledFeatures = args.flatMap((arg, index) =>
+      arg === "--disable" ? [args[index + 1]] : [],
+    );
+    expect(disabledFeatures).toContain("shell_tool");
+    expect(disabledFeatures).toContain("browser_use");
+    expect(disabledFeatures).toContain("apps");
+    expect(disabledFeatures).toContain("plugins");
+    expect(disabledFeatures).toContain("multi_agent");
+    expect(spawnOpts.env.HOME).toBe("/tmp/control/home");
+    expect(spawnOpts.env.USERPROFILE).toBe("/tmp/control/home");
+    expect(spawnOpts.env.ORDINE_AGENT_CONTROL_MODE).toBe("1");
+    expect(spawnOpts.env.CODEX_HOME).not.toBe("/must/not/win");
+  });
 });
 
 describe("CODEX_SANDBOX_MODES", () => {

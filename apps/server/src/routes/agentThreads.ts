@@ -75,8 +75,9 @@ const runtimeControlSupport = (runtime: string) => {
   }
   if (runtime === "codex") {
     return {
-      supported: false,
-      reason: "Codex does not expose an equivalent built-in tool allowlist for control mode.",
+      supported: true,
+      reason:
+        "Codex control mode disables built-in execution, browser, app, plugin, and delegation features; isolates HOME/config; and requires a read-only sandbox.",
     } as const;
   }
 

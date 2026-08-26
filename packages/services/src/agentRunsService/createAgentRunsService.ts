@@ -31,7 +31,7 @@ import { ResultAsync } from "neverthrow";
 import { redactSensitiveText, sanitizeAgentRunEvent } from "./sanitizeAgentRunData";
 
 const SUPPORTED_RUNTIMES = new Set<AgentRuntime>(["claude-code", "codex", "opencode"]);
-const CONTROL_MODE_SUPPORTED_RUNTIMES = new Set<AgentRuntime>(["claude-code"]);
+const CONTROL_MODE_SUPPORTED_RUNTIMES = new Set<AgentRuntime>(["claude-code", "codex"]);
 const TERMINAL_STATUSES = new Set<AgentRunStatus>([
   "completed",
   "failed",
@@ -622,6 +622,7 @@ export const createAgentRunsService = (
           permissionMode: request.permissionMode,
           fullAccessConfirmed: request.fullAccessConfirmed,
           networkAccess: request.networkAccess,
+          controlMode: request.controlMode,
           supportsPartialMessages: resolvedRuntime.supportsPartialMessages,
           supportsPermissionBypass: resolvedRuntime.supportsPermissionBypass,
           supportsReasoningEffort: resolvedRuntime.supportsReasoningEffort,

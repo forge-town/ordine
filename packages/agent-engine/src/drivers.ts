@@ -219,6 +219,8 @@ const runCodexDirect = async (opts: AgentRunOptions): Promise<DriverResult> => {
     onRuntimeEvent: opts.onRuntimeEvent,
     executablePath: opts.executablePath,
     networkAccess: opts.networkAccess,
+    environment: opts.environment,
+    agentControlMode: opts.controlMode,
   });
 
   return { text, events: [] };
