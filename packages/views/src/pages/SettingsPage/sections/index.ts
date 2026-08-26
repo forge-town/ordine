@@ -6,4 +6,5 @@ export * from "./GeneralSection";
 export * from "./KeyboardSection";
 export * from "./LanguageSection";
 export * from "./NotificationsSection";
+export * from "./PagesSection";
 export * from "./ProjectSection";

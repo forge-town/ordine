@@ -225,7 +225,7 @@ export const Composer = ({
           <Textarea
             ref={textareaRef}
             aria-label={t("workspace.agentBar.composer.messageLabel")}
-            className="min-h-7 flex-1 resize-none border-none bg-transparent px-0 py-1 text-[12px] shadow-none focus-visible:ring-0 disabled:bg-transparent dark:disabled:bg-transparent"
+            className="min-h-7 flex-1 resize-none border-none bg-transparent px-0 py-1 text-[12px] shadow-none focus-visible:ring-0 disabled:bg-transparent md:text-[12px] dark:disabled:bg-transparent"
             disabled={isDisabled}
             id="canvas-agent-composer-message"
             name="canvasAgentMessage"

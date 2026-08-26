@@ -9,6 +9,7 @@ import {
   Settings,
   ShieldCheck,
   Sliders,
+  SquareStack,
   Wrench,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -24,6 +25,7 @@ import {
   KeyboardSection,
   LanguageSection,
   NotificationsSection,
+  PagesSection,
   ProjectSection,
 } from "../sections";
 
@@ -34,6 +36,7 @@ type Section =
   | "developer"
   | "language"
   | "notifications"
+  | "pages"
   | "project";
 
 const SECTION_ICONS: Record<Section, ComponentType<{ className?: string }>> = {
@@ -43,12 +46,14 @@ const SECTION_ICONS: Record<Section, ComponentType<{ className?: string }>> = {
   developer: Code,
   language: Globe,
   notifications: Bell,
+  pages: SquareStack,
   project: FolderKanban,
 };
 
 const SECTION_GROUPS: Array<{ ids: Section[]; titleKey: string }> = [
   { ids: ["language", "notifications"], titleKey: "settings.groups.workspace" },
   { ids: ["defaults", "autonomy"], titleKey: "settings.groups.execution" },
+  { ids: ["pages"], titleKey: "settings.groups.pages" },
   {
     ids: ["project", "advanced", ...(import.meta.env.DEV ? (["developer"] as Section[]) : [])],
     titleKey: "settings.groups.data",
@@ -136,6 +141,7 @@ export const SettingsPageContent = () => {
             {active === "notifications" && <NotificationsSection />}
             {active === "defaults" && <DefaultsSection />}
             {active === "autonomy" && <AutonomySection />}
+            {active === "pages" && <PagesSection />}
             {active === "project" && <ProjectSection />}
             {active === "advanced" && <AdvancedSection />}
             {active === "developer" && <DeveloperSection />}

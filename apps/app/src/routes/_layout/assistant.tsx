@@ -1,12 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-
-const RouteComponent = () => {
-  return <div>Hello "/assistant"!</div>;
-};
+import { ConversationsPage } from "@repo/views/ConversationsPage";
 
 export const Route = createFileRoute("/_layout/assistant")({
   head: () => ({
-    meta: [{ title: "Assistant | Ordine" }],
+    meta: [{ title: "Conversations | Ordine" }],
   }),
-  component: RouteComponent,
+  component: ConversationsPage,
 });

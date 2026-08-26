@@ -76,6 +76,29 @@ vi.mock("@repo/models", () => ({
   createAgentSpansDao: () => ({}),
   createOperationsDao: (executor: { operationsDao?: typeof mockOperationsDao }) =>
     executor?.operationsDao ?? mockOperationsDao,
+  createOperationRegistryRepository: (executor: {
+    transaction?: (
+      callback: (transaction: unknown) => Promise<unknown>,
+      config?: unknown,
+    ) => Promise<unknown>;
+    operationsDao?: typeof mockOperationsDao;
+    pipelinesDao?: typeof mockDao;
+  }) => ({
+    runSerializable: (callback: (transaction: unknown) => Promise<unknown>) => {
+      const run = (transaction: typeof executor) =>
+        callback({
+          executor: transaction,
+          operationsDao: transaction?.operationsDao ?? mockOperationsDao,
+          pipelinesDao: transaction?.pipelinesDao ?? mockDao,
+        });
+
+      return executor?.transaction
+        ? executor.transaction((transaction) => run(transaction as typeof executor), {
+            isolationLevel: "serializable",
+          })
+        : run(executor);
+    },
+  }),
   createSettingsDao: () => mockSettingsDao,
   createSkillsDao: () => ({
     findMany: vi.fn().mockResolvedValue([]),
@@ -178,14 +201,129 @@ describe("createPipelinesService", () => {
   it("create delegates to dao.create", async () => {
     const svc = createPipelinesService({} as never);
     const data = { name: "pipeline" } as never;
-    await svc.create(data);
+    const result = await svc.create(data);
+
+    expect(result.isOk()).toBe(true);
+    expect(mockDao.create).toHaveBeenCalledWith(data);
+  });
+
+  it("rejects a Pipeline that references an Operation missing from persistence", async () => {
+    const svc = createPipelinesService({} as never);
+    const data = {
+      id: "pipeline-missing-operation",
+      name: "Broken Pipeline",
+      nodes: [
+        {
+          id: "search-node",
+          type: "operation",
+          data: {
+            nodeType: "operation",
+            operationId: "op_new_search_hackathons",
+            operationName: "Search recent hackathons",
+          },
+        },
+      ],
+    } as never;
+
+    const result = await svc.create(data);
+
+    expect(result.isErr()).toBe(true);
+    if (result.isErr()) {
+      expect(result.error).toMatchObject({
+        name: "PipelineOperationReferencesError",
+        code: "PIPELINE_OPERATION_MISSING",
+        pipelineId: "pipeline-missing-operation",
+        missingOperations: [{ nodeId: "search-node", operationId: "op_new_search_hackathons" }],
+      });
+    }
+    expect(mockDao.create).not.toHaveBeenCalled();
+  });
+
+  it("rejects an Operation node whose registry id is blank", async () => {
+    const svc = createPipelinesService({} as never);
+    const data = {
+      id: "pipeline-blank-operation",
+      name: "Incomplete Pipeline",
+      nodes: [
+        {
+          id: "operation-node",
+          type: "operation",
+          data: {
+            nodeType: "operation",
+            operationId: "",
+            operationName: "",
+          },
+        },
+      ],
+    } as never;
+
+    const result = await svc.create(data);
+
+    expect(result.isErr()).toBe(true);
+    if (result.isErr()) {
+      expect(result.error).toMatchObject({
+        code: "PIPELINE_OPERATION_MISSING",
+        missingOperations: [{ nodeId: "operation-node", operationId: "" }],
+      });
+    }
+    expect(mockDao.create).not.toHaveBeenCalled();
+  });
+
+  it("saves a Pipeline when all referenced Operations exist", async () => {
+    mockOperationsDao.findById.mockResolvedValueOnce({ id: "op-existing" });
+    const svc = createPipelinesService({} as never);
+    const data = {
+      id: "pipeline-valid",
+      name: "Valid Pipeline",
+      nodes: [
+        {
+          id: "operation-node",
+          type: "operation",
+          data: {
+            nodeType: "operation",
+            operationId: "op-existing",
+            operationName: "Existing Operation",
+          },
+        },
+      ],
+    } as never;
+
+    const result = await svc.create(data);
+
+    expect(result.isOk()).toBe(true);
+    expect(mockOperationsDao.findById).toHaveBeenCalledWith("op-existing");
     expect(mockDao.create).toHaveBeenCalledWith(data);
   });
 
   it("update delegates to dao.update", async () => {
     const svc = createPipelinesService({} as never);
-    await svc.update("p1", { name: "updated" } as never);
+    const result = await svc.update("p1", { name: "updated" } as never);
+
+    expect(result.isOk()).toBe(true);
     expect(mockDao.update).toHaveBeenCalledWith("p1", { name: "updated" });
+  });
+
+  it("rejects an update that introduces a missing Operation reference", async () => {
+    mockDao.findById.mockResolvedValueOnce({ id: "p1", nodes: [] });
+    const svc = createPipelinesService({} as never);
+    const patch = {
+      nodes: [
+        {
+          id: "missing-node",
+          type: "operation",
+          data: {
+            nodeType: "operation",
+            operationId: "op-missing",
+            operationName: "Missing",
+          },
+        },
+      ],
+    } as never;
+
+    const result = await svc.update("p1", patch);
+
+    expect(result.isErr()).toBe(true);
+    expect(mockDao.update).not.toHaveBeenCalled();
   });
 
   it("delete delegates to dao.delete", async () => {
@@ -279,6 +417,138 @@ describe("createPipelinesService", () => {
     expect(result.isErr()).toBe(true);
     expect(transaction).toHaveBeenCalledOnce();
     expect(persistedOperations).toEqual([]);
+  });
+
+  it("saves pending Operations and their Pipeline in one transaction", async () => {
+    const persistedOperationIds: string[] = [];
+    const persistedPipelineIds: string[] = [];
+    const transaction = vi.fn(async (callback: (executor: unknown) => Promise<unknown>) => {
+      const stagedOperationIds: string[] = [];
+      const stagedPipelineIds: string[] = [];
+      const value = await callback({
+        operationsDao: {
+          ...mockOperationsDao,
+          create: vi.fn(async (operation: { id: string }) => stagedOperationIds.push(operation.id)),
+          findById: vi.fn(async (id: string) =>
+            stagedOperationIds.includes(id) ? { id } : undefined,
+          ),
+        },
+        pipelinesDao: {
+          ...mockDao,
+          create: vi.fn(async (pipeline: { id: string }) => {
+            stagedPipelineIds.push(pipeline.id);
+
+            return pipeline;
+          }),
+        },
+      });
+      persistedOperationIds.push(...stagedOperationIds);
+      persistedPipelineIds.push(...stagedPipelineIds);
+
+      return value;
+    });
+    const service = createPipelinesService({ transaction } as never, {
+      capabilityCatalog: {
+        validateOperationInputs: vi.fn().mockResolvedValue(ok(undefined)),
+      } as never,
+    });
+
+    const result = await service.createWithPendingOperations(
+      {
+        id: "pipeline-1",
+        name: "Pipeline",
+        nodes: [
+          {
+            id: "operation-node",
+            type: "operation",
+            data: {
+              nodeType: "operation",
+              operationId: "op-1",
+              operationName: "First",
+            },
+          },
+        ],
+      } as never,
+      [
+        {
+          id: "op-1",
+          name: "First",
+          description: "first",
+          config: {},
+          acceptedObjectTypes: ["file"],
+        },
+      ],
+    );
+
+    expect(result.isOk()).toBe(true);
+    expect(persistedOperationIds).toEqual(["op-1"]);
+    expect(persistedPipelineIds).toEqual(["pipeline-1"]);
+  });
+
+  it("rolls back pending Operations when the Pipeline still references a missing Operation", async () => {
+    const persistedOperationIds: string[] = [];
+    const persistedPipelineIds: string[] = [];
+    const transaction = vi.fn(async (callback: (executor: unknown) => Promise<unknown>) => {
+      const stagedOperationIds: string[] = [];
+      const stagedPipelineIds: string[] = [];
+      const value = await callback({
+        operationsDao: {
+          ...mockOperationsDao,
+          create: vi.fn(async (operation: { id: string }) => stagedOperationIds.push(operation.id)),
+          findById: vi.fn(async (id: string) =>
+            stagedOperationIds.includes(id) ? { id } : undefined,
+          ),
+        },
+        pipelinesDao: {
+          ...mockDao,
+          create: vi.fn(async (pipeline: { id: string }) => {
+            stagedPipelineIds.push(pipeline.id);
+
+            return pipeline;
+          }),
+        },
+      });
+      persistedOperationIds.push(...stagedOperationIds);
+      persistedPipelineIds.push(...stagedPipelineIds);
+
+      return value;
+    });
+    const service = createPipelinesService({ transaction } as never, {
+      capabilityCatalog: {
+        validateOperationInputs: vi.fn().mockResolvedValue(ok(undefined)),
+      } as never,
+    });
+
+    const result = await service.createWithPendingOperations(
+      {
+        id: "pipeline-1",
+        name: "Pipeline",
+        nodes: [
+          {
+            id: "missing-node",
+            type: "operation",
+            data: {
+              nodeType: "operation",
+              operationId: "op-missing",
+              operationName: "Missing",
+            },
+          },
+        ],
+      } as never,
+      [
+        {
+          id: "op-1",
+          name: "First",
+          description: "first",
+          config: {},
+          acceptedObjectTypes: ["file"],
+        },
+      ],
+    );
+
+    expect(result.isErr()).toBe(true);
+    expect(persistedOperationIds).toEqual([]);
+    expect(persistedPipelineIds).toEqual([]);
   });
 
   it("updates a shared Operation executor while preserving ports", async () => {

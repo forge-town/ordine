@@ -1,7 +1,6 @@
 import { useCallback, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
-import { PanelRightOpen } from "lucide-react";
 import { cn } from "@repo/ui/lib/utils";
 import { ResizeHandle } from "../../../components/ResizeHandle";
 import {
@@ -151,12 +150,12 @@ export const CanvasInner = ({
             />
           </div>
           <div
-            className="pointer-events-none min-h-0 min-w-0 overflow-hidden max-[480px]:flex-1 min-[1181px]:h-full min-[1181px]:shrink-0 min-[1181px]:py-1.5 min-[1181px]:pr-1.5"
+            className="pointer-events-none min-h-0 min-w-0 overflow-hidden max-[480px]:flex-1 min-[1181px]:h-full min-[1181px]:shrink-0 min-[1181px]:p-3"
             data-testid="canvas-agent-panel-region"
           >
             <div
               ref={agentPanelShellRef}
-              className="pointer-events-auto h-full min-h-0 min-w-0 w-full shrink overflow-hidden rounded-2xl bg-surface shadow-float ring-1 ring-border-strong max-[480px]:!w-full"
+              className="pointer-events-auto h-full min-h-0 min-w-0 w-full shrink overflow-hidden rounded-2xl border border-border-strong bg-surface shadow-raised max-[480px]:!w-full"
               data-testid="canvas-agent-panel-shell"
               style={{ width: `${agentPanelWidth}px`, maxWidth: "100%" }}
             >
@@ -164,18 +163,7 @@ export const CanvasInner = ({
             </div>
           </div>
         </div>
-      ) : (
-        <button
-          aria-label={t("canvas.agentPanel.reopen")}
-          className="absolute bottom-0 right-0 top-16 z-30 flex w-12 shrink-0 items-center justify-center border-l border-border bg-surface text-muted-foreground hover:bg-accent hover:text-foreground min-[1181px]:static min-[1181px]:inset-y-0 min-[1181px]:z-auto"
-          data-testid="canvas-agent-panel-reopen"
-          title={t("canvas.agentPanel.reopen")}
-          type="button"
-          onClick={handleToggleAgentPanel}
-        >
-          <PanelRightOpen className="h-4 w-4" />
-        </button>
-      )}
+      ) : null}
 
       <CanvasSettingsDrawer />
       <CanvasWorkspaceSidebarOverlay />

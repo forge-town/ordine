@@ -1,17 +1,11 @@
 import {
-  Activity,
   Bot,
-  BookOpen,
-  Box,
-  Boxes,
-  Cpu,
+  CalendarClock,
   FileDown,
   FileUp,
-  FlaskConical,
-  Gauge,
   Home,
   Layers,
-  Plug,
+  MessageSquare,
   Puzzle,
   Redo2,
   Save,
@@ -19,7 +13,6 @@ import {
   Undo2,
   Workflow,
   X,
-  Zap,
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
@@ -39,34 +32,12 @@ import { useCanvasPageStore } from "../_store";
 import { CANVAS_WORKSPACE_SIDEBAR_ID } from "../CanvasMiniSidebar";
 import { useCanvasWorkspacePersistence } from "../useCanvasWorkspacePersistence";
 
-const workspaceGroups = [
-  {
-    labelKey: "nav.groups.assembly",
-    links: [
-      { icon: Layers, labelKey: "nav.pipelines", to: "/pipelines" },
-      { icon: Boxes, labelKey: "nav.components", to: "/components" },
-      { icon: Zap, labelKey: "nav.operations", to: "/pipelines/operations" },
-      { icon: Box, labelKey: "nav.objects", to: "/pipelines/objects" },
-    ],
-  },
-  {
-    labelKey: "nav.groups.monitor",
-    links: [
-      { icon: Activity, labelKey: "nav.jobs", to: "/pipelines/jobs" },
-      { icon: Gauge, labelKey: "nav.items.usage", to: "/usage" },
-      { icon: FlaskConical, labelKey: "nav.distillations", to: "/distillations" },
-    ],
-  },
-  {
-    labelKey: "nav.groups.capabilities",
-    links: [
-      { icon: Bot, labelKey: "nav.agents", to: "/agents" },
-      { icon: Cpu, labelKey: "nav.items.localAgents", to: "/local-agents" },
-      { icon: BookOpen, labelKey: "nav.skills", to: "/skills" },
-      { icon: Plug, labelKey: "nav.items.connectors", to: "/connectors" },
-      { icon: Puzzle, labelKey: "nav.plugins", to: "/plugins" },
-    ],
-  },
+const workspaceLinks = [
+  { icon: Layers, labelKey: "nav.pipelines", to: "/pipelines" },
+  { icon: CalendarClock, labelKey: "nav.schedule", to: "/schedule" },
+  { icon: Puzzle, labelKey: "nav.plugins", to: "/plugins" },
+  { icon: Bot, labelKey: "nav.agents", to: "/agents" },
+  { icon: MessageSquare, labelKey: "nav.conversations", to: "/assistant" },
 ] as const;
 
 export const CanvasWorkspaceSidebarOverlay = () => {
@@ -193,30 +164,28 @@ export const CanvasWorkspaceSidebarOverlay = () => {
             </div>
           </section>
 
-          {workspaceGroups.map((group) => (
-            <section key={group.labelKey} className="space-y-1.5">
-              <p className="px-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-                {t(group.labelKey)}
-              </p>
-              <div className="grid gap-0.5">
-                {group.links.map((item) => {
-                  const Icon = item.icon;
+          <section className="space-y-1.5">
+            <p className="px-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+              {t("nav.groups.main", { defaultValue: "Main" })}
+            </p>
+            <div className="grid gap-0.5">
+              {workspaceLinks.map((item) => {
+                const Icon = item.icon;
 
-                  return (
-                    <Link
-                      key={item.to}
-                      className="flex h-8 items-center gap-2 rounded-md px-2 text-[12.5px] text-foreground hover:bg-muted"
-                      to={item.to}
-                      onClick={handleCloseDrawer}
-                    >
-                      <Icon className="size-3.5 text-muted-foreground" />
-                      <span>{t(item.labelKey)}</span>
-                    </Link>
-                  );
-                })}
-              </div>
-            </section>
-          ))}
+                return (
+                  <Link
+                    key={item.to}
+                    className="flex h-8 items-center gap-2 rounded-md px-2 text-[12.5px] text-foreground hover:bg-muted"
+                    to={item.to}
+                    onClick={handleCloseDrawer}
+                  >
+                    <Icon className="size-3.5 text-muted-foreground" />
+                    <span>{t(item.labelKey)}</span>
+                  </Link>
+                );
+              })}
+            </div>
+          </section>
         </div>
 
         <div className="grid gap-1 border-t p-3">

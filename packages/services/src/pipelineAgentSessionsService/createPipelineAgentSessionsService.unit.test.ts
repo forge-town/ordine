@@ -249,12 +249,14 @@ describe("createPipelineAgentSessionsService", () => {
     mockPipelinesService.createPendingOperations.mockResolvedValue(ok(undefined));
     mockPipelinesService.updateOperationExecutors.mockResolvedValue(ok(undefined));
     mockPipelinesService.delete.mockResolvedValue(undefined);
-    mockPipelinesService.create.mockImplementation(async (data) => ({
-      id: data.id ?? "pipeline-1",
-      ...data,
-      createdAt: new Date("2026-06-03T12:00:05.000Z"),
-      updatedAt: new Date("2026-06-03T12:00:05.000Z"),
-    }));
+    mockPipelinesService.create.mockImplementation(async (data) =>
+      ok({
+        id: data.id ?? "pipeline-1",
+        ...data,
+        createdAt: new Date("2026-06-03T12:00:05.000Z"),
+        updatedAt: new Date("2026-06-03T12:00:05.000Z"),
+      }),
+    );
     mockPipelinesService.proposeActions.mockResolvedValue({
       proposal: {
         summary: "Delete invalid middle nodes",
@@ -1005,6 +1007,59 @@ describe("createPipelineAgentSessionsService", () => {
     expect(startInput?.systemPrompt).toContain("不要把所有 Operation 默认串成一条直线");
   });
 
+  it("does not pass the global default model to an explicitly selected runtime", async () => {
+    mockSettingsDao.get.mockResolvedValueOnce({
+      defaultAgentRuntime: "mastra",
+      defaultApiKey: "test-key",
+      defaultModel: "kimi-for-coding/k2p6",
+    });
+    mockAgentRuntimesDao.findMany.mockResolvedValueOnce([
+      {
+        id: "runtime-codex",
+        name: "Codex Local",
+        type: "codex",
+        connection: {
+          mode: "local",
+          models: [{ id: "gpt-5.6-sol", displayName: "GPT-5.6 Sol", isDefault: true }],
+        },
+      },
+    ]);
+    const service = createPipelineAgentSessionsServiceFactory(mockDb as never, {
+      agentRunsService: mockAgentRunsService as never,
+    });
+
+    await service.startPlanningRun("session-1", { runtimeId: "runtime-codex" });
+
+    expect(mockAgentRunsService.start).toHaveBeenCalledWith(
+      expect.objectContaining({ runtimeConfigId: "runtime-codex", model: undefined }),
+    );
+  });
+
+  it("rejects a model outside the selected runtime catalog before starting an Agent Run", async () => {
+    mockAgentRuntimesDao.findMany.mockResolvedValueOnce([
+      {
+        id: "runtime-codex",
+        name: "Codex Local",
+        type: "codex",
+        connection: {
+          mode: "local",
+          models: [{ id: "gpt-5.6-sol", displayName: "GPT-5.6 Sol", isDefault: true }],
+        },
+      },
+    ]);
+    const service = createPipelineAgentSessionsServiceFactory(mockDb as never, {
+      agentRunsService: mockAgentRunsService as never,
+    });
+
+    await expect(
+      service.startPlanningRun("session-1", {
+        runtimeId: "runtime-codex",
+        model: "kimi-for-coding/k2p6",
+      }),
+    ).rejects.toMatchObject({ code: "PIPELINE_AGENT_RUNTIME_MODEL_MISMATCH" });
+    expect(mockAgentRunsService.start).not.toHaveBeenCalled();
+  });
+
   it("reseeds the full planning prompt after a completed run failed projection", async () => {
     mockSessionsDao.findById.mockResolvedValueOnce({
       id: "session-1",
@@ -1555,6 +1610,9 @@ describe("createPipelineAgentSessionsService", () => {
         edges: [],
       }),
     );
+    expect(mockDb.transaction).toHaveBeenCalledWith(expect.any(Function), {
+      isolationLevel: "serializable",
+    });
     expect(mockSessionsDao.update).toHaveBeenLastCalledWith(
       "session-1",
       expect.objectContaining({

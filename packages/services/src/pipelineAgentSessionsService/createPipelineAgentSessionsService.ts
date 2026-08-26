@@ -120,6 +120,15 @@ const createRuntimeNotFoundError = (runtimeId?: string) => {
   return error;
 };
 
+const createRuntimeModelMismatchError = (runtimeId: string, model: string) => {
+  const error = new Error(
+    `Configured model ${model} is not available for Agent runtime ${runtimeId}`,
+  ) as Error & { code: string };
+  error.code = "PIPELINE_AGENT_RUNTIME_MODEL_MISMATCH";
+
+  return error;
+};
+
 const isCancellationError = (error: Error) =>
   (error as Error & { code?: string }).code === "PIPELINE_AGENT_CANCELLED";
 
@@ -1219,8 +1228,19 @@ export const createPipelineAgentSessionsService = (
       const runtimePreference = settings.agentRuntimePreferences?.[runtimeId];
       const effectiveFirstOutputTimeoutSeconds =
         input?.firstOutputTimeoutSeconds ?? runtimePreference?.firstOutputTimeoutSeconds;
-      const effectiveModel =
-        input?.model ?? runtimePreference?.model ?? settings.defaultModel ?? undefined;
+      const effectiveModel = input?.model ?? runtimePreference?.model;
+      const runtimeModels =
+        selectedRuntime?.connection.mode === "local"
+          ? (selectedRuntime.connection.models ?? [])
+          : [];
+      if (
+        effectiveModel &&
+        runtimeModels.length > 0 &&
+        !runtimeModels.some((candidate) => candidate.id === effectiveModel)
+      ) {
+        finishActivity(sessionId, activity);
+        throw createRuntimeModelMismatchError(runtimeId, effectiveModel);
+      }
       const effectiveReasoningEffort = input?.reasoningEffort ?? runtimePreference?.reasoningEffort;
       const effectiveSpeed = input?.speed ?? runtimePreference?.speed;
       const effectiveFirstOutputTimeoutMs =
@@ -1690,91 +1710,96 @@ export const createPipelineAgentSessionsService = (
           pendingOperationIds.value =
             generated.pendingOperations?.map((operation) => operation.id) ?? [];
 
-          const pipeline = await db.transaction(async (tx) => {
-            const transactionalPipelinesService = createPipelinesService(
-              tx as unknown as DbConnection,
-            );
-            const transactionalRoutinesDao = createRoutinesDao(tx as unknown as DbConnection);
-            const transactionalSessionsDao = createPipelineAgentSessionsDao(tx);
-            const transactionalConversationMessagesDao = createConversationMessagesDao(tx);
-            assertActivityActive(sessionId, activity);
-            if (generated.pendingOperations && generated.pendingOperations.length > 0) {
-              const createPendingResult =
-                await transactionalPipelinesService.createPendingOperations(
-                  generated.pendingOperations,
-                );
-              if (createPendingResult.isErr()) throw createPendingResult.error;
+          const pipeline = await db.transaction(
+            async (tx) => {
+              const transactionalPipelinesService = createPipelinesService(
+                tx as unknown as DbConnection,
+              );
+              const transactionalRoutinesDao = createRoutinesDao(tx as unknown as DbConnection);
+              const transactionalSessionsDao = createPipelineAgentSessionsDao(tx);
+              const transactionalConversationMessagesDao = createConversationMessagesDao(tx);
               assertActivityActive(sessionId, activity);
-            }
-
-            const createdPipeline = await transactionalPipelinesService.create({
-              id: crypto.randomUUID(),
-              name: pipelineName,
-              description: pipelineDescription,
-              tags: ["agent-generated"],
-              timeoutMs: null,
-              nodes: generated.nodes,
-              edges: generated.edges,
-            });
-            assertActivityActive(sessionId, activity);
-            if (generateProposal.schedule) {
-              const enabled = generateProposal.schedule.enabled;
-              const nextRunAt = enabled
-                ? getNextCronRunAt(generateProposal.schedule.cronExpression, new Date())
-                : null;
-              if (enabled && !nextRunAt) {
-                throw new Error("Agent returned an invalid Pipeline schedule");
+              if (generated.pendingOperations && generated.pendingOperations.length > 0) {
+                const createPendingResult =
+                  await transactionalPipelinesService.createPendingOperations(
+                    generated.pendingOperations,
+                  );
+                if (createPendingResult.isErr()) throw createPendingResult.error;
+                assertActivityActive(sessionId, activity);
               }
-              await transactionalRoutinesDao.create({
+
+              const createPipelineResult = await transactionalPipelinesService.create({
                 id: crypto.randomUUID(),
-                pipelineId: createdPipeline.id,
-                name: generateProposal.schedule.name ?? `${pipelineName} schedule`,
-                description: `Agent-created schedule for ${pipelineName}`,
-                cronExpression: generateProposal.schedule.cronExpression,
-                inputConfig: null,
-                enabled,
-                lastRunAt: null,
-                nextRunAt,
+                name: pipelineName,
+                description: pipelineDescription,
+                tags: ["agent-generated"],
+                timeoutMs: null,
+                nodes: generated.nodes,
+                edges: generated.edges,
+              });
+              if (createPipelineResult.isErr()) throw createPipelineResult.error;
+              const createdPipeline = createPipelineResult.value;
+              assertActivityActive(sessionId, activity);
+              if (generateProposal.schedule) {
+                const enabled = generateProposal.schedule.enabled;
+                const nextRunAt = enabled
+                  ? getNextCronRunAt(generateProposal.schedule.cronExpression, new Date())
+                  : null;
+                if (enabled && !nextRunAt) {
+                  throw new Error("Agent returned an invalid Pipeline schedule");
+                }
+                await transactionalRoutinesDao.create({
+                  id: crypto.randomUUID(),
+                  pipelineId: createdPipeline.id,
+                  name: generateProposal.schedule.name ?? `${pipelineName} schedule`,
+                  description: `Agent-created schedule for ${pipelineName}`,
+                  cronExpression: generateProposal.schedule.cronExpression,
+                  inputConfig: null,
+                  enabled,
+                  lastRunAt: null,
+                  nextRunAt,
+                });
+                assertActivityActive(sessionId, activity);
+              }
+              const visibleMessages = messages.filter(
+                (message) => message.role !== "system" && message.content.trim().length > 0,
+              );
+              for (const message of visibleMessages) {
+                await transactionalConversationMessagesDao.create({
+                  id: crypto.randomUUID(),
+                  pipelineId: createdPipeline.id,
+                  role: message.role === "assistant" ? "agent" : "user",
+                  content: message.content,
+                  metadata: null,
+                  phase: "done",
+                  createdAt: message.createdAt,
+                });
+              }
+              const lastVisibleMessage = visibleMessages.at(-1);
+              if (
+                lastVisibleMessage?.role !== "assistant" ||
+                lastVisibleMessage.content.trim() !== generateProposal.purpose.trim()
+              ) {
+                await transactionalConversationMessagesDao.create({
+                  id: crypto.randomUUID(),
+                  pipelineId: createdPipeline.id,
+                  role: "agent",
+                  content: generateProposal.purpose,
+                  metadata: null,
+                  phase: "done",
+                });
+              }
+              assertActivityActive(sessionId, activity);
+              await transactionalSessionsDao.update(sessionId, {
+                status: "completed",
+                createdPipelineId: createdPipeline.id,
               });
               assertActivityActive(sessionId, activity);
-            }
-            const visibleMessages = messages.filter(
-              (message) => message.role !== "system" && message.content.trim().length > 0,
-            );
-            for (const message of visibleMessages) {
-              await transactionalConversationMessagesDao.create({
-                id: crypto.randomUUID(),
-                pipelineId: createdPipeline.id,
-                role: message.role === "assistant" ? "agent" : "user",
-                content: message.content,
-                metadata: null,
-                phase: "done",
-                createdAt: message.createdAt,
-              });
-            }
-            const lastVisibleMessage = visibleMessages.at(-1);
-            if (
-              lastVisibleMessage?.role !== "assistant" ||
-              lastVisibleMessage.content.trim() !== generateProposal.purpose.trim()
-            ) {
-              await transactionalConversationMessagesDao.create({
-                id: crypto.randomUUID(),
-                pipelineId: createdPipeline.id,
-                role: "agent",
-                content: generateProposal.purpose,
-                metadata: null,
-                phase: "done",
-              });
-            }
-            assertActivityActive(sessionId, activity);
-            await transactionalSessionsDao.update(sessionId, {
-              status: "completed",
-              createdPipelineId: createdPipeline.id,
-            });
-            assertActivityActive(sessionId, activity);
 
-            return createdPipeline;
-          });
+              return createdPipeline;
+            },
+            { isolationLevel: "serializable" },
+          );
           persistedPipeline.id = pipeline.id;
           assertActivityActive(sessionId, activity);
 

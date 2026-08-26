@@ -74,17 +74,32 @@
     "preview": "预览",
     "plugins": "插件",
     "agents": "智能体",
+    "schedule": "定时任务",
+    "conversations": "对话",
     "logout": "退出登录",
     "groups": {
       "assembly": "装配",
       "capabilities": "能力",
-      "monitor": "监控"
+      "monitor": "监控",
+      "main": "主导航"
     },
     "items": {
       "connectors": "连接器",
       "localAgents": "本地 Agent",
       "usage": "用量"
     }
+  },
+  "schedule": {
+    "title": "定时任务",
+    "subtitle": "按计划自动运行流水线",
+    "emptyTitle": "定时任务即将上线",
+    "emptyDescription": "这里将列出所有定时执行的流水线(Routine),支持查看周期、启用状态和手动触发。"
+  },
+  "conversations": {
+    "title": "对话",
+    "subtitle": "与智能体的历史对话",
+    "emptyTitle": "对话记录即将上线",
+    "emptyDescription": "这里将汇总你与智能体的对话记录,支持回看与继续。"
   },
   "connectors": {
     "title": "连接器",
@@ -1043,7 +1058,8 @@
       "autonomy": "自主性",
       "defaults": "默认项",
       "keyboard": "快捷键",
-      "project": "项目"
+      "project": "项目",
+      "pages": "页面"
     },
     "saveChanges": "保存更改",
     "saved": "已保存 ✓",
@@ -1154,7 +1170,12 @@
     "groups": {
       "data": "数据",
       "execution": "执行",
-      "workspace": "工作区"
+      "workspace": "工作区",
+      "pages": "页面"
+    },
+    "pages": {
+      "title": "更多页面",
+      "description": "从主导航移出的页面入口,路由与功能保持不变。"
     },
     "keyboard": {
       "description": "画布快捷键速查，当前为只读。",

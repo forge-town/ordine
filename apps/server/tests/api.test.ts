@@ -96,7 +96,7 @@ describe("Pipelines API", () => {
   });
 
   it("POST /api/pipelines creates pipeline", async () => {
-    mockPipelinesService.create.mockResolvedValueOnce(mockPipeline as never);
+    mockPipelinesService.create.mockResolvedValueOnce(ok(mockPipeline) as never);
     const res = await app.request("/api/pipelines", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -172,10 +172,12 @@ describe("Pipelines API", () => {
   });
 
   it("PATCH /api/pipelines/:id updates pipeline", async () => {
-    mockPipelinesService.update.mockResolvedValueOnce({
-      ...mockPipeline,
-      name: "Updated",
-    } as never);
+    mockPipelinesService.update.mockResolvedValueOnce(
+      ok({
+        ...mockPipeline,
+        name: "Updated",
+      }) as never,
+    );
     const res = await app.request("/api/pipelines/pipe-1", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -200,7 +202,7 @@ describe("Pipelines API", () => {
 
   it("PUT /api/pipelines upserts - creates when new", async () => {
     mockPipelinesService.getById.mockResolvedValueOnce(null as never);
-    mockPipelinesService.create.mockResolvedValueOnce(mockPipeline as never);
+    mockPipelinesService.create.mockResolvedValueOnce(ok(mockPipeline) as never);
     const res = await app.request("/api/pipelines", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -212,7 +214,7 @@ describe("Pipelines API", () => {
 
   it("PUT /api/pipelines upserts - updates when existing", async () => {
     mockPipelinesService.getById.mockResolvedValueOnce(mockPipeline as never);
-    mockPipelinesService.update.mockResolvedValueOnce(mockPipeline as never);
+    mockPipelinesService.update.mockResolvedValueOnce(ok(mockPipeline) as never);
     const res = await app.request("/api/pipelines", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -348,9 +350,33 @@ describe("Operations API", () => {
 
   it("DELETE /api/operations/:id removes operation", async () => {
     mockOperationsService.getById.mockResolvedValueOnce(mockOp as never);
-    mockOperationsService.delete.mockResolvedValueOnce(undefined as never);
+    mockOperationsService.delete.mockResolvedValueOnce(ok(undefined) as never);
     const res = await app.request("/api/operations/op-1", { method: "DELETE" });
     expect(res.status).toBe(204);
+  });
+
+  it("DELETE /api/operations/:id returns a structured conflict while it is in use", async () => {
+    const error = Object.assign(new Error("Operation op-1 is referenced by Pipeline pipe-1"), {
+      name: "OperationInUseConflictError",
+      code: "OPERATION_IN_USE",
+      operationId: "op-1",
+      pipelineIds: ["pipe-1"],
+    });
+    mockOperationsService.getById.mockResolvedValueOnce(mockOp as never);
+    mockOperationsService.delete.mockResolvedValueOnce({
+      isErr: () => true,
+      error,
+    } as never);
+
+    const res = await app.request("/api/operations/op-1", { method: "DELETE" });
+
+    expect(res.status).toBe(409);
+    expect(await res.json()).toEqual({
+      error: error.message,
+      code: "OPERATION_IN_USE",
+      operationId: "op-1",
+      pipelineIds: ["pipe-1"],
+    });
   });
 
   it("DELETE /api/operations/:id returns 404 for missing", async () => {
