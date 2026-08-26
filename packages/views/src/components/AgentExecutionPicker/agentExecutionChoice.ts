@@ -15,6 +15,9 @@ export const DEFAULT_FIRST_OUTPUT_TIMEOUT_SECONDS = 45;
 const defaultModelId = (entry: AgentRuntimeCatalogEntry): string | undefined =>
   entry.models.find((model) => model.isDefault)?.id ?? entry.models[0]?.id;
 
+const catalogContainsModel = (entry: AgentRuntimeCatalogEntry, model: string): boolean =>
+  entry.models.some((candidate) => candidate.id === model);
+
 export const executionChoiceForRuntime = (
   entry: AgentRuntimeCatalogEntry,
   preference?: AgentRuntimePreference,
@@ -22,7 +25,10 @@ export const executionChoiceForRuntime = (
 ): AgentExecutionChoice | null => {
   if (!entry.runtimeConfigId) return null;
   const legacyModel = legacyDefaultModel?.trim();
-  const model = preference?.model || legacyModel || defaultModelId(entry);
+  const model =
+    preference?.model ||
+    (legacyModel && catalogContainsModel(entry, legacyModel) ? legacyModel : undefined) ||
+    defaultModelId(entry);
   const selectedModel = entry.models.find((candidate) => candidate.id === model);
   const reasoningEffort = preference?.reasoningEffort ?? selectedModel?.defaultReasoningEffort;
   const speed = preference?.speed ?? selectedModel?.defaultSpeed;
