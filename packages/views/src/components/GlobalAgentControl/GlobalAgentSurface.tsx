@@ -3,6 +3,7 @@ import { useInvalidate } from "@refinedev/core";
 import { useRouter, useRouterState } from "@tanstack/react-router";
 import { Bot, LoaderCircle, Send, Square } from "lucide-react";
 import { useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
@@ -14,6 +15,7 @@ import { useSidebarStore } from "../../store/sidebarStore";
 import { useAgentControl, useOptionalAgentControlStore } from "./GlobalAgentControlProvider";
 
 const GlobalAgentSurfaceContent = () => {
+  const { t } = useTranslation();
   const { location } = useRouterState();
   const router = useRouter();
   const invalidate = useInvalidate();
@@ -106,7 +108,7 @@ const GlobalAgentSurfaceContent = () => {
             ) : (
               <Bot />
             )}
-            {isRunning ? "Agent working" : "ORDINE Agent"}
+            {isRunning ? t("agentControl.surface.working") : t("agentControl.surface.launcher")}
           </Button>
         ) : (
           <form
@@ -114,7 +116,7 @@ const GlobalAgentSurfaceContent = () => {
             onSubmit={handleSubmit}
           >
             <Button
-              aria-label="Open Agent activity"
+              aria-label={t("agentControl.surface.openActivity")}
               size="icon"
               type="button"
               variant="ghost"
@@ -127,20 +129,20 @@ const GlobalAgentSurfaceContent = () => {
               )}
             </Button>
             <Input
-              aria-label="Message ORDINE Agent"
+              aria-label={t("agentControl.composer.label")}
               className="min-w-0 flex-1 border-0 bg-transparent shadow-none focus-visible:ring-0"
               disabled={!supported}
               placeholder={
                 supported
-                  ? "Ask ORDINE to create, edit, run, or inspect…"
-                  : "No verified control runtime available"
+                  ? t("agentControl.composer.placeholder")
+                  : t("agentControl.surface.noRuntime")
               }
               value={draft}
               onChange={(event) => setDraft(event.target.value)}
             />
             {isRunning ? (
               <Button
-                aria-label="Stop Agent"
+                aria-label={t("agentControl.composer.stop")}
                 size="icon"
                 type="button"
                 variant="outline"
@@ -150,7 +152,7 @@ const GlobalAgentSurfaceContent = () => {
               </Button>
             ) : (
               <Button
-                aria-label="Send to Agent"
+                aria-label={t("agentControl.composer.send")}
                 disabled={!supported || !draft.trim()}
                 size="icon"
                 type="submit"
@@ -163,9 +165,13 @@ const GlobalAgentSurfaceContent = () => {
       </div>
 
       <Sheet open={drawerOpen} onOpenChange={setDrawerOpen}>
-        <SheetContent className="w-full gap-0 p-0 sm:max-w-md" side="right">
+        <SheetContent
+          className="max-w-none gap-0 p-0"
+          side="right"
+          style={{ width: "min(100vw, 30rem)", maxWidth: "100vw" }}
+        >
           <SheetHeader className="sr-only">
-            <SheetTitle>ORDINE Agent activity</SheetTitle>
+            <SheetTitle>{t("agentControl.surface.title")}</SheetTitle>
           </SheetHeader>
           <GlobalAgentPanel />
         </SheetContent>

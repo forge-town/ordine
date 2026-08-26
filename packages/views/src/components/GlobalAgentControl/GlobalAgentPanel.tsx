@@ -3,11 +3,16 @@ import {
   AlertCircle,
   CheckCircle2,
   CircleDot,
+  Clock3,
   LoaderCircle,
+  MessageSquareText,
   Send,
+  ShieldCheck,
   Square,
   Undo2,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { Badge } from "@repo/ui/badge";
 import { Button } from "@repo/ui/button";
 import { ScrollArea } from "@repo/ui/scroll-area";
 import { Textarea } from "@repo/ui/textarea";
@@ -20,10 +25,12 @@ const isCanvasChangeSetVisible = (status: string) =>
   status === "drafting" || status === "ready" || status === "conflicted";
 
 export const GlobalAgentPanel = ({ className }: { className?: string }) => {
+  const { t } = useTranslation();
   const capabilities = useAgentControl((state) => state.capabilities);
   const threads = useAgentControl((state) => state.threads);
   const activeThreadId = useAgentControl((state) => state.activeThreadId);
   const messages = useAgentControl((state) => state.messages);
+  const events = useAgentControl((state) => state.events);
   const actions = useAgentControl((state) => state.actions);
   const approvals = useAgentControl((state) => state.approvals);
   const changeSets = useAgentControl((state) => state.changeSets);
@@ -31,11 +38,9 @@ export const GlobalAgentPanel = ({ className }: { className?: string }) => {
   const streamingText = useAgentControl((state) => state.streamingText);
   const isRunning = useAgentControl((state) => state.isRunning);
   const isBootstrapping = useAgentControl((state) => state.isBootstrapping);
-  const selectedRuntimeId = useAgentControl((state) => state.selectedRuntimeId);
   const error = useAgentControl((state) => state.error);
   const setDraft = useAgentControl((state) => state.setDraft);
   const selectThread = useAgentControl((state) => state.selectThread);
-  const setRuntime = useAgentControl((state) => state.setSelectedRuntimeId);
   const submit = useAgentControl((state) => state.submit);
   const stop = useAgentControl((state) => state.stop);
   const applyChangeSet = useAgentControl((state) => state.applyChangeSet);
@@ -45,8 +50,28 @@ export const GlobalAgentPanel = ({ className }: { className?: string }) => {
   const visibleChangeSets = changeSets.filter((changeSet) =>
     isCanvasChangeSetVisible(changeSet.status),
   );
-  const recentActions = useMemo(() => [...actions].slice(-20).reverse(), [actions]);
+  const recentActions = useMemo(() => [...actions].slice(-12).reverse(), [actions]);
+  const recentRuntimeEvents = useMemo(
+    () =>
+      events
+        .filter(({ event }) => event.type === "diagnostic" || event.type === "terminal")
+        .slice(-6)
+        .reverse(),
+    [events],
+  );
+  const latestTerminalStatus = useMemo(() => {
+    const latest = [...events].reverse().find(({ event }) => event.type === "terminal")?.event;
+
+    return latest?.type === "terminal" ? latest.status : null;
+  }, [events]);
   const disabled = !capabilities?.enabled || supportedRuntimes.length === 0;
+  const statusLabel = error
+    ? t("agentControl.status.failed")
+    : isRunning
+      ? t("agentControl.status.working")
+      : latestTerminalStatus
+        ? t(`agentControl.status.${latestTerminalStatus}`)
+        : t("agentControl.status.ready");
 
   const handleSubmit = (event: FormEvent) => {
     event.preventDefault();
@@ -64,65 +89,135 @@ export const GlobalAgentPanel = ({ className }: { className?: string }) => {
       className={cn("flex h-full min-h-0 flex-col bg-surface", className)}
       data-testid="global-agent-panel"
     >
-      <header className="flex shrink-0 items-center gap-2 border-b border-border px-3 py-2.5">
-        <div className="grid size-7 place-items-center rounded-lg bg-primary text-primary-foreground">
-          <CircleDot className="size-4" />
+      <header className="shrink-0 space-y-3 border-b border-border py-3.5 pr-12 pl-4">
+        <div className="flex items-center gap-3">
+          <div className="grid size-9 place-items-center rounded-xl bg-primary text-primary-foreground shadow-sm">
+            <CircleDot className="size-4.5" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-semibold">{t("agentControl.title")}</p>
+            <p className="truncate text-[11px] text-muted-foreground">
+              {isRunning
+                ? t("agentControl.workingDescription")
+                : t("agentControl.toolCount", { count: capabilities?.toolCount ?? 22 })}
+            </p>
+          </div>
+          <Badge variant={error ? "destructive" : isRunning ? "secondary" : "outline"}>
+            {isRunning && (
+              <LoaderCircle
+                className="animate-spin motion-reduce:animate-none"
+                data-icon="inline-start"
+              />
+            )}
+            {statusLabel}
+          </Badge>
         </div>
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-semibold">ORDINE Agent</p>
-          <p className="truncate text-[11px] text-muted-foreground">
-            {isRunning
-              ? "Working through controlled tools…"
-              : `${capabilities?.toolCount ?? 22} controlled tools`}
-          </p>
+
+        <div className="flex items-center justify-between gap-2 rounded-lg border border-border bg-muted/35 px-2.5 py-2">
+          <span className="flex min-w-0 items-center gap-1.5 text-[11px] font-medium">
+            <ShieldCheck className="size-3.5 shrink-0 text-success" />
+            <span className="truncate">{t("agentControl.runtimeLocked")}</span>
+          </span>
+          <span className="shrink-0 text-[10px] text-muted-foreground">
+            {t("agentControl.runtimeFixed")}
+          </span>
         </div>
-        {threads.length > 0 && (
-          <select
-            aria-label="Agent thread"
-            className="h-7 max-w-32 rounded-md border border-border bg-background px-2 text-xs outline-none focus:border-ring"
-            value={activeThreadId ?? ""}
-            onChange={(event) => void selectThread(event.target.value)}
-          >
-            {threads.map((thread) => (
-              <option key={thread.id} value={thread.id}>
-                {thread.title}
-              </option>
-            ))}
-          </select>
+
+        {threads.length > 0 ? (
+          <label className="block space-y-1">
+            <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+              {t("agentControl.thread.label")}
+            </span>
+            <select
+              aria-label={t("agentControl.thread.label")}
+              className="h-8 w-full rounded-lg border border-border bg-background px-2.5 text-xs outline-none focus:border-ring"
+              value={activeThreadId ?? ""}
+              onChange={(event) => void selectThread(event.target.value)}
+            >
+              {threads.map((thread) => (
+                <option key={thread.id} value={thread.id}>
+                  {thread.title}
+                </option>
+              ))}
+            </select>
+          </label>
+        ) : (
+          <p className="text-[11px] text-muted-foreground">{t("agentControl.thread.empty")}</p>
         )}
       </header>
 
       <ScrollArea className="min-h-0 flex-1">
-        <div className="space-y-3 p-3">
+        <div className="space-y-4 p-4">
           {!isBootstrapping && !capabilities?.enabled && (
             <div className="rounded-xl border border-border bg-muted/40 p-3 text-xs text-muted-foreground">
-              Agent Control is disabled by ORDINE_AGENT_CONTROL_ENABLED=false.
+              {t("agentControl.disabled")}
             </div>
           )}
           {!isBootstrapping && capabilities?.enabled && supportedRuntimes.length === 0 && (
             <div className="rounded-xl border border-warning/35 bg-warning/5 p-3 text-xs text-muted-foreground">
-              No installed runtime has passed MCP-only control-mode isolation. ORDINE will not fall
-              back to the legacy JSON planner.
+              {t("agentControl.unsupported")}
+            </div>
+          )}
+          {error && (
+            <div
+              className="rounded-xl border border-destructive/30 bg-destructive/5 p-3"
+              data-testid="agent-control-error"
+            >
+              <div className="flex items-start gap-2">
+                <AlertCircle className="mt-0.5 size-4 shrink-0 text-destructive" />
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold text-destructive">
+                    {t("agentControl.failure.title")}
+                  </p>
+                  <p className="mt-1 break-words text-[11px] leading-4 text-muted-foreground">
+                    {error}
+                  </p>
+                </div>
+              </div>
             </div>
           )}
 
-          {messages.map((message) => (
-            <article
-              className={cn(
-                "max-w-[92%] rounded-2xl px-3 py-2 text-sm",
-                message.role === "user"
-                  ? "ml-auto bg-primary text-primary-foreground"
-                  : "mr-auto border border-border bg-background text-foreground",
+          {(messages.length > 0 || streamingText) && (
+            <div className="space-y-2.5" aria-label={t("agentControl.conversation.title")}>
+              <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                <MessageSquareText className="size-3" />
+                {t("agentControl.conversation.title")}
+              </div>
+              {messages.map((message) => (
+                <article
+                  className={cn(
+                    "rounded-2xl px-3 py-2.5 text-sm",
+                    message.role === "user" &&
+                      "ml-auto max-w-[88%] rounded-br-md bg-primary text-primary-foreground",
+                    message.role === "assistant" &&
+                      "mr-auto max-w-[92%] rounded-bl-md border border-border bg-background text-foreground",
+                    message.role === "system" &&
+                      "w-full rounded-lg border border-warning/25 bg-warning/5 text-foreground",
+                  )}
+                  key={message.id}
+                >
+                  <p
+                    className={cn(
+                      "mb-1 text-[10px] font-semibold uppercase tracking-wide",
+                      message.role === "user"
+                        ? "text-primary-foreground/70"
+                        : "text-muted-foreground",
+                    )}
+                  >
+                    {t(`agentControl.messageRole.${message.role}`)}
+                  </p>
+                  <p className="whitespace-pre-wrap break-words leading-5">{message.content}</p>
+                </article>
+              ))}
+              {streamingText && (
+                <article className="mr-auto max-w-[92%] rounded-2xl rounded-bl-md border border-primary/20 bg-primary/5 px-3 py-2.5 text-sm text-foreground">
+                  <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-primary">
+                    {t("agentControl.messageRole.assistant")}
+                  </p>
+                  <p className="whitespace-pre-wrap break-words leading-5">{streamingText}</p>
+                </article>
               )}
-              key={message.id}
-            >
-              <p className="whitespace-pre-wrap break-words">{message.content}</p>
-            </article>
-          ))}
-          {streamingText && (
-            <article className="mr-auto max-w-[92%] rounded-2xl border border-border bg-background px-3 py-2 text-sm text-foreground">
-              <p className="whitespace-pre-wrap break-words">{streamingText}</p>
-            </article>
+            </div>
           )}
 
           {pendingApprovals.map((approval) => (
@@ -137,9 +232,12 @@ export const GlobalAgentPanel = ({ className }: { className?: string }) => {
               <div className="flex items-start gap-2">
                 <Undo2 className="mt-0.5 size-4 text-primary" />
                 <div className="min-w-0 flex-1">
-                  <p className="text-xs font-medium">Canvas Change Set</p>
+                  <p className="text-xs font-medium">{t("agentControl.changeSet.title")}</p>
                   <p className="mt-1 text-[11px] text-muted-foreground">
-                    {changeSet.revision} action(s) · {changeSet.status}
+                    {t("agentControl.changeSet.summary", {
+                      count: changeSet.revision,
+                      status: t(`agentControl.changeSet.status.${changeSet.status}`),
+                    })}
                   </p>
                   {changeSet.status === "ready" && (
                     <div className="mt-3 flex gap-2">
@@ -147,14 +245,14 @@ export const GlobalAgentPanel = ({ className }: { className?: string }) => {
                         size="sm"
                         onClick={() => void applyChangeSet(changeSet.id, changeSet.baseVersion)}
                       >
-                        Apply
+                        {t("agentControl.changeSet.apply")}
                       </Button>
                       <Button
                         size="sm"
                         variant="outline"
                         onClick={() => void rejectChangeSet(changeSet.id)}
                       >
-                        Reject
+                        {t("agentControl.changeSet.reject")}
                       </Button>
                     </div>
                   )}
@@ -163,11 +261,47 @@ export const GlobalAgentPanel = ({ className }: { className?: string }) => {
             </article>
           ))}
 
-          {recentActions.length > 0 && (
-            <div className="space-y-1.5 border-t border-border pt-3">
-              <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-                Activity
+          {(recentRuntimeEvents.length > 0 || recentActions.length > 0) && (
+            <div className="space-y-1.5 border-t border-border pt-3" data-testid="agent-activity">
+              <p className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                <Clock3 className="size-3" />
+                {t("agentControl.activity.title")}
               </p>
+              {recentRuntimeEvents.map((envelope) => {
+                const runtimeEvent = envelope.event;
+                if (runtimeEvent.type !== "diagnostic" && runtimeEvent.type !== "terminal") {
+                  return null;
+                }
+                const failed =
+                  runtimeEvent.type === "diagnostic"
+                    ? runtimeEvent.level === "error"
+                    : runtimeEvent.status !== "completed" && runtimeEvent.status !== "cancelled";
+
+                return (
+                  <div
+                    className="grid grid-cols-[1rem_minmax(0,1fr)] gap-2 rounded-lg bg-muted/35 px-2 py-2 text-xs"
+                    key={`${envelope.runId}:${envelope.sequence}`}
+                  >
+                    {failed ? (
+                      <AlertCircle className="mt-0.5 size-3.5 text-destructive" />
+                    ) : (
+                      <CheckCircle2 className="mt-0.5 size-3.5 text-success" />
+                    )}
+                    <div className="min-w-0">
+                      <p className="truncate text-[11px] font-medium">
+                        {runtimeEvent.type === "diagnostic"
+                          ? runtimeEvent.code
+                          : t(`agentControl.status.${runtimeEvent.status}`)}
+                      </p>
+                      {runtimeEvent.type === "diagnostic" && (
+                        <p className="mt-0.5 break-words text-[10px] leading-4 text-muted-foreground">
+                          {runtimeEvent.message}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
               {recentActions.map((action) => (
                 <div
                   className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-xs"
@@ -180,74 +314,60 @@ export const GlobalAgentPanel = ({ className }: { className?: string }) => {
                   ) : (
                     <LoaderCircle className="size-3.5 animate-spin text-primary motion-reduce:animate-none" />
                   )}
-                  <span className="min-w-0 flex-1 truncate">{action.toolName}</span>
-                  <span className="text-[10px] text-muted-foreground">{action.status}</span>
+                  <span className="min-w-0 flex-1 truncate font-mono text-[11px]">
+                    {action.toolName}
+                  </span>
+                  <span className="text-[10px] text-muted-foreground">
+                    {t(`agentControl.actionStatus.${action.status}`)}
+                  </span>
                 </div>
               ))}
             </div>
           )}
-          {messages.length === 0 && recentActions.length === 0 && capabilities?.enabled && (
-            <div className="grid min-h-52 place-items-center px-6 text-center">
-              <div>
-                <CircleDot className="mx-auto size-7 text-primary" />
-                <p className="mt-3 text-sm font-medium">Control ORDINE step by step</p>
-                <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                  The Agent reads only the context it needs and applies small, observable tool
-                  actions.
-                </p>
+          {messages.length === 0 &&
+            recentActions.length === 0 &&
+            recentRuntimeEvents.length === 0 &&
+            capabilities?.enabled && (
+              <div className="grid min-h-52 place-items-center px-6 text-center">
+                <div>
+                  <CircleDot className="mx-auto size-7 text-primary" />
+                  <p className="mt-3 text-sm font-medium">{t("agentControl.empty.title")}</p>
+                  <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                    {t("agentControl.empty.description")}
+                  </p>
+                </div>
               </div>
-            </div>
-          )}
+            )}
         </div>
       </ScrollArea>
 
-      <form className="shrink-0 space-y-2 border-t border-border p-3" onSubmit={handleSubmit}>
+      <form className="shrink-0 space-y-2.5 border-t border-border p-3" onSubmit={handleSubmit}>
         <AgentContextChips />
         <Textarea
-          aria-label="Message ORDINE Agent"
-          className="min-h-20 resize-none"
+          aria-label={t("agentControl.composer.label")}
+          className="min-h-24 resize-none rounded-xl"
           disabled={disabled}
-          placeholder="Ask ORDINE to create, edit, run, or inspect…"
+          placeholder={t("agentControl.composer.placeholder")}
           value={draft}
           onChange={(event) => setDraft(event.target.value)}
           onKeyDown={handleKeyDown}
         />
         <div className="flex items-center gap-2">
-          <select
-            aria-label="Control runtime"
-            className="h-8 min-w-0 flex-1 rounded-md border border-border bg-background px-2 text-xs outline-none focus:border-ring"
-            disabled={supportedRuntimes.length === 0 || isRunning}
-            value={selectedRuntimeId ?? ""}
-            onChange={(event) => setRuntime(event.target.value)}
-          >
-            {supportedRuntimes.map((runtime) => (
-              <option key={runtime.runtimeConfigId} value={runtime.runtimeConfigId}>
-                {runtime.name}
-              </option>
-            ))}
-          </select>
+          <span className="min-w-0 flex-1 truncate text-[10px] text-muted-foreground">
+            {t("agentControl.composer.shortcut")}
+          </span>
           {isRunning ? (
-            <Button
-              aria-label="Stop Agent"
-              size="icon"
-              type="button"
-              variant="outline"
-              onClick={() => void stop()}
-            >
+            <Button type="button" variant="outline" onClick={() => void stop()}>
               <Square className="size-3.5 fill-current" />
+              {t("agentControl.composer.stop")}
             </Button>
           ) : (
-            <Button
-              aria-label="Send to Agent"
-              disabled={disabled || !draft.trim()}
-              size="icon"
-              type="submit"
-            >
+            <Button disabled={disabled || !draft.trim()} type="submit">
               <Send />
+              {t("agentControl.composer.send")}
             </Button>
           )}
         </div>
-        {error && <p className="text-xs text-destructive">{error}</p>}
       </form>
     </section>
   );

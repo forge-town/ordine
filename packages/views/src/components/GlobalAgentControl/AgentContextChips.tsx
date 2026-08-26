@@ -1,4 +1,5 @@
 import { X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
 import { cn } from "@repo/ui/lib/utils";
 import { useAgentControl } from "./GlobalAgentControlProvider";
@@ -6,20 +7,32 @@ import { useAgentControl } from "./GlobalAgentControlProvider";
 type Chip = { key: string; label: string };
 
 export const AgentContextChips = ({ className }: { className?: string }) => {
+  const { t } = useTranslation();
   const context = useAgentControl((state) => state.context);
   const removed = useAgentControl((state) => state.removedContextChips);
   const remove = useAgentControl((state) => state.removeContextChip);
   const restore = useAgentControl((state) => state.restoreContextChips);
   const chips: Chip[] = [
     { key: "route", label: context.route.label ?? context.route.pathname },
-    ...(context.projectId ? [{ key: "project", label: `Project ${context.projectId}` }] : []),
-    ...(context.pipelineId ? [{ key: "pipeline", label: `Pipeline ${context.pipelineId}` }] : []),
+    ...(context.projectId
+      ? [{ key: "project", label: t("agentControl.context.project", { id: context.projectId }) }]
+      : []),
+    ...(context.pipelineId
+      ? [{ key: "pipeline", label: t("agentControl.context.pipeline", { id: context.pipelineId }) }]
+      : []),
     ...context.selectedResources.map((resource) => ({
       key: `resource:${resource.type}:${resource.id}`,
-      label: resource.label ?? `${resource.type} ${resource.id}`,
+      label:
+        resource.label ??
+        t("agentControl.context.resource", { type: resource.type, id: resource.id }),
     })),
     ...(context.selectedNodeIds.length > 0
-      ? [{ key: "nodes", label: `${context.selectedNodeIds.length} selected node(s)` }]
+      ? [
+          {
+            key: "nodes",
+            label: t("agentControl.context.nodes", { count: context.selectedNodeIds.length }),
+          },
+        ]
       : []),
   ].filter((chip) => !removed.includes(chip.key));
 
@@ -34,7 +47,7 @@ export const AgentContextChips = ({ className }: { className?: string }) => {
         >
           <span className="truncate">{chip.label}</span>
           <button
-            aria-label={`Remove ${chip.label} from this message`}
+            aria-label={t("agentControl.context.remove", { label: chip.label })}
             className="rounded-full p-0.5 transition-colors hover:bg-background hover:text-foreground"
             type="button"
             onClick={() => remove(chip.key)}
@@ -45,7 +58,7 @@ export const AgentContextChips = ({ className }: { className?: string }) => {
       ))}
       {removed.length > 0 && (
         <Button className="h-6 px-2 text-[11px]" size="xs" variant="ghost" onClick={restore}>
-          Restore context
+          {t("agentControl.context.restore")}
         </Button>
       )}
     </div>

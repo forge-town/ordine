@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useStore } from "zustand";
 import {
   GlobalAgentPanel,
@@ -73,13 +74,14 @@ export const CanvasAgentControlBridge = () => {
 };
 
 export const CanvasAgentControlPanel = () => {
+  const { t } = useTranslation();
   const agentStore = useOptionalAgentControlStore();
 
   return agentStore ? (
     <GlobalAgentPanel />
   ) : (
     <div className="grid h-full place-items-center p-6 text-center text-sm text-muted-foreground">
-      Agent Control is unavailable in this preview environment.
+      {t("agentControl.previewUnavailable")}
     </div>
   );
 };

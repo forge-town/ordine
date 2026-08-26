@@ -236,6 +236,8 @@ export const createAgentControlStore = (client: AgentControlClient): AgentContro
       store.setState((state) => ({ streamingText: `${state.streamingText}${event.text}` }));
     } else if (event.type === "message") {
       store.setState({ streamingText: event.text });
+    } else if (event.type === "diagnostic" && event.level === "error") {
+      store.setState({ error: event.message });
     } else if (event.type === "draft_applied") {
       await store.getState().canvasSurface?.applyDraftAction({
         actionId: event.actionId,
@@ -273,8 +275,10 @@ export const createAgentControlStore = (client: AgentControlClient): AgentContro
       await refreshThreadData(threadId);
     }
     if (event.type === "terminal") {
+      const wasRunning = store.getState().isRunning;
       store.setState((state) => ({
         isRunning: false,
+        streamingText: "",
         context: {
           ...state.context,
           activeRun: null,
@@ -283,10 +287,12 @@ export const createAgentControlStore = (client: AgentControlClient): AgentContro
       }));
       await wait(250);
       await refreshThreadData(threadId);
-      void ResultAsync.fromPromise(pollForFollowUp(threadId, envelope.runId), toError).match(
-        () => undefined,
-        (error) => store.setState({ error: error.message }),
-      );
+      if (wasRunning && event.status === "completed") {
+        void ResultAsync.fromPromise(pollForFollowUp(threadId, envelope.runId), toError).match(
+          () => undefined,
+          (error) => store.setState({ error: error.message }),
+        );
+      }
     }
   };
 
@@ -339,13 +345,19 @@ export const createAgentControlStore = (client: AgentControlClient): AgentContro
     store.setState((state) => ({
       currentRunId: latest.id,
       isRunning: !terminal,
+      error:
+        latest.status === "failed" ||
+        latest.status === "timed_out" ||
+        latest.status === "interrupted"
+          ? (latest.errorMessage ?? `Agent run ended with status ${latest.status}.`)
+          : null,
       context: {
         ...state.context,
         activeRun: terminal ? null : { runId: latest.id, status: latest.status },
         capturedAt: new Date().toISOString(),
       },
     }));
-    if (!terminal) startEventStream(threadId, latest.id);
+    startEventStream(threadId, latest.id);
   };
 
   const runChangeSetOperation = async (

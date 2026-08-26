@@ -172,11 +172,13 @@ const mockCanvasAgent = async (page: Page) => {
         toolCount: 22,
         runtimes: [
           {
-            runtimeConfigId: "claude-code:node",
-            runtime: "claude-code",
-            name: "Claude Code",
+            runtimeConfigId: "local-codex",
+            runtime: "codex",
+            name: "Codex",
             supported: true,
             reason: "Verified MCP-only control mode",
+            controlModel: "gpt-5.6-luna",
+            controlReasoningEffort: "xhigh",
           },
         ],
       });

@@ -1595,5 +1595,97 @@
       "subtitle": "Describe the work. The Agent will match it against your real operation library.",
       "title": "Find for me"
     }
+  },
+  "agentControl": {
+    "title": "ORDINE Agent Control",
+    "workingDescription": "Working through controlled tools step by step",
+    "toolCount": "{{count}} controlled tools",
+    "runtimeLocked": "Codex · Luna · xhigh",
+    "runtimeFixed": "Locked",
+    "disabled": "Agent Control is disabled by ORDINE_AGENT_CONTROL_ENABLED=false.",
+    "unsupported": "The Codex Luna xhigh control runtime is unavailable. ORDINE will not fall back to the legacy JSON planner.",
+    "previewUnavailable": "Agent Control is unavailable in this preview environment.",
+    "status": {
+      "working": "Running",
+      "ready": "Ready",
+      "failed": "Failed",
+      "completed": "Completed",
+      "cancelled": "Stopped",
+      "timed_out": "Timed out",
+      "interrupted": "Interrupted"
+    },
+    "thread": {
+      "label": "Conversation thread",
+      "empty": "A conversation thread will be created with your first message."
+    },
+    "failure": {
+      "title": "This run did not complete"
+    },
+    "conversation": {
+      "title": "Conversation"
+    },
+    "messageRole": {
+      "user": "You",
+      "assistant": "ORDINE Agent",
+      "system": "System"
+    },
+    "changeSet": {
+      "title": "Canvas Change Set",
+      "summary": "{{count}} actions · {{status}}",
+      "apply": "Apply and save",
+      "reject": "Discard",
+      "status": {
+        "drafting": "Editing",
+        "ready": "Ready to apply",
+        "applying": "Applying",
+        "committed": "Committed",
+        "rejected": "Rejected",
+        "rolled_back": "Rolled back",
+        "reverted": "Reverted",
+        "conflicted": "Version conflict"
+      }
+    },
+    "activity": {
+      "title": "Run and tool activity"
+    },
+    "actionStatus": {
+      "started": "Running",
+      "succeeded": "Succeeded",
+      "failed": "Failed",
+      "approval_required": "Approval needed",
+      "replayed": "Reused"
+    },
+    "empty": {
+      "title": "Control ORDINE step by step",
+      "description": "The Agent reads only the context it needs, then executes, reports, and repairs through small observable tools."
+    },
+    "composer": {
+      "label": "Message ORDINE Agent",
+      "placeholder": "For example: inspect this project and build a Pipeline step by step…",
+      "shortcut": "Ctrl/⌘ + Enter to send",
+      "send": "Send",
+      "stop": "Stop"
+    },
+    "surface": {
+      "launcher": "ORDINE Agent",
+      "working": "Agent running",
+      "openActivity": "Open Agent activity",
+      "noRuntime": "Codex Luna xhigh control runtime unavailable",
+      "title": "ORDINE Agent activity"
+    },
+    "approval": {
+      "title": "Your confirmation is required",
+      "expires": "This one-time approval expires at {{time}}.",
+      "confirm": "Confirm",
+      "reject": "Reject"
+    },
+    "context": {
+      "project": "Project {{id}}",
+      "pipeline": "Pipeline {{id}}",
+      "resource": "{{type}} {{id}}",
+      "nodes": "{{count}} selected nodes",
+      "remove": "Remove {{label}} from this message",
+      "restore": "Restore context"
+    }
   }
 }
