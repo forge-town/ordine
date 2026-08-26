@@ -401,11 +401,15 @@ export const createResourceControl = (db: DbConnection) => {
 
       if (resourceType === "pipeline") {
         const pipelineData = parsed.data as z.infer<typeof PipelineMetadataCreateSchema>;
-        const created = await services.pipeline.create({
+        const createdResult = await services.pipeline.create({
           ...pipelineData,
           nodes: [],
           edges: [],
         });
+        if (createdResult.isErr()) {
+          return err(toError(createdResult.error, "Create Pipeline"));
+        }
+        const created = createdResult.value;
         const compact = compactResource(resourceType, created);
 
         return ok({
