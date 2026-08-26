@@ -1710,91 +1710,96 @@ export const createPipelineAgentSessionsService = (
           pendingOperationIds.value =
             generated.pendingOperations?.map((operation) => operation.id) ?? [];
 
-          const pipeline = await db.transaction(async (tx) => {
-            const transactionalPipelinesService = createPipelinesService(
-              tx as unknown as DbConnection,
-            );
-            const transactionalRoutinesDao = createRoutinesDao(tx as unknown as DbConnection);
-            const transactionalSessionsDao = createPipelineAgentSessionsDao(tx);
-            const transactionalConversationMessagesDao = createConversationMessagesDao(tx);
-            assertActivityActive(sessionId, activity);
-            if (generated.pendingOperations && generated.pendingOperations.length > 0) {
-              const createPendingResult =
-                await transactionalPipelinesService.createPendingOperations(
-                  generated.pendingOperations,
-                );
-              if (createPendingResult.isErr()) throw createPendingResult.error;
+          const pipeline = await db.transaction(
+            async (tx) => {
+              const transactionalPipelinesService = createPipelinesService(
+                tx as unknown as DbConnection,
+              );
+              const transactionalRoutinesDao = createRoutinesDao(tx as unknown as DbConnection);
+              const transactionalSessionsDao = createPipelineAgentSessionsDao(tx);
+              const transactionalConversationMessagesDao = createConversationMessagesDao(tx);
               assertActivityActive(sessionId, activity);
-            }
-
-            const createdPipeline = await transactionalPipelinesService.create({
-              id: crypto.randomUUID(),
-              name: pipelineName,
-              description: pipelineDescription,
-              tags: ["agent-generated"],
-              timeoutMs: null,
-              nodes: generated.nodes,
-              edges: generated.edges,
-            });
-            assertActivityActive(sessionId, activity);
-            if (generateProposal.schedule) {
-              const enabled = generateProposal.schedule.enabled;
-              const nextRunAt = enabled
-                ? getNextCronRunAt(generateProposal.schedule.cronExpression, new Date())
-                : null;
-              if (enabled && !nextRunAt) {
-                throw new Error("Agent returned an invalid Pipeline schedule");
+              if (generated.pendingOperations && generated.pendingOperations.length > 0) {
+                const createPendingResult =
+                  await transactionalPipelinesService.createPendingOperations(
+                    generated.pendingOperations,
+                  );
+                if (createPendingResult.isErr()) throw createPendingResult.error;
+                assertActivityActive(sessionId, activity);
               }
-              await transactionalRoutinesDao.create({
+
+              const createPipelineResult = await transactionalPipelinesService.create({
                 id: crypto.randomUUID(),
-                pipelineId: createdPipeline.id,
-                name: generateProposal.schedule.name ?? `${pipelineName} schedule`,
-                description: `Agent-created schedule for ${pipelineName}`,
-                cronExpression: generateProposal.schedule.cronExpression,
-                inputConfig: null,
-                enabled,
-                lastRunAt: null,
-                nextRunAt,
+                name: pipelineName,
+                description: pipelineDescription,
+                tags: ["agent-generated"],
+                timeoutMs: null,
+                nodes: generated.nodes,
+                edges: generated.edges,
+              });
+              if (createPipelineResult.isErr()) throw createPipelineResult.error;
+              const createdPipeline = createPipelineResult.value;
+              assertActivityActive(sessionId, activity);
+              if (generateProposal.schedule) {
+                const enabled = generateProposal.schedule.enabled;
+                const nextRunAt = enabled
+                  ? getNextCronRunAt(generateProposal.schedule.cronExpression, new Date())
+                  : null;
+                if (enabled && !nextRunAt) {
+                  throw new Error("Agent returned an invalid Pipeline schedule");
+                }
+                await transactionalRoutinesDao.create({
+                  id: crypto.randomUUID(),
+                  pipelineId: createdPipeline.id,
+                  name: generateProposal.schedule.name ?? `${pipelineName} schedule`,
+                  description: `Agent-created schedule for ${pipelineName}`,
+                  cronExpression: generateProposal.schedule.cronExpression,
+                  inputConfig: null,
+                  enabled,
+                  lastRunAt: null,
+                  nextRunAt,
+                });
+                assertActivityActive(sessionId, activity);
+              }
+              const visibleMessages = messages.filter(
+                (message) => message.role !== "system" && message.content.trim().length > 0,
+              );
+              for (const message of visibleMessages) {
+                await transactionalConversationMessagesDao.create({
+                  id: crypto.randomUUID(),
+                  pipelineId: createdPipeline.id,
+                  role: message.role === "assistant" ? "agent" : "user",
+                  content: message.content,
+                  metadata: null,
+                  phase: "done",
+                  createdAt: message.createdAt,
+                });
+              }
+              const lastVisibleMessage = visibleMessages.at(-1);
+              if (
+                lastVisibleMessage?.role !== "assistant" ||
+                lastVisibleMessage.content.trim() !== generateProposal.purpose.trim()
+              ) {
+                await transactionalConversationMessagesDao.create({
+                  id: crypto.randomUUID(),
+                  pipelineId: createdPipeline.id,
+                  role: "agent",
+                  content: generateProposal.purpose,
+                  metadata: null,
+                  phase: "done",
+                });
+              }
+              assertActivityActive(sessionId, activity);
+              await transactionalSessionsDao.update(sessionId, {
+                status: "completed",
+                createdPipelineId: createdPipeline.id,
               });
               assertActivityActive(sessionId, activity);
-            }
-            const visibleMessages = messages.filter(
-              (message) => message.role !== "system" && message.content.trim().length > 0,
-            );
-            for (const message of visibleMessages) {
-              await transactionalConversationMessagesDao.create({
-                id: crypto.randomUUID(),
-                pipelineId: createdPipeline.id,
-                role: message.role === "assistant" ? "agent" : "user",
-                content: message.content,
-                metadata: null,
-                phase: "done",
-                createdAt: message.createdAt,
-              });
-            }
-            const lastVisibleMessage = visibleMessages.at(-1);
-            if (
-              lastVisibleMessage?.role !== "assistant" ||
-              lastVisibleMessage.content.trim() !== generateProposal.purpose.trim()
-            ) {
-              await transactionalConversationMessagesDao.create({
-                id: crypto.randomUUID(),
-                pipelineId: createdPipeline.id,
-                role: "agent",
-                content: generateProposal.purpose,
-                metadata: null,
-                phase: "done",
-              });
-            }
-            assertActivityActive(sessionId, activity);
-            await transactionalSessionsDao.update(sessionId, {
-              status: "completed",
-              createdPipelineId: createdPipeline.id,
-            });
-            assertActivityActive(sessionId, activity);
 
-            return createdPipeline;
-          });
+              return createdPipeline;
+            },
+            { isolationLevel: "serializable" },
+          );
           persistedPipeline.id = pipeline.id;
           assertActivityActive(sessionId, activity);
 

@@ -56,6 +56,7 @@ vi.mock("@repo/models", () => ({
   createPipelineRunsDao: () => ({ findByJobId: vi.fn() }),
   createJobTracesDao: () => ({}),
   createOperationsDao: () => mockOperationsDao,
+  createOperationRegistryRepository: () => ({ runSerializable: vi.fn() }),
   createSettingsDao: () => mockSettingsDao,
 }));
 

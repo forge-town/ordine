@@ -249,12 +249,14 @@ describe("createPipelineAgentSessionsService", () => {
     mockPipelinesService.createPendingOperations.mockResolvedValue(ok(undefined));
     mockPipelinesService.updateOperationExecutors.mockResolvedValue(ok(undefined));
     mockPipelinesService.delete.mockResolvedValue(undefined);
-    mockPipelinesService.create.mockImplementation(async (data) => ({
-      id: data.id ?? "pipeline-1",
-      ...data,
-      createdAt: new Date("2026-06-03T12:00:05.000Z"),
-      updatedAt: new Date("2026-06-03T12:00:05.000Z"),
-    }));
+    mockPipelinesService.create.mockImplementation(async (data) =>
+      ok({
+        id: data.id ?? "pipeline-1",
+        ...data,
+        createdAt: new Date("2026-06-03T12:00:05.000Z"),
+        updatedAt: new Date("2026-06-03T12:00:05.000Z"),
+      }),
+    );
     mockPipelinesService.proposeActions.mockResolvedValue({
       proposal: {
         summary: "Delete invalid middle nodes",
@@ -1608,6 +1610,9 @@ describe("createPipelineAgentSessionsService", () => {
         edges: [],
       }),
     );
+    expect(mockDb.transaction).toHaveBeenCalledWith(expect.any(Function), {
+      isolationLevel: "serializable",
+    });
     expect(mockSessionsDao.update).toHaveBeenLastCalledWith(
       "session-1",
       expect.objectContaining({
