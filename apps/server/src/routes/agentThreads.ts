@@ -736,6 +736,7 @@ agentThreadsRoutes.post("/:threadId/change-sets/:changeSetId/revert", async (con
   const result = await agentControlService.revertChangeSet(
     changeSet.id,
     parsed.data.expectedVersion,
+    changeSet.runId,
   );
 
   return context.json(
@@ -753,7 +754,11 @@ agentThreadsRoutes.post("/:threadId/change-sets/:changeSetId/redo", async (conte
   );
   if (!changeSet)
     return context.json({ code: "CHANGE_SET_NOT_FOUND", error: "Change Set not found" }, 404);
-  const result = await agentControlService.redoChangeSet(changeSet.id, parsed.data.expectedVersion);
+  const result = await agentControlService.redoChangeSet(
+    changeSet.id,
+    parsed.data.expectedVersion,
+    changeSet.runId,
+  );
 
   return context.json(
     result,
