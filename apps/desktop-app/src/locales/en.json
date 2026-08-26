@@ -71,17 +71,32 @@
     "preview": "Preview",
     "plugins": "Plugins",
     "agents": "Agents",
+    "schedule": "Schedule",
+    "conversations": "Conversations",
     "logout": "Log out",
     "groups": {
       "assembly": "Assembly",
       "capabilities": "Capabilities",
-      "monitor": "Monitor"
+      "monitor": "Monitor",
+      "main": "Main"
     },
     "items": {
       "connectors": "Connectors",
       "localAgents": "Local Agents",
       "usage": "Usage"
     }
+  },
+  "schedule": {
+    "title": "Schedule",
+    "subtitle": "Run pipelines automatically on a schedule",
+    "emptyTitle": "Scheduling is coming soon",
+    "emptyDescription": "This page will list all scheduled pipeline routines, with cadence, activation state, and manual trigger."
+  },
+  "conversations": {
+    "title": "Conversations",
+    "subtitle": "Past conversations with agents",
+    "emptyTitle": "Conversations are coming soon",
+    "emptyDescription": "This page will collect your conversations with agents, so you can review and continue them."
   },
   "connectors": {
     "title": "Connectors",
@@ -1049,7 +1064,8 @@
       "autonomy": "Autonomy",
       "defaults": "Defaults",
       "keyboard": "Keyboard",
-      "project": "Project"
+      "project": "Project",
+      "pages": "Pages"
     },
     "saveChanges": "Save changes",
     "saved": "Saved ✓",
@@ -1160,7 +1176,12 @@
     "groups": {
       "data": "Data",
       "execution": "Execution",
-      "workspace": "Workspace"
+      "workspace": "Workspace",
+      "pages": "Pages"
+    },
+    "pages": {
+      "title": "More pages",
+      "description": "Entries moved out of the main navigation. Routes and features are unchanged."
     },
     "keyboard": {
       "description": "Canvas shortcuts. Read-only for now.",

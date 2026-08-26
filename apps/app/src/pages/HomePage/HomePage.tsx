@@ -37,11 +37,7 @@ export const HomePage = () => {
 
   return (
     <div className="flex h-full min-h-0 flex-col overflow-hidden bg-background">
-      <header className="flex h-14 shrink-0 items-center justify-between border-b border-border/80 px-4 sm:px-6">
-        <div className="min-w-0">
-          <p className="truncate text-sm font-semibold tracking-[-0.015em]">{t("home.title")}</p>
-          <p className="truncate text-[11px] text-muted-foreground">{t("home.subtitle")}</p>
-        </div>
+      <header className="flex h-14 shrink-0 items-center justify-end border-b border-border px-4 sm:px-6">
         {runtime ? (
           <Link
             aria-label={t("home.manageLocalAgents")}
@@ -68,10 +64,13 @@ export const HomePage = () => {
 
       <main className="min-h-0 flex-1 overflow-y-auto">
         <div className="mx-auto flex min-h-full w-full max-w-[860px] flex-col justify-center px-4 py-10 sm:px-8 sm:py-14">
-          <div className="mb-6 text-center">
-            <h1 className="text-balance text-2xl font-semibold tracking-[-0.035em] text-foreground sm:text-[30px]">
+          <div className="mb-10 text-center">
+            <h1 className="text-balance font-heading text-4xl font-semibold leading-[1.07] tracking-[-0.015em] sm:text-[56px]">
               {t("home.heading")}
             </h1>
+            <p className="mx-auto mt-5 max-w-[520px] text-pretty text-base font-medium leading-[1.38] text-muted-foreground">
+              {t("home.description")}
+            </p>
           </div>
 
           {catalogQuery.isError ? (

@@ -37,6 +37,8 @@
     "./CanvasPage": "./src/pages/CanvasPage/index.ts",
     "./SettingsPage": "./src/pages/SettingsPage/index.ts",
     "./PluginsPage": "./src/pages/PluginsPage/index.ts",
+    "./SchedulePage": "./src/pages/SchedulePage/index.ts",
+    "./ConversationsPage": "./src/pages/ConversationsPage/index.ts",
     "./LoginPage": "./src/pages/LoginPage/index.ts",
     "./SignUpPage": "./src/pages/SignUpPage/index.ts",
     "./PipelinesPage": "./src/pages/PipelinesPage/index.ts",

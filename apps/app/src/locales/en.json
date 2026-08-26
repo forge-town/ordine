@@ -97,11 +97,14 @@
     "preview": "Preview",
     "plugins": "Plugins",
     "agents": "Agents",
+    "schedule": "Schedule",
+    "conversations": "Conversations",
     "logout": "Log out",
     "groups": {
       "assembly": "Assembly",
       "capabilities": "Capabilities",
-      "monitor": "Monitor"
+      "monitor": "Monitor",
+      "main": "Main"
     },
     "items": {
       "agents": "Agents",
@@ -114,6 +117,18 @@
       "skills": "Skills",
       "usage": "Usage"
     }
+  },
+  "schedule": {
+    "title": "Schedule",
+    "subtitle": "Run pipelines automatically on a schedule",
+    "emptyTitle": "Scheduling is coming soon",
+    "emptyDescription": "This page will list all scheduled pipeline routines, with cadence, activation state, and manual trigger."
+  },
+  "conversations": {
+    "title": "Conversations",
+    "subtitle": "Past conversations with agents",
+    "emptyTitle": "Conversations are coming soon",
+    "emptyDescription": "This page will collect your conversations with agents, so you can review and continue them."
   },
   "connectors": {
     "title": "Connectors",
@@ -273,11 +288,8 @@
     "quickActionBestPracticesSub": "View coding standards"
   },
   "home": {
-    "title": "Ordine Studio",
-    "subtitle": "Conversation-first Pipeline workspace",
-    "eyebrow": "New Pipeline",
     "heading": "What should Ordine automate today?",
-    "description": "Describe the goal, inputs, and expected output. Your local Agent will confirm a plan, then create a runnable Pipeline in the existing Canvas.",
+    "description": "Describe the goal, inputs, and expected output. Ordine will create a runnable Pipeline in the Canvas for you.",
     "agentReady": "Local Agent ready",
     "agentConfigured": "Local Agent configured",
     "selectLocalAgent": "Select local Agent",
@@ -287,7 +299,6 @@
     "connectLocalAgent": "Connect local Agent",
     "checkingAgent": "Checking local Agent…",
     "localAgentCount": "{{name}} +{{count}}",
-    "sendHint": "Ctrl ↵ to send",
     "proposalHint": "Approve this plan and the Agent will create the Pipeline in the existing Canvas.",
     "proposalSchedule": "Schedule: {{cronExpression}}",
     "suggestions": {
@@ -1426,7 +1437,8 @@
       "autonomy": "Autonomy",
       "defaults": "Defaults",
       "keyboard": "Keyboard",
-      "project": "Project"
+      "project": "Project",
+      "pages": "Pages"
     },
     "saveChanges": "Save changes",
     "saved": "Saved ✓",
@@ -1537,7 +1549,12 @@
     "groups": {
       "data": "Data",
       "execution": "Execution",
-      "workspace": "Workspace"
+      "workspace": "Workspace",
+      "pages": "Pages"
+    },
+    "pages": {
+      "title": "More pages",
+      "description": "Entries moved out of the main navigation. Routes and features are unchanged."
     },
     "keyboard": {
       "description": "Canvas shortcuts. Read-only for now.",

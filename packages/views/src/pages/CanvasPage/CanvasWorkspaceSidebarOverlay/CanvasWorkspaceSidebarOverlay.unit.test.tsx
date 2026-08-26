@@ -47,9 +47,16 @@ describe("CanvasWorkspaceSidebarOverlay", () => {
       "href",
       "/pipelines",
     );
-    expect(screen.getByText(/Assembly|装配/i)).toBeInTheDocument();
-    expect(screen.getByText(/Monitor|监控/i)).toBeInTheDocument();
-    expect(screen.getByText(/Capabilities|能力/i)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Schedule|定时任务/i })).toHaveAttribute(
+      "href",
+      "/schedule",
+    );
+    expect(screen.getByRole("link", { name: /Plugins|插件/i })).toHaveAttribute("href", "/plugins");
+    expect(screen.getByRole("link", { name: /Agents|智能体/i })).toHaveAttribute("href", "/agents");
+    expect(screen.getByRole("link", { name: /Conversations|对话/i })).toHaveAttribute(
+      "href",
+      "/assistant",
+    );
 
     await user.click(screen.getByRole("button", { name: /Save|保存/i }));
 

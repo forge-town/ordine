@@ -38,7 +38,7 @@ describe("AppSidebar", () => {
     localStorage.clear();
   });
 
-  it("renders three navigation groups and valid routes", () => {
+  it("renders the flat main navigation and valid routes", () => {
     const store = createSidebarStore();
     const notificationStore = createNotificationStore();
     render(
@@ -51,38 +51,15 @@ describe("AppSidebar", () => {
       </NotificationStoreContext.Provider>,
     );
 
-    expect(screen.getByText("装配")).toBeInTheDocument();
-    expect(screen.getByText("监控")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "能力" })).toHaveAttribute("aria-expanded", "false");
     expect(screen.getByRole("link", { name: "流水线" })).toHaveAttribute("href", "/pipelines");
-    expect(screen.getByRole("link", { name: "任务" })).toHaveAttribute("href", "/pipelines/jobs");
+    expect(screen.getByRole("link", { name: "定时任务" })).toHaveAttribute("href", "/schedule");
+    expect(screen.getByRole("link", { name: "插件" })).toHaveAttribute("href", "/plugins");
+    expect(screen.getByRole("link", { name: "智能体" })).toHaveAttribute("href", "/agents");
+    expect(screen.getByRole("link", { name: "对话" })).toHaveAttribute("href", "/assistant");
     expect(screen.getByRole("link", { name: "设置" })).toHaveAttribute("href", "/settings");
+    expect(screen.queryByRole("link", { name: "组件" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "连接器" })).not.toBeInTheDocument();
     expect(screen.getByRole("separator", { name: "Resize or toggle sidebar" })).toBeInTheDocument();
-    for (const label of ["装配", "监控", "能力"]) {
-      expect(screen.getByLabelText(label)).toHaveClass("px-2!", "py-0!");
-      expect(screen.getByLabelText(label)).not.toHaveClass("p-0");
-    }
-  });
-
-  it("persists the capabilities expanded state", () => {
-    const store = createSidebarStore();
-    const notificationStore = createNotificationStore();
-    render(
-      <NotificationStoreContext.Provider value={notificationStore}>
-        <SidebarStoreContext.Provider value={store}>
-          <SidebarProvider>
-            <AppSidebar />
-          </SidebarProvider>
-        </SidebarStoreContext.Provider>
-      </NotificationStoreContext.Provider>,
-    );
-
-    fireEvent.click(screen.getByRole("button", { name: "能力" }));
-
-    expect(screen.getByRole("link", { name: "连接器" })).toHaveAttribute("href", "/connectors");
-    expect(screen.getByRole("link", { name: "设置" })).toHaveAttribute("href", "/settings");
-    expect(store.getState().capabilitiesOpen).toBe(true);
-    expect(localStorage.getItem("ordine.sidebar.capabilitiesOpen")).toBe("true");
   });
 
   it("centers the only visible header control when collapsed", () => {

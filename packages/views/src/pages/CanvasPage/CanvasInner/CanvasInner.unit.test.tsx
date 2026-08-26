@@ -205,9 +205,9 @@ describe("CanvasInner", () => {
     const user = userEvent.setup();
     render(<CanvasInner />, { wrapper });
 
-    expect(screen.getByTestId("canvas-agent-panel-reopen")).toBeInTheDocument();
+    expect(screen.getByTestId("canvas-v2-agent-reopen")).toBeInTheDocument();
 
-    await user.click(screen.getByTestId("canvas-agent-panel-reopen"));
+    await user.click(screen.getByTestId("canvas-v2-agent-reopen"));
 
     const regionWrapper = screen.getByTestId("canvas-agent-panel-region-wrapper");
     const resizeGutter = screen.getByTestId("canvas-agent-panel-resize-gutter");
@@ -221,10 +221,10 @@ describe("CanvasInner", () => {
       "w-full",
       "overflow-hidden",
       "rounded-2xl",
+      "border",
+      "border-border-strong",
       "bg-surface",
-      "shadow-float",
-      "ring-1",
-      "ring-border-strong",
+      "shadow-raised",
       "max-[480px]:!w-full",
     );
     expect(regionWrapper).toHaveClass(
@@ -237,10 +237,9 @@ describe("CanvasInner", () => {
       "max-[480px]:flex-1",
       "min-[1181px]:h-full",
       "min-[1181px]:shrink-0",
-      "min-[1181px]:py-1.5",
-      "min-[1181px]:pr-1.5",
+      "min-[1181px]:p-3",
     );
-    expect(region).not.toHaveClass("bg-surface", "border", "shadow-float", "rounded-2xl");
+    expect(region).not.toHaveClass("bg-surface", "border", "shadow-raised", "rounded-2xl");
     expect(shell.parentElement).toBe(region);
     expect(resizeGutter.nextElementSibling).toBe(region);
     expect(resizeHandle.parentElement).toBe(resizeGutter);
@@ -251,7 +250,7 @@ describe("CanvasInner", () => {
   it("keeps the component library floating when the AgentPanel opens", async () => {
     const user = userEvent.setup();
     render(<CanvasInner />, { wrapper });
-    await user.click(screen.getByTestId("canvas-agent-panel-reopen"));
+    await user.click(screen.getByTestId("canvas-v2-agent-reopen"));
 
     expect(screen.getByTestId("canvas-agent-panel-region-wrapper")).toHaveClass(
       "absolute",
@@ -270,7 +269,7 @@ describe("CanvasInner", () => {
   it("resizes and collapses the AgentPanel from the right-side handle", async () => {
     const user = userEvent.setup();
     render(<CanvasInner />, { wrapper });
-    await user.click(screen.getByTestId("canvas-agent-panel-reopen"));
+    await user.click(screen.getByTestId("canvas-v2-agent-reopen"));
 
     const globalWindow = globalThis.window;
     const resizeHandle = screen.getByTestId("resize-handle-right");
@@ -281,13 +280,13 @@ describe("CanvasInner", () => {
 
     fireEvent.pointerMove(globalWindow, { clientX: 1100 });
     expect(screen.queryByTestId("canvas-agent-panel-shell")).not.toBeInTheDocument();
-    expect(screen.getByTestId("canvas-agent-panel-reopen")).toBeInTheDocument();
+    expect(screen.getByTestId("canvas-v2-agent-reopen")).toBeInTheDocument();
   });
 
   it("starts AgentPanel resizing from its rendered width", async () => {
     const user = userEvent.setup();
     render(<CanvasInner />, { wrapper });
-    await user.click(screen.getByTestId("canvas-agent-panel-reopen"));
+    await user.click(screen.getByTestId("canvas-v2-agent-reopen"));
 
     const shell = screen.getByTestId("canvas-agent-panel-shell");
     vi.spyOn(shell, "getBoundingClientRect").mockReturnValue({
@@ -312,7 +311,7 @@ describe("CanvasInner", () => {
   it("supports keyboard resizing and exposes separator values", async () => {
     const user = userEvent.setup();
     render(<CanvasInner />, { wrapper });
-    await user.click(screen.getByTestId("canvas-agent-panel-reopen"));
+    await user.click(screen.getByTestId("canvas-v2-agent-reopen"));
 
     const resizeHandle = screen.getByTestId("resize-handle-right");
     expect(resizeHandle).toHaveAttribute("tabindex", "0");
@@ -330,7 +329,7 @@ describe("CanvasInner", () => {
   it("cleans up AgentPanel dragging after pointer cancellation", async () => {
     const user = userEvent.setup();
     render(<CanvasInner />, { wrapper });
-    await user.click(screen.getByTestId("canvas-agent-panel-reopen"));
+    await user.click(screen.getByTestId("canvas-v2-agent-reopen"));
 
     const resizeHandle = screen.getByTestId("resize-handle-right");
     fireEvent.pointerDown(resizeHandle, { clientX: 900 });
@@ -352,7 +351,7 @@ describe("CanvasInner", () => {
     expect(
       screen.queryByRole("menuitem", { name: /^(AI Assistant|AI 助手)$/i }),
     ).not.toBeInTheDocument();
-    expect(screen.getByTestId("canvas-agent-panel-reopen")).toBeInTheDocument();
+    expect(screen.getByTestId("canvas-v2-agent-reopen")).toBeInTheDocument();
   });
 
   it("opens the workspace sidebar overlay from the mini sidebar", async () => {
@@ -363,7 +362,8 @@ describe("CanvasInner", () => {
 
     expect(screen.getByTestId("canvas-workspace-sidebar-overlay")).toBeInTheDocument();
     expect(screen.getByText("Pipelines")).toBeInTheDocument();
-    expect(screen.getByText("Assembly")).toBeInTheDocument();
+    expect(screen.getByText("Schedule")).toBeInTheDocument();
+    expect(screen.getByText("Conversations")).toBeInTheDocument();
   });
 
   it("shows the canvas empty state when there are no nodes", () => {

@@ -17,7 +17,7 @@ export const CanvasEmptyState = () => {
   return (
     <div
       className={cn(
-        "pointer-events-none absolute inset-0 z-10 grid place-items-center px-6",
+        "pointer-events-none absolute inset-0 z-[1] grid place-items-center px-6",
         isComponentPanelOpen && "min-[1181px]:pl-[246px]",
       )}
       data-testid="canvas-v2-empty-state"

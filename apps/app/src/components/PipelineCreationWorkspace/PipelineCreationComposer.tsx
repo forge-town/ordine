@@ -139,7 +139,9 @@ export const PipelineCreationComposer = ({
       <div
         className={cn(
           "border border-border bg-card shadow-sm transition-colors focus-within:border-foreground/25",
-          isHome ? "rounded-2xl p-3" : "rounded-xl p-2.5",
+          isHome
+            ? "rounded-[14px] p-3 shadow-soft focus-within:border-cobalt/45"
+            : "rounded-xl p-2.5",
         )}
       >
         <Textarea
@@ -222,13 +224,10 @@ export const PipelineCreationComposer = ({
             </Link>
           ) : null}
 
-          <span className="ml-auto hidden text-[11px] text-muted-foreground sm:inline">
-            {t("home.sendHint")}
-          </span>
           {phase === "planning" ? (
             <Button
               aria-label={t("newPipelineDialog.cancel")}
-              className={cn("shrink-0", isHome && "rounded-full")}
+              className={cn("ml-auto shrink-0", isHome && "rounded-[10px]")}
               disabled={isCancelling}
               size={isHome ? "icon" : "sm"}
               type="button"
@@ -245,7 +244,11 @@ export const PipelineCreationComposer = ({
           ) : proposalVisible ? null : (
             <Button
               aria-label={t("newPipelineDialog.send")}
-              className={cn("shrink-0", isHome && "rounded-full")}
+              className={cn(
+                "ml-auto shrink-0",
+                isHome &&
+                  "rounded-[7px] bg-cobalt text-white hover:bg-cobalt-bright disabled:bg-cobalt-soft disabled:text-white dark:disabled:bg-ice-wash dark:disabled:text-[#1c1d1f]",
+              )}
               disabled={inputValue.trim().length === 0 || runtimeMissing}
               size={isHome ? "icon" : "sm"}
               onClick={handleSend}
@@ -290,21 +293,21 @@ export const PipelineCreationComposer = ({
           )}
         </div>
       ) : isHome && !hasConversation ? (
-        <div className="divide-y divide-border/70">
+        <div className="mt-2 divide-y divide-border">
           {suggestions.map((suggestion) => {
             const Icon = suggestion.icon;
 
             return (
               <button
                 key={suggestion.label}
-                className="group flex w-full items-center gap-3 px-2 py-3 text-left text-sm transition-colors hover:bg-surface-2"
+                className="group flex w-full items-center gap-3 rounded-[10px] px-2 py-3 text-left text-sm transition-colors hover:bg-surface-2"
                 data-prompt={suggestion.prompt}
                 type="button"
                 onClick={handleSuggestionClick}
               >
-                <Icon className="size-4 shrink-0 text-muted-foreground" />
-                <span className="font-medium text-foreground">{suggestion.label}</span>
-                <span className="hidden truncate text-muted-foreground sm:inline">
+                <Icon className="size-4 shrink-0 text-muted-foreground" strokeWidth={1.5} />
+                <span className="font-medium tracking-[-0.01em]">{suggestion.label}</span>
+                <span className="hidden truncate text-muted-foreground/80 sm:inline">
                   {suggestion.description}
                 </span>
                 <ArrowUp className="ml-auto size-3.5 rotate-45 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
