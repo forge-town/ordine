@@ -117,6 +117,7 @@ const GlobalAgentSurfaceContent = () => {
           >
             <Button
               aria-label={t("agentControl.surface.openActivity")}
+              data-testid="agent-surface-open"
               size="icon"
               type="button"
               variant="ghost"
@@ -131,6 +132,7 @@ const GlobalAgentSurfaceContent = () => {
             <Input
               aria-label={t("agentControl.composer.label")}
               className="min-w-0 flex-1 border-0 bg-transparent shadow-none focus-visible:ring-0"
+              data-testid="agent-composer-input"
               disabled={!supported}
               placeholder={
                 supported
@@ -153,6 +155,7 @@ const GlobalAgentSurfaceContent = () => {
             ) : (
               <Button
                 aria-label={t("agentControl.composer.send")}
+                data-testid="agent-composer-submit"
                 disabled={!supported || !draft.trim()}
                 size="icon"
                 type="submit"

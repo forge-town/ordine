@@ -69,12 +69,12 @@ test.describe("ORDINE Agent Control Plane", () => {
     await navigateAndWait(page, "/pipelines");
 
     const bar = page.getByTestId("global-agent-bar");
-    const composer = bar.getByRole("textbox", { name: "Message ORDINE Agent" });
+    const composer = bar.getByTestId("agent-composer-input");
     await expect(bar).toBeVisible();
     await expect(composer).toBeEnabled();
     await composer.fill("Inspect this page without a Canvas snapshot");
 
-    await bar.getByRole("button", { name: "Open Agent activity" }).click();
+    await bar.getByTestId("agent-surface-open").click();
     await expect(page.getByTestId("global-agent-panel")).toBeVisible();
     await expect(page.getByText("22 controlled tools", { exact: true })).toBeVisible();
     await expect(page.getByText("Control ORDINE step by step", { exact: true })).toBeVisible();
@@ -84,9 +84,7 @@ test.describe("ORDINE Agent Control Plane", () => {
     await page.getByRole("link", { name: "Settings" }).click();
     await expect(page).toHaveURL(/\/settings$/);
     await expect(
-      page.getByTestId("global-agent-bar").getByRole("textbox", {
-        name: "Message ORDINE Agent",
-      }),
+      page.getByTestId("global-agent-bar").getByTestId("agent-composer-input"),
     ).toHaveValue("Inspect this page without a Canvas snapshot");
 
     await expectNoErrorOverlay(page);

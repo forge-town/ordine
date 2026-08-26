@@ -628,11 +628,9 @@ test.describe("Canvas editor", () => {
 
     await measureInteraction(page, interactions, "send canvas Agent message", async () => {
       const agentPanel = page.getByTestId("canvas-agent-panel-shell");
-      await agentPanel
-        .getByRole("textbox", { name: "Message ORDINE Agent" })
-        .fill("Review the connected nodes");
-      await expect(agentPanel.getByRole("button", { name: "Send to Agent" })).toBeEnabled();
-      await agentPanel.getByRole("button", { name: "Send to Agent" }).click();
+      await agentPanel.getByTestId("agent-composer-input").fill("Review the connected nodes");
+      await expect(agentPanel.getByTestId("agent-composer-submit")).toBeEnabled();
+      await agentPanel.getByTestId("agent-composer-submit").click();
       await expect(page.getByText("Which output should receive the review?")).toBeVisible();
     });
 

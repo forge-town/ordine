@@ -240,6 +240,8 @@ export const GlobalAgentPanel = ({ className }: { className?: string }) => {
           {visibleChangeSets.map((changeSet) => (
             <article
               className="rounded-xl border border-primary/25 bg-primary/5 p-3"
+              data-status={changeSet.status}
+              data-testid="agent-change-set"
               key={changeSet.id}
             >
               <div className="flex items-start gap-2">
@@ -255,12 +257,14 @@ export const GlobalAgentPanel = ({ className }: { className?: string }) => {
                   {changeSet.status === "ready" && (
                     <div className="mt-3 flex gap-2">
                       <Button
+                        data-testid="agent-change-set-apply"
                         size="sm"
                         onClick={() => void applyChangeSet(changeSet.id, changeSet.baseVersion)}
                       >
                         {t("agentControl.changeSet.apply")}
                       </Button>
                       <Button
+                        data-testid="agent-change-set-reject"
                         size="sm"
                         variant="outline"
                         onClick={() => void rejectChangeSet(changeSet.id)}
@@ -318,6 +322,8 @@ export const GlobalAgentPanel = ({ className }: { className?: string }) => {
               {recentActions.map((action) => (
                 <div
                   className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-xs"
+                  data-status={action.status}
+                  data-testid="agent-action"
                   key={action.id}
                 >
                   {action.status === "succeeded" || action.status === "replayed" ? (
@@ -359,6 +365,7 @@ export const GlobalAgentPanel = ({ className }: { className?: string }) => {
         <Textarea
           aria-label={t("agentControl.composer.label")}
           className="min-h-24 resize-none rounded-xl"
+          data-testid="agent-composer-input"
           disabled={disabled}
           placeholder={t("agentControl.composer.placeholder")}
           value={draft}
@@ -375,7 +382,11 @@ export const GlobalAgentPanel = ({ className }: { className?: string }) => {
               {t("agentControl.composer.stop")}
             </Button>
           ) : (
-            <Button disabled={disabled || !draft.trim()} type="submit">
+            <Button
+              data-testid="agent-composer-submit"
+              disabled={disabled || !draft.trim()}
+              type="submit"
+            >
               <Send />
               {t("agentControl.composer.send")}
             </Button>

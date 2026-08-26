@@ -334,15 +334,13 @@ const openSeededCanvas = async (page: Page, pipelineId: string) => {
 
 const createDraft = async (page: Page) => {
   const panel = page.getByTestId("canvas-agent-panel-shell");
-  await panel
-    .getByRole("textbox", { name: "Message ORDINE Agent" })
-    .fill("Add a prompt node for repository review");
-  await panel.getByRole("button", { name: "Send to Agent" }).click();
+  await panel.getByTestId("agent-composer-input").fill("Add a prompt node for repository review");
+  await panel.getByTestId("agent-composer-submit").click();
   await expect(page.locator(".react-flow__node-prompt")).toBeVisible();
-  await expect(panel.getByText("Canvas Change Set")).toBeVisible();
-  await expect(panel.getByText("1 action(s) · ready")).toBeVisible();
-  await expect(panel.getByText("ordine.add_node")).toBeVisible();
-  await expect(panel.getByText("succeeded", { exact: true })).toBeVisible();
+  await expect(panel.getByTestId("agent-change-set")).toHaveAttribute("data-status", "ready");
+  await expect(
+    panel.getByTestId("agent-action").filter({ hasText: "ordine.add_node" }),
+  ).toHaveAttribute("data-status", "succeeded");
 
   return panel;
 };
@@ -358,8 +356,8 @@ test.describe("Canvas Agent Control Change Set workflow", () => {
     await openSeededCanvas(page, pipelineId);
     const panel = await createDraft(page);
 
-    await panel.getByRole("button", { name: "Apply", exact: true }).click();
-    await expect(panel.getByText("Canvas Change Set")).toHaveCount(0);
+    await panel.getByTestId("agent-change-set-apply").click();
+    await expect(panel.getByTestId("agent-change-set")).toHaveCount(0);
     await expect(page.locator(".react-flow__node-prompt")).toHaveCount(1);
 
     await page.getByTestId("canvas-component-object-file").click();
@@ -375,8 +373,8 @@ test.describe("Canvas Agent Control Change Set workflow", () => {
     await openSeededCanvas(page, pipelineId);
     const panel = await createDraft(page);
 
-    await panel.getByRole("button", { name: "Reject", exact: true }).click();
-    await expect(panel.getByText("Canvas Change Set")).toHaveCount(0);
+    await panel.getByTestId("agent-change-set-reject").click();
+    await expect(panel.getByTestId("agent-change-set")).toHaveCount(0);
     await expect(page.locator(".react-flow__node-prompt")).toHaveCount(0);
 
     await page.getByTestId("canvas-component-object-file").click();
