@@ -1,18 +1,14 @@
+import { AGENT_CONTROL_TOOLS } from "@repo/agent-control";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
 import { readFile } from "node:fs/promises";
 import { Result, ResultAsync } from "neverthrow";
+import { z } from "zod";
 import type { McpLaunchSpec } from "./installRegistry";
 
-export const REQUIRED_SESSION_READY_TOOLS = [
-  "ordine.list_pipelines",
-  "ordine.create_pipeline",
-  "ordine.create_operation",
-  "ordine.update_operation",
-  "ordine.run_pipeline",
-  "ordine.list_jobs",
-  "ordine.list_job_traces",
-] as const;
+export const REQUIRED_SESSION_READY_TOOLS = AGENT_CONTROL_TOOLS.filter((tool) =>
+  tool.audiences.includes("stdio"),
+).map((tool) => tool.name);
 
 export type McpReadinessFailureLayer =
   | "command_not_launchable"
@@ -49,6 +45,19 @@ type ProbeOptions = {
 };
 
 type JsonObject = Record<string, unknown>;
+
+const WorkspaceContextSchema = z
+  .object({
+    policy: z
+      .object({
+        mode: z.enum(["safe", "yolo"]),
+        allowWrite: z.boolean(),
+        allowIrreversible: z.boolean(),
+      })
+      .strict(),
+  })
+  .passthrough();
+
 type HttpProbeResult =
   | { ok: true; status: number; data: unknown }
   | { ok: false; status?: number; message: string };
@@ -141,7 +150,7 @@ const runtimeCatalogReady = (value: unknown): { initialized: boolean; count: num
     return (
       typeof record.runtimeConfigId === "string" &&
       record.runtimeConfigId.length > 0 &&
-      record.availability !== "unavailable"
+      record.availability === "launchable"
     );
   });
 
@@ -222,18 +231,23 @@ export const probeMcpProtocol = async (
       return { ...state, failureLayer: "workspace_context_unreadable", message: context.error };
     }
     const contextObject = objectFromResource(context.value);
-    const policy = contextObject?.policy;
-    state.workspaceContext = contextObject !== null;
-    if (policy !== null && typeof policy === "object" && !Array.isArray(policy)) {
-      const policyRecord = policy as JsonObject;
-      state.policyMode = typeof policyRecord.mode === "string" ? policyRecord.mode : undefined;
-      state.allowWrite = policyRecord.allowWrite === true;
-      state.allowIrreversible = policyRecord.allowIrreversible === true;
-      state.writePolicy =
-        state.policyMode === "yolo" || state.allowWrite === true ? "enabled" : "disabled";
-    } else {
+    const parsedContext = WorkspaceContextSchema.safeParse(contextObject);
+    state.workspaceContext = parsedContext.success;
+    if (!parsedContext.success) {
       state.writePolicy = "unknown";
+      await client.close();
+
+      return {
+        ...state,
+        failureLayer: "workspace_context_unreadable",
+        message: "ordine://workspace/context did not contain a valid policy",
+      };
     }
+    const policy = parsedContext.data.policy;
+    state.policyMode = policy.mode;
+    state.allowWrite = policy.allowWrite;
+    state.allowIrreversible = policy.allowIrreversible;
+    state.writePolicy = policy.mode === "yolo" || policy.allowWrite ? "enabled" : "disabled";
 
     const health = await requestJson(env, "/health", timeoutMs);
     state.apiReachable = health.ok;
@@ -259,7 +273,14 @@ export const probeMcpProtocol = async (
   }
 
   const called = await ResultAsync.fromPromise(
-    client.callTool({ name: "ordine.list_jobs", arguments: {} }, undefined, { signal: timeout }),
+    client.callTool(
+      {
+        name: "ordine.search",
+        arguments: { query: "job", resourceTypes: ["job"], limit: 1 },
+      },
+      undefined,
+      { signal: timeout },
+    ),
     errorMessage,
   );
   if (called.isErr()) {
@@ -270,14 +291,19 @@ export const probeMcpProtocol = async (
   state.safeToolCall = called.value.isError !== true;
   if (!state.safeToolCall) {
     state.failureLayer = state.apiReachable === false ? "api_unreachable" : "safe_tool_call_failed";
-    state.message = "ordine.list_jobs returned an MCP tool error";
+    state.message = "ordine.search for jobs returned an MCP tool error";
   }
 
   if (options.environmentChecks !== false) {
     const pipelines = await ResultAsync.fromPromise(
-      client.callTool({ name: "ordine.list_pipelines", arguments: {} }, undefined, {
-        signal: timeout,
-      }),
+      client.callTool(
+        {
+          name: "ordine.search",
+          arguments: { query: "pipeline", resourceTypes: ["pipeline"], limit: 1 },
+        },
+        undefined,
+        { signal: timeout },
+      ),
       errorMessage,
     );
     if (pipelines.isErr()) {
@@ -288,7 +314,7 @@ export const probeMcpProtocol = async (
     state.dbReachable = pipelines.value.isError !== true;
     if (!state.dbReachable) {
       state.failureLayer = "db_unreachable";
-      state.message = "ordine.list_pipelines returned an MCP tool error";
+      state.message = "ordine.search for pipelines returned an MCP tool error";
     }
     if (state.runtimeCatalogInitialized === false && !state.message) {
       state.failureLayer = "runtime_catalog_empty";

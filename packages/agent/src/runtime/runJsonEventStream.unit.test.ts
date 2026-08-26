@@ -126,7 +126,7 @@ describe("runJsonEventStream", () => {
       '{"type":"item.started","item":{"type":"mcp_tool_call","id":"mcp1","server":"ordine","tool":"list_jobs","arguments":{},"status":"in_progress"}}\n',
     );
     (child.stdout as PassThrough).write(
-      '{"type":"item.completed","item":{"type":"mcp_tool_call","id":"mcp1","server":"ordine","tool":"list_jobs","arguments":{},"result":{"content":[]},"status":"completed"}}\n',
+      '{"type":"item.completed","item":{"type":"mcp_tool_call","id":"mcp1","server":"ordine","tool":"list_jobs","arguments":{},"result":{"content":[]},"error":null,"status":"completed"}}\n',
     );
     (child.stdout as PassThrough).write(
       '{"type":"item.completed","item":{"type":"web_search","id":"web1","query":"ORDINE","status":"completed"}}\n',

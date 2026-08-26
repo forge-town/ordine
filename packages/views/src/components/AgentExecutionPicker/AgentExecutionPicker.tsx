@@ -20,10 +20,12 @@ interface AgentExecutionPickerProps {
   compact?: boolean;
   triggerVariant?: "summary" | "button";
   disabled?: boolean;
+  isolationDescription?: string;
   isLoading?: boolean;
   onChange: (choice: AgentExecutionChoice) => void;
   onRuntimeChange: (runtimeConfigId: string) => void;
   onOpenSettings?: () => void;
+  runtimeDisabledReasons?: Readonly<Record<string, string>>;
 }
 
 export const AgentExecutionPicker = ({
@@ -33,10 +35,12 @@ export const AgentExecutionPicker = ({
   compact = false,
   triggerVariant = "summary",
   disabled,
+  isolationDescription,
   isLoading,
   onChange: handleChange,
   onRuntimeChange: handleRuntimeChange,
   onOpenSettings: handleOpenSettings,
+  runtimeDisabledReasons = {},
 }: AgentExecutionPickerProps) => {
   const { t } = useTranslation();
   const currentEntry = catalog.find((entry) => entry.runtimeConfigId === choice?.runtimeConfigId);
@@ -52,9 +56,10 @@ export const AgentExecutionPicker = ({
     );
   }, [choice?.firstOutputTimeoutSeconds, choice?.runtimeConfigId]);
   const isolationLabel =
-    currentEntry?.runtime === "codex"
+    isolationDescription ??
+    (currentEntry?.runtime === "codex"
       ? t("agentExecutionPicker.nativeSandbox")
-      : t("agentExecutionPicker.bestEffortPolicy");
+      : t("agentExecutionPicker.bestEffortPolicy"));
   const displayModel =
     currentModel?.displayName ?? choice?.model ?? t("agentExecutionPicker.model");
   const isButtonTrigger = triggerVariant === "button";
@@ -142,7 +147,11 @@ export const AgentExecutionPicker = ({
           </div>
           <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-3" role="radiogroup">
             {catalog.map((entry) => {
-              const selectable = runtimeCatalogEntryIsSelectable(entry);
+              const runtimeDisabledReason = entry.runtimeConfigId
+                ? runtimeDisabledReasons[entry.runtimeConfigId]
+                : undefined;
+              const selectable =
+                runtimeCatalogEntryIsSelectable(entry) && runtimeDisabledReason === undefined;
               const active = entry.runtimeConfigId === choice?.runtimeConfigId;
 
               return (
@@ -157,7 +166,12 @@ export const AgentExecutionPicker = ({
                   data-testid={`agent-execution-runtime-${entry.runtime}`}
                   disabled={!selectable}
                   role="radio"
-                  title={entry.diagnostics[0]?.message ?? entry.version ?? entry.displayName}
+                  title={
+                    runtimeDisabledReason ??
+                    entry.diagnostics[0]?.message ??
+                    entry.version ??
+                    entry.displayName
+                  }
                   variant="outline"
                   onClick={handleRuntimeClick}
                 >
@@ -169,9 +183,11 @@ export const AgentExecutionPicker = ({
                     <span className="block truncate text-[10px] text-muted-foreground">
                       {selectable
                         ? (entry.version ?? t("agentExecutionPicker.detected"))
-                        : entry.compatibility.supportLevel === "supported"
-                          ? t("agentExecutionPicker.notLaunchable")
-                          : t("agentExecutionPicker.experimental")}
+                        : runtimeDisabledReason
+                          ? t("agentExecutionPicker.controlModeUnsupported")
+                          : entry.compatibility.supportLevel === "supported"
+                            ? t("agentExecutionPicker.notLaunchable")
+                            : t("agentExecutionPicker.experimental")}
                     </span>
                   </span>
                 </Button>

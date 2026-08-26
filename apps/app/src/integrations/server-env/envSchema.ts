@@ -2,6 +2,7 @@ import { z } from "zod/v4";
 
 export const serverEnvSchema = z.object({
   DATABASE_URL: z.string().min(1),
+  ORDINE_AGENT_API_TOKEN: z.string().min(32).optional(),
   ORDINE_API_PROXY_TARGET: z.url().default("http://localhost:9433"),
   VITE_APP_URL: z.string().default("http://localhost:9430"),
   BETTER_AUTH_SECRET: z.string(),

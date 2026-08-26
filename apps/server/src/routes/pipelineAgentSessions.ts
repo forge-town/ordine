@@ -2,7 +2,6 @@ import { Hono, type Context } from "hono";
 import { ResultAsync } from "neverthrow";
 import { z } from "zod/v4";
 import {
-  PipelineAgentEntrypointSchema,
   AgentRunPermissionModeSchema,
   PipelineGraphSnapshotSchema,
   PipelineAgentMessageKindSchema,
@@ -14,7 +13,7 @@ import { agentRunsService, pipelineAgentSessionsService } from "../services.js";
 export const pipelineAgentSessionsRoutes = new Hono();
 
 const createSessionBodySchema = z.object({
-  entrypoint: PipelineAgentEntrypointSchema,
+  entrypoint: z.enum(["new-pipeline-dialog", "canvas-agent-panel"]),
   mode: PipelineAgentModeSchema,
   pipelineId: z.string().optional(),
   snapshot: PipelineGraphSnapshotSchema.optional(),

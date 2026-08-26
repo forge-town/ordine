@@ -18,6 +18,7 @@ import {
   type InstallContext,
   type McpLaunchSpec,
 } from "../src/mcp/installRegistry";
+import { REQUIRED_SESSION_READY_TOOLS } from "../src/mcp/protocolDoctor";
 
 const temporaryDirectories: string[] = [];
 
@@ -237,7 +238,7 @@ describe("deletion-safe JSON registration", () => {
       initialize: true,
       toolsList: true,
       safeToolCall: true,
-      toolCount: 21,
+      toolCount: 22,
       apiReachable: false,
       dbReachable: false,
       runtimeCatalogInitialized: false,
@@ -268,6 +269,60 @@ describe("deletion-safe JSON registration", () => {
       writePolicy: "disabled",
       failureLayer: "api_unreachable",
     });
+  });
+
+  it("requires complete readiness evidence before reporting healthy", async () => {
+    const commandRunner = vi.fn(async () => ({
+      exitCode: 0,
+      stdout: ownedCodexOutput,
+      stderr: "",
+    }));
+    const completeEvidence = {
+      commandLaunchable: true,
+      initialize: true,
+      toolsList: true,
+      safeToolCall: true,
+      toolCount: 22,
+      requiredTools: Object.fromEntries(
+        REQUIRED_SESSION_READY_TOOLS.map((toolName) => [toolName, true]),
+      ),
+      workspaceContext: true,
+      apiReachable: true,
+      dbReachable: true,
+      runtimeCatalogInitialized: true,
+    };
+    const invalidWorkspace = await doctorMcpTarget({
+      target: "codex",
+      spec,
+      context: makeContext("C:\\Users\\test"),
+      commandRunner,
+      protocolProbe: vi.fn(async () => ({
+        ...completeEvidence,
+        workspaceContext: false,
+        failureLayer: "workspace_context_unreadable" as const,
+      })),
+    });
+    const incompleteCatalog = await doctorMcpTarget({
+      target: "codex",
+      spec,
+      context: makeContext("C:\\Users\\test"),
+      commandRunner,
+      protocolProbe: vi.fn(async () => ({
+        ...completeEvidence,
+        requiredTools: { "ordine.search": true },
+      })),
+    });
+    const healthy = await doctorMcpTarget({
+      target: "codex",
+      spec,
+      context: makeContext("C:\\Users\\test"),
+      commandRunner,
+      protocolProbe: vi.fn(async () => completeEvidence),
+    });
+
+    expect(invalidWorkspace.status).toBe("drifted");
+    expect(incompleteCatalog.status).toBe("drifted");
+    expect(healthy.status).toBe("healthy");
   });
 
   it("verifies agent-owned CLI registration after installing", async () => {

@@ -1,6 +1,6 @@
 import { serve } from "@hono/node-server";
 import { app } from "./app.js";
-import { agentRunsService, jobsService } from "./services.js";
+import { agentControlService, agentRunsService, jobsService } from "./services.js";
 
 import { getEnv } from "./integrations/env";
 
@@ -12,8 +12,13 @@ const DEFAULT_JOB_TIMEOUT_MS = env.JOB_TIMEOUT_MS ?? 60 * 60 * 1000; // 60 min
 const EXPIRE_CHECK_INTERVAL_MS = 60_000; // every 60s
 
 const interruptedRuns = await agentRunsService.recoverInterruptedRuns();
-if (interruptedRuns > 0) {
-  console.log(`[agent-runs] Marked ${interruptedRuns} unfinished run(s) as interrupted`);
+for (const runId of interruptedRuns.runIds) {
+  await agentControlService.rollbackDraftsForRun(runId, "failed");
+}
+if (interruptedRuns.count > 0) {
+  console.log(
+    `[agent-runs] Marked ${interruptedRuns.count} unfinished run(s) as interrupted and rolled back control drafts`,
+  );
 }
 
 setInterval(async () => {

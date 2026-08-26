@@ -76,8 +76,10 @@ export interface AgentRunOptions {
   resumeFromRunId?: string;
   rebuildPrompt?: string;
   fullAccessConfirmed?: boolean;
+  controlMode?: boolean;
   firstOutputTimeoutMs?: number;
   githubToken?: string;
+  environment?: Readonly<Record<string, string>>;
   ssh?: SshConnectionOptions;
   connectorInjection?: McpConnectorInjection;
   getMcpConnectorInjection?: McpConnectorInjectionProvider;

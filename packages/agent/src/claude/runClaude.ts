@@ -66,6 +66,14 @@ const CLAUDE_PERMISSION_MODES = {
   "full-access": "bypassPermissions",
 } as const;
 
+const claudePermissionMode = (
+  permissionMode: keyof typeof CLAUDE_PERMISSION_MODES,
+  controlMode: boolean,
+): string =>
+  controlMode && permissionMode === "read-only"
+    ? "dontAsk"
+    : CLAUDE_PERMISSION_MODES[permissionMode];
+
 const isReadOnlyTool = (tool: string, networkAccess: boolean): boolean =>
   tool.startsWith("mcp__") ||
   READ_ONLY_TOOLS.includes(tool as (typeof READ_ONLY_TOOLS)[number]) ||
@@ -76,11 +84,13 @@ export const buildClaudePermissionArgs = ({
   allowedTools,
   mcpToolNames,
   networkAccess,
+  controlMode = false,
 }: {
   permissionMode: keyof typeof CLAUDE_PERMISSION_MODES;
   allowedTools: readonly string[] | undefined;
   mcpToolNames: readonly string[] | undefined;
   networkAccess: boolean;
+  controlMode?: boolean;
 }): string[] => {
   const toolSelectionWasProvided = allowedTools !== undefined || mcpToolNames !== undefined;
   const requestedTools = [...new Set([...(allowedTools ?? []), ...(mcpToolNames ?? [])])];
@@ -91,7 +101,7 @@ export const buildClaudePermissionArgs = ({
       (permissionMode !== "read-only" || isReadOnlyTool(tool, networkAccess)) &&
       (networkAccess || !["WebSearch", "WebFetch", "Bash(curl:*)"].includes(tool)),
   );
-  const args = ["--permission-mode", CLAUDE_PERMISSION_MODES[permissionMode]];
+  const args = ["--permission-mode", claudePermissionMode(permissionMode, controlMode)];
   if (hasExplicitToolSelection) {
     const toolList = effectiveTools.join(",");
     args.push("--tools", toolList);
@@ -204,6 +214,7 @@ export const runClaude = async ({
   const composedPrompt = sanitizedSystemPrompt
     ? `${sanitizedSystemPrompt}\n\n---\n\n${truncatedPrompt}`
     : truncatedPrompt;
+  const agentControlMode = extraEnv?.ORDINE_AGENT_CONTROL_MODE === "1";
 
   const claudeArgs = [
     "-p",
@@ -215,12 +226,15 @@ export const runClaude = async ({
     ...(supportsPartialMessages ? ["--include-partial-messages"] : []),
     ...(model && model !== "default" ? ["--model", model] : []),
     ...(reasoningEffort && reasoningEffort !== "default" ? ["--effort", reasoningEffort] : []),
+    ...(agentControlMode ? ["--disable-slash-commands"] : []),
     ...(mcpConfigPath ? ["--mcp-config", mcpConfigPath] : []),
+    ...(agentControlMode && mcpConfigPath ? ["--strict-mcp-config"] : []),
     ...buildClaudePermissionArgs({
       permissionMode,
       allowedTools,
       mcpToolNames,
       networkAccess,
+      controlMode: agentControlMode,
     }),
     ...(resumeSessionId ? ["--resume", resumeSessionId] : ["--session-id", sessionId]),
   ];
@@ -236,7 +250,7 @@ export const runClaude = async ({
     type: "diagnostic",
     level: "info",
     code: "CLAUDE_EFFECTIVE_PERMISSION_MODE",
-    message: `Claude Code permission mode: ${CLAUDE_PERMISSION_MODES[permissionMode]}; filesystem/network restrictions are CLI policy best-effort (${networkAccess ? "network allowed" : "network tools denied"})`,
+    message: `Claude Code permission mode: ${claudePermissionMode(permissionMode, agentControlMode)}; filesystem/network restrictions are CLI policy best-effort (${networkAccess ? "network allowed" : "network tools denied"})`,
   });
   await onProgress?.(`${label} Starting claude -p (cwd=${cwd})...`);
 
@@ -369,7 +383,11 @@ export const runClaude = async ({
 
     stderr.on("data", (chunk: Buffer) => stderrChunks.push(chunk));
 
-    stdin.write(
+    // Each Agent Run is a single headless turn. Closing stdin after the one
+    // stream-json user message lets Claude finish the turn after any MCP calls;
+    // leaving it open makes the CLI wait indefinitely for another user message.
+    stdinState.closed = true;
+    stdin.end(
       `${JSON.stringify({
         type: "user",
         message: {

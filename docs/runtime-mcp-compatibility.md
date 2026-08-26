@@ -36,7 +36,7 @@ ordine mcp install claude       # claude-code is accepted as an alias
 ordine mcp install opencode
 ```
 
-`status` reports registration only. `doctor` starts the configured ORDINE MCP command with the official SDK and separately proves command launch, `initialize`, `tools/list`, required `ordine.*` tool discovery, workspace context, ORDINE API `/health`, a DB-backed `ordine.list_pipelines` call, runtime catalog initialization, and a safe `ordine.list_jobs` call. Only the final complete evidence chain is `healthy`.
+`status` reports registration only. `doctor` starts the configured ORDINE MCP command with the official SDK and separately proves command launch, `initialize`, `tools/list`, the shared 22-tool Agent Control catalog, a valid workspace policy, ORDINE API `/health`, DB-backed `ordine.search` calls, and at least one launchable runtime. Only the final complete evidence chain is `healthy`.
 
 The MCP chain is:
 
@@ -55,13 +55,13 @@ Doctor output separates failure layers so operators can distinguish registration
 - `required_tool_missing`: the session-ready tool surface is incomplete.
 - `workspace_context_unreadable`: the policy/workspace resource cannot be read.
 - `api_unreachable`: the configured ORDINE API `/health` probe failed.
-- `db_unreachable`: a DB-backed MCP read, currently `ordine.list_pipelines`, failed.
+- `db_unreachable`: a DB-backed Pipeline search through `ordine.search` failed.
 - `runtime_catalog_empty`: no configured launchable local runtime is available for runs.
-- `safe_tool_call_failed`: `ordine.list_jobs` failed through MCP.
+- `safe_tool_call_failed`: a bounded Job search through `ordine.search` failed.
 
 NPM-installed configurations contain an absolute Node-compatible runtime path and an absolute ORDINE CLI file path. Desktop packages include an independent `ordine-mcp` sidecar. Desktop authentication is read from `~/.ordine/.desktop-token` for every API request, so no expiring plaintext token is embedded in client configuration.
 
-Safe mode exposes read tools by default. Reversible writes such as `ordine.create_pipeline`, `ordine.create_operation`, `ordine.update_operation`, and `ordine.run_pipeline` require `--allow-write` or `--policy yolo`. Irreversible tools such as delete operations require `--allow-irreversible` or `--policy yolo`; `--allow-write` alone does not enable them.
+Safe mode exposes read tools by default. Reversible writes such as `ordine.create_resource`, `ordine.update_resource`, and `ordine.run_pipeline` require `--allow-write` or `--policy yolo`. Irreversible tools such as `ordine.delete_resource` require `--allow-irreversible` or `--policy yolo`; `--allow-write` alone does not enable them.
 
 JSON installation uses a temporary file and atomic rename, creates a timestamped backup before changing an existing file, refuses to overwrite a same-named non-ORDINE entry, and refuses to uninstall a drifted entry. Codex and Claude installations probe the target client's registration before and after mutation.
 

@@ -12,6 +12,7 @@ interface LoadedPipeline {
   sharedContext?: string;
   nodes: unknown[];
   edges: unknown[];
+  version?: number;
 }
 
 interface Props {
@@ -36,11 +37,14 @@ export const CanvasPageStoreProvider = ({ children, pipeline }: Props) => {
       pipeline?.id ?? null,
       pipeline?.name ?? "",
       pipeline?.sharedContext ?? "",
+      pipeline?.version ?? 1,
     );
   }
 
   return (
     <CanvasPageStoreContext.Provider value={storeRef.current}>
+      {/* Keep the legacy store as a compatibility boundary for existing
+          conversation history readers. New UI and runs use AgentThread only. */}
       <AgentBarStoreProvider pipelineId={pipeline?.id ?? null}>{children}</AgentBarStoreProvider>
     </CanvasPageStoreContext.Provider>
   );

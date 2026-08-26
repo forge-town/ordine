@@ -11,7 +11,11 @@ import {
   type McpTargetId,
   type InstallContext,
 } from "./installRegistry";
-import { probeMcpProtocol, type McpProtocolEvidence } from "./protocolDoctor";
+import {
+  probeMcpProtocol,
+  REQUIRED_SESSION_READY_TOOLS,
+  type McpProtocolEvidence,
+} from "./protocolDoctor";
 
 type UnknownRecord = Record<string, unknown>;
 type CommandResult = { exitCode: number | null; stdout: string; stderr: string };
@@ -574,14 +578,20 @@ export const doctorMcpTarget = async ({
     };
   }
   const protocol = await protocolProbe(spec);
+  const requiredToolsReady =
+    protocol.requiredTools !== undefined &&
+    REQUIRED_SESSION_READY_TOOLS.every((toolName) => protocol.requiredTools?.[toolName] === true);
   const healthy =
     protocol.commandLaunchable &&
     protocol.initialize &&
     protocol.toolsList &&
     protocol.safeToolCall &&
-    protocol.apiReachable !== false &&
-    protocol.dbReachable !== false &&
-    protocol.runtimeCatalogInitialized !== false;
+    requiredToolsReady &&
+    protocol.workspaceContext === true &&
+    protocol.apiReachable === true &&
+    protocol.dbReachable === true &&
+    protocol.runtimeCatalogInitialized === true &&
+    protocol.failureLayer === undefined;
 
   return {
     target,
@@ -590,7 +600,7 @@ export const doctorMcpTarget = async ({
     operation: "doctor",
     status: healthy ? "healthy" : "drifted",
     message: healthy
-      ? `${registrationMessage} initialize, tools/list, API/DB preflight, runtime catalog, and ordine.list_jobs all succeeded.`
+      ? `${registrationMessage} initialize, tools/list, workspace policy, API/DB preflight, runtime catalog, and ordine.search all succeeded.`
       : `${registrationMessage} MCP doctor failed at ${protocol.failureLayer ?? "unknown_layer"}: ${protocol.message ?? "unknown layer"}`,
     ...(configPath ? { configPath } : {}),
     evidence: {

@@ -6,6 +6,7 @@ import {
   type RuntimeModel,
 } from "@repo/schemas";
 import { tmpdir } from "node:os";
+import { Result } from "neverthrow";
 import { spawnCommand } from "../spawn/spawnCommand";
 import { RUNTIME_MANIFESTS } from "../runtime/runtimeManifestRegistry";
 import { getRuntimeBinaries, scanRuntimes } from "./scanRuntimes";
@@ -64,19 +65,32 @@ const runProbe = (
   args: readonly string[],
 ): Promise<{ code: number | null; output: string }> =>
   new Promise((resolve) => {
-    const child = spawnCommand(path, [...args], {
-      cwd: tmpdir(),
-      stdio: ["ignore", "pipe", "pipe"],
-    });
     const chunks: Buffer[] = [];
-    const state = { settled: false };
+    const spawned = Result.fromThrowable(
+      () =>
+        spawnCommand(path, [...args], {
+          cwd: tmpdir(),
+          stdio: ["ignore", "pipe", "pipe"],
+        }),
+      () => null,
+    )();
+    if (spawned.isErr()) {
+      resolve({ code: null, output: "" });
+
+      return;
+    }
+    const child = spawned.value;
+    const state = {
+      settled: false,
+      timer: undefined as ReturnType<typeof setTimeout> | undefined,
+    };
     const finish = (code: number | null): void => {
       if (state.settled) return;
       state.settled = true;
-      clearTimeout(timer);
+      if (state.timer) clearTimeout(state.timer);
       resolve({ code, output: Buffer.concat(chunks).toString("utf8").slice(0, 8192) });
     };
-    const timer = setTimeout(() => {
+    state.timer = setTimeout(() => {
       child.kill("SIGTERM");
       finish(null);
     }, 5000);

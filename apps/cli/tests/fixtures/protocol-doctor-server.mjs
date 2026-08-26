@@ -7,6 +7,13 @@ import {
   ReadResourceRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
 
+const toolNames = JSON.parse(process.env.ORDINE_DOCTOR_FIXTURE_TOOLS ?? "[]");
+const workspaceContextText =
+  process.env.ORDINE_DOCTOR_FIXTURE_CONTEXT ??
+  JSON.stringify({
+    policy: { mode: "safe", allowWrite: true, allowIrreversible: false },
+  });
+
 const server = new Server(
   { name: "ordine-doctor-fixture", version: "1.0.0" },
   {
@@ -17,23 +24,15 @@ const server = new Server(
   },
 );
 server.setRequestHandler(ListToolsRequestSchema, async () => ({
-  tools: [
-    "ordine.list_pipelines",
-    "ordine.create_pipeline",
-    "ordine.create_operation",
-    "ordine.update_operation",
-    "ordine.run_pipeline",
-    "ordine.list_jobs",
-    "ordine.list_job_traces",
-  ].map((name) => ({
+  tools: toolNames.map((name) => ({
     name,
     description: "Fixture call",
     inputSchema: { type: "object", properties: {}, additionalProperties: false },
   })),
 }));
 server.setRequestHandler(CallToolRequestSchema, async (request) => ({
-  content: [{ type: "text", text: request.params.name === "ordine.list_jobs" ? "[]" : "bad" }],
-  isError: !["ordine.list_jobs", "ordine.list_pipelines"].includes(request.params.name),
+  content: [{ type: "text", text: request.params.name === "ordine.search" ? "[]" : "bad" }],
+  isError: request.params.name !== "ordine.search",
 }));
 server.setRequestHandler(ListResourcesRequestSchema, async () => ({
   resources: [
@@ -49,9 +48,7 @@ server.setRequestHandler(ReadResourceRequestSchema, async () => ({
     {
       uri: "ordine://workspace/context",
       mimeType: "application/json",
-      text: JSON.stringify({
-        policy: { mode: "safe", allowWrite: true, allowIrreversible: false },
-      }),
+      text: workspaceContextText,
     },
   ],
 }));

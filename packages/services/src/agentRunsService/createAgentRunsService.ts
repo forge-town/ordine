@@ -13,20 +13,25 @@ import {
 import {
   AgentRunRequestSchema,
   AgentRunSchema,
+  AgentControlEventSchema,
   RuntimeEventSchema,
   parseLocalAgentRuntimeId,
   type AgentRun,
+  type AgentControlEvent,
+  type AgentRunEvent,
   type AgentRunEventEnvelope,
   type AgentRunRequest,
+  type ParsedAgentRunRequest,
   type AgentRunStatus,
   type AgentRunUsage,
   type AgentRuntime,
   type RuntimeEvent,
 } from "@repo/schemas";
 import { ResultAsync } from "neverthrow";
-import { redactSensitiveText, sanitizeRuntimeEvent } from "./sanitizeAgentRunData";
+import { redactSensitiveText, sanitizeAgentRunEvent } from "./sanitizeAgentRunData";
 
 const SUPPORTED_RUNTIMES = new Set<AgentRuntime>(["claude-code", "codex", "opencode"]);
+const CONTROL_MODE_SUPPORTED_RUNTIMES = new Set<AgentRuntime>(["claude-code", "codex"]);
 const TERMINAL_STATUSES = new Set<AgentRunStatus>([
   "completed",
   "failed",
@@ -37,6 +42,8 @@ const TERMINAL_STATUSES = new Set<AgentRunStatus>([
 const EVENT_RETENTION_MS = 30 * 24 * 60 * 60 * 1000;
 const FIRST_OUTPUT_TIMEOUT_MS = 45_000;
 const INACTIVITY_TIMEOUT_MS = 10 * 60 * 1000;
+const EXECUTOR_LEASE_MS = 15_000;
+const EXECUTOR_HEARTBEAT_MS = 2_000;
 const SESSION_NOT_FOUND =
   /(?:session|thread|rollout).{0,80}(?:not found|does not exist|missing|unknown|invalid)|no (?:session|thread|rollout)/i;
 
@@ -54,12 +61,15 @@ type AgentRunPatch = Partial<Omit<typeof agentRunsTable.$inferInsert, "id">>;
 type ActiveRun = {
   controller: AbortController;
   abortReason: AbortReason | null;
+  dispose?: () => Promise<void> | void;
+  heartbeatTimer?: ReturnType<typeof setInterval>;
 };
 
 type ResolvedRuntime = {
   path: string;
   version: string | null;
   fingerprint: string;
+  resolutionWarning: string | null;
   supportsPartialMessages: boolean;
   supportsPermissionBypass: boolean;
   supportsReasoningEffort: boolean;
@@ -75,15 +85,139 @@ type AgentRunsServiceDependencies = {
   readExecutable?: typeof readFile;
   firstOutputTimeoutMs?: number;
   inactivityTimeoutMs?: number;
+  executorLeaseMs?: number;
+  executorHeartbeatMs?: number;
 };
 
 export type AgentRunTransientOptions = Pick<
   AgentRunOptions,
-  "apiKey" | "attachments" | "connectorInjection" | "getMcpConnectorInjection" | "githubToken"
+  | "apiKey"
+  | "attachments"
+  | "connectorInjection"
+  | "getMcpConnectorInjection"
+  | "githubToken"
+  | "environment"
 >;
+
+export type AgentRunTransientLease = AgentRunTransientOptions & {
+  dispose?: () => Promise<void> | void;
+};
+
+export type AgentRunTransientFactory = (
+  runId: string,
+) => Promise<AgentRunTransientLease> | AgentRunTransientLease;
+
+export class AgentControlModeUnsupportedError extends Error {
+  readonly code = "CONTROL_MODE_UNSUPPORTED";
+
+  constructor(readonly runtime: AgentRuntime) {
+    super(`${runtime} is not verified for MCP-only Agent Control mode`);
+    this.name = "AgentControlModeUnsupportedError";
+  }
+}
 
 const toError = (error: unknown): Error =>
   error instanceof Error ? error : new Error(String(error));
+
+type RuntimeExecutableResolutionInput = {
+  runtime: AgentRuntime;
+  configuredPath?: string;
+  configuredVersion?: string;
+  detectedPath?: string;
+  detectedVersion?: string;
+  readExecutable: (path: string) => Promise<Uint8Array>;
+  probeCapabilities: typeof probeRuntimeCapabilities;
+};
+
+export const resolveRuntimeExecutable = async ({
+  runtime,
+  configuredPath,
+  configuredVersion,
+  detectedPath,
+  detectedVersion,
+  readExecutable,
+  probeCapabilities,
+}: RuntimeExecutableResolutionInput): Promise<ResolvedRuntime> => {
+  const duplicateDetectedPath =
+    Boolean(configuredPath && detectedPath) &&
+    (process.platform === "win32"
+      ? detectedPath?.toLowerCase() === configuredPath?.toLowerCase()
+      : detectedPath === configuredPath);
+  const candidates = [
+    ...(configuredPath
+      ? [
+          {
+            path: configuredPath,
+            version:
+              configuredVersion ?? (duplicateDetectedPath ? detectedVersion : undefined) ?? null,
+            source: "configured" as const,
+          },
+        ]
+      : []),
+    ...(detectedPath && !duplicateDetectedPath
+      ? [{ path: detectedPath, version: detectedVersion ?? null, source: "detected" as const }]
+      : []),
+  ];
+  const failures: string[] = [];
+
+  for (const candidate of candidates) {
+    if (!isAbsolute(candidate.path)) {
+      failures.push(`${candidate.source} path is not absolute: ${candidate.path}`);
+      continue;
+    }
+    const bytesResult = await ResultAsync.fromPromise(readExecutable(candidate.path), toError);
+    if (bytesResult.isErr()) {
+      failures.push(
+        `${candidate.source} path is not readable: ${candidate.path} (${bytesResult.error.message})`,
+      );
+      continue;
+    }
+    const capabilitiesResult = await ResultAsync.fromPromise(
+      probeCapabilities({ runtime, path: candidate.path }),
+      toError,
+    );
+    if (capabilitiesResult.isErr()) {
+      failures.push(
+        `${candidate.source} path capability probe failed: ${candidate.path} (${capabilitiesResult.error.message})`,
+      );
+      continue;
+    }
+    const capabilities = capabilitiesResult.value;
+    const missingCapabilities = [
+      capabilities.structuredOutput ? null : "structured_output",
+      capabilities.resume ? null : "native_resume",
+      runtime !== "claude-code" || capabilities.sessionId ? null : "session_id",
+    ].filter((value): value is string => value !== null);
+    if (missingCapabilities.length > 0) {
+      failures.push(
+        `${candidate.source} path is missing ${missingCapabilities.join(", ")}: ${candidate.path}`,
+      );
+      continue;
+    }
+
+    return {
+      path: candidate.path,
+      version: candidate.version,
+      fingerprint: createHash("sha256").update(bytesResult.value).digest("hex"),
+      resolutionWarning:
+        candidate.source === "detected" && configuredPath
+          ? `Configured ${runtime} executable was unusable; ORDINE selected the freshly detected PATH executable ${candidate.path}.`
+          : null,
+      supportsPartialMessages: capabilities.partialMessages,
+      supportsPermissionBypass: capabilities.skipPermissions,
+      supportsReasoningEffort: capabilities.reasoningEffort,
+      supportsVariant: capabilities.variant,
+      supportsAutoPermissions: capabilities.autoPermissions,
+      supportsResume: capabilities.resume,
+    };
+  }
+
+  throw new Error(
+    candidates.length === 0
+      ? `Absolute executable path is unavailable for ${runtime}`
+      : `No usable ${runtime} executable was found. ${failures.join("; ")}`,
+  );
+};
 
 const toPublicRun = (record: AgentRunRecord): AgentRun =>
   AgentRunSchema.parse({
@@ -103,6 +237,9 @@ const toPublicRun = (record: AgentRunRecord): AgentRun =>
     resumeFromRunId: record.resumeFromRunId,
     permissionMode: record.permissionMode,
     networkAccess: record.networkAccess,
+    controlMode: record.controlMode,
+    allowedTools: record.allowedTools,
+    controlScopes: record.controlScopes,
     usage: record.usage,
     resultText: record.resultText,
     errorCode: record.errorCode,
@@ -198,6 +335,9 @@ export const createAgentRunsService = (
   const readExecutable = dependencies.readExecutable ?? readFile;
   const firstOutputTimeoutMs = dependencies.firstOutputTimeoutMs ?? FIRST_OUTPUT_TIMEOUT_MS;
   const inactivityTimeoutMs = dependencies.inactivityTimeoutMs ?? INACTIVITY_TIMEOUT_MS;
+  const executorLeaseMs = dependencies.executorLeaseMs ?? EXECUTOR_LEASE_MS;
+  const executorHeartbeatMs = dependencies.executorHeartbeatMs ?? EXECUTOR_HEARTBEAT_MS;
+  const executorId = crypto.randomUUID();
   const activeRuns = new Map<string, ActiveRun>();
   const executions = new Map<string, Promise<AgentRun>>();
   const listeners = new Map<string, Set<EventListener>>();
@@ -210,20 +350,52 @@ export const createAgentRunsService = (
 
   const persistEvent = async (
     runId: string,
-    event: RuntimeEvent,
+    event: AgentRunEvent,
     runPatch: AgentRunPatch = {},
   ): Promise<AgentRunEventEnvelope> => {
-    const sanitized = sanitizeRuntimeEvent(event);
+    const sanitized = sanitizeAgentRunEvent(event);
 
     return commitAgentRunEventBeforeBroadcast(
       () =>
         db.transaction(async (transaction) => {
-          const created = await createAgentRunEventsDao(transaction).create({
+          const transactionRunsDao = createAgentRunsDao(transaction);
+          const transactionEventsDao = createAgentRunEventsDao(transaction);
+          if (sanitized.type === "terminal") {
+            const transitioned = await transactionRunsDao.transition(
+              runId,
+              ["queued", "running", "cancelling"],
+              {
+                ...runPatch,
+                status: sanitized.status,
+                executorId: null,
+                heartbeatAt: null,
+                leaseExpiresAt: null,
+              },
+            );
+            if (!transitioned) {
+              const existing = await transactionEventsDao.findTerminalByRunId(runId);
+              if (!existing) throw new Error(`Agent run ${runId} has an immutable terminal state`);
+
+              return {
+                runId,
+                sequence: existing.sequence,
+                createdAt: existing.createdAt.toISOString(),
+                event: existing.event,
+              } satisfies AgentRunEventEnvelope;
+            }
+          }
+          const created = await transactionEventsDao.create({
             runId,
             event: sanitized,
           });
-          if (Object.keys(runPatch).length > 0) {
-            await createAgentRunsDao(transaction).update(runId, runPatch);
+          if (sanitized.type === "terminal") {
+            await transactionRunsDao.update(runId, { terminalEventSequence: created.sequence });
+          } else if (Object.keys(runPatch).length > 0) {
+            await transactionRunsDao.transition(
+              runId,
+              ["queued", "running", "cancelling"],
+              runPatch,
+            );
           }
 
           return {
@@ -259,41 +431,16 @@ export const createAgentRunsService = (
     }
     const detected = await scan();
     const matched = detected.find((candidate) => candidate.type === config.type);
-    const configuredPath = config.connection.path;
-    const executablePath = configuredPath ?? matched?.path;
-    if (!executablePath || !isAbsolute(executablePath)) {
-      throw new Error(`Absolute executable path is unavailable for ${config.type}`);
-    }
-    const bytesResult = await ResultAsync.fromPromise(readExecutable(executablePath), toError);
-    if (bytesResult.isErr()) {
-      throw new Error(`Runtime executable is not readable: ${executablePath}`, {
-        cause: bytesResult.error,
-      });
-    }
-    const fingerprint = createHash("sha256").update(bytesResult.value).digest("hex");
-    const capabilities = await probeCapabilities({ runtime: config.type, path: executablePath });
-    const missingCapabilities = [
-      !capabilities.structuredOutput ? "structured_output" : null,
-      !capabilities.resume ? "native_resume" : null,
-      config.type === "claude-code" && !capabilities.sessionId ? "session_id" : null,
-    ].filter((value): value is string => value !== null);
-    if (missingCapabilities.length > 0) {
-      throw new Error(
-        `${config.type} CLI is missing required capabilities: ${missingCapabilities.join(", ")}`,
-      );
-    }
 
-    return {
-      path: executablePath,
-      version: config.connection.version ?? matched?.version ?? null,
-      fingerprint,
-      supportsPartialMessages: capabilities.partialMessages,
-      supportsPermissionBypass: capabilities.skipPermissions,
-      supportsReasoningEffort: capabilities.reasoningEffort,
-      supportsVariant: capabilities.variant,
-      supportsAutoPermissions: capabilities.autoPermissions,
-      supportsResume: capabilities.resume,
-    };
+    return resolveRuntimeExecutable({
+      runtime: config.type,
+      configuredPath: config.connection.path,
+      configuredVersion: config.connection.version,
+      detectedPath: matched?.path,
+      detectedVersion: matched?.version,
+      readExecutable,
+      probeCapabilities,
+    });
   };
 
   const getRunRecord = async (runId: string): Promise<AgentRunRecord> => {
@@ -350,7 +497,7 @@ export const createAgentRunsService = (
 
   const executeRun = async (
     runId: string,
-    request: AgentRunRequest,
+    request: ParsedAgentRunRequest,
     runtimeConfig: RuntimeConfig,
     active: ActiveRun,
     transient: AgentRunTransientOptions,
@@ -396,8 +543,19 @@ export const createAgentRunsService = (
       });
     }
     const resolvedRuntime = resolvedResult.value;
+    if (resolvedRuntime.resolutionWarning) {
+      await persistEvent(
+        runId,
+        runtimeEvent(runtime, {
+          type: "diagnostic",
+          level: "warning",
+          code: "RUNTIME_PATH_FALLBACK",
+          message: resolvedRuntime.resolutionWarning,
+        }),
+      );
+    }
     const startedAt = new Date();
-    await runsDao.update(runId, {
+    const running = await runsDao.transition(runId, ["queued"], {
       status: active.controller.signal.aborted ? "cancelling" : "running",
       executablePath: resolvedRuntime.path,
       executableVersion: resolvedRuntime.version,
@@ -405,6 +563,13 @@ export const createAgentRunsService = (
       startedAt,
       lastActivityAt: startedAt,
     });
+    if (!running) {
+      const latest = await getRunRecord(runId);
+      if (latest.status === "cancelling" && !active.controller.signal.aborted) {
+        active.abortReason = "user_cancel";
+        active.controller.abort();
+      }
+    }
     if (active.controller.signal.aborted) {
       const reason = active.abortReason ?? "user_cancel";
       const error = abortError(reason, effectiveFirstOutputTimeoutMs, inactivityTimeoutMs);
@@ -475,6 +640,13 @@ export const createAgentRunsService = (
       }
       state.usage = mergeUsage(state.usage, event);
       if (event.type === "usage") patch.usage = state.usage;
+      // Control runs are action-streamed rather than token-streamed. Persisting
+      // every model/thinking token creates thousands of replay events without
+      // adding useful UI state; the final terminal result and tool lifecycle
+      // events remain durable.
+      if (request.controlMode && (event.type === "text_delta" || event.type === "thinking_delta")) {
+        return;
+      }
       await persistEvent(runId, event, patch);
     };
     const handleAdapterEvent = async (event: RuntimeEvent): Promise<void> => {
@@ -537,6 +709,7 @@ export const createAgentRunsService = (
           permissionMode: request.permissionMode,
           fullAccessConfirmed: request.fullAccessConfirmed,
           networkAccess: request.networkAccess,
+          controlMode: request.controlMode,
           supportsPartialMessages: resolvedRuntime.supportsPartialMessages,
           supportsPermissionBypass: resolvedRuntime.supportsPermissionBypass,
           supportsReasoningEffort: resolvedRuntime.supportsReasoningEffort,
@@ -663,12 +836,15 @@ export const createAgentRunsService = (
 
   const startInternal = async (
     input: AgentRunRequest,
-    transient: AgentRunTransientOptions = {},
+    transientSource: AgentRunTransientOptions | AgentRunTransientFactory = {},
   ): Promise<{ runId: string }> => {
     const request = AgentRunRequestSchema.parse(input);
     const runtimeConfig = await resolveRuntimeConfig(request.runtimeConfigId);
     if (!SUPPORTED_RUNTIMES.has(runtimeConfig.type)) {
       throw new Error(`Agent Run control does not support ${runtimeConfig.type}`);
+    }
+    if (request.controlMode && !CONTROL_MODE_SUPPORTED_RUNTIMES.has(runtimeConfig.type)) {
+      throw new AgentControlModeUnsupportedError(runtimeConfig.type);
     }
     const id = crypto.randomUUID();
     const now = new Date();
@@ -689,11 +865,70 @@ export const createAgentRunsService = (
       resumeFromRunId: request.resumeFromRunId ?? null,
       permissionMode: request.permissionMode,
       networkAccess: request.networkAccess,
+      controlMode: request.controlMode,
+      allowedTools: request.allowedTools,
+      controlScopes: request.controlScopes,
       createdAt: now,
       updatedAt: now,
       expiresAt: new Date(now.getTime() + EVENT_RETENTION_MS),
     });
-    const active = { controller: new AbortController(), abortReason: null } satisfies ActiveRun;
+    const transientPromise: Promise<AgentRunTransientLease> = Promise.resolve(
+      typeof transientSource === "function" ? transientSource(id) : transientSource,
+    );
+    const transientResult = await ResultAsync.fromPromise(transientPromise, toError);
+    if (transientResult.isErr()) {
+      await finishRun({
+        runId: id,
+        runtime: runtimeConfig.type,
+        status: "failed",
+        resultText: "",
+        nativeSessionId: null,
+        usage: null,
+        errorCode: "AGENT_RUN_TRANSIENT_SETUP_FAILED",
+        errorMessage: transientResult.error.message,
+      });
+
+      return { runId: id };
+    }
+    const { dispose, ...transient } = transientResult.value;
+    const claimedAt = new Date();
+    const claimed = await runsDao.claimExecutor(
+      id,
+      executorId,
+      claimedAt,
+      new Date(claimedAt.getTime() + executorLeaseMs),
+    );
+    if (!claimed) {
+      await Promise.resolve(dispose?.());
+      throw new Error(`Agent run ${id} could not claim its executor lease`);
+    }
+    const active: ActiveRun = {
+      controller: new AbortController(),
+      abortReason: null,
+      ...(dispose ? { dispose } : {}),
+    };
+    const heartbeat = async (): Promise<void> => {
+      const heartbeatAt = new Date();
+      const lease = await runsDao.refreshLease(
+        id,
+        executorId,
+        heartbeatAt,
+        new Date(heartbeatAt.getTime() + executorLeaseMs),
+      );
+      if (lease?.cancelRequestedAt && !active.controller.signal.aborted) {
+        active.abortReason = "user_cancel";
+        active.controller.abort();
+        const release = active.dispose;
+        active.dispose = undefined;
+        await Promise.resolve(release?.());
+      }
+    };
+    active.heartbeatTimer = setInterval(() => {
+      void heartbeat().then(
+        () => undefined,
+        () => undefined,
+      );
+    }, executorHeartbeatMs);
     activeRuns.set(id, active);
     const execution = executeRun(
       id,
@@ -702,16 +937,22 @@ export const createAgentRunsService = (
       active,
       transient,
     );
+    const cleanup = async (): Promise<void> => {
+      if (active.heartbeatTimer) clearInterval(active.heartbeatTimer);
+      const release = active.dispose;
+      active.dispose = undefined;
+      await Promise.resolve(release?.());
+      activeRuns.delete(id);
+      executions.delete(id);
+    };
     const tracked = execution.then(
-      (result) => {
-        activeRuns.delete(id);
-        executions.delete(id);
+      async (result) => {
+        await cleanup();
 
         return result;
       },
       async (error: unknown) => {
-        activeRuns.delete(id);
-        executions.delete(id);
+        await cleanup();
         const failure = toError(error);
         const existing = await runsDao.findById(id);
         if (existing && !TERMINAL_STATUSES.has(existing.status)) {
@@ -784,6 +1025,20 @@ export const createAgentRunsService = (
       }));
     },
 
+    async appendControlEvent(
+      runId: string,
+      input: AgentControlEvent,
+    ): Promise<AgentRunEventEnvelope> {
+      const run = await getRunRecord(runId);
+      if (!run.controlMode) throw new Error(`Agent run ${runId} is not an Agent Control run`);
+      const event = AgentControlEventSchema.parse(input);
+      if (event.runtime !== run.runtime) {
+        throw new Error(`Agent Control event runtime does not match run ${runId}`);
+      }
+
+      return persistEvent(runId, event);
+    },
+
     subscribe(runId: string, listener: EventListener): () => void {
       const runListeners = listeners.get(runId) ?? new Set<EventListener>();
       runListeners.add(listener);
@@ -798,18 +1053,22 @@ export const createAgentRunsService = (
     async cancel(runId: string): Promise<AgentRun> {
       const run = await getRunRecord(runId);
       if (TERMINAL_STATUSES.has(run.status)) return toPublicRun(run);
+      const requested = await runsDao.requestCancel(runId, new Date());
       const active = activeRuns.get(runId);
       if (active && !active.controller.signal.aborted) {
         active.abortReason = "user_cancel";
         active.controller.abort();
+        const release = active.dispose;
+        active.dispose = undefined;
+        await Promise.resolve(release?.());
       }
-      const updated = await runsDao.update(runId, { status: "cancelling" });
+      const updated = requested ?? (await runsDao.findById(runId));
 
       return toPublicRun(updated ?? run);
     },
 
-    async recoverInterruptedRuns(): Promise<number> {
-      const unfinished = await runsDao.findManyUnfinished();
+    async recoverInterruptedRuns(): Promise<{ count: number; runIds: string[] }> {
+      const unfinished = await runsDao.findManyRecoverable(new Date());
       for (const run of unfinished) {
         await persistEvent(
           run.id,
@@ -842,7 +1101,7 @@ export const createAgentRunsService = (
         );
       }
 
-      return unfinished.length;
+      return { count: unfinished.length, runIds: unfinished.map((run) => run.id) };
     },
 
     async deleteExpired(before = new Date()): Promise<number> {

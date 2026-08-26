@@ -1,10 +1,47 @@
 import { type Page, test as base, expect } from "@playwright/test";
 
+const mockAgentControlDisabledByDefault = async (page: Page) => {
+  await page.route("**/api/agent-threads**", async (route) => {
+    const request = route.request();
+    const pathname = new URL(request.url()).pathname;
+    const headers = { "content-type": "application/json" };
+    if (pathname === "/api/agent-threads/capabilities" && request.method() === "GET") {
+      await route.fulfill({
+        body: JSON.stringify({
+          enabled: false,
+          runtimes: [],
+          toolContractVersion: 1,
+          toolCount: 22,
+        }),
+        headers,
+        status: 200,
+      });
+
+      return;
+    }
+    if (pathname === "/api/agent-threads" && request.method() === "GET") {
+      await route.fulfill({ body: "[]", headers, status: 200 });
+
+      return;
+    }
+    await route.fallback();
+  });
+};
+
 /**
  * Shared fixture that captures JS errors on every page navigation.
  * Replaces the duplicated "no uncaught JS errors" pattern across all test files.
  */
-export const test = base.extend<{ pageErrors: string[] }>({
+export const test = base.extend<{ agentControlFallback: void; pageErrors: string[] }>({
+  agentControlFallback: [
+    async ({ page }, use) => {
+      // Most UI specs do not boot the API sidecar. Agent Control specs register
+      // their richer route handlers after this fallback and therefore take precedence.
+      await mockAgentControlDisabledByDefault(page);
+      await use();
+    },
+    { auto: true },
+  ],
   pageErrors: async ({ page }, use) => {
     const errors: string[] = [];
     await page.addInitScript(() => {

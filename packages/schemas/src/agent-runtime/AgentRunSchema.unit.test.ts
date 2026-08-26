@@ -51,5 +51,42 @@ describe("AgentRunSchema", () => {
 
     expect(run.reasoningEffort).toBeNull();
     expect(run.speed).toBeNull();
+    expect(run.controlMode).toBe(false);
+    expect(run.allowedTools).toEqual([]);
+    expect(run.controlScopes).toEqual([]);
+  });
+
+  it("requires an explicit tool allowlist and full-access confirmation for control mode", () => {
+    const base = {
+      owner: { type: "agent-thread", id: "thread-1" },
+      runtimeConfigId: "local-claude-code",
+      cwd: "C:\\empty-control-dir",
+      prompt: "Use ORDINE tools",
+      rebuildPrompt: "Use ORDINE tools",
+      controlMode: true,
+      controlScopes: ["resources:read" as const],
+    };
+
+    expect(
+      AgentRunRequestSchema.parse({ ...base, allowedTools: ["ordine.search"] }).permissionMode,
+    ).toBe("full-access");
+    expect(() =>
+      AgentRunRequestSchema.parse({
+        ...base,
+        allowedTools: ["ordine.search"],
+        fullAccessConfirmed: false,
+      }),
+    ).toThrow(/confirmation/);
+    expect(() =>
+      AgentRunRequestSchema.parse({ ...base, permissionMode: "read-only", allowedTools: [] }),
+    ).toThrow(/allowlist/);
+    expect(
+      AgentRunRequestSchema.parse({
+        ...base,
+        permissionMode: "read-only",
+        fullAccessConfirmed: false,
+        allowedTools: ["ordine.search"],
+      }).controlMode,
+    ).toBe(true);
   });
 });
