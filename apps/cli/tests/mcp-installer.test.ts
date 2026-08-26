@@ -226,6 +226,50 @@ describe("deletion-safe JSON registration", () => {
     expect(protocolProbe).not.toHaveBeenCalled();
   });
 
+  it("reports session readiness drift when protocol succeeds but preflight fails", async () => {
+    const commandRunner = vi.fn(async () => ({
+      exitCode: 0,
+      stdout: ownedCodexOutput,
+      stderr: "",
+    }));
+    const protocolProbe = vi.fn(async () => ({
+      commandLaunchable: true,
+      initialize: true,
+      toolsList: true,
+      safeToolCall: true,
+      toolCount: 21,
+      apiReachable: false,
+      dbReachable: false,
+      runtimeCatalogInitialized: false,
+      writePolicy: "disabled" as const,
+      failureLayer: "api_unreachable" as const,
+      message: "Ordine API /health failed: network fetch failed",
+    }));
+
+    const result = await doctorMcpTarget({
+      target: "codex",
+      spec,
+      context: makeContext("C:\\Users\\test"),
+      commandRunner,
+      protocolProbe,
+    });
+
+    expect(result.status).toBe("drifted");
+    expect(result.message).toContain("api_unreachable");
+    expect(result.evidence).toMatchObject({
+      registered: true,
+      commandLaunchable: true,
+      initialize: true,
+      toolsList: true,
+      safeToolCall: true,
+      apiReachable: false,
+      dbReachable: false,
+      runtimeCatalogInitialized: false,
+      writePolicy: "disabled",
+      failureLayer: "api_unreachable",
+    });
+  });
+
   it("verifies agent-owned CLI registration after installing", async () => {
     const commandRunner = vi
       .fn()

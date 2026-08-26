@@ -45,6 +45,17 @@ export type McpInstallResult = {
     toolsList: boolean;
     safeToolCall: boolean;
     toolCount?: number;
+    requiredTools?: Record<string, boolean>;
+    workspaceContext?: boolean;
+    policyMode?: string;
+    allowWrite?: boolean;
+    allowIrreversible?: boolean;
+    writePolicy?: "enabled" | "disabled" | "unknown";
+    apiReachable?: boolean;
+    dbReachable?: boolean;
+    runtimeCatalogInitialized?: boolean;
+    runtimeCount?: number;
+    failureLayer?: string;
   };
 };
 
@@ -555,6 +566,10 @@ export const doctorMcpTarget = async ({
         initialize: false,
         toolsList: false,
         safeToolCall: false,
+        apiReachable: false,
+        dbReachable: false,
+        runtimeCatalogInitialized: false,
+        writePolicy: "unknown",
       },
     };
   }
@@ -563,7 +578,10 @@ export const doctorMcpTarget = async ({
     protocol.commandLaunchable &&
     protocol.initialize &&
     protocol.toolsList &&
-    protocol.safeToolCall;
+    protocol.safeToolCall &&
+    protocol.apiReachable !== false &&
+    protocol.dbReachable !== false &&
+    protocol.runtimeCatalogInitialized !== false;
 
   return {
     target,
@@ -572,8 +590,8 @@ export const doctorMcpTarget = async ({
     operation: "doctor",
     status: healthy ? "healthy" : "drifted",
     message: healthy
-      ? `${registrationMessage} initialize, tools/list, and ordine.list_jobs all succeeded.`
-      : `${registrationMessage} Protocol doctor failed: ${protocol.message ?? "unknown layer"}`,
+      ? `${registrationMessage} initialize, tools/list, API/DB preflight, runtime catalog, and ordine.list_jobs all succeeded.`
+      : `${registrationMessage} MCP doctor failed at ${protocol.failureLayer ?? "unknown_layer"}: ${protocol.message ?? "unknown layer"}`,
     ...(configPath ? { configPath } : {}),
     evidence: {
       recognized: true,
@@ -584,6 +602,17 @@ export const doctorMcpTarget = async ({
       toolsList: protocol.toolsList,
       safeToolCall: protocol.safeToolCall,
       toolCount: protocol.toolCount,
+      requiredTools: protocol.requiredTools,
+      workspaceContext: protocol.workspaceContext,
+      policyMode: protocol.policyMode,
+      allowWrite: protocol.allowWrite,
+      allowIrreversible: protocol.allowIrreversible,
+      writePolicy: protocol.writePolicy,
+      apiReachable: protocol.apiReachable,
+      dbReachable: protocol.dbReachable,
+      runtimeCatalogInitialized: protocol.runtimeCatalogInitialized,
+      runtimeCount: protocol.runtimeCount,
+      failureLayer: protocol.failureLayer,
     },
   };
 };

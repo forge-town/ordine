@@ -36,9 +36,32 @@ ordine mcp install claude       # claude-code is accepted as an alias
 ordine mcp install opencode
 ```
 
-`status` reports registration only. `doctor` starts the configured ORDINE MCP command with the official SDK and separately proves command launch, `initialize`, `tools/list`, and a safe `ordine.list_jobs` call. Only the final complete evidence chain is `healthy`.
+`status` reports registration only. `doctor` starts the configured ORDINE MCP command with the official SDK and separately proves command launch, `initialize`, `tools/list`, required `ordine.*` tool discovery, workspace context, ORDINE API `/health`, a DB-backed `ordine.list_pipelines` call, runtime catalog initialization, and a safe `ordine.list_jobs` call. Only the final complete evidence chain is `healthy`.
+
+The MCP chain is:
+
+```text
+Codex or another MCP client -> ordine mcp serve over stdio -> ORDINE REST API -> DB and runner
+```
+
+`ordine mcp serve` is not an HTTP listener. The server process speaks MCP over stdin/stdout and calls the local ORDINE API configured by `ORDINE_API_URL`, defaulting to `http://localhost:9433`.
+
+After installing into Codex, open a fresh Codex session or reload the client before expecting `ordine.*` tools to appear. A stale session may keep the old tool list even when `ordine mcp doctor codex` is healthy.
+
+Doctor output separates failure layers so operators can distinguish registration drift from environment readiness:
+
+- `command_not_launchable`: the registered MCP command cannot start.
+- `tools_list_failed`: MCP negotiation succeeded but `tools/list` failed.
+- `required_tool_missing`: the session-ready tool surface is incomplete.
+- `workspace_context_unreadable`: the policy/workspace resource cannot be read.
+- `api_unreachable`: the configured ORDINE API `/health` probe failed.
+- `db_unreachable`: a DB-backed MCP read, currently `ordine.list_pipelines`, failed.
+- `runtime_catalog_empty`: no configured launchable local runtime is available for runs.
+- `safe_tool_call_failed`: `ordine.list_jobs` failed through MCP.
 
 NPM-installed configurations contain an absolute Node-compatible runtime path and an absolute ORDINE CLI file path. Desktop packages include an independent `ordine-mcp` sidecar. Desktop authentication is read from `~/.ordine/.desktop-token` for every API request, so no expiring plaintext token is embedded in client configuration.
+
+Safe mode exposes read tools by default. Reversible writes such as `ordine.create_pipeline`, `ordine.create_operation`, `ordine.update_operation`, and `ordine.run_pipeline` require `--allow-write` or `--policy yolo`. Irreversible tools such as delete operations require `--allow-irreversible` or `--policy yolo`; `--allow-write` alone does not enable them.
 
 JSON installation uses a temporary file and atomic rename, creates a timestamped backup before changing an existing file, refuses to overwrite a same-named non-ORDINE entry, and refuses to uninstall a drifted entry. Codex and Claude installations probe the target client's registration before and after mutation.
 
