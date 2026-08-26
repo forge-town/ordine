@@ -2431,6 +2431,8 @@
     },
     "thread": {
       "label": "Conversation thread",
+      "new": "New conversation",
+      "archived": "Archived",
       "empty": "A conversation thread will be created with your first message."
     },
     "failure": {

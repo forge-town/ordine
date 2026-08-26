@@ -11,6 +11,7 @@ import {
   Square,
   Undo2,
 } from "lucide-react";
+import Markdown from "react-markdown";
 import { useTranslation } from "react-i18next";
 import { Badge } from "@repo/ui/badge";
 import { Button } from "@repo/ui/button";
@@ -132,11 +133,17 @@ export const GlobalAgentPanel = ({ className }: { className?: string }) => {
               aria-label={t("agentControl.thread.label")}
               className="h-8 w-full rounded-lg border border-border bg-background px-2.5 text-xs outline-none focus:border-ring"
               value={activeThreadId ?? ""}
-              onChange={(event) => void selectThread(event.target.value)}
+              onChange={(event) => {
+                if (event.target.value) void selectThread(event.target.value);
+              }}
             >
+              <option disabled value="">
+                {t("agentControl.thread.new")}
+              </option>
               {threads.map((thread) => (
                 <option key={thread.id} value={thread.id}>
                   {thread.title}
+                  {thread.status === "archived" ? ` · ${t("agentControl.thread.archived")}` : ""}
                 </option>
               ))}
             </select>
@@ -206,7 +213,13 @@ export const GlobalAgentPanel = ({ className }: { className?: string }) => {
                   >
                     {t(`agentControl.messageRole.${message.role}`)}
                   </p>
-                  <p className="whitespace-pre-wrap break-words leading-5">{message.content}</p>
+                  {message.role === "assistant" ? (
+                    <div className="break-words leading-5 [&_code]:rounded [&_code]:bg-muted [&_code]:px-1 [&_code]:py-0.5 [&_code]:text-[0.9em] [&_li]:my-0.5 [&_ol]:my-1.5 [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:my-1.5 [&_p:first-child]:mt-0 [&_p:last-child]:mb-0 [&_pre]:my-2 [&_pre]:overflow-x-auto [&_pre]:rounded-lg [&_pre]:bg-muted [&_pre]:p-2 [&_ul]:my-1.5 [&_ul]:list-disc [&_ul]:pl-5">
+                      <Markdown>{message.content}</Markdown>
+                    </div>
+                  ) : (
+                    <p className="whitespace-pre-wrap break-words leading-5">{message.content}</p>
+                  )}
                 </article>
               ))}
               {streamingText && (
