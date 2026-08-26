@@ -55,17 +55,17 @@ const CODEX_CONTROL_DISABLED_FEATURES = [
   "browser_use",
   "browser_use_external",
   "browser_use_full_cdp_access",
-  "code_mode",
-  "code_mode_host",
   "computer_use",
   "image_generation",
   "in_app_browser",
   "js_repl",
   "multi_agent",
   "plugins",
+  "search_tool",
   "shell_tool",
   "skill_mcp_dependency_install",
   "skill_search",
+  "standalone_web_search",
   "unified_exec",
   "view_image",
   "workspace_dependencies",
@@ -259,10 +259,13 @@ const buildCodexMcpConfig = (
   return { configToml: lines.join("\n"), env };
 };
 
-const buildCodexRuntimeConfig = (mcpConfigToml: string): string =>
-  ['approval_policy = "never"', ...(mcpConfigToml ? ["", mcpConfigToml.trimEnd()] : []), ""].join(
-    "\n",
-  );
+const buildCodexRuntimeConfig = (mcpConfigToml: string, agentControlMode: boolean): string =>
+  [
+    'approval_policy = "never"',
+    ...(agentControlMode ? ['web_search = "disabled"'] : []),
+    ...(mcpConfigToml ? ["", mcpConfigToml.trimEnd()] : []),
+    "",
+  ].join("\n");
 
 const createIsolatedCodexHome = async (configToml: string): Promise<string> => {
   const isolatedHome = await mkdtemp(join(tmpdir(), "ordine-codex-home-"));
@@ -342,8 +345,8 @@ export const runCodex = async ({
       ? `${userPrompt.slice(0, MAX_INPUT_CHARS)}\n\n... (truncated, ${userPrompt.length - MAX_INPUT_CHARS} chars omitted — use tools to explore the project)`
       : userPrompt;
   const codexMcpConfig = buildCodexMcpConfig(connectorInjection);
-  const scrubbedCodexConfig = buildCodexRuntimeConfig("");
-  const activeCodexConfig = buildCodexRuntimeConfig(codexMcpConfig.configToml);
+  const scrubbedCodexConfig = buildCodexRuntimeConfig("", agentControlMode);
+  const activeCodexConfig = buildCodexRuntimeConfig(codexMcpConfig.configToml, agentControlMode);
   const parsedResumeHandle = resumeSessionId ? decodeResumeHandle(resumeSessionId) : undefined;
   const isManagedResume = Boolean(resumeSessionId?.startsWith(CODEX_RESUME_PREFIX));
   if (isManagedResume && !parsedResumeHandle) {

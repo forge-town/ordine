@@ -41,13 +41,6 @@ export const AgentRunRequestSchema = z
         message: "full-access requires explicit user confirmation",
       });
     }
-    if (value.controlMode && value.permissionMode !== "read-only") {
-      context.addIssue({
-        code: "custom",
-        path: ["permissionMode"],
-        message: "control-mode Agent Runs require read-only filesystem permissions",
-      });
-    }
     if (value.controlMode && value.allowedTools.length === 0) {
       context.addIssue({
         code: "custom",

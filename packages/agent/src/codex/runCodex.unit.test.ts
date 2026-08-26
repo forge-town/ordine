@@ -359,7 +359,7 @@ describe("runCodex", () => {
             env: { TOKEN: "secret" },
           },
         },
-        toolNames: ["mcp__linear", "mcp__fs__read_file"],
+        toolNames: ["mcp__linear__ordine.describe_resource", "mcp__fs__read_file"],
       },
     });
 
@@ -380,6 +380,7 @@ describe("runCodex", () => {
     expect(args.join(" ")).not.toContain("secret");
     expect(config).toContain("[mcp_servers.linear]");
     expect(config).toContain('url = "https://mcp.linear.app/mcp"');
+    expect(config).toContain('enabled_tools = ["ordine.describe_resource"]');
     expect(config).toContain("[mcp_servers.fs]");
     expect(config).toContain("[mcp_servers.fs.env]");
     expect(config).toContain('TOKEN = "secret"');
@@ -610,13 +611,14 @@ describe("runCodex", () => {
     expect(fullWritten).toContain("truncated");
   });
 
-  it("locks Agent Control runs to MCP-only features and forwards the isolated environment", async () => {
+  it("keeps the Agent Control tool boundary while forwarding its full-access environment", async () => {
     const promise = runCodex({
       systemPrompt: "sys",
       userPrompt: "user",
       cwd: "/tmp/control",
-      sandbox: "read-only",
-      networkAccess: false,
+      sandbox: "danger-full-access",
+      fullAccessConfirmed: true,
+      networkAccess: true,
       agentControlMode: true,
       environment: {
         HOME: "/tmp/control/home",
@@ -627,17 +629,18 @@ describe("runCodex", () => {
     });
 
     await waitForSpawn();
+    const [, args, spawnOpts] = spawnMock.mock.calls[0] as unknown as [
+      string,
+      string[],
+      { env: Record<string, string | undefined> },
+    ];
+    const config = await readFile(join(codexHomeFromEnv(spawnOpts.env), "config.toml"), "utf8");
     testState.mockProc.stdout.push("ok");
     testState.mockProc.stdout.push(null);
     testState.mockProc.stderr.push(null);
     testState.mockProc.emit("close", 0);
     await promise;
 
-    const [, args, spawnOpts] = spawnMock.mock.calls[0] as unknown as [
-      string,
-      string[],
-      { env: Record<string, string | undefined> },
-    ];
     expect(args).toContain("--strict-config");
     expect(args).toContain("--ignore-rules");
     const disabledFeatures = args.flatMap((arg, index) =>
@@ -652,6 +655,7 @@ describe("runCodex", () => {
     expect(spawnOpts.env.USERPROFILE).toBe("/tmp/control/home");
     expect(spawnOpts.env.ORDINE_AGENT_CONTROL_MODE).toBe("1");
     expect(spawnOpts.env.CODEX_HOME).not.toBe("/must/not/win");
+    expect(config).toContain('web_search = "disabled"');
   });
 });
 

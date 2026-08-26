@@ -77,7 +77,7 @@ const runtimeControlSupport = (runtime: string) => {
     return {
       supported: true,
       reason:
-        "Codex control mode disables built-in execution, browser, app, plugin, and delegation features; isolates HOME/config; and requires a read-only sandbox.",
+        "Codex control mode uses an explicitly confirmed full-access run in an empty temporary cwd with isolated HOME/config and run-scoped ORDINE MCP capability.",
     } as const;
   }
 
@@ -178,11 +178,15 @@ const retainControlCwd = (cwd: string) => {
   controlCwdCleanupTimers.set(cwd, timer);
 };
 
-const controlMcpToolNames = (): string[] =>
+const controlMcpToolNames = (runtime: string): string[] =>
   listAgentControlTools({ audience: "internal-run", scopes: new Set(CONTROL_SCOPES) }).map(
     // Claude normalizes MCP tool names to identifier-safe underscores before
-    // matching --tools/--allowedTools (for example ordine.search -> ordine_search).
-    (tool) => `mcp__${CONTROL_SERVER_KEY}__${tool.name.replaceAll(/[^a-zA-Z0-9_-]/g, "_")}`,
+    // matching --tools/--allowedTools. Codex `enabled_tools` instead requires
+    // the exact name reported by MCP tools/list, including dots.
+    (tool) =>
+      `mcp__${CONTROL_SERVER_KEY}__${
+        runtime === "codex" ? tool.name : tool.name.replaceAll(/[^a-zA-Z0-9_-]/g, "_")
+      }`,
   );
 
 const startControlRun = async ({
@@ -227,7 +231,7 @@ const startControlRun = async ({
   const isolatedHome = join(cwd, "home");
   await mkdir(isolatedHome, { recursive: true });
   const prompts = buildAgentControlPrompt({ threadId, message, context });
-  const mcpToolNames = controlMcpToolNames();
+  const mcpToolNames = controlMcpToolNames(selected.type);
   const runtimeAuthEnvironment =
     selected.type === "claude-code" ? await loadClaudeControlEnvironment() : {};
   const resumeFromRunId = canResume ? previous.id : undefined;
@@ -248,9 +252,9 @@ const startControlRun = async ({
         prompt: resumeFromRunId ? message : prompts.prompt,
         rebuildPrompt: prompts.prompt,
         resumeFromRunId,
-        permissionMode: "read-only",
-        networkAccess: false,
-        fullAccessConfirmed: false,
+        permissionMode: "full-access",
+        networkAccess: true,
+        fullAccessConfirmed: true,
         allowedTools: mcpToolNames,
         controlMode: true,
         controlScopes: [...CONTROL_SCOPES],
