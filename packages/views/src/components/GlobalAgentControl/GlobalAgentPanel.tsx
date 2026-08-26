@@ -1,4 +1,4 @@
-import { FormEvent, KeyboardEvent, useMemo } from "react";
+import { FormEvent, KeyboardEvent, useEffect, useMemo } from "react";
 import {
   AlertCircle,
   CheckCircle2,
@@ -7,7 +7,6 @@ import {
   LoaderCircle,
   MessageSquareText,
   Send,
-  ShieldCheck,
   Square,
   Undo2,
 } from "lucide-react";
@@ -18,6 +17,7 @@ import { Button } from "@repo/ui/button";
 import { ScrollArea } from "@repo/ui/scroll-area";
 import { Textarea } from "@repo/ui/textarea";
 import { cn } from "@repo/ui/lib/utils";
+import { AgentExecutionPicker, useAgentExecutionChoice } from "../AgentExecutionPicker";
 import { AgentApprovalCard } from "./AgentApprovalCard";
 import { AgentContextChips } from "./AgentContextChips";
 import { useAgentControl } from "./GlobalAgentControlProvider";
@@ -28,6 +28,7 @@ const isCanvasChangeSetVisible = (status: string) =>
 export const GlobalAgentPanel = ({ className }: { className?: string }) => {
   const { t } = useTranslation();
   const capabilities = useAgentControl((state) => state.capabilities);
+  const storedExecutionChoice = useAgentControl((state) => state.executionChoice);
   const threads = useAgentControl((state) => state.threads);
   const activeThreadId = useAgentControl((state) => state.activeThreadId);
   const messages = useAgentControl((state) => state.messages);
@@ -41,12 +42,49 @@ export const GlobalAgentPanel = ({ className }: { className?: string }) => {
   const isBootstrapping = useAgentControl((state) => state.isBootstrapping);
   const error = useAgentControl((state) => state.error);
   const setDraft = useAgentControl((state) => state.setDraft);
+  const setExecutionChoice = useAgentControl((state) => state.setExecutionChoice);
   const selectThread = useAgentControl((state) => state.selectThread);
   const submit = useAgentControl((state) => state.submit);
   const stop = useAgentControl((state) => state.stop);
   const applyChangeSet = useAgentControl((state) => state.applyChangeSet);
   const rejectChangeSet = useAgentControl((state) => state.rejectChangeSet);
   const supportedRuntimes = capabilities?.runtimes.filter((runtime) => runtime.supported) ?? [];
+  const preferredRuntimeId = supportedRuntimes[0]?.runtimeConfigId ?? null;
+  const {
+    catalog: executionCatalog,
+    choice: executionChoice,
+    isLoading: isExecutionChoiceLoading,
+    persistChoice,
+    selectRuntime,
+  } = useAgentExecutionChoice({ requestedRuntimeConfigId: preferredRuntimeId });
+  const runtimeDisabledReasons = useMemo(
+    () =>
+      Object.fromEntries(
+        executionCatalog.flatMap((entry) => {
+          if (!entry.runtimeConfigId) return [];
+          const capability = capabilities?.runtimes.find(
+            (runtime) => runtime.runtimeConfigId === entry.runtimeConfigId,
+          );
+
+          return capability?.supported
+            ? []
+            : [
+                [
+                  entry.runtimeConfigId,
+                  capability?.reason ?? t("agentControl.runtimeUnavailable"),
+                ] as const,
+              ];
+        }),
+      ),
+    [capabilities?.runtimes, executionCatalog, t],
+  );
+  const selectableExecutionChoice =
+    executionChoice &&
+    capabilities?.runtimes.some(
+      (runtime) => runtime.runtimeConfigId === executionChoice.runtimeConfigId && runtime.supported,
+    )
+      ? executionChoice
+      : storedExecutionChoice;
   const pendingApprovals = approvals.filter((approval) => approval.status === "pending");
   const visibleChangeSets = changeSets.filter((changeSet) =>
     isCanvasChangeSetVisible(changeSet.status),
@@ -78,6 +116,11 @@ export const GlobalAgentPanel = ({ className }: { className?: string }) => {
     event.preventDefault();
     void submit();
   };
+  useEffect(() => {
+    if (selectableExecutionChoice && selectableExecutionChoice !== storedExecutionChoice) {
+      setExecutionChoice(selectableExecutionChoice);
+    }
+  }, [selectableExecutionChoice, setExecutionChoice, storedExecutionChoice]);
   const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
     if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) {
       event.preventDefault();
@@ -114,14 +157,21 @@ export const GlobalAgentPanel = ({ className }: { className?: string }) => {
           </Badge>
         </div>
 
-        <div className="flex items-center justify-between gap-2 rounded-lg border border-border bg-muted/35 px-2.5 py-2">
-          <span className="flex min-w-0 items-center gap-1.5 text-[11px] font-medium">
-            <ShieldCheck className="size-3.5 shrink-0 text-success" />
-            <span className="truncate">{t("agentControl.runtimeLocked")}</span>
-          </span>
-          <span className="shrink-0 text-[10px] text-muted-foreground">
-            {t("agentControl.runtimeFixed")}
-          </span>
+        <div className="space-y-1" data-testid="agent-control-execution-picker">
+          <AgentExecutionPicker
+            catalog={executionCatalog}
+            choice={selectableExecutionChoice}
+            className="w-full justify-start border border-border bg-muted/35 px-2.5"
+            disabled={isRunning}
+            isolationDescription={t("agentControl.runtimeIsolation")}
+            isLoading={isExecutionChoiceLoading}
+            runtimeDisabledReasons={runtimeDisabledReasons}
+            onChange={persistChoice}
+            onRuntimeChange={selectRuntime}
+          />
+          <p className="px-1 text-[10px] leading-4 text-muted-foreground">
+            {t("agentControl.runtimePicker")}
+          </p>
         </div>
 
         {threads.length > 0 ? (

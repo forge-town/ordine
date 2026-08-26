@@ -197,6 +197,7 @@
     "detected": "已检测",
     "notLaunchable": "无法启动",
     "experimental": "实验性",
+    "controlModeUnsupported": "控制模式未通过验收",
     "nativeSandbox": "Codex 使用原生沙箱；工作区写入与网络访问由 CLI 强制执行。",
     "bestEffortPolicy": "工作区与网络限制由 CLI 策略执行，属于尽力隔离。",
     "openSettings": "打开运行时设置"
@@ -2404,10 +2405,11 @@
     "title": "ORDINE 智能控制",
     "workingDescription": "正在逐步调用受控工具",
     "toolCount": "{{count}} 个受控工具",
-    "runtimeLocked": "Codex · Luna · xhigh",
-    "runtimeFixed": "已锁定",
+    "runtimePicker": "选择 Agent Control 使用的本地 CLI、模型与推理强度。",
+    "runtimeIsolation": "控制运行使用 full-access，并仅注入当前运行的 ORDINE MCP capability。",
+    "runtimeUnavailable": "该 CLI 尚未通过 Agent Control 验收。",
     "disabled": "Agent Control 已通过 ORDINE_AGENT_CONTROL_ENABLED=false 关闭。",
-    "unsupported": "当前未检测到可用的 Codex Luna xhigh 控制运行时。ORDINE 不会回退到旧版 JSON 规划器。",
+    "unsupported": "当前没有通过 Agent Control 验收的本地 CLI。ORDINE 不会回退到旧版 JSON 规划器。",
     "previewUnavailable": "当前预览环境无法使用 Agent Control。",
     "status": {
       "working": "执行中",

@@ -98,4 +98,15 @@ describe("Agent Control tool catalog", () => {
     ]);
     expect(redactAgentControlResult(42)).toBe(42);
   });
+
+  it("redacts credential patterns embedded in ordinary result strings", () => {
+    const redacted = redactAgentControlResult({
+      message:
+        "Authorization: Bearer secret-token-value sk-abcdefghijklmnop github_pat_abcdefghijklmnopqrstuvwxyz123456",
+    });
+
+    expect(redacted).toEqual({
+      message: "Authorization: Bearer [REDACTED] sk-[REDACTED] github_[REDACTED]",
+    });
+  });
 });

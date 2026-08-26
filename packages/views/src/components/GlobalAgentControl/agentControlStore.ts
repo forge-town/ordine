@@ -6,6 +6,7 @@ import type {
   AgentChangeSet,
   AgentContextEnvelope,
   AgentControlCapabilities,
+  AgentExecutionChoice,
   AgentResourceRef,
   AgentRunEventEnvelope,
   AgentThread,
@@ -94,6 +95,7 @@ export type AgentControlState = {
   approvals: AgentApproval[];
   context: AgentContextEnvelope;
   removedContextChips: string[];
+  executionChoice: AgentExecutionChoice | null;
   selectedRuntimeId: string | null;
   currentRunId: string | null;
   streamingText: string;
@@ -108,6 +110,7 @@ export type AgentControlState = {
   selectThread: (threadId: string) => Promise<void>;
   setDraft: (draft: string) => void;
   setDrawerOpen: (open: boolean) => void;
+  setExecutionChoice: (choice: AgentExecutionChoice) => void;
   setSelectedRuntimeId: (runtimeId: string) => void;
   updateContext: (patch: Partial<AgentContextEnvelope>) => void;
   removeContextChip: (key: string) => void;
@@ -393,6 +396,7 @@ export const createAgentControlStore = (client: AgentControlClient): AgentContro
     approvals: [],
     context: emptyContext(),
     removedContextChips: [],
+    executionChoice: null,
     selectedRuntimeId: null,
     currentRunId: null,
     streamingText: "",
@@ -416,10 +420,20 @@ export const createAgentControlStore = (client: AgentControlClient): AgentContro
           }
           const threads = await client.listThreads();
           const activeThread = threads.find((thread) => thread.status === "active") ?? null;
-          const selectedRuntimeId =
-            capabilities.runtimes.find((runtime) => runtime.supported)?.runtimeConfigId ?? null;
+          const selectedRuntime = capabilities.runtimes.find((runtime) => runtime.supported);
+          const selectedRuntimeId = selectedRuntime?.runtimeConfigId ?? null;
+          const executionChoice = selectedRuntime
+            ? {
+                runtimeConfigId: selectedRuntime.runtimeConfigId,
+                ...(selectedRuntime.controlModel ? { model: selectedRuntime.controlModel } : {}),
+                ...(selectedRuntime.controlReasoningEffort
+                  ? { reasoningEffort: selectedRuntime.controlReasoningEffort }
+                  : {}),
+              }
+            : null;
           set({
             capabilities,
+            executionChoice,
             threads,
             selectedRuntimeId,
             isBootstrapping: false,
@@ -433,7 +447,15 @@ export const createAgentControlStore = (client: AgentControlClient): AgentContro
     selectThread: async (threadId) => loadThread(threadId),
     setDraft: (draft) => set({ draft }),
     setDrawerOpen: (isDrawerOpen) => set({ isDrawerOpen }),
-    setSelectedRuntimeId: (selectedRuntimeId) => set({ selectedRuntimeId }),
+    setExecutionChoice: (executionChoice) =>
+      set({ executionChoice, selectedRuntimeId: executionChoice.runtimeConfigId }),
+    setSelectedRuntimeId: (selectedRuntimeId) =>
+      set((state) => ({
+        executionChoice: state.executionChoice
+          ? { ...state.executionChoice, runtimeConfigId: selectedRuntimeId }
+          : { runtimeConfigId: selectedRuntimeId },
+        selectedRuntimeId,
+      })),
     updateContext: (patch) =>
       set((state) => ({
         context: {
@@ -489,7 +511,8 @@ export const createAgentControlStore = (client: AgentControlClient): AgentContro
 
         return;
       }
-      if (!state.selectedRuntimeId) {
+      const executionChoice = state.executionChoice;
+      if (!executionChoice) {
         set({ error: "No runtime has passed the MCP-only control mode verification." });
 
         return;
@@ -528,7 +551,15 @@ export const createAgentControlStore = (client: AgentControlClient): AgentContro
           const started = await client.startRun(activeThread.id, {
             message,
             context,
-            runtimeId: state.selectedRuntimeId!,
+            runtimeId: executionChoice.runtimeConfigId,
+            ...(executionChoice.model ? { model: executionChoice.model } : {}),
+            ...(executionChoice.reasoningEffort
+              ? { reasoningEffort: executionChoice.reasoningEffort }
+              : {}),
+            ...(executionChoice.speed ? { speed: executionChoice.speed } : {}),
+            ...(executionChoice.firstOutputTimeoutSeconds === undefined
+              ? {}
+              : { firstOutputTimeoutSeconds: executionChoice.firstOutputTimeoutSeconds }),
           });
           set((current) => ({
             currentRunId: started.runId,

@@ -202,6 +202,7 @@
     "detected": "Detected",
     "notLaunchable": "Not launchable",
     "experimental": "Experimental",
+    "controlModeUnsupported": "Control mode not accepted",
     "nativeSandbox": "Codex uses its native sandbox. Workspace write and network access are enforced by the CLI.",
     "bestEffortPolicy": "Workspace and network restrictions are enforced as CLI policy and are best-effort isolation.",
     "openSettings": "Open runtime settings"
@@ -2415,10 +2416,11 @@
     "title": "ORDINE Agent Control",
     "workingDescription": "Working through controlled tools step by step",
     "toolCount": "{{count}} controlled tools",
-    "runtimeLocked": "Codex · Luna · xhigh",
-    "runtimeFixed": "Locked",
+    "runtimePicker": "Choose the local CLI, model, and reasoning effort for Agent Control.",
+    "runtimeIsolation": "Control runs use full access and receive only the current run's ORDINE MCP capability.",
+    "runtimeUnavailable": "This CLI has not passed Agent Control acceptance.",
     "disabled": "Agent Control is disabled by ORDINE_AGENT_CONTROL_ENABLED=false.",
-    "unsupported": "The Codex Luna xhigh control runtime is unavailable. ORDINE will not fall back to the legacy JSON planner.",
+    "unsupported": "No local CLI has passed Agent Control acceptance. ORDINE will not fall back to the legacy JSON planner.",
     "previewUnavailable": "Agent Control is unavailable in this preview environment.",
     "status": {
       "working": "Running",

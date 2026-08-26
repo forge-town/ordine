@@ -11,6 +11,7 @@ import {
   AgentControlScopeSchema,
   type AgentControlScope,
 } from "@repo/schemas";
+import { agentApiAuthMiddleware } from "../integrations/auth";
 import { getEnv } from "../integrations/env";
 import {
   agentControlService,
@@ -27,8 +28,8 @@ const CONTROL_SERVER_KEY = "ordine_control";
 const CONTROL_TEMP_PREFIX = "ordine-agent-control-";
 const CONTROL_CWD_RETENTION_MS = 10 * 60 * 1000;
 const CONTROL_RUNTIME = "codex";
-const CONTROL_MODEL = "gpt-5.6-luna";
-const CONTROL_REASONING_EFFORT = "xhigh";
+const DEFAULT_CONTROL_MODEL = "gpt-5.6-luna";
+const DEFAULT_CONTROL_REASONING_EFFORT = "xhigh";
 const controlCwdCleanupTimers = new Map<string, ReturnType<typeof setTimeout>>();
 const CLAUDE_CONTROL_ENV_KEYS = [
   "ANTHROPIC_API_KEY",
@@ -67,7 +68,7 @@ const runtimeControlSupport = (runtime: string) => {
   if (runtime === "claude-code") {
     return {
       supported: false,
-      reason: "This release locks Agent Control to the verified Codex Luna xhigh profile.",
+      reason: "Claude Code control mode has not passed this release's machine acceptance.",
       controlModel: null,
       controlReasoningEffort: null,
     } as const;
@@ -84,9 +85,9 @@ const runtimeControlSupport = (runtime: string) => {
     return {
       supported: true,
       reason:
-        "Codex Luna xhigh uses an explicitly confirmed full-access run in an empty temporary cwd with isolated HOME/config and run-scoped ORDINE MCP capability.",
-      controlModel: CONTROL_MODEL,
-      controlReasoningEffort: CONTROL_REASONING_EFFORT,
+        "Codex control mode runs in an empty temporary cwd with isolated HOME/config and a run-scoped ORDINE MCP capability. Luna xhigh is the tested default; each run may select another advertised model profile.",
+      controlModel: DEFAULT_CONTROL_MODEL,
+      controlReasoningEffort: DEFAULT_CONTROL_REASONING_EFFORT,
     } as const;
   }
 
@@ -138,8 +139,8 @@ const StartRunSchema = z
     message: z.string().trim().min(1).max(100_000),
     context: AgentContextEnvelopeSchema.optional(),
     runtimeId: z.string().min(1).optional(),
-    model: z.literal(CONTROL_MODEL).optional(),
-    reasoningEffort: z.literal(CONTROL_REASONING_EFFORT).optional(),
+    model: z.string().trim().min(1).max(240).optional(),
+    reasoningEffort: z.string().trim().min(1).max(64).optional(),
     speed: z.string().min(1).optional(),
     firstOutputTimeoutSeconds: z.number().int().min(0).max(3600).optional(),
   })
@@ -205,6 +206,8 @@ const startControlRun = async ({
   message,
   context,
   runtimeId,
+  model = DEFAULT_CONTROL_MODEL,
+  reasoningEffort = DEFAULT_CONTROL_REASONING_EFFORT,
   speed,
   firstOutputTimeoutSeconds,
   resumeFromRunId: requestedResumeFromRunId,
@@ -238,8 +241,8 @@ const startControlRun = async ({
     previous.owner.type === "agent-thread" &&
     previous.owner.id === threadId &&
     previous.runtimeConfigId === selected.id &&
-    previous.model === CONTROL_MODEL &&
-    previous.reasoningEffort === CONTROL_REASONING_EFFORT &&
+    previous.model === model &&
+    previous.reasoningEffort === reasoningEffort &&
     (await isReusableControlCwd(previous.cwd));
   if (requestedResumeFromRunId && !canResume) {
     return err(
@@ -267,8 +270,8 @@ const startControlRun = async ({
         owner: { type: "agent-thread", id: threadId },
         runtimeConfigId: selected.id,
         cwd,
-        model: CONTROL_MODEL,
-        reasoningEffort: CONTROL_REASONING_EFFORT,
+        model,
+        reasoningEffort,
         speed,
         firstOutputTimeoutMs:
           firstOutputTimeoutSeconds === undefined ? undefined : firstOutputTimeoutSeconds * 1000,
@@ -432,6 +435,8 @@ const completeControlRun = async ({
 };
 
 export const agentThreadsRoutes = new Hono();
+
+agentThreadsRoutes.use("*", agentApiAuthMiddleware);
 
 agentThreadsRoutes.use("*", async (context, next) => {
   if (context.req.path.endsWith("/capabilities") || getEnv().ORDINE_AGENT_CONTROL_ENABLED) {
@@ -652,8 +657,8 @@ agentThreadsRoutes.post("/:threadId/approvals/:approvalId/approve", async (conte
       context: activeContext,
       runtimeId: originalRun.runtimeConfigId,
       resumeFromRunId: originalRun.id,
-      model: CONTROL_MODEL,
-      reasoningEffort: CONTROL_REASONING_EFFORT,
+      model: originalRun.model ?? DEFAULT_CONTROL_MODEL,
+      reasoningEffort: originalRun.reasoningEffort ?? DEFAULT_CONTROL_REASONING_EFFORT,
       speed: originalRun.speed ?? undefined,
     });
     if (resumed.isErr()) {
@@ -680,8 +685,8 @@ agentThreadsRoutes.post("/:threadId/approvals/:approvalId/approve", async (conte
           runId: resume.runId,
           context: activeContext,
           runtimeOptions: {
-            model: CONTROL_MODEL,
-            reasoningEffort: CONTROL_REASONING_EFFORT,
+            model: originalRun.model ?? DEFAULT_CONTROL_MODEL,
+            reasoningEffort: originalRun.reasoningEffort ?? DEFAULT_CONTROL_REASONING_EFFORT,
             speed: originalRun.speed ?? undefined,
           },
         }),

@@ -124,6 +124,7 @@ export const createAgentControlClient = (platform: AgentControlTransport) => {
         model?: string;
         reasoningEffort?: string;
         speed?: string;
+        firstOutputTimeoutSeconds?: number;
       },
     ) =>
       readJson(

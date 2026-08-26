@@ -1,11 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { proxyOrdineApiRequest } from "@/lib/proxyOrdineApiRequest";
+import { proxyAgentControlApiRequest } from "@/lib/proxyOrdineApiRequest";
 
 export const Route = createFileRoute("/api/agent-threads")({
   server: {
     handlers: {
-      GET: ({ request }) => proxyOrdineApiRequest(request),
-      POST: ({ request }) => proxyOrdineApiRequest(request),
+      GET: ({ request }) => proxyAgentControlApiRequest(request),
+      POST: ({ request }) => proxyAgentControlApiRequest(request),
     },
   },
 });

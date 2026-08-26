@@ -1,14 +1,23 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+const mocks = vi.hoisted(() => ({ getSession: vi.fn() }));
+
+vi.mock("@/integrations/better-auth", () => ({
+  auth: { api: { getSession: mocks.getSession } },
+}));
 vi.mock("@/integrations/server-env", () => ({
-  getServerEnv: () => ({ ORDINE_API_PROXY_TARGET: "http://localhost:9433" }),
+  getServerEnv: () => ({
+    ORDINE_AGENT_API_TOKEN: "test-agent-api-token-that-is-long-enough",
+    ORDINE_API_PROXY_TARGET: "http://localhost:9433",
+  }),
 }));
 
-import { proxyOrdineApiRequest } from "./proxyOrdineApiRequest";
+import { proxyAgentControlApiRequest, proxyOrdineApiRequest } from "./proxyOrdineApiRequest";
 
 describe("proxyOrdineApiRequest", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
+    mocks.getSession.mockResolvedValue({ user: { id: "user-1" } });
   });
 
   it("forwards the request path, query, method, and body to the API server", async () => {
@@ -58,5 +67,33 @@ describe("proxyOrdineApiRequest", () => {
       toolCount: 22,
       runtimes: [],
     });
+  });
+
+  it("requires a web session before proxying Agent Control requests", async () => {
+    mocks.getSession.mockResolvedValueOnce(null);
+    const fetchMock = vi.spyOn(globalThis, "fetch");
+
+    const response = await proxyAgentControlApiRequest(
+      new Request("http://localhost:9430/api/agent-threads"),
+    );
+
+    expect(response.status).toBe(401);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("injects the server-side Agent API token for authenticated requests", async () => {
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(Response.json([]));
+
+    const response = await proxyAgentControlApiRequest(
+      new Request("http://localhost:9430/api/agent-threads", {
+        headers: { Authorization: "Bearer attacker-controlled" },
+      }),
+    );
+    const forwarded = fetchMock.mock.calls[0]?.[0] as Request;
+
+    expect(response.status).toBe(200);
+    expect(forwarded.headers.get("authorization")).toBe(
+      "Bearer test-agent-api-token-that-is-long-enough",
+    );
   });
 });

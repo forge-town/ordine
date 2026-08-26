@@ -3,9 +3,38 @@ import type { AgentControlToolDefinition } from "./toolCatalog";
 const REDACTED = "[REDACTED]";
 const SENSITIVE_KEY =
   /(?:api[-_]?key|authorization|bearer|credential|password|private[-_]?key|secret|token)/i;
+const CREDENTIAL_PATTERNS: ReadonlyArray<{
+  pattern: RegExp;
+  replacement: (match: string) => string;
+}> = [
+  {
+    pattern: /\bBearer\s+[A-Za-z0-9._~+/=-]+/giu,
+    replacement: () => "Bearer [REDACTED]",
+  },
+  {
+    pattern: /\bsk-[A-Za-z0-9_-]{12,}\b/giu,
+    replacement: () => "sk-[REDACTED]",
+  },
+  {
+    pattern: /\b(?:gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,})\b/giu,
+    replacement: (match) => `${match.slice(0, match.indexOf("_") + 1)}[REDACTED]`,
+  },
+  {
+    pattern:
+      /\b(?:api[-_]?key|access[-_]?token|refresh[-_]?token|password|secret)\s*[:=]\s*([^\s,;]+)/giu,
+    replacement: (match) => `${match.split(/[:=]/u, 1)[0]?.trim()}=[REDACTED]`,
+  },
+];
+
+const redactText = (value: string): string =>
+  CREDENTIAL_PATTERNS.reduce(
+    (redacted, { pattern, replacement }) => redacted.replace(pattern, replacement),
+    value,
+  );
 
 const redactKeys = (value: unknown): unknown => {
   if (Array.isArray(value)) return value.map(redactKeys);
+  if (typeof value === "string") return redactText(value);
   if (!value || typeof value !== "object") return value;
 
   return Object.fromEntries(
