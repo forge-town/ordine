@@ -15,8 +15,8 @@ import { Route as SettingsRouteImport } from "./routes/settings";
 import { Route as ScheduleRouteImport } from "./routes/schedule";
 import { Route as PluginsRouteImport } from "./routes/plugins";
 import { Route as PipelinesRouteImport } from "./routes/pipelines";
-import { Route as LocalAgentsRouteImport } from "./routes/local-agents";
 import { Route as DistillationsRouteImport } from "./routes/distillations";
+import { Route as DistillationStudioRouteImport } from "./routes/distillation-studio";
 import { Route as ConnectorsRouteImport } from "./routes/connectors";
 import { Route as ComponentsRouteImport } from "./routes/components";
 import { Route as CanvasRouteImport } from "./routes/canvas";
@@ -37,7 +37,6 @@ import { Route as AgentsAgentIdIndexRouteImport } from "./routes/agents.$agentId
 import { Route as RuntimesRuntimeIdEditRouteImport } from "./routes/runtimes.$runtimeId.edit";
 import { Route as PipelinesOperationsNewRouteImport } from "./routes/pipelines/operations.new";
 import { Route as PipelinesObjectsObjectTypeIdRouteImport } from "./routes/pipelines/objects.$objectTypeId";
-import { Route as PipelinesJobsJobIdRouteImport } from "./routes/pipelines/jobs.$jobId";
 import { Route as PipelinesOperationsOperationIdIndexRouteImport } from "./routes/pipelines/operations.$operationId.index";
 import { Route as PipelinesOperationsOperationIdEditRouteImport } from "./routes/pipelines/operations.$operationId.edit";
 
@@ -71,14 +70,14 @@ const PipelinesRoute = PipelinesRouteImport.update({
   path: "/pipelines",
   getParentRoute: () => rootRouteImport,
 } as any);
-const LocalAgentsRoute = LocalAgentsRouteImport.update({
-  id: "/local-agents",
-  path: "/local-agents",
-  getParentRoute: () => rootRouteImport,
-} as any);
 const DistillationsRoute = DistillationsRouteImport.update({
   id: "/distillations",
   path: "/distillations",
+  getParentRoute: () => rootRouteImport,
+} as any);
+const DistillationStudioRoute = DistillationStudioRouteImport.update({
+  id: "/distillation-studio",
+  path: "/distillation-studio",
   getParentRoute: () => rootRouteImport,
 } as any);
 const ConnectorsRoute = ConnectorsRouteImport.update({
@@ -181,11 +180,6 @@ const PipelinesObjectsObjectTypeIdRoute = PipelinesObjectsObjectTypeIdRouteImpor
   path: "/$objectTypeId",
   getParentRoute: () => PipelinesObjectsRoute,
 } as any);
-const PipelinesJobsJobIdRoute = PipelinesJobsJobIdRouteImport.update({
-  id: "/$jobId",
-  path: "/$jobId",
-  getParentRoute: () => PipelinesJobsRoute,
-} as any);
 const PipelinesOperationsOperationIdIndexRoute =
   PipelinesOperationsOperationIdIndexRouteImport.update({
     id: "/operations/$operationId/",
@@ -205,8 +199,8 @@ export interface FileRoutesByFullPath {
   "/canvas": typeof CanvasRoute;
   "/components": typeof ComponentsRoute;
   "/connectors": typeof ConnectorsRoute;
+  "/distillation-studio": typeof DistillationStudioRoute;
   "/distillations": typeof DistillationsRouteWithChildren;
-  "/local-agents": typeof LocalAgentsRoute;
   "/pipelines": typeof PipelinesRouteWithChildren;
   "/plugins": typeof PluginsRoute;
   "/schedule": typeof ScheduleRoute;
@@ -216,13 +210,12 @@ export interface FileRoutesByFullPath {
   "/distillations/$distillationId": typeof DistillationsDistillationIdRoute;
   "/distillations/new": typeof DistillationsNewRoute;
   "/pipelines/$pipelineId": typeof PipelinesPipelineIdRoute;
-  "/pipelines/jobs": typeof PipelinesJobsRouteWithChildren;
+  "/pipelines/jobs": typeof PipelinesJobsRoute;
   "/pipelines/objects": typeof PipelinesObjectsRouteWithChildren;
   "/agents/": typeof AgentsIndexRoute;
   "/distillations/": typeof DistillationsIndexRoute;
   "/pipelines/": typeof PipelinesIndexRoute;
   "/runtimes/": typeof RuntimesIndexRoute;
-  "/pipelines/jobs/$jobId": typeof PipelinesJobsJobIdRoute;
   "/pipelines/objects/$objectTypeId": typeof PipelinesObjectsObjectTypeIdRoute;
   "/pipelines/operations/new": typeof PipelinesOperationsNewRoute;
   "/runtimes/$runtimeId/edit": typeof RuntimesRuntimeIdEditRoute;
@@ -238,7 +231,7 @@ export interface FileRoutesByTo {
   "/canvas": typeof CanvasRoute;
   "/components": typeof ComponentsRoute;
   "/connectors": typeof ConnectorsRoute;
-  "/local-agents": typeof LocalAgentsRoute;
+  "/distillation-studio": typeof DistillationStudioRoute;
   "/plugins": typeof PluginsRoute;
   "/schedule": typeof ScheduleRoute;
   "/settings": typeof SettingsRoute;
@@ -247,13 +240,12 @@ export interface FileRoutesByTo {
   "/distillations/$distillationId": typeof DistillationsDistillationIdRoute;
   "/distillations/new": typeof DistillationsNewRoute;
   "/pipelines/$pipelineId": typeof PipelinesPipelineIdRoute;
-  "/pipelines/jobs": typeof PipelinesJobsRouteWithChildren;
+  "/pipelines/jobs": typeof PipelinesJobsRoute;
   "/pipelines/objects": typeof PipelinesObjectsRouteWithChildren;
   "/agents": typeof AgentsIndexRoute;
   "/distillations": typeof DistillationsIndexRoute;
   "/pipelines": typeof PipelinesIndexRoute;
   "/runtimes": typeof RuntimesIndexRoute;
-  "/pipelines/jobs/$jobId": typeof PipelinesJobsJobIdRoute;
   "/pipelines/objects/$objectTypeId": typeof PipelinesObjectsObjectTypeIdRoute;
   "/pipelines/operations/new": typeof PipelinesOperationsNewRoute;
   "/runtimes/$runtimeId/edit": typeof RuntimesRuntimeIdEditRoute;
@@ -270,8 +262,8 @@ export interface FileRoutesById {
   "/canvas": typeof CanvasRoute;
   "/components": typeof ComponentsRoute;
   "/connectors": typeof ConnectorsRoute;
+  "/distillation-studio": typeof DistillationStudioRoute;
   "/distillations": typeof DistillationsRouteWithChildren;
-  "/local-agents": typeof LocalAgentsRoute;
   "/pipelines": typeof PipelinesRouteWithChildren;
   "/plugins": typeof PluginsRoute;
   "/schedule": typeof ScheduleRoute;
@@ -281,13 +273,12 @@ export interface FileRoutesById {
   "/distillations/$distillationId": typeof DistillationsDistillationIdRoute;
   "/distillations/new": typeof DistillationsNewRoute;
   "/pipelines/$pipelineId": typeof PipelinesPipelineIdRoute;
-  "/pipelines/jobs": typeof PipelinesJobsRouteWithChildren;
+  "/pipelines/jobs": typeof PipelinesJobsRoute;
   "/pipelines/objects": typeof PipelinesObjectsRouteWithChildren;
   "/agents/": typeof AgentsIndexRoute;
   "/distillations/": typeof DistillationsIndexRoute;
   "/pipelines/": typeof PipelinesIndexRoute;
   "/runtimes/": typeof RuntimesIndexRoute;
-  "/pipelines/jobs/$jobId": typeof PipelinesJobsJobIdRoute;
   "/pipelines/objects/$objectTypeId": typeof PipelinesObjectsObjectTypeIdRoute;
   "/pipelines/operations/new": typeof PipelinesOperationsNewRoute;
   "/runtimes/$runtimeId/edit": typeof RuntimesRuntimeIdEditRoute;
@@ -305,8 +296,8 @@ export interface FileRouteTypes {
     | "/canvas"
     | "/components"
     | "/connectors"
+    | "/distillation-studio"
     | "/distillations"
-    | "/local-agents"
     | "/pipelines"
     | "/plugins"
     | "/schedule"
@@ -322,7 +313,6 @@ export interface FileRouteTypes {
     | "/distillations/"
     | "/pipelines/"
     | "/runtimes/"
-    | "/pipelines/jobs/$jobId"
     | "/pipelines/objects/$objectTypeId"
     | "/pipelines/operations/new"
     | "/runtimes/$runtimeId/edit"
@@ -338,7 +328,7 @@ export interface FileRouteTypes {
     | "/canvas"
     | "/components"
     | "/connectors"
-    | "/local-agents"
+    | "/distillation-studio"
     | "/plugins"
     | "/schedule"
     | "/settings"
@@ -353,7 +343,6 @@ export interface FileRouteTypes {
     | "/distillations"
     | "/pipelines"
     | "/runtimes"
-    | "/pipelines/jobs/$jobId"
     | "/pipelines/objects/$objectTypeId"
     | "/pipelines/operations/new"
     | "/runtimes/$runtimeId/edit"
@@ -369,8 +358,8 @@ export interface FileRouteTypes {
     | "/canvas"
     | "/components"
     | "/connectors"
+    | "/distillation-studio"
     | "/distillations"
-    | "/local-agents"
     | "/pipelines"
     | "/plugins"
     | "/schedule"
@@ -386,7 +375,6 @@ export interface FileRouteTypes {
     | "/distillations/"
     | "/pipelines/"
     | "/runtimes/"
-    | "/pipelines/jobs/$jobId"
     | "/pipelines/objects/$objectTypeId"
     | "/pipelines/operations/new"
     | "/runtimes/$runtimeId/edit"
@@ -403,8 +391,8 @@ export interface RootRouteChildren {
   CanvasRoute: typeof CanvasRoute;
   ComponentsRoute: typeof ComponentsRoute;
   ConnectorsRoute: typeof ConnectorsRoute;
+  DistillationStudioRoute: typeof DistillationStudioRoute;
   DistillationsRoute: typeof DistillationsRouteWithChildren;
-  LocalAgentsRoute: typeof LocalAgentsRoute;
   PipelinesRoute: typeof PipelinesRouteWithChildren;
   PluginsRoute: typeof PluginsRoute;
   ScheduleRoute: typeof ScheduleRoute;
@@ -462,18 +450,18 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof PipelinesRouteImport;
       parentRoute: typeof rootRouteImport;
     };
-    "/local-agents": {
-      id: "/local-agents";
-      path: "/local-agents";
-      fullPath: "/local-agents";
-      preLoaderRoute: typeof LocalAgentsRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
     "/distillations": {
       id: "/distillations";
       path: "/distillations";
       fullPath: "/distillations";
       preLoaderRoute: typeof DistillationsRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/distillation-studio": {
+      id: "/distillation-studio";
+      path: "/distillation-studio";
+      fullPath: "/distillation-studio";
+      preLoaderRoute: typeof DistillationStudioRouteImport;
       parentRoute: typeof rootRouteImport;
     };
     "/connectors": {
@@ -616,13 +604,6 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof PipelinesObjectsObjectTypeIdRouteImport;
       parentRoute: typeof PipelinesObjectsRoute;
     };
-    "/pipelines/jobs/$jobId": {
-      id: "/pipelines/jobs/$jobId";
-      path: "/$jobId";
-      fullPath: "/pipelines/jobs/$jobId";
-      preLoaderRoute: typeof PipelinesJobsJobIdRouteImport;
-      parentRoute: typeof PipelinesJobsRoute;
-    };
     "/pipelines/operations/$operationId/": {
       id: "/pipelines/operations/$operationId/";
       path: "/operations/$operationId";
@@ -656,18 +637,6 @@ const DistillationsRouteWithChildren = DistillationsRoute._addFileChildren(
   DistillationsRouteChildren,
 );
 
-interface PipelinesJobsRouteChildren {
-  PipelinesJobsJobIdRoute: typeof PipelinesJobsJobIdRoute;
-}
-
-const PipelinesJobsRouteChildren: PipelinesJobsRouteChildren = {
-  PipelinesJobsJobIdRoute: PipelinesJobsJobIdRoute,
-};
-
-const PipelinesJobsRouteWithChildren = PipelinesJobsRoute._addFileChildren(
-  PipelinesJobsRouteChildren,
-);
-
 interface PipelinesObjectsRouteChildren {
   PipelinesObjectsObjectTypeIdRoute: typeof PipelinesObjectsObjectTypeIdRoute;
 }
@@ -682,7 +651,7 @@ const PipelinesObjectsRouteWithChildren = PipelinesObjectsRoute._addFileChildren
 
 interface PipelinesRouteChildren {
   PipelinesPipelineIdRoute: typeof PipelinesPipelineIdRoute;
-  PipelinesJobsRoute: typeof PipelinesJobsRouteWithChildren;
+  PipelinesJobsRoute: typeof PipelinesJobsRoute;
   PipelinesObjectsRoute: typeof PipelinesObjectsRouteWithChildren;
   PipelinesIndexRoute: typeof PipelinesIndexRoute;
   PipelinesOperationsNewRoute: typeof PipelinesOperationsNewRoute;
@@ -693,7 +662,7 @@ interface PipelinesRouteChildren {
 
 const PipelinesRouteChildren: PipelinesRouteChildren = {
   PipelinesPipelineIdRoute: PipelinesPipelineIdRoute,
-  PipelinesJobsRoute: PipelinesJobsRouteWithChildren,
+  PipelinesJobsRoute: PipelinesJobsRoute,
   PipelinesObjectsRoute: PipelinesObjectsRouteWithChildren,
   PipelinesIndexRoute: PipelinesIndexRoute,
   PipelinesOperationsNewRoute: PipelinesOperationsNewRoute,
@@ -710,8 +679,8 @@ const rootRouteChildren: RootRouteChildren = {
   CanvasRoute: CanvasRoute,
   ComponentsRoute: ComponentsRoute,
   ConnectorsRoute: ConnectorsRoute,
+  DistillationStudioRoute: DistillationStudioRoute,
   DistillationsRoute: DistillationsRouteWithChildren,
-  LocalAgentsRoute: LocalAgentsRoute,
   PipelinesRoute: PipelinesRouteWithChildren,
   PluginsRoute: PluginsRoute,
   ScheduleRoute: ScheduleRoute,

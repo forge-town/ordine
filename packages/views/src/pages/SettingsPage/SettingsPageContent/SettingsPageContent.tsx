@@ -5,7 +5,6 @@ import {
   Code,
   FolderKanban,
   Globe,
-  Keyboard,
   Settings,
   ShieldCheck,
   Sliders,
@@ -14,7 +13,6 @@ import {
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@repo/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@repo/ui/dialog";
 import { cn } from "@repo/ui/lib/utils";
 import { PageHeader } from "../../../components/PageHeader";
 import {
@@ -22,7 +20,6 @@ import {
   AutonomySection,
   DefaultsSection,
   DeveloperSection,
-  KeyboardSection,
   LanguageSection,
   NotificationsSection,
   PagesSection,
@@ -63,37 +60,13 @@ const SECTION_GROUPS: Array<{ ids: Section[]; titleKey: string }> = [
 export const SettingsPageContent = () => {
   const { t } = useTranslation();
   const [active, setActive] = useState<Section>("language");
-  const [keyboardOpen, setKeyboardOpen] = useState(false);
-  const handleKeyboardOpen = () => setKeyboardOpen(true);
-  const handleKeyboardOpenChange = (open: boolean) => setKeyboardOpen(open);
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
       <PageHeader
-        actions={
-          <Button
-            aria-label={t("settings.sections.keyboard")}
-            data-testid="settings-keyboard-help"
-            size="sm"
-            type="button"
-            variant="outline"
-            onClick={handleKeyboardOpen}
-          >
-            <Keyboard className="h-3.5 w-3.5 sm:mr-1.5" />
-            <span className="hidden sm:inline">{t("settings.sections.keyboard")}</span>
-          </Button>
-        }
         icon={<Settings className="h-4 w-4 text-primary" />}
         title={t("settings.title")}
       />
-      <Dialog open={keyboardOpen} onOpenChange={handleKeyboardOpenChange}>
-        <DialogContent className="sm:max-w-xl">
-          <DialogHeader>
-            <DialogTitle className="sr-only">{t("settings.sections.keyboard")}</DialogTitle>
-          </DialogHeader>
-          <KeyboardSection />
-        </DialogContent>
-      </Dialog>
 
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden md:flex-row">
         <nav className="shrink-0 border-b border-border bg-background md:w-52 md:border-b-0 md:border-r md:py-4">

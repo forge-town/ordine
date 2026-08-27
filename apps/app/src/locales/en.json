@@ -121,14 +121,20 @@
   "schedule": {
     "title": "Schedule",
     "subtitle": "Run pipelines automatically on a schedule",
-    "emptyTitle": "Scheduling is coming soon",
-    "emptyDescription": "This page will list all scheduled pipeline routines, with cadence, activation state, and manual trigger."
+    "emptyTitle": "No routines yet",
+    "emptyDescription": "Use “New Routine” above to pick a pipeline and set its cadence.",
+    "runNow": "Run now",
+    "enabled": "Enabled",
+    "disabled": "Disabled"
   },
   "conversations": {
     "title": "Conversations",
     "subtitle": "Past conversations with agents",
-    "emptyTitle": "Conversations are coming soon",
-    "emptyDescription": "This page will collect your conversations with agents, so you can review and continue them."
+    "emptyTitle": "No conversations yet",
+    "emptyDescription": "Conversations with agents from the canvas or home page will show up here.",
+    "clearAll": "Clear all",
+    "clearAllConfirm": "Click again to confirm",
+    "messageCount": "{{count}} messages"
   },
   "connectors": {
     "title": "Connectors",
@@ -293,7 +299,6 @@
     "agentReady": "Local Agent ready",
     "agentConfigured": "Local Agent configured",
     "selectLocalAgent": "Select local Agent",
-    "manageLocalAgents": "Manage local Agents",
     "agentQueryFailed": "Agent status unavailable",
     "runtimeLoadFailed": "Could not load configured local Agents.",
     "connectLocalAgent": "Connect local Agent",
@@ -1436,7 +1441,6 @@
       "advanced": "Advanced",
       "autonomy": "Autonomy",
       "defaults": "Defaults",
-      "keyboard": "Keyboard",
       "project": "Project",
       "pages": "Pages"
     },
@@ -1555,44 +1559,6 @@
     "pages": {
       "title": "More pages",
       "description": "Entries moved out of the main navigation. Routes and features are unchanged."
-    },
-    "keyboard": {
-      "description": "Canvas shortcuts. Read-only for now.",
-      "groups": {
-        "editing": "Editing",
-        "navigation": "Navigation"
-      },
-      "shortcuts": {
-        "boxSelect": {
-          "keys": "drag on canvas",
-          "label": "Box-select"
-        },
-        "delete": {
-          "keys": "⌫ / Del",
-          "label": "Delete selection"
-        },
-        "drillOut": {
-          "keys": "Esc",
-          "label": "Drill out / clear selection"
-        },
-        "pan": {
-          "keys": "middle-drag",
-          "label": "Pan"
-        },
-        "redo": {
-          "keys": "⌘ ⇧ Z",
-          "label": "Redo"
-        },
-        "undo": {
-          "keys": "⌘ Z",
-          "label": "Undo"
-        },
-        "zoom": {
-          "keys": "⌘ scroll",
-          "label": "Zoom"
-        }
-      },
-      "title": "Keyboard"
     },
     "notifications": {
       "description": "What gets pushed to the notification center, what stays silent.",
@@ -2301,7 +2267,6 @@
     "emptyBody": "Run, self-heal & connector events show here.",
     "emptyTitle": "All clear",
     "markRead": "Mark read",
-    "open": "open",
     "title": "Notifications"
   },
   "components": {

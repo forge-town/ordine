@@ -21,7 +21,10 @@ import { useAgentBarStore } from "./_store";
 import { Assistant, MessageTurn, ProposalCard, SuggestionList } from "./messages";
 import type { MessageTurnSubmitInput } from "./messages/MessageTurn";
 import { Composer, type ComposerSubmitInput } from "./Composer";
-import { hasPendingPipelinePrompt, takePendingPipelinePrompt } from "./pendingPipelinePrompt";
+import {
+  hasPendingPipelinePrompt,
+  takePendingPipelinePrompt,
+} from "../../../lib/pendingPipelinePrompt";
 import { loadGenerateSessionId } from "./generateSessionStorage";
 import { buildProposalItems } from "./proposalView";
 import { useAgentConversation } from "./useAgentConversation";

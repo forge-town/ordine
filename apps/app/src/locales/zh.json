@@ -121,14 +121,20 @@
   "schedule": {
     "title": "定时任务",
     "subtitle": "按计划自动运行流水线",
-    "emptyTitle": "定时任务即将上线",
-    "emptyDescription": "这里将列出所有定时执行的流水线(Routine),支持查看周期、启用状态和手动触发。"
+    "emptyTitle": "还没有定时任务",
+    "emptyDescription": "点击右上角「新建 Routine」,选择一条 Pipeline 并设置执行周期。",
+    "runNow": "立即运行",
+    "enabled": "已启用",
+    "disabled": "已停用"
   },
   "conversations": {
     "title": "对话",
     "subtitle": "与智能体的历史对话",
-    "emptyTitle": "对话记录即将上线",
-    "emptyDescription": "这里将汇总你与智能体的对话记录,支持回看与继续。"
+    "emptyTitle": "还没有对话",
+    "emptyDescription": "在画布或首页与智能体对话后,记录会出现在这里。",
+    "clearAll": "清空全部",
+    "clearAllConfirm": "再点一次确认清空",
+    "messageCount": "{{count}} 条消息"
   },
   "connectors": {
     "title": "连接器",
@@ -288,7 +294,6 @@
     "agentReady": "本地 Agent 已就绪",
     "agentConfigured": "本地 Agent 已配置",
     "selectLocalAgent": "选择本地 Agent",
-    "manageLocalAgents": "管理本地 Agent",
     "agentQueryFailed": "Agent 状态不可用",
     "runtimeLoadFailed": "无法加载已配置的本地 Agent。",
     "connectLocalAgent": "连接本地 Agent",
@@ -1430,7 +1435,6 @@
       "advanced": "高级",
       "autonomy": "自主性",
       "defaults": "默认项",
-      "keyboard": "快捷键",
       "project": "项目",
       "pages": "页面"
     },
@@ -1549,44 +1553,6 @@
     "pages": {
       "title": "更多页面",
       "description": "从主导航移出的页面入口,路由与功能保持不变。"
-    },
-    "keyboard": {
-      "description": "画布快捷键速查，当前为只读。",
-      "groups": {
-        "editing": "编辑",
-        "navigation": "导航"
-      },
-      "shortcuts": {
-        "boxSelect": {
-          "keys": "画布拖拽",
-          "label": "框选"
-        },
-        "delete": {
-          "keys": "⌫ / Del",
-          "label": "删除选中"
-        },
-        "drillOut": {
-          "keys": "Esc",
-          "label": "钻出 / 清除选择"
-        },
-        "pan": {
-          "keys": "中键拖拽",
-          "label": "平移"
-        },
-        "redo": {
-          "keys": "⌘ ⇧ Z",
-          "label": "重做"
-        },
-        "undo": {
-          "keys": "⌘ Z",
-          "label": "撤销"
-        },
-        "zoom": {
-          "keys": "⌘ 滚轮",
-          "label": "缩放"
-        }
-      },
-      "title": "快捷键"
     },
     "notifications": {
       "description": "哪些事件推送到通知中心，哪些保持安静。",
@@ -2290,7 +2256,6 @@
     "emptyBody": "运行、自愈与连接器事件会出现在这里。",
     "emptyTitle": "暂无通知",
     "markRead": "全部已读",
-    "open": "打开",
     "title": "通知"
   },
   "components": {

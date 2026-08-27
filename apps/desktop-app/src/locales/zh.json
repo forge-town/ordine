@@ -92,14 +92,20 @@
   "schedule": {
     "title": "定时任务",
     "subtitle": "按计划自动运行流水线",
-    "emptyTitle": "定时任务即将上线",
-    "emptyDescription": "这里将列出所有定时执行的流水线(Routine),支持查看周期、启用状态和手动触发。"
+    "emptyTitle": "还没有定时任务",
+    "emptyDescription": "点击右上角「新建 Routine」,选择一条 Pipeline 并设置执行周期。",
+    "runNow": "立即运行",
+    "enabled": "已启用",
+    "disabled": "已停用"
   },
   "conversations": {
     "title": "对话",
     "subtitle": "与智能体的历史对话",
-    "emptyTitle": "对话记录即将上线",
-    "emptyDescription": "这里将汇总你与智能体的对话记录,支持回看与继续。"
+    "emptyTitle": "还没有对话",
+    "emptyDescription": "在画布或首页与智能体对话后,记录会出现在这里。",
+    "clearAll": "清空全部",
+    "clearAllConfirm": "再点一次确认清空",
+    "messageCount": "{{count}} 条消息"
   },
   "connectors": {
     "title": "连接器",
@@ -118,8 +124,17 @@
     "noHandshake": "由工作区直接管理",
     "empty": "没有找到连接器",
     "emptyHint": "添加连接器，让本地 Agent 可以访问外部工具和系统。",
-    "filters": { "all": "全部", "connected": "已连接", "needs_setup": "待配置", "mcp": "通过 MCP" },
-    "status": { "connected": "已连接", "needs_setup": "待配置", "error": "错误" }
+    "filters": {
+      "all": "全部",
+      "connected": "已连接",
+      "needs_setup": "待配置",
+      "mcp": "通过 MCP"
+    },
+    "status": {
+      "connected": "已连接",
+      "needs_setup": "待配置",
+      "error": "错误"
+    }
   },
   "localAgents": {
     "title": "本地 Agent",
@@ -233,7 +248,6 @@
     "noLogs": "暂无日志",
     "status": "状态",
     "statusQueued": "排队中",
-    "statusRunning": "运行中",
     "statusDone": "完成",
     "statusFailed": "失败",
     "statusCancelled": "已取消",
@@ -296,7 +310,6 @@
     "emptyBody": "运行与应用事件会出现在这里。",
     "emptyTitle": "暂无通知",
     "markRead": "全部已读",
-    "open": "打开",
     "title": "通知"
   },
   "distillations": {
@@ -989,32 +1002,30 @@
     "codeSnippetTitlePlaceholder": "例如：正确示例 / 错误示例"
   },
   "skills": {
-    "title": "技能",
-    "subtitle": "展示可复用指令的输入输出、来源，以及可生成的 Operation。",
-    "createSkill": "创建技能",
-    "search": "搜索技能...",
-    "importPath": "Codex 或 Claude Code 技能目录路径",
-    "previewImport": "预览导入",
-    "scanning": "扫描中...",
-    "importing": "导入中...",
-    "importSelected": "导入 {{count}} 项",
-    "owned": "已拥有",
-    "selected": "已选择",
-    "skipped": "已跳过",
-    "label": "显示名称",
-    "descriptionPlaceholder": "说明这个技能的作用",
-    "powers": "可生成 {{operation}}",
-    "createFrom": "从 {{name}} 创建 Operation",
-    "deleteSkill": "删除 {{name}}",
-    "noSkills": "暂无 Skills",
-    "categories": {
-      "all": "全部",
-      "page": "页面结构",
-      "data": "数据层",
-      "state": "状态管理",
-      "form": "表单",
-      "code-quality": "代码质量"
-    }
+    "pageStructure": "页面结构",
+    "pageStructureDesc": "生成标准的页面 Anatomy：Wrapper + Content + 可选 Store，确保页面结构清晰分层。",
+    "stateManagement": "状态管理 Store",
+    "stateManagementDesc": "基于 Zustand slice 模式创建 Store，包含 Context Provider 和类型安全的 hook。",
+    "daoLayer": "DAO 层",
+    "daoLayerDesc": "使用 Drizzle ORM 规范创建数据访问对象，确保命名、类型安全和查询性能。",
+    "serviceLayer": "Service 层",
+    "serviceLayerDesc": "按照 tRPC + Service + DAO 架构创建 Service，分离业务逻辑与数据访问。",
+    "formComponent": "表单组件",
+    "formComponentDesc": "创建符合规范的表单组件，包含字段验证、状态管理和 UI 结构。",
+    "schemaValidation": "Schema 校验",
+    "schemaValidationDesc": "使用 Drizzle ORM schema 定义数据库表，确保命名、关系和索引配置规范。",
+    "barrelExport": "桶导出规范",
+    "barrelExportDesc": "生成和检查 index.ts 桶导出文件，确保所有 index 文件仅做 re-export。",
+    "errorHandling": "错误处理",
+    "errorHandlingDesc": "规范化 try-catch 写法，确保 catch 块有实质处理逻辑，不为空或仅记录日志。",
+    "dbNaming": "数据库表命名",
+    "dbNamingDesc": "验证和修正数据库表定义的命名规范，包括表名、列名和索引。",
+    "svgIcon": "SVG 图标规范",
+    "svgIconDesc": "管理 React TypeScript 项目中的 SVG 图标，确保命名、封装和导出规范。",
+    "oneComponent": "单组件单文件",
+    "oneComponentDesc": "强制每个文件只包含一个 React/Vue 组件，不允许多组件共存。",
+    "refineTrpc": "Refine tRPC 规范",
+    "refineTrpcDesc": "在 React 组件中通过 Refine hooks 经由 DataProvider 访问数据，禁止直接调用 tRPC。"
   },
   "settings": {
     "title": "设置",
@@ -1057,7 +1068,6 @@
       "advanced": "高级",
       "autonomy": "自主性",
       "defaults": "默认项",
-      "keyboard": "快捷键",
       "project": "项目",
       "pages": "页面"
     },
@@ -1176,44 +1186,6 @@
     "pages": {
       "title": "更多页面",
       "description": "从主导航移出的页面入口,路由与功能保持不变。"
-    },
-    "keyboard": {
-      "description": "画布快捷键速查，当前为只读。",
-      "groups": {
-        "editing": "编辑",
-        "navigation": "导航"
-      },
-      "shortcuts": {
-        "boxSelect": {
-          "keys": "画布拖拽",
-          "label": "框选"
-        },
-        "delete": {
-          "keys": "⌫ / Del",
-          "label": "删除选中"
-        },
-        "drillOut": {
-          "keys": "Esc",
-          "label": "钻出 / 清除选择"
-        },
-        "pan": {
-          "keys": "中键拖拽",
-          "label": "平移"
-        },
-        "redo": {
-          "keys": "⌘ ⇧ Z",
-          "label": "重做"
-        },
-        "undo": {
-          "keys": "⌘ Z",
-          "label": "撤销"
-        },
-        "zoom": {
-          "keys": "⌘ 滚轮",
-          "label": "缩放"
-        }
-      },
-      "title": "快捷键"
     },
     "notifications": {
       "description": "哪些事件推送到通知中心，哪些保持安静。",
@@ -1405,32 +1377,6 @@
     "projectListEmpty": "项目库为空，请先在「项目」页面连接 GitHub 仓库",
     "projectListNoResults": "未找到匹配的项目"
   },
-  "skills": {
-    "pageStructure": "页面结构",
-    "pageStructureDesc": "生成标准的页面 Anatomy：Wrapper + Content + 可选 Store，确保页面结构清晰分层。",
-    "stateManagement": "状态管理 Store",
-    "stateManagementDesc": "基于 Zustand slice 模式创建 Store，包含 Context Provider 和类型安全的 hook。",
-    "daoLayer": "DAO 层",
-    "daoLayerDesc": "使用 Drizzle ORM 规范创建数据访问对象，确保命名、类型安全和查询性能。",
-    "serviceLayer": "Service 层",
-    "serviceLayerDesc": "按照 tRPC + Service + DAO 架构创建 Service，分离业务逻辑与数据访问。",
-    "formComponent": "表单组件",
-    "formComponentDesc": "创建符合规范的表单组件，包含字段验证、状态管理和 UI 结构。",
-    "schemaValidation": "Schema 校验",
-    "schemaValidationDesc": "使用 Drizzle ORM schema 定义数据库表，确保命名、关系和索引配置规范。",
-    "barrelExport": "桶导出规范",
-    "barrelExportDesc": "生成和检查 index.ts 桶导出文件，确保所有 index 文件仅做 re-export。",
-    "errorHandling": "错误处理",
-    "errorHandlingDesc": "规范化 try-catch 写法，确保 catch 块有实质处理逻辑，不为空或仅记录日志。",
-    "dbNaming": "数据库表命名",
-    "dbNamingDesc": "验证和修正数据库表定义的命名规范，包括表名、列名和索引。",
-    "svgIcon": "SVG 图标规范",
-    "svgIconDesc": "管理 React TypeScript 项目中的 SVG 图标，确保命名、封装和导出规范。",
-    "oneComponent": "单组件单文件",
-    "oneComponentDesc": "强制每个文件只包含一个 React/Vue 组件，不允许多组件共存。",
-    "refineTrpc": "Refine tRPC 规范",
-    "refineTrpcDesc": "在 React 组件中通过 Refine hooks 经由 DataProvider 访问数据，禁止直接调用 tRPC。"
-  },
   "workspace": {
     "title": "工作区",
     "notFound": "项目不存在",
@@ -1539,15 +1485,30 @@
       "runs_other": "已运行 {{count}} 次"
     },
     "builtins": {
-      "folder": { "name": "文件夹", "description": "将本地文件夹绑定为可复用的输入源。" },
-      "file": { "name": "文件", "description": "将单个本地文件读入 Pipeline。" },
+      "folder": {
+        "name": "文件夹",
+        "description": "将本地文件夹绑定为可复用的输入源。"
+      },
+      "file": {
+        "name": "文件",
+        "description": "将单个本地文件读入 Pipeline。"
+      },
       "githubProject": {
         "name": "GitHub 项目",
         "description": "将已连接的仓库作为 Pipeline 输入。"
       },
-      "prompt": { "name": "提示词", "description": "提供可复用的文本指令或结构化输入。" },
-      "localPath": { "name": "本地路径", "description": "将 Pipeline 产物写入本地目标位置。" },
-      "projectPath": { "name": "项目路径", "description": "将产物写回当前项目。" }
+      "prompt": {
+        "name": "提示词",
+        "description": "提供可复用的文本指令或结构化输入。"
+      },
+      "localPath": {
+        "name": "本地路径",
+        "description": "将 Pipeline 产物写入本地目标位置。"
+      },
+      "projectPath": {
+        "name": "项目路径",
+        "description": "将产物写回当前项目。"
+      }
     },
     "fallbacks": {
       "operationDescription": "可供 Agent 或脚本复用的操作。",
@@ -1593,5 +1554,47 @@
       "subtitle": "描述要完成的工作，Agent 会与真实的操作库进行匹配。",
       "title": "帮我找"
     }
+  },
+  "home": {
+    "heading": "今天想让 Ordine 自动化什么？",
+    "description": "描述目标、输入和期望产物。本地 Agent 会先与你确认方案，再直接生成可运行的 Pipeline。",
+    "agentReady": "本地 Agent 已就绪",
+    "agentConfigured": "本地 Agent 已配置",
+    "selectLocalAgent": "选择本地 Agent",
+    "agentQueryFailed": "Agent 状态不可用",
+    "runtimeLoadFailed": "无法加载已配置的本地 Agent。",
+    "connectLocalAgent": "连接本地 Agent",
+    "checkingAgent": "正在检查本地 Agent…",
+    "localAgentCount": "{{name}} +{{count}}",
+    "proposalHint": "确认这份方案后，Agent 会创建 Pipeline 并接入现有 Canvas。",
+    "proposalSchedule": "定时：{{cronExpression}}",
+    "suggestions": {
+      "build": "创建一个 Pipeline",
+      "buildDescription": "从目标和输入开始搭建完整流程",
+      "buildPrompt": "帮我创建一个 Pipeline：",
+      "organize": "整理重复工作",
+      "organizeDescription": "把一组手动步骤变成可复用流程",
+      "organizePrompt": "把下面这组重复工作整理成 Pipeline：",
+      "distill": "沉淀现有流程",
+      "distillDescription": "从已有过程提炼可复用能力",
+      "distillPrompt": "分析下面的流程，并生成一个可复用的 Pipeline："
+    }
+  },
+  "pipelineAgentErrors": {
+    "agentFailed": "所选本地 Agent 未能完成请求，请检查其登录、额度或模型配置后重试。",
+    "attachmentTooLarge": "附件过大，请选择 10 MB 以内的文件。",
+    "invalidAttachment": "附件上传失败，请更换文件后重试。",
+    "invalidRequest": "请求内容不完整，请检查后重试。",
+    "attachmentNotFound": "该附件已不存在。",
+    "attachmentConflict": "附件只能在规划开始前移除。",
+    "attachmentUploadFailed": "附件上传失败，请检查存储访问后重试。",
+    "cancelled": "请求已取消。",
+    "invalidStructure": "Agent 未能生成有效的 Pipeline，请修改方案后重试。",
+    "runtimeNotFound": "请先连接并选择本地 Agent，再规划或运行这个 Pipeline。",
+    "proposalConflict": "方案状态已变化，请刷新对话后重试。",
+    "sessionNotFound": "该对话已不存在，请开始新对话。",
+    "stateConflict": "对话状态已变化，请刷新后重试。",
+    "network": "无法连接 Pipeline Agent，请检查网络后重试。",
+    "generic": "Pipeline Agent 未能完成请求，请重试。"
   }
 }

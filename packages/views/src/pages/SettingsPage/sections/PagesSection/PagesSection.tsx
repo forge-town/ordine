@@ -21,7 +21,7 @@ const PAGE_LINKS = [
   { icon: Activity, labelKey: "nav.jobs", to: "/pipelines/jobs" },
   { icon: Gauge, labelKey: "nav.items.usage", to: "/usage" },
   { icon: FlaskConical, labelKey: "nav.distillations", to: "/distillations" },
-  { icon: Cpu, labelKey: "nav.items.localAgents", to: "/local-agents" },
+  { icon: Cpu, labelKey: "nav.items.localAgents", to: "/runtimes" },
   { icon: BookOpen, labelKey: "nav.skills", to: "/skills" },
   { icon: Plug, labelKey: "nav.items.connectors", to: "/connectors" },
 ] as const;

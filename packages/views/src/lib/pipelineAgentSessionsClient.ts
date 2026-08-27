@@ -5,6 +5,8 @@ import { projectPipelineAgentMessage } from "./projectPipelineAgentMessage";
 import { consumeAgentRunEventStream } from "./agentRunEventsClient";
 import {
   AgentRunSchema,
+  OperationSchema,
+  PipelineSchema,
   PipelineAgentAttachmentParseStatusSchema,
   PipelineAgentEntrypointSchema,
   PipelineAgentMessageKindSchema,
@@ -14,6 +16,8 @@ import {
   PipelineGraphSnapshotSchema,
   PipelineAgentProposalStatusSchema,
   PipelineAgentSessionStatusSchema,
+  type Operation,
+  type PipelineData,
   type PipelineAgentEntrypoint,
   type PipelineAgentMessageKind,
   type PipelineAgentMessageRole,
@@ -21,6 +25,14 @@ import {
   type PipelineAgentProposal,
   type AgentRunEventEnvelope,
 } from "@repo/schemas";
+
+interface PipelineAgentRequestOptions {
+  signal?: AbortSignal;
+}
+
+const PipelineAgentOperationSchema = OperationSchema.extend({
+  sourceSkillId: z.string().nullish(),
+});
 
 const PipelineAgentSessionClientRecordSchema = z.object({
   id: z.string().min(1),
@@ -38,6 +50,7 @@ export type PipelineAgentSessionClientRecord = z.infer<
 const PipelineAgentAttachmentClientRecordSchema = z.object({
   id: z.string().min(1),
   filename: z.string().min(1),
+  parseError: z.string().nullable().optional(),
   parseStatus: PipelineAgentAttachmentParseStatusSchema.nullable().optional(),
 });
 export type PipelineAgentAttachmentClientRecord = z.infer<
@@ -72,6 +85,7 @@ export type PipelineAgentStoredProposalClientRecord = z.infer<
 >;
 
 const PipelineAgentSessionClientDetailSchema = PipelineAgentSessionClientRecordSchema.extend({
+  attachments: z.array(PipelineAgentAttachmentClientRecordSchema).optional(),
   createdPipelineId: z.string().nullable().optional(),
   messages: z.array(PipelineAgentMessageClientRecordSchema).optional(),
   proposals: z.array(PipelineAgentStoredProposalClientRecordSchema).optional(),
@@ -284,16 +298,20 @@ export const createPipelineAgentSessionsClient = (platform: PipelineAgentSession
   const agentRunsBaseUrl = `${platform.apiBaseUrl}/agent-runs`;
 
   return {
-    async createSession(input: {
-      entrypoint: PipelineAgentEntrypoint;
-      mode: PipelineAgentMode;
-      pipelineId?: string;
-      snapshot?: unknown;
-    }): Promise<PipelineAgentSessionClientRecord> {
+    async createSession(
+      input: {
+        entrypoint: PipelineAgentEntrypoint;
+        mode: PipelineAgentMode;
+        pipelineId?: string;
+        snapshot?: unknown;
+      },
+      options?: PipelineAgentRequestOptions,
+    ): Promise<PipelineAgentSessionClientRecord> {
       const response = await platform.request(pipelineAgentSessionsBaseUrl, {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify(input),
+        signal: options?.signal,
       });
 
       return readResponseJson(response, PipelineAgentSessionClientRecordSchema);
@@ -302,6 +320,7 @@ export const createPipelineAgentSessionsClient = (platform: PipelineAgentSession
     async appendMessage(
       sessionId: string,
       input: { role: PipelineAgentMessageRole; kind: PipelineAgentMessageKind; content: string },
+      options?: PipelineAgentRequestOptions,
     ): Promise<PipelineAgentMessageClientRecord> {
       const response = await platform.request(
         `${pipelineAgentSessionsBaseUrl}/${sessionId}/messages`,
@@ -309,6 +328,7 @@ export const createPipelineAgentSessionsClient = (platform: PipelineAgentSession
           method: "POST",
           headers: { "content-type": "application/json" },
           body: JSON.stringify(input),
+          signal: options?.signal,
         },
       );
 
@@ -318,7 +338,7 @@ export const createPipelineAgentSessionsClient = (platform: PipelineAgentSession
     async uploadAttachment(
       sessionId: string,
       file: File,
-      input?: { runtimeId?: string | null },
+      input?: { runtimeId?: string | null; signal?: AbortSignal },
     ): Promise<PipelineAgentAttachmentUploadResult> {
       const formData = new FormData();
       formData.append("file", file);
@@ -331,14 +351,34 @@ export const createPipelineAgentSessionsClient = (platform: PipelineAgentSession
         {
           method: "POST",
           body: formData,
+          signal: input?.signal,
         },
       );
 
       return readResponseJson(response, PipelineAgentAttachmentUploadResultSchema);
     },
 
-    async getSessionById(sessionId: string): Promise<PipelineAgentSessionClientDetail> {
-      const response = await platform.request(`${pipelineAgentSessionsBaseUrl}/${sessionId}`);
+    async removeAttachment(
+      sessionId: string,
+      attachmentId: string,
+      options?: PipelineAgentRequestOptions,
+    ): Promise<void> {
+      const response = await platform.request(
+        `${pipelineAgentSessionsBaseUrl}/${sessionId}/attachments/${attachmentId}`,
+        { method: "DELETE", signal: options?.signal },
+      );
+      if (!response.ok) {
+        throw await readResponseError(response);
+      }
+    },
+
+    async getSessionById(
+      sessionId: string,
+      options?: PipelineAgentRequestOptions,
+    ): Promise<PipelineAgentSessionClientDetail> {
+      const response = await platform.request(`${pipelineAgentSessionsBaseUrl}/${sessionId}`, {
+        signal: options?.signal,
+      });
 
       return readResponseJson(response, PipelineAgentSessionClientDetailSchema);
     },
@@ -357,9 +397,9 @@ export const createPipelineAgentSessionsClient = (platform: PipelineAgentSession
     async getLatestReadyProposal(
       sessionId: string,
       mode: PipelineAgentMode,
-      input?: { excludeProposalId?: string | null },
+      input?: { excludeProposalId?: string | null; signal?: AbortSignal },
     ): Promise<{ proposal: PipelineAgentProposal; proposalId: string } | null> {
-      const session = await this.getSessionById(sessionId);
+      const session = await this.getSessionById(sessionId, { signal: input?.signal });
       const proposals = session.proposals ?? [];
       const latestProposal =
         proposals.find((proposal) => proposal.id === session.latestProposalId) ??
@@ -381,8 +421,11 @@ export const createPipelineAgentSessionsClient = (platform: PipelineAgentSession
       };
     },
 
-    async getLatestAssistantQuestion(sessionId: string): Promise<{ question: string } | null> {
-      const session = await this.getSessionById(sessionId);
+    async getLatestAssistantQuestion(
+      sessionId: string,
+      options?: PipelineAgentRequestOptions,
+    ): Promise<{ question: string } | null> {
+      const session = await this.getSessionById(sessionId, options);
       const latestQuestion =
         [...(session.messages ?? [])]
           .reverse()
@@ -391,13 +434,18 @@ export const createPipelineAgentSessionsClient = (platform: PipelineAgentSession
       return latestQuestion ? { question: latestQuestion.content } : null;
     },
 
-    async approveProposal(sessionId: string, proposalId: string) {
+    async approveProposal(
+      sessionId: string,
+      proposalId: string,
+      options?: PipelineAgentRequestOptions,
+    ) {
       const response = await platform.request(
         `${pipelineAgentSessionsBaseUrl}/${sessionId}/approve`,
         {
           method: "POST",
           headers: { "content-type": "application/json" },
           body: JSON.stringify({ proposalId }),
+          signal: options?.signal,
         },
       );
       if (!response.ok) {
@@ -405,13 +453,18 @@ export const createPipelineAgentSessionsClient = (platform: PipelineAgentSession
       }
     },
 
-    async supersedeProposal(sessionId: string, proposalId: string) {
+    async supersedeProposal(
+      sessionId: string,
+      proposalId: string,
+      options?: PipelineAgentRequestOptions,
+    ) {
       const response = await platform.request(
         `${pipelineAgentSessionsBaseUrl}/${sessionId}/supersede`,
         {
           method: "POST",
           headers: { "content-type": "application/json" },
           body: JSON.stringify({ proposalId }),
+          signal: options?.signal,
         },
       );
       if (!response.ok) {
@@ -421,22 +474,55 @@ export const createPipelineAgentSessionsClient = (platform: PipelineAgentSession
 
     async generatePipelineFromApprovedProposal(
       sessionId: string,
-      input?: { runtimeId?: string },
+      input?: { runtimeId?: string | null; signal?: AbortSignal },
     ): Promise<{ pipelineId: string }> {
       const response = await platform.request(
         `${pipelineAgentSessionsBaseUrl}/${sessionId}/generate`,
         {
           method: "POST",
-          ...(input?.runtimeId
-            ? {
-                headers: { "content-type": "application/json" },
-                body: JSON.stringify({ runtimeId: input.runtimeId }),
-              }
-            : {}),
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify(input?.runtimeId ? { runtimeId: input.runtimeId } : {}),
+          signal: input?.signal,
         },
       );
 
       return readResponseJson(response, PipelineAgentCreatedPipelineResponseSchema);
+    },
+
+    async getGeneratedPipelineMaterialization(
+      pipelineId: string,
+      options?: PipelineAgentRequestOptions,
+    ): Promise<{ operations: Operation[]; pipeline: PipelineData }> {
+      const pipelineResponse = await platform.request(
+        `${platform.apiBaseUrl}/pipelines/${encodeURIComponent(pipelineId)}`,
+        { signal: options?.signal },
+      );
+      const pipeline = await readResponseJson(pipelineResponse, PipelineSchema);
+      const operationIds = [
+        ...new Set(
+          pipeline.nodes.flatMap((node) => {
+            const operationId = "operationId" in node.data ? node.data.operationId : undefined;
+
+            return typeof operationId === "string" && operationId.length > 0 ? [operationId] : [];
+          }),
+        ),
+      ];
+      const operations = await Promise.all(
+        operationIds.map(async (operationId) => {
+          const response = await platform.request(
+            `${platform.apiBaseUrl}/operations/${encodeURIComponent(operationId)}`,
+            { signal: options?.signal },
+          );
+          const operation = await readResponseJson(response, PipelineAgentOperationSchema);
+
+          return {
+            ...operation,
+            sourceSkillId: operation.sourceSkillId ?? undefined,
+          };
+        }),
+      );
+
+      return { operations, pipeline };
     },
 
     async waitForCreatedPipeline(
@@ -498,6 +584,16 @@ export const createPipelineAgentSessionsClient = (platform: PipelineAgentSession
       clearActiveAgentRun(sessionId);
 
       return true;
+    },
+
+    async cancelSession(sessionId: string, options?: PipelineAgentRequestOptions): Promise<void> {
+      const response = await platform.request(
+        `${pipelineAgentSessionsBaseUrl}/${sessionId}/cancel`,
+        { method: "POST", signal: options?.signal },
+      );
+      if (!response.ok) {
+        throw await readResponseError(response);
+      }
     },
 
     async planSessionStream(
@@ -687,3 +783,5 @@ export const createPipelineAgentSessionsClient = (platform: PipelineAgentSession
     },
   };
 };
+
+export type PipelineAgentSessionsClient = ReturnType<typeof createPipelineAgentSessionsClient>;

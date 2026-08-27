@@ -1,21 +1,20 @@
 import { useNavigate } from "@tanstack/react-router";
 import { useStore } from "zustand";
-import { ChevronsUpDown, ExternalLink, LogOut } from "lucide-react";
+import { ChevronsUpDown, LogOut } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { AppSidebar as SharedAppSidebar } from "@repo/views/AppSidebar";
+import { useSidebarStore } from "@repo/views/store/sidebarStore";
 import { Avatar, AvatarFallback, AvatarImage } from "@repo/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@repo/ui/dropdown-menu";
 import { Button } from "@repo/ui/button";
 import { SidebarMenu, SidebarMenuItem } from "@repo/ui/sidebar";
 import { useSession, signOut } from "@/integrations/better-auth-client";
-import { useSidebarStore } from "@/store/sidebarStore";
-import { HOME_PIPELINE_AGENT_SESSION_KEY } from "@/components/PipelineCreationWorkspace/usePipelineCreationSessionRecovery";
+import { HOME_PIPELINE_AGENT_SESSION_KEY } from "@repo/views/PipelineCreationWorkspace";
 
 const WebUserFooter = () => {
   const { t } = useTranslation();
@@ -53,20 +52,6 @@ const WebUserFooter = () => {
             <DropdownMenuItem className="cursor-pointer" onClick={handleLogout}>
               <LogOut className="mr-2 h-4 w-4" />
               <span>{t("nav.logout")}</span>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              className="cursor-pointer"
-              render={
-                <a
-                  href="https://github.com/forge-town/ordine"
-                  rel="noopener noreferrer"
-                  target="_blank"
-                />
-              }
-            >
-              <ExternalLink className="mr-2 h-4 w-4" />
-              <span>GitHub</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

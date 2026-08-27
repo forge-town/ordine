@@ -13,7 +13,7 @@ import { Badge } from "@repo/ui/badge";
 import { Card } from "@repo/ui/card";
 import { PageLoadingState } from "../../components/PageLoadingState";
 import { ResourceName } from "../../constants";
-import { AgentRunsPanel } from "../../pages/JobDetailPage/AgentRunsPanel";
+import { AgentRunsPanel } from "../AgentRunsPanel";
 
 const EMPTY_TRACES: JobTrace[] = [];
 const EMPTY_AGENT_RUNS: AgentRawExport[] = [];

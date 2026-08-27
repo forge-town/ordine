@@ -3,7 +3,6 @@ export * from "./AutonomySection";
 export * from "./DefaultsSection";
 export * from "./DeveloperSection";
 export * from "./GeneralSection";
-export * from "./KeyboardSection";
 export * from "./LanguageSection";
 export * from "./NotificationsSection";
 export * from "./PagesSection";

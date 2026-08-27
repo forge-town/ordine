@@ -31,7 +31,7 @@ test.describe("Routine workflow", () => {
 
     await navigateAndWait(page, "/pipelines/jobs");
     await page.getByRole("button", { name: "New Routine" }).click();
-    await page.getByTestId(`jobs-pick-${pipelineId}`).click();
+    await page.getByTestId(`pipeline-pick-${pipelineId}`).click();
     await expect(editor).toBeVisible();
     await expect(editor.getByTestId("schedule-cron-minute")).toHaveValue("0");
     await expect(editor.getByTestId("schedule-cron-hour")).toHaveValue("6");
@@ -44,7 +44,7 @@ test.describe("Routine workflow", () => {
     await page.reload();
     await page.waitForLoadState("networkidle");
     await page.getByRole("button", { name: "New Routine" }).click();
-    await page.getByTestId(`jobs-pick-${pipelineId}`).click();
+    await page.getByTestId(`pipeline-pick-${pipelineId}`).click();
     await expect(editor.getByTestId("schedule-enabled-toggle")).toHaveAttribute(
       "aria-checked",
       "false",
@@ -57,7 +57,7 @@ test.describe("Routine workflow", () => {
     await page.reload();
     await page.waitForLoadState("networkidle");
     await page.getByRole("button", { name: "New Routine" }).click();
-    await page.getByTestId(`jobs-pick-${pipelineId}`).click();
+    await page.getByTestId(`pipeline-pick-${pipelineId}`).click();
     await expect(editor.getByTestId("schedule-routine-select")).toHaveCount(0);
     expectNoJSErrors(pageErrors);
   });

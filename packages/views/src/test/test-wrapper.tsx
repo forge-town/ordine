@@ -38,12 +38,11 @@ export const canvasTestDataProvider: DataProvider = {
   }: UpdateParams<TVariables>) => ({
     data: { id, ...variables } as unknown as TData,
   }),
-  deleteOne: async <TData extends BaseRecord, TVariables>({
-    id,
-  }: DeleteOneParams<TVariables>) => ({
+  deleteOne: async <TData extends BaseRecord, TVariables>({ id }: DeleteOneParams<TVariables>) => ({
     data: { id } as TData,
   }),
   getApiUrl: () => "http://localhost:9433/api",
+  custom: async <TData extends BaseRecord>() => ({ data: {} as TData }),
 };
 
 const testPlatform: PlatformCapabilities = {

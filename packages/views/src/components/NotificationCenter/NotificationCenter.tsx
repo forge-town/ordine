@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useNavigate } from "@tanstack/react-router";
 import {
   Bell,
   BellOff,
@@ -59,7 +58,6 @@ export interface NotificationCenterProps {
 
 export const NotificationCenter = ({ className, variant = "sidebar" }: NotificationCenterProps) => {
   const { i18n, t } = useTranslation();
-  const navigate = useNavigate();
   const store = useNotificationStore();
   const notifications = useStore(store, (state) => state.notifications);
   const clearNotifications = useStore(store, (state) => state.clearNotifications);
@@ -72,12 +70,9 @@ export const NotificationCenter = ({ className, variant = "sidebar" }: Notificat
   const handleOpenChange = (value: boolean) => setOpen(value);
   const handleMarkAllRead = () => markAllRead();
   const handleClearNotifications = () => clearNotifications();
-  const handleNotificationClick = (id: string, route?: string) => () => {
+  const handleNotificationClick = (id: string) => () => {
     markRead(id);
     setOpen(false);
-    if (route) {
-      void navigate({ to: route });
-    }
   };
 
   return (
@@ -173,7 +168,7 @@ export const NotificationCenter = ({ className, variant = "sidebar" }: Notificat
                     )}
                     data-testid={`notification-item-${notification.id}`}
                     type="button"
-                    onClick={handleNotificationClick(notification.id, notification.route)}
+                    onClick={handleNotificationClick(notification.id)}
                   >
                     <meta.icon className={cn("mt-0.5 size-4 shrink-0", meta.className)} />
                     <span className="min-w-0 flex-1">
@@ -182,7 +177,6 @@ export const NotificationCenter = ({ className, variant = "sidebar" }: Notificat
                       </span>
                       <span className="mt-0.5 block text-[10px] text-muted-foreground">
                         {formatRelativeTime(notification.timestamp, i18n.language)}
-                        {notification.route ? ` · ${t("notifications.open")}` : ""}
                       </span>
                     </span>
                     {notification.read ? null : (

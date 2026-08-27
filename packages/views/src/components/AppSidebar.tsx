@@ -4,7 +4,6 @@ import { useStore } from "zustand";
 import {
   Bot,
   CalendarClock,
-  ExternalLink,
   Layers,
   MessageSquare,
   Puzzle,
@@ -26,13 +25,6 @@ import {
   SidebarTrigger,
   useSidebar,
 } from "@repo/ui/sidebar";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@repo/ui/dropdown-menu";
-import { Button } from "@repo/ui/button";
 import { useSidebarStore } from "../store/sidebarStore";
 import { NavGroup, type NavItem } from "./NavGroup";
 import { DefaultUserFooter, ProjectSwitcher } from "./ProjectSwitcher";
@@ -55,28 +47,9 @@ export interface AppSidebarProps {
 const DefaultFooter = () => (
   <SidebarMenu>
     <SidebarMenuItem>
-      <DropdownMenu>
-        <DropdownMenuTrigger
-          className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-sidebar-accent"
-          render={<Button type="button" variant="ghost" />}
-        >
-          <DefaultUserFooter />
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" className="w-56" side="top">
-          <DropdownMenuItem
-            render={
-              <a
-                href="https://github.com/forge-town/ordine"
-                rel="noopener noreferrer"
-                target="_blank"
-              />
-            }
-          >
-            <ExternalLink className="mr-2 h-4 w-4" />
-            <span>GitHub</span>
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+      <div className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm">
+        <DefaultUserFooter />
+      </div>
     </SidebarMenuItem>
   </SidebarMenu>
 );

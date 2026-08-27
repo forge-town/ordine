@@ -89,14 +89,20 @@
   "schedule": {
     "title": "Schedule",
     "subtitle": "Run pipelines automatically on a schedule",
-    "emptyTitle": "Scheduling is coming soon",
-    "emptyDescription": "This page will list all scheduled pipeline routines, with cadence, activation state, and manual trigger."
+    "emptyTitle": "No routines yet",
+    "emptyDescription": "Use “New Routine” above to pick a pipeline and set its cadence.",
+    "runNow": "Run now",
+    "enabled": "Enabled",
+    "disabled": "Disabled"
   },
   "conversations": {
     "title": "Conversations",
     "subtitle": "Past conversations with agents",
-    "emptyTitle": "Conversations are coming soon",
-    "emptyDescription": "This page will collect your conversations with agents, so you can review and continue them."
+    "emptyTitle": "No conversations yet",
+    "emptyDescription": "Conversations with agents from the canvas or home page will show up here.",
+    "clearAll": "Clear all",
+    "clearAllConfirm": "Click again to confirm",
+    "messageCount": "{{count}} messages"
   },
   "connectors": {
     "title": "Connectors",
@@ -121,7 +127,11 @@
       "needs_setup": "Needs setup",
       "mcp": "via MCP"
     },
-    "status": { "connected": "Connected", "needs_setup": "Needs setup", "error": "Error" }
+    "status": {
+      "connected": "Connected",
+      "needs_setup": "Needs setup",
+      "error": "Error"
+    }
   },
   "localAgents": {
     "title": "Local Agents",
@@ -235,7 +245,6 @@
     "noLogs": "No logs",
     "status": "Status",
     "statusQueued": "Queued",
-    "statusRunning": "Running",
     "statusDone": "Done",
     "statusFailed": "Failed",
     "statusCancelled": "Cancelled",
@@ -298,7 +307,6 @@
     "emptyBody": "Run and application events show here.",
     "emptyTitle": "All clear",
     "markRead": "Mark read",
-    "open": "open",
     "title": "Notifications"
   },
   "distillations": {
@@ -995,32 +1003,30 @@
     "codeSnippetTitlePlaceholder": "e.g. Good example / Bad example"
   },
   "skills": {
-    "title": "Skills",
-    "subtitle": "Reusable instructions with visible inputs, outputs, provenance, and powered operations.",
-    "createSkill": "Create skill",
-    "search": "Search skills...",
-    "importPath": "Path to a Codex or Claude Code skills folder",
-    "previewImport": "Preview import",
-    "scanning": "Scanning...",
-    "importing": "Importing...",
-    "importSelected": "Import {{count}}",
-    "owned": "Owned",
-    "selected": "Selected",
-    "skipped": "Skipped",
-    "label": "Label",
-    "descriptionPlaceholder": "What this skill does",
-    "powers": "powers {{operation}}",
-    "createFrom": "Create operation from {{name}}",
-    "deleteSkill": "Delete {{name}}",
-    "noSkills": "No skills found",
-    "categories": {
-      "all": "All",
-      "page": "Page structure",
-      "data": "Data layer",
-      "state": "State management",
-      "form": "Forms",
-      "code-quality": "Code quality"
-    }
+    "pageStructure": "Page Structure",
+    "pageStructureDesc": "Generate standard page Anatomy: Wrapper + Content + optional Store, ensuring clear layered page structure.",
+    "stateManagement": "State Management Store",
+    "stateManagementDesc": "Create Store based on Zustand slice pattern, including Context Provider and type-safe hooks.",
+    "daoLayer": "DAO Layer",
+    "daoLayerDesc": "Create data access objects using Drizzle ORM standards, ensuring naming, type safety and query performance.",
+    "serviceLayer": "Service Layer",
+    "serviceLayerDesc": "Create Service following tRPC + Service + DAO architecture, separating business logic from data access.",
+    "formComponent": "Form Components",
+    "formComponentDesc": "Create form components following standards, including field validation, state management and UI structure.",
+    "schemaValidation": "Schema Validation",
+    "schemaValidationDesc": "Define database tables using Drizzle ORM schema, ensuring naming, relationships and index configuration standards.",
+    "barrelExport": "Barrel Export",
+    "barrelExportDesc": "Generate and check index.ts barrel export files, ensuring all index files only do re-export.",
+    "errorHandling": "Error Handling",
+    "errorHandlingDesc": "Standardize try-catch usage, ensuring catch blocks have substantive handling logic, not empty or just logging.",
+    "dbNaming": "Database Table Naming",
+    "dbNamingDesc": "Verify and correct database table definition naming standards, including table names, column names and indexes.",
+    "svgIcon": "SVG Icon Standards",
+    "svgIconDesc": "Manage SVG icons in React TypeScript projects, ensuring naming, encapsulation and export standards.",
+    "oneComponent": "One Component Per File",
+    "oneComponentDesc": "Enforce one React/Vue component per file, no multiple components in one file.",
+    "refineTrpc": "Refine tRPC Standards",
+    "refineTrpcDesc": "Access data in React components through Refine hooks via DataProvider, no direct tRPC calls."
   },
   "settings": {
     "title": "Settings",
@@ -1063,7 +1069,6 @@
       "advanced": "Advanced",
       "autonomy": "Autonomy",
       "defaults": "Defaults",
-      "keyboard": "Keyboard",
       "project": "Project",
       "pages": "Pages"
     },
@@ -1182,44 +1187,6 @@
     "pages": {
       "title": "More pages",
       "description": "Entries moved out of the main navigation. Routes and features are unchanged."
-    },
-    "keyboard": {
-      "description": "Canvas shortcuts. Read-only for now.",
-      "groups": {
-        "editing": "Editing",
-        "navigation": "Navigation"
-      },
-      "shortcuts": {
-        "boxSelect": {
-          "keys": "drag on canvas",
-          "label": "Box-select"
-        },
-        "delete": {
-          "keys": "⌫ / Del",
-          "label": "Delete selection"
-        },
-        "drillOut": {
-          "keys": "Esc",
-          "label": "Drill out / clear selection"
-        },
-        "pan": {
-          "keys": "middle-drag",
-          "label": "Pan"
-        },
-        "redo": {
-          "keys": "⌘ ⇧ Z",
-          "label": "Redo"
-        },
-        "undo": {
-          "keys": "⌘ Z",
-          "label": "Undo"
-        },
-        "zoom": {
-          "keys": "⌘ scroll",
-          "label": "Zoom"
-        }
-      },
-      "title": "Keyboard"
     },
     "notifications": {
       "description": "What gets pushed to the notification center, what stays silent.",
@@ -1411,32 +1378,6 @@
     "projectListEmpty": "Project library is empty. Connect a GitHub repository from the Projects page first.",
     "projectListNoResults": "No matching projects"
   },
-  "skills": {
-    "pageStructure": "Page Structure",
-    "pageStructureDesc": "Generate standard page Anatomy: Wrapper + Content + optional Store, ensuring clear layered page structure.",
-    "stateManagement": "State Management Store",
-    "stateManagementDesc": "Create Store based on Zustand slice pattern, including Context Provider and type-safe hooks.",
-    "daoLayer": "DAO Layer",
-    "daoLayerDesc": "Create data access objects using Drizzle ORM standards, ensuring naming, type safety and query performance.",
-    "serviceLayer": "Service Layer",
-    "serviceLayerDesc": "Create Service following tRPC + Service + DAO architecture, separating business logic from data access.",
-    "formComponent": "Form Components",
-    "formComponentDesc": "Create form components following standards, including field validation, state management and UI structure.",
-    "schemaValidation": "Schema Validation",
-    "schemaValidationDesc": "Define database tables using Drizzle ORM schema, ensuring naming, relationships and index configuration standards.",
-    "barrelExport": "Barrel Export",
-    "barrelExportDesc": "Generate and check index.ts barrel export files, ensuring all index files only do re-export.",
-    "errorHandling": "Error Handling",
-    "errorHandlingDesc": "Standardize try-catch usage, ensuring catch blocks have substantive handling logic, not empty or just logging.",
-    "dbNaming": "Database Table Naming",
-    "dbNamingDesc": "Verify and correct database table definition naming standards, including table names, column names and indexes.",
-    "svgIcon": "SVG Icon Standards",
-    "svgIconDesc": "Manage SVG icons in React TypeScript projects, ensuring naming, encapsulation and export standards.",
-    "oneComponent": "One Component Per File",
-    "oneComponentDesc": "Enforce one React/Vue component per file, no multiple components in one file.",
-    "refineTrpc": "Refine tRPC Standards",
-    "refineTrpcDesc": "Access data in React components through Refine hooks via DataProvider, no direct tRPC calls."
-  },
   "time": {
     "minutesAgo": "{{minutes}} minutes ago",
     "hoursAgo": "{{hours}} hours ago",
@@ -1451,7 +1392,7 @@
     "noPipelines": "No Pipelines yet",
     "createPipeline": "Create one",
     "objectsCount": "{{count}} objects",
-    "noPipelineSelected": "\u2014 No pipeline selected",
+    "noPipelineSelected": "— No pipeline selected",
     "entireProject": "Entire project",
     "canvas": {
       "edges": {
@@ -1554,7 +1495,10 @@
         "name": "Folder",
         "description": "Bind a local folder as a reusable input source."
       },
-      "file": { "name": "File", "description": "Read one local file into a pipeline." },
+      "file": {
+        "name": "File",
+        "description": "Read one local file into a pipeline."
+      },
       "githubProject": {
         "name": "GitHub Project",
         "description": "Use a connected repository as pipeline input."
@@ -1616,5 +1560,47 @@
       "subtitle": "Describe the work. The Agent will match it against your real operation library.",
       "title": "Find for me"
     }
+  },
+  "home": {
+    "heading": "What should Ordine automate today?",
+    "description": "Describe the goal, inputs, and expected output. Ordine will create a runnable Pipeline in the Canvas for you.",
+    "agentReady": "Local Agent ready",
+    "agentConfigured": "Local Agent configured",
+    "selectLocalAgent": "Select local Agent",
+    "agentQueryFailed": "Agent status unavailable",
+    "runtimeLoadFailed": "Could not load configured local Agents.",
+    "connectLocalAgent": "Connect local Agent",
+    "checkingAgent": "Checking local Agent…",
+    "localAgentCount": "{{name}} +{{count}}",
+    "proposalHint": "Approve this plan and the Agent will create the Pipeline in the existing Canvas.",
+    "proposalSchedule": "Schedule: {{cronExpression}}",
+    "suggestions": {
+      "build": "Create a Pipeline",
+      "buildDescription": "Turn a goal and its inputs into a complete flow",
+      "buildPrompt": "Create a Pipeline that ",
+      "organize": "Automate repetitive work",
+      "organizeDescription": "Turn manual steps into a reusable workflow",
+      "organizePrompt": "Turn these repetitive steps into a Pipeline: ",
+      "distill": "Distill an existing process",
+      "distillDescription": "Extract reusable capabilities from a process",
+      "distillPrompt": "Analyze this process and create a reusable Pipeline: "
+    }
+  },
+  "pipelineAgentErrors": {
+    "agentFailed": "The selected local Agent could not complete the request. Check its sign-in, quota, or model configuration and try again.",
+    "attachmentTooLarge": "This attachment is too large. Choose a file under 10 MB.",
+    "invalidAttachment": "This attachment could not be uploaded. Try a different file.",
+    "invalidRequest": "The request was incomplete. Review it and try again.",
+    "attachmentNotFound": "This attachment is no longer available.",
+    "attachmentConflict": "This attachment can only be removed before planning starts.",
+    "attachmentUploadFailed": "This attachment could not be uploaded. Check storage access and retry.",
+    "cancelled": "The request was cancelled.",
+    "invalidStructure": "The Agent could not build a valid Pipeline. Revise the plan and retry.",
+    "runtimeNotFound": "Connect and select a local Agent before planning or running this Pipeline.",
+    "proposalConflict": "This proposal changed. Refresh the conversation and try again.",
+    "sessionNotFound": "This conversation is no longer available. Start a new one.",
+    "stateConflict": "The conversation changed. Refresh it and try again.",
+    "network": "Couldn't reach the Pipeline Agent. Check your connection and retry.",
+    "generic": "The Pipeline Agent couldn't complete the request. Please retry."
   }
 }
