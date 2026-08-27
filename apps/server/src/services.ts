@@ -1,6 +1,8 @@
 import { db } from "@repo/db";
 import {
   configureAgentRunController,
+  createAgentControlService,
+  createAgentThreadsService,
   createAgentsService,
   createAgentRunsService,
   createAgentRunController,
@@ -19,6 +21,7 @@ import {
   createRoutinesService,
   createSkillsService,
   createUsageService,
+  agentRunCapabilityStore,
   listDirectory,
 } from "@repo/services";
 
@@ -46,4 +49,23 @@ export const routinesService = createRoutinesService(db, {
 export const skillsService = createSkillsService(db);
 export const usageService = createUsageService(db);
 
-export { listDirectory };
+export const agentThreadsService = createAgentThreadsService(db);
+export const agentControlService = createAgentControlService(db, {
+  runEvents: {
+    getRun: (runId) => agentRunsService.getById(runId),
+    append: (runId, event) => agentRunsService.appendControlEvent(runId, event),
+  },
+  execution: {
+    runPipeline: (input) => pipelineRunnerService.startRun(input),
+    runOperation: (input) => operationRunnerService.startRun(input),
+    runRoutine: (routineId) => routinesService.runNow(routineId),
+    controlJob: (jobId, action) => {
+      if (action === "pause") return pipelineRunnerService.pauseRun(jobId);
+      if (action === "resume") return pipelineRunnerService.resumeRun(jobId);
+
+      return pipelineRunnerService.cancelRun(jobId);
+    },
+  },
+});
+
+export { agentRunCapabilityStore, listDirectory };

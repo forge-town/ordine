@@ -1596,5 +1596,99 @@
     "stateConflict": "对话状态已变化，请刷新后重试。",
     "network": "无法连接 Pipeline Agent，请检查网络后重试。",
     "generic": "Pipeline Agent 未能完成请求，请重试。"
+  },
+  "agentControl": {
+    "title": "ORDINE 智能控制",
+    "workingDescription": "正在逐步调用受控工具",
+    "toolCount": "{{count}} 个受控工具",
+    "runtimeLocked": "Codex · Luna · xhigh",
+    "runtimeFixed": "已锁定",
+    "disabled": "Agent Control 已通过 ORDINE_AGENT_CONTROL_ENABLED=false 关闭。",
+    "unsupported": "当前未检测到可用的 Codex Luna xhigh 控制运行时。ORDINE 不会回退到旧版 JSON 规划器。",
+    "previewUnavailable": "当前预览环境无法使用 Agent Control。",
+    "status": {
+      "working": "执行中",
+      "ready": "就绪",
+      "failed": "失败",
+      "completed": "已完成",
+      "cancelled": "已停止",
+      "timed_out": "已超时",
+      "interrupted": "已中断"
+    },
+    "thread": {
+      "label": "对话线程",
+      "new": "新对话",
+      "archived": "已归档",
+      "empty": "发送第一条消息后会自动创建对话线程。"
+    },
+    "failure": {
+      "title": "本次运行未完成"
+    },
+    "conversation": {
+      "title": "对话"
+    },
+    "messageRole": {
+      "user": "你",
+      "assistant": "ORDINE Agent",
+      "system": "系统"
+    },
+    "changeSet": {
+      "title": "画布变更集",
+      "summary": "{{count}} 个动作 · {{status}}",
+      "apply": "应用并保存",
+      "reject": "放弃",
+      "status": {
+        "drafting": "编辑中",
+        "ready": "等待应用",
+        "applying": "应用中",
+        "committed": "已提交",
+        "rejected": "已拒绝",
+        "rolled_back": "已回滚",
+        "reverted": "已撤销",
+        "conflicted": "版本冲突"
+      }
+    },
+    "activity": {
+      "title": "运行与工具活动"
+    },
+    "actionStatus": {
+      "started": "执行中",
+      "succeeded": "成功",
+      "failed": "失败",
+      "approval_required": "等待确认",
+      "replayed": "已复用"
+    },
+    "empty": {
+      "title": "一步一步控制 ORDINE",
+      "description": "Agent 只读取当前需要的上下文，并通过小粒度工具实时执行、反馈和修正。"
+    },
+    "composer": {
+      "label": "给 ORDINE Agent 发送消息",
+      "placeholder": "例如：检查当前项目，并逐步创建一条 Pipeline…",
+      "shortcut": "Ctrl/⌘ + Enter 发送",
+      "send": "发送",
+      "stop": "停止"
+    },
+    "surface": {
+      "launcher": "ORDINE Agent",
+      "working": "Agent 执行中",
+      "openActivity": "打开 Agent 活动面板",
+      "noRuntime": "Codex Luna xhigh 控制运行时不可用",
+      "title": "ORDINE Agent 活动"
+    },
+    "approval": {
+      "title": "需要你的确认",
+      "expires": "一次性授权将在 {{time}} 失效。",
+      "confirm": "确认执行",
+      "reject": "拒绝"
+    },
+    "context": {
+      "project": "项目 {{id}}",
+      "pipeline": "Pipeline {{id}}",
+      "resource": "{{type}} {{id}}",
+      "nodes": "已选择 {{count}} 个节点",
+      "remove": "从本轮消息中移除 {{label}}",
+      "restore": "恢复上下文"
+    }
   }
 }

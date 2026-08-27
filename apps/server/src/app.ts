@@ -4,6 +4,9 @@ import { logger } from "hono/logger";
 import { agentsRoutes } from "./routes/agents";
 import { agentRunsRoutes } from "./routes/agentRuns";
 import { agentRuntimesRoutes } from "./routes/agentRuntimes";
+import { agentControlMcpRoutes, internalAgentControlMcpRoutes } from "./routes/agentControlMcp";
+import { agentThreadsRoutes } from "./routes/agentThreads";
+import { agentControlApiRoutes } from "./routes/agentControlApi";
 import { connectorsRoutes } from "./routes/connectors";
 import { conversationsRoutes } from "./routes/conversations";
 import { distillationsRoutes } from "./routes/distillations";
@@ -29,7 +32,8 @@ if (env.DESKTOP_MODE) {
   app.use("*", cors({ origin: "http://localhost" }));
   app.use("*", async (c, next) => {
     // Health endpoint doesn't require auth (used for startup probe)
-    if (c.req.path === "/health") {
+    const internalMcpPath = /^\/api\/internal\/agent-runs\/[0-9a-f-]{36}\/mcp$/iu;
+    if (c.req.path === "/health" || internalMcpPath.test(c.req.path)) {
       return next();
     }
     const token = c.req.header("X-Desktop-Token");
@@ -46,6 +50,10 @@ if (env.DESKTOP_MODE) {
 app.route("/api/agents", agentsRoutes);
 app.route("/api/agent-runs", agentRunsRoutes);
 app.route("/api/agent-runtimes", agentRuntimesRoutes);
+app.route("/api/agent-threads", agentThreadsRoutes);
+app.route("/api/agent-control", agentControlApiRoutes);
+app.route("/api/internal/agent-runs", internalAgentControlMcpRoutes);
+app.route("/api/mcp", agentControlMcpRoutes);
 app.route("/api/connectors", connectorsRoutes);
 app.route("/api/conversations", conversationsRoutes);
 app.route("/api/distillations", distillationsRoutes);

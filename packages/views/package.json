@@ -10,6 +10,7 @@
     "./ScheduleEditor": "./src/components/ScheduleEditor/index.ts",
     "./SearchPipelineDialog": "./src/components/SearchPipelineDialog.tsx",
     "./AgentExecutionPicker": "./src/components/AgentExecutionPicker/index.ts",
+    "./GlobalAgentControl": "./src/components/GlobalAgentControl/index.ts",
     "./primitives": "./src/components/primitives/index.ts",
     "./PipelineCreationWorkspace": "./src/components/PipelineCreationWorkspace/index.ts",
     "./lib/pipelineAgentSessionsClient": "./src/lib/pipelineAgentSessionsClient.ts",

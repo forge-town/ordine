@@ -1,6 +1,10 @@
 import { Hono } from "hono";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+vi.hoisted(() => {
+  process.env.ORDINE_AGENT_API_TOKEN = "test-agent-api-token-that-is-long-enough";
+});
+
 const mocks = vi.hoisted(() => ({
   cancel: vi.fn(),
   getById: vi.fn(),
@@ -32,6 +36,9 @@ const terminalEnvelope = {
     status: "completed" as const,
   },
 };
+const authorizedHeaders = {
+  Authorization: "Bearer test-agent-api-token-that-is-long-enough",
+};
 
 describe("agentRunsRoutes", () => {
   beforeEach(() => {
@@ -39,12 +46,12 @@ describe("agentRunsRoutes", () => {
     mocks.subscribe.mockReturnValue(() => undefined);
   });
 
-  it("replays exactly after Last-Event-ID and includes the terminal event", async () => {
-    mocks.getById.mockResolvedValue({ id: "run-1", status: "completed" });
+  it("replays and closes a control-mode stream after its terminal event", async () => {
+    mocks.getById.mockResolvedValue({ id: "run-1", status: "completed", controlMode: true });
     mocks.getEvents.mockResolvedValue([terminalEnvelope]);
 
     const response = await makeApp().request("/agent-runs/run-1/events", {
-      headers: { "Last-Event-ID": "6" },
+      headers: { ...authorizedHeaders, "Last-Event-ID": "6" },
     });
     const body = await response.text();
 
@@ -57,7 +64,7 @@ describe("agentRunsRoutes", () => {
   it("prefers the explicit after query and rejects malformed sequences", async () => {
     mocks.getById.mockResolvedValue({ id: "run-1", status: "running" });
     const response = await makeApp().request("/agent-runs/run-1/events?after=-1", {
-      headers: { "Last-Event-ID": "6" },
+      headers: { ...authorizedHeaders, "Last-Event-ID": "6" },
     });
 
     expect(response.status).toBe(400);
@@ -69,11 +76,24 @@ describe("agentRunsRoutes", () => {
     mocks.getById.mockResolvedValue(completed);
     mocks.cancel.mockResolvedValue(completed);
 
-    const first = await makeApp().request("/agent-runs/run-1/cancel", { method: "POST" });
-    const second = await makeApp().request("/agent-runs/run-1/cancel", { method: "POST" });
+    const first = await makeApp().request("/agent-runs/run-1/cancel", {
+      method: "POST",
+      headers: authorizedHeaders,
+    });
+    const second = await makeApp().request("/agent-runs/run-1/cancel", {
+      method: "POST",
+      headers: authorizedHeaders,
+    });
 
     expect(first.status).toBe(200);
     expect(second.status).toBe(200);
     expect(mocks.cancel).toHaveBeenCalledTimes(2);
+  });
+
+  it("rejects unauthenticated run access before reading run state", async () => {
+    const response = await makeApp().request("/agent-runs/run-1");
+
+    expect(response.status).toBe(401);
+    expect(mocks.getById).not.toHaveBeenCalled();
   });
 });

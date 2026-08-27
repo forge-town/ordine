@@ -104,6 +104,27 @@ describe("runClaude OpenDesign-compatible invocation", () => {
     ]);
   });
 
+  it("uses non-interactive deny-by-default mode for an isolated control run", () => {
+    expect(
+      buildClaudePermissionArgs({
+        permissionMode: "read-only",
+        allowedTools: [],
+        mcpToolNames: ["mcp__ordine_control__ordine.search"],
+        networkAccess: false,
+        controlMode: true,
+      }),
+    ).toEqual([
+      "--permission-mode",
+      "dontAsk",
+      "--tools",
+      "mcp__ordine_control__ordine.search",
+      "--allowedTools",
+      "mcp__ordine_control__ordine.search",
+      "--disallowedTools",
+      "Edit,Write,WebSearch,WebFetch,Bash(curl:*),Bash(wget:*)",
+    ]);
+  });
+
   it("uses bypassPermissions by default and rejects an explicit denial", async () => {
     await expect(
       runClaude({

@@ -8,656 +8,658 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-import { Route as rootRouteImport } from "./routes/__root";
-import { Route as UsageRouteImport } from "./routes/usage";
-import { Route as SkillsRouteImport } from "./routes/skills";
-import { Route as SettingsRouteImport } from "./routes/settings";
-import { Route as ScheduleRouteImport } from "./routes/schedule";
-import { Route as PluginsRouteImport } from "./routes/plugins";
-import { Route as PipelinesRouteImport } from "./routes/pipelines";
-import { Route as DistillationsRouteImport } from "./routes/distillations";
-import { Route as DistillationStudioRouteImport } from "./routes/distillation-studio";
-import { Route as ConnectorsRouteImport } from "./routes/connectors";
-import { Route as ComponentsRouteImport } from "./routes/components";
-import { Route as CanvasRouteImport } from "./routes/canvas";
-import { Route as AssistantRouteImport } from "./routes/assistant";
-import { Route as IndexRouteImport } from "./routes/index";
-import { Route as RuntimesIndexRouteImport } from "./routes/runtimes.index";
-import { Route as PipelinesIndexRouteImport } from "./routes/pipelines/index";
-import { Route as DistillationsIndexRouteImport } from "./routes/distillations/index";
-import { Route as AgentsIndexRouteImport } from "./routes/agents.index";
-import { Route as PipelinesObjectsRouteImport } from "./routes/pipelines/objects";
-import { Route as PipelinesJobsRouteImport } from "./routes/pipelines/jobs";
-import { Route as PipelinesPipelineIdRouteImport } from "./routes/pipelines/$pipelineId";
-import { Route as DistillationsNewRouteImport } from "./routes/distillations/new";
-import { Route as DistillationsDistillationIdRouteImport } from "./routes/distillations/$distillationId";
-import { Route as RuntimesRuntimeIdIndexRouteImport } from "./routes/runtimes.$runtimeId.index";
-import { Route as PipelinesOperationsIndexRouteImport } from "./routes/pipelines/operations.index";
-import { Route as AgentsAgentIdIndexRouteImport } from "./routes/agents.$agentId.index";
-import { Route as RuntimesRuntimeIdEditRouteImport } from "./routes/runtimes.$runtimeId.edit";
-import { Route as PipelinesOperationsNewRouteImport } from "./routes/pipelines/operations.new";
-import { Route as PipelinesObjectsObjectTypeIdRouteImport } from "./routes/pipelines/objects.$objectTypeId";
-import { Route as PipelinesOperationsOperationIdIndexRouteImport } from "./routes/pipelines/operations.$operationId.index";
-import { Route as PipelinesOperationsOperationIdEditRouteImport } from "./routes/pipelines/operations.$operationId.edit";
+import { Route as rootRouteImport } from './routes/__root'
+import { Route as UsageRouteImport } from './routes/usage'
+import { Route as SkillsRouteImport } from './routes/skills'
+import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as ScheduleRouteImport } from './routes/schedule'
+import { Route as PluginsRouteImport } from './routes/plugins'
+import { Route as PipelinesRouteImport } from './routes/pipelines'
+import { Route as DistillationsRouteImport } from './routes/distillations'
+import { Route as DistillationStudioRouteImport } from './routes/distillation-studio'
+import { Route as ConnectorsRouteImport } from './routes/connectors'
+import { Route as ComponentsRouteImport } from './routes/components'
+import { Route as CanvasRouteImport } from './routes/canvas'
+import { Route as AssistantRouteImport } from './routes/assistant'
+import { Route as IndexRouteImport } from './routes/index'
+import { Route as RuntimesIndexRouteImport } from './routes/runtimes.index'
+import { Route as PipelinesIndexRouteImport } from './routes/pipelines/index'
+import { Route as DistillationsIndexRouteImport } from './routes/distillations/index'
+import { Route as AgentsIndexRouteImport } from './routes/agents.index'
+import { Route as PipelinesObjectsRouteImport } from './routes/pipelines/objects'
+import { Route as PipelinesJobsRouteImport } from './routes/pipelines/jobs'
+import { Route as PipelinesPipelineIdRouteImport } from './routes/pipelines/$pipelineId'
+import { Route as DistillationsNewRouteImport } from './routes/distillations/new'
+import { Route as DistillationsDistillationIdRouteImport } from './routes/distillations/$distillationId'
+import { Route as RuntimesRuntimeIdIndexRouteImport } from './routes/runtimes.$runtimeId.index'
+import { Route as PipelinesOperationsIndexRouteImport } from './routes/pipelines/operations.index'
+import { Route as AgentsAgentIdIndexRouteImport } from './routes/agents.$agentId.index'
+import { Route as RuntimesRuntimeIdEditRouteImport } from './routes/runtimes.$runtimeId.edit'
+import { Route as PipelinesOperationsNewRouteImport } from './routes/pipelines/operations.new'
+import { Route as PipelinesObjectsObjectTypeIdRouteImport } from './routes/pipelines/objects.$objectTypeId'
+import { Route as PipelinesOperationsOperationIdIndexRouteImport } from './routes/pipelines/operations.$operationId.index'
+import { Route as PipelinesOperationsOperationIdEditRouteImport } from './routes/pipelines/operations.$operationId.edit'
 
 const UsageRoute = UsageRouteImport.update({
-  id: "/usage",
-  path: "/usage",
+  id: '/usage',
+  path: '/usage',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const SkillsRoute = SkillsRouteImport.update({
-  id: "/skills",
-  path: "/skills",
+  id: '/skills',
+  path: '/skills',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const SettingsRoute = SettingsRouteImport.update({
-  id: "/settings",
-  path: "/settings",
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const ScheduleRoute = ScheduleRouteImport.update({
-  id: "/schedule",
-  path: "/schedule",
+  id: '/schedule',
+  path: '/schedule',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const PluginsRoute = PluginsRouteImport.update({
-  id: "/plugins",
-  path: "/plugins",
+  id: '/plugins',
+  path: '/plugins',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const PipelinesRoute = PipelinesRouteImport.update({
-  id: "/pipelines",
-  path: "/pipelines",
+  id: '/pipelines',
+  path: '/pipelines',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const DistillationsRoute = DistillationsRouteImport.update({
-  id: "/distillations",
-  path: "/distillations",
+  id: '/distillations',
+  path: '/distillations',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const DistillationStudioRoute = DistillationStudioRouteImport.update({
-  id: "/distillation-studio",
-  path: "/distillation-studio",
+  id: '/distillation-studio',
+  path: '/distillation-studio',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const ConnectorsRoute = ConnectorsRouteImport.update({
-  id: "/connectors",
-  path: "/connectors",
+  id: '/connectors',
+  path: '/connectors',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const ComponentsRoute = ComponentsRouteImport.update({
-  id: "/components",
-  path: "/components",
+  id: '/components',
+  path: '/components',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const CanvasRoute = CanvasRouteImport.update({
-  id: "/canvas",
-  path: "/canvas",
+  id: '/canvas',
+  path: '/canvas',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const AssistantRoute = AssistantRouteImport.update({
-  id: "/assistant",
-  path: "/assistant",
+  id: '/assistant',
+  path: '/assistant',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const IndexRoute = IndexRouteImport.update({
-  id: "/",
-  path: "/",
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const RuntimesIndexRoute = RuntimesIndexRouteImport.update({
-  id: "/runtimes/",
-  path: "/runtimes/",
+  id: '/runtimes/',
+  path: '/runtimes/',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const PipelinesIndexRoute = PipelinesIndexRouteImport.update({
-  id: "/",
-  path: "/",
+  id: '/',
+  path: '/',
   getParentRoute: () => PipelinesRoute,
-} as any);
+} as any)
 const DistillationsIndexRoute = DistillationsIndexRouteImport.update({
-  id: "/",
-  path: "/",
+  id: '/',
+  path: '/',
   getParentRoute: () => DistillationsRoute,
-} as any);
+} as any)
 const AgentsIndexRoute = AgentsIndexRouteImport.update({
-  id: "/agents/",
-  path: "/agents/",
+  id: '/agents/',
+  path: '/agents/',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const PipelinesObjectsRoute = PipelinesObjectsRouteImport.update({
-  id: "/objects",
-  path: "/objects",
+  id: '/objects',
+  path: '/objects',
   getParentRoute: () => PipelinesRoute,
-} as any);
+} as any)
 const PipelinesJobsRoute = PipelinesJobsRouteImport.update({
-  id: "/jobs",
-  path: "/jobs",
+  id: '/jobs',
+  path: '/jobs',
   getParentRoute: () => PipelinesRoute,
-} as any);
+} as any)
 const PipelinesPipelineIdRoute = PipelinesPipelineIdRouteImport.update({
-  id: "/$pipelineId",
-  path: "/$pipelineId",
+  id: '/$pipelineId',
+  path: '/$pipelineId',
   getParentRoute: () => PipelinesRoute,
-} as any);
+} as any)
 const DistillationsNewRoute = DistillationsNewRouteImport.update({
-  id: "/new",
-  path: "/new",
+  id: '/new',
+  path: '/new',
   getParentRoute: () => DistillationsRoute,
-} as any);
-const DistillationsDistillationIdRoute = DistillationsDistillationIdRouteImport.update({
-  id: "/$distillationId",
-  path: "/$distillationId",
-  getParentRoute: () => DistillationsRoute,
-} as any);
+} as any)
+const DistillationsDistillationIdRoute =
+  DistillationsDistillationIdRouteImport.update({
+    id: '/$distillationId',
+    path: '/$distillationId',
+    getParentRoute: () => DistillationsRoute,
+  } as any)
 const RuntimesRuntimeIdIndexRoute = RuntimesRuntimeIdIndexRouteImport.update({
-  id: "/runtimes/$runtimeId/",
-  path: "/runtimes/$runtimeId/",
+  id: '/runtimes/$runtimeId/',
+  path: '/runtimes/$runtimeId/',
   getParentRoute: () => rootRouteImport,
-} as any);
-const PipelinesOperationsIndexRoute = PipelinesOperationsIndexRouteImport.update({
-  id: "/operations/",
-  path: "/operations/",
-  getParentRoute: () => PipelinesRoute,
-} as any);
+} as any)
+const PipelinesOperationsIndexRoute =
+  PipelinesOperationsIndexRouteImport.update({
+    id: '/operations/',
+    path: '/operations/',
+    getParentRoute: () => PipelinesRoute,
+  } as any)
 const AgentsAgentIdIndexRoute = AgentsAgentIdIndexRouteImport.update({
-  id: "/agents/$agentId/",
-  path: "/agents/$agentId/",
+  id: '/agents/$agentId/',
+  path: '/agents/$agentId/',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const RuntimesRuntimeIdEditRoute = RuntimesRuntimeIdEditRouteImport.update({
-  id: "/runtimes/$runtimeId/edit",
-  path: "/runtimes/$runtimeId/edit",
+  id: '/runtimes/$runtimeId/edit',
+  path: '/runtimes/$runtimeId/edit',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const PipelinesOperationsNewRoute = PipelinesOperationsNewRouteImport.update({
-  id: "/operations/new",
-  path: "/operations/new",
+  id: '/operations/new',
+  path: '/operations/new',
   getParentRoute: () => PipelinesRoute,
-} as any);
-const PipelinesObjectsObjectTypeIdRoute = PipelinesObjectsObjectTypeIdRouteImport.update({
-  id: "/$objectTypeId",
-  path: "/$objectTypeId",
-  getParentRoute: () => PipelinesObjectsRoute,
-} as any);
+} as any)
+const PipelinesObjectsObjectTypeIdRoute =
+  PipelinesObjectsObjectTypeIdRouteImport.update({
+    id: '/$objectTypeId',
+    path: '/$objectTypeId',
+    getParentRoute: () => PipelinesObjectsRoute,
+  } as any)
 const PipelinesOperationsOperationIdIndexRoute =
   PipelinesOperationsOperationIdIndexRouteImport.update({
-    id: "/operations/$operationId/",
-    path: "/operations/$operationId/",
+    id: '/operations/$operationId/',
+    path: '/operations/$operationId/',
     getParentRoute: () => PipelinesRoute,
-  } as any);
+  } as any)
 const PipelinesOperationsOperationIdEditRoute =
   PipelinesOperationsOperationIdEditRouteImport.update({
-    id: "/operations/$operationId/edit",
-    path: "/operations/$operationId/edit",
+    id: '/operations/$operationId/edit',
+    path: '/operations/$operationId/edit',
     getParentRoute: () => PipelinesRoute,
-  } as any);
+  } as any)
 
 export interface FileRoutesByFullPath {
-  "/": typeof IndexRoute;
-  "/assistant": typeof AssistantRoute;
-  "/canvas": typeof CanvasRoute;
-  "/components": typeof ComponentsRoute;
-  "/connectors": typeof ConnectorsRoute;
-  "/distillation-studio": typeof DistillationStudioRoute;
-  "/distillations": typeof DistillationsRouteWithChildren;
-  "/pipelines": typeof PipelinesRouteWithChildren;
-  "/plugins": typeof PluginsRoute;
-  "/schedule": typeof ScheduleRoute;
-  "/settings": typeof SettingsRoute;
-  "/skills": typeof SkillsRoute;
-  "/usage": typeof UsageRoute;
-  "/distillations/$distillationId": typeof DistillationsDistillationIdRoute;
-  "/distillations/new": typeof DistillationsNewRoute;
-  "/pipelines/$pipelineId": typeof PipelinesPipelineIdRoute;
-  "/pipelines/jobs": typeof PipelinesJobsRoute;
-  "/pipelines/objects": typeof PipelinesObjectsRouteWithChildren;
-  "/agents/": typeof AgentsIndexRoute;
-  "/distillations/": typeof DistillationsIndexRoute;
-  "/pipelines/": typeof PipelinesIndexRoute;
-  "/runtimes/": typeof RuntimesIndexRoute;
-  "/pipelines/objects/$objectTypeId": typeof PipelinesObjectsObjectTypeIdRoute;
-  "/pipelines/operations/new": typeof PipelinesOperationsNewRoute;
-  "/runtimes/$runtimeId/edit": typeof RuntimesRuntimeIdEditRoute;
-  "/agents/$agentId/": typeof AgentsAgentIdIndexRoute;
-  "/pipelines/operations/": typeof PipelinesOperationsIndexRoute;
-  "/runtimes/$runtimeId/": typeof RuntimesRuntimeIdIndexRoute;
-  "/pipelines/operations/$operationId/edit": typeof PipelinesOperationsOperationIdEditRoute;
-  "/pipelines/operations/$operationId/": typeof PipelinesOperationsOperationIdIndexRoute;
+  '/': typeof IndexRoute
+  '/assistant': typeof AssistantRoute
+  '/canvas': typeof CanvasRoute
+  '/components': typeof ComponentsRoute
+  '/connectors': typeof ConnectorsRoute
+  '/distillation-studio': typeof DistillationStudioRoute
+  '/distillations': typeof DistillationsRouteWithChildren
+  '/pipelines': typeof PipelinesRouteWithChildren
+  '/plugins': typeof PluginsRoute
+  '/schedule': typeof ScheduleRoute
+  '/settings': typeof SettingsRoute
+  '/skills': typeof SkillsRoute
+  '/usage': typeof UsageRoute
+  '/distillations/$distillationId': typeof DistillationsDistillationIdRoute
+  '/distillations/new': typeof DistillationsNewRoute
+  '/pipelines/$pipelineId': typeof PipelinesPipelineIdRoute
+  '/pipelines/jobs': typeof PipelinesJobsRoute
+  '/pipelines/objects': typeof PipelinesObjectsRouteWithChildren
+  '/agents/': typeof AgentsIndexRoute
+  '/distillations/': typeof DistillationsIndexRoute
+  '/pipelines/': typeof PipelinesIndexRoute
+  '/runtimes/': typeof RuntimesIndexRoute
+  '/pipelines/objects/$objectTypeId': typeof PipelinesObjectsObjectTypeIdRoute
+  '/pipelines/operations/new': typeof PipelinesOperationsNewRoute
+  '/runtimes/$runtimeId/edit': typeof RuntimesRuntimeIdEditRoute
+  '/agents/$agentId/': typeof AgentsAgentIdIndexRoute
+  '/pipelines/operations/': typeof PipelinesOperationsIndexRoute
+  '/runtimes/$runtimeId/': typeof RuntimesRuntimeIdIndexRoute
+  '/pipelines/operations/$operationId/edit': typeof PipelinesOperationsOperationIdEditRoute
+  '/pipelines/operations/$operationId/': typeof PipelinesOperationsOperationIdIndexRoute
 }
 export interface FileRoutesByTo {
-  "/": typeof IndexRoute;
-  "/assistant": typeof AssistantRoute;
-  "/canvas": typeof CanvasRoute;
-  "/components": typeof ComponentsRoute;
-  "/connectors": typeof ConnectorsRoute;
-  "/distillation-studio": typeof DistillationStudioRoute;
-  "/plugins": typeof PluginsRoute;
-  "/schedule": typeof ScheduleRoute;
-  "/settings": typeof SettingsRoute;
-  "/skills": typeof SkillsRoute;
-  "/usage": typeof UsageRoute;
-  "/distillations/$distillationId": typeof DistillationsDistillationIdRoute;
-  "/distillations/new": typeof DistillationsNewRoute;
-  "/pipelines/$pipelineId": typeof PipelinesPipelineIdRoute;
-  "/pipelines/jobs": typeof PipelinesJobsRoute;
-  "/pipelines/objects": typeof PipelinesObjectsRouteWithChildren;
-  "/agents": typeof AgentsIndexRoute;
-  "/distillations": typeof DistillationsIndexRoute;
-  "/pipelines": typeof PipelinesIndexRoute;
-  "/runtimes": typeof RuntimesIndexRoute;
-  "/pipelines/objects/$objectTypeId": typeof PipelinesObjectsObjectTypeIdRoute;
-  "/pipelines/operations/new": typeof PipelinesOperationsNewRoute;
-  "/runtimes/$runtimeId/edit": typeof RuntimesRuntimeIdEditRoute;
-  "/agents/$agentId": typeof AgentsAgentIdIndexRoute;
-  "/pipelines/operations": typeof PipelinesOperationsIndexRoute;
-  "/runtimes/$runtimeId": typeof RuntimesRuntimeIdIndexRoute;
-  "/pipelines/operations/$operationId/edit": typeof PipelinesOperationsOperationIdEditRoute;
-  "/pipelines/operations/$operationId": typeof PipelinesOperationsOperationIdIndexRoute;
+  '/': typeof IndexRoute
+  '/assistant': typeof AssistantRoute
+  '/canvas': typeof CanvasRoute
+  '/components': typeof ComponentsRoute
+  '/connectors': typeof ConnectorsRoute
+  '/distillation-studio': typeof DistillationStudioRoute
+  '/plugins': typeof PluginsRoute
+  '/schedule': typeof ScheduleRoute
+  '/settings': typeof SettingsRoute
+  '/skills': typeof SkillsRoute
+  '/usage': typeof UsageRoute
+  '/distillations/$distillationId': typeof DistillationsDistillationIdRoute
+  '/distillations/new': typeof DistillationsNewRoute
+  '/pipelines/$pipelineId': typeof PipelinesPipelineIdRoute
+  '/pipelines/jobs': typeof PipelinesJobsRoute
+  '/pipelines/objects': typeof PipelinesObjectsRouteWithChildren
+  '/agents': typeof AgentsIndexRoute
+  '/distillations': typeof DistillationsIndexRoute
+  '/pipelines': typeof PipelinesIndexRoute
+  '/runtimes': typeof RuntimesIndexRoute
+  '/pipelines/objects/$objectTypeId': typeof PipelinesObjectsObjectTypeIdRoute
+  '/pipelines/operations/new': typeof PipelinesOperationsNewRoute
+  '/runtimes/$runtimeId/edit': typeof RuntimesRuntimeIdEditRoute
+  '/agents/$agentId': typeof AgentsAgentIdIndexRoute
+  '/pipelines/operations': typeof PipelinesOperationsIndexRoute
+  '/runtimes/$runtimeId': typeof RuntimesRuntimeIdIndexRoute
+  '/pipelines/operations/$operationId/edit': typeof PipelinesOperationsOperationIdEditRoute
+  '/pipelines/operations/$operationId': typeof PipelinesOperationsOperationIdIndexRoute
 }
 export interface FileRoutesById {
-  __root__: typeof rootRouteImport;
-  "/": typeof IndexRoute;
-  "/assistant": typeof AssistantRoute;
-  "/canvas": typeof CanvasRoute;
-  "/components": typeof ComponentsRoute;
-  "/connectors": typeof ConnectorsRoute;
-  "/distillation-studio": typeof DistillationStudioRoute;
-  "/distillations": typeof DistillationsRouteWithChildren;
-  "/pipelines": typeof PipelinesRouteWithChildren;
-  "/plugins": typeof PluginsRoute;
-  "/schedule": typeof ScheduleRoute;
-  "/settings": typeof SettingsRoute;
-  "/skills": typeof SkillsRoute;
-  "/usage": typeof UsageRoute;
-  "/distillations/$distillationId": typeof DistillationsDistillationIdRoute;
-  "/distillations/new": typeof DistillationsNewRoute;
-  "/pipelines/$pipelineId": typeof PipelinesPipelineIdRoute;
-  "/pipelines/jobs": typeof PipelinesJobsRoute;
-  "/pipelines/objects": typeof PipelinesObjectsRouteWithChildren;
-  "/agents/": typeof AgentsIndexRoute;
-  "/distillations/": typeof DistillationsIndexRoute;
-  "/pipelines/": typeof PipelinesIndexRoute;
-  "/runtimes/": typeof RuntimesIndexRoute;
-  "/pipelines/objects/$objectTypeId": typeof PipelinesObjectsObjectTypeIdRoute;
-  "/pipelines/operations/new": typeof PipelinesOperationsNewRoute;
-  "/runtimes/$runtimeId/edit": typeof RuntimesRuntimeIdEditRoute;
-  "/agents/$agentId/": typeof AgentsAgentIdIndexRoute;
-  "/pipelines/operations/": typeof PipelinesOperationsIndexRoute;
-  "/runtimes/$runtimeId/": typeof RuntimesRuntimeIdIndexRoute;
-  "/pipelines/operations/$operationId/edit": typeof PipelinesOperationsOperationIdEditRoute;
-  "/pipelines/operations/$operationId/": typeof PipelinesOperationsOperationIdIndexRoute;
+  __root__: typeof rootRouteImport
+  '/': typeof IndexRoute
+  '/assistant': typeof AssistantRoute
+  '/canvas': typeof CanvasRoute
+  '/components': typeof ComponentsRoute
+  '/connectors': typeof ConnectorsRoute
+  '/distillation-studio': typeof DistillationStudioRoute
+  '/distillations': typeof DistillationsRouteWithChildren
+  '/pipelines': typeof PipelinesRouteWithChildren
+  '/plugins': typeof PluginsRoute
+  '/schedule': typeof ScheduleRoute
+  '/settings': typeof SettingsRoute
+  '/skills': typeof SkillsRoute
+  '/usage': typeof UsageRoute
+  '/distillations/$distillationId': typeof DistillationsDistillationIdRoute
+  '/distillations/new': typeof DistillationsNewRoute
+  '/pipelines/$pipelineId': typeof PipelinesPipelineIdRoute
+  '/pipelines/jobs': typeof PipelinesJobsRoute
+  '/pipelines/objects': typeof PipelinesObjectsRouteWithChildren
+  '/agents/': typeof AgentsIndexRoute
+  '/distillations/': typeof DistillationsIndexRoute
+  '/pipelines/': typeof PipelinesIndexRoute
+  '/runtimes/': typeof RuntimesIndexRoute
+  '/pipelines/objects/$objectTypeId': typeof PipelinesObjectsObjectTypeIdRoute
+  '/pipelines/operations/new': typeof PipelinesOperationsNewRoute
+  '/runtimes/$runtimeId/edit': typeof RuntimesRuntimeIdEditRoute
+  '/agents/$agentId/': typeof AgentsAgentIdIndexRoute
+  '/pipelines/operations/': typeof PipelinesOperationsIndexRoute
+  '/runtimes/$runtimeId/': typeof RuntimesRuntimeIdIndexRoute
+  '/pipelines/operations/$operationId/edit': typeof PipelinesOperationsOperationIdEditRoute
+  '/pipelines/operations/$operationId/': typeof PipelinesOperationsOperationIdIndexRoute
 }
 export interface FileRouteTypes {
-  fileRoutesByFullPath: FileRoutesByFullPath;
+  fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    | "/"
-    | "/assistant"
-    | "/canvas"
-    | "/components"
-    | "/connectors"
-    | "/distillation-studio"
-    | "/distillations"
-    | "/pipelines"
-    | "/plugins"
-    | "/schedule"
-    | "/settings"
-    | "/skills"
-    | "/usage"
-    | "/distillations/$distillationId"
-    | "/distillations/new"
-    | "/pipelines/$pipelineId"
-    | "/pipelines/jobs"
-    | "/pipelines/objects"
-    | "/agents/"
-    | "/distillations/"
-    | "/pipelines/"
-    | "/runtimes/"
-    | "/pipelines/objects/$objectTypeId"
-    | "/pipelines/operations/new"
-    | "/runtimes/$runtimeId/edit"
-    | "/agents/$agentId/"
-    | "/pipelines/operations/"
-    | "/runtimes/$runtimeId/"
-    | "/pipelines/operations/$operationId/edit"
-    | "/pipelines/operations/$operationId/";
-  fileRoutesByTo: FileRoutesByTo;
+    | '/'
+    | '/assistant'
+    | '/canvas'
+    | '/components'
+    | '/connectors'
+    | '/distillation-studio'
+    | '/distillations'
+    | '/pipelines'
+    | '/plugins'
+    | '/schedule'
+    | '/settings'
+    | '/skills'
+    | '/usage'
+    | '/distillations/$distillationId'
+    | '/distillations/new'
+    | '/pipelines/$pipelineId'
+    | '/pipelines/jobs'
+    | '/pipelines/objects'
+    | '/agents/'
+    | '/distillations/'
+    | '/pipelines/'
+    | '/runtimes/'
+    | '/pipelines/objects/$objectTypeId'
+    | '/pipelines/operations/new'
+    | '/runtimes/$runtimeId/edit'
+    | '/agents/$agentId/'
+    | '/pipelines/operations/'
+    | '/runtimes/$runtimeId/'
+    | '/pipelines/operations/$operationId/edit'
+    | '/pipelines/operations/$operationId/'
+  fileRoutesByTo: FileRoutesByTo
   to:
-    | "/"
-    | "/assistant"
-    | "/canvas"
-    | "/components"
-    | "/connectors"
-    | "/distillation-studio"
-    | "/plugins"
-    | "/schedule"
-    | "/settings"
-    | "/skills"
-    | "/usage"
-    | "/distillations/$distillationId"
-    | "/distillations/new"
-    | "/pipelines/$pipelineId"
-    | "/pipelines/jobs"
-    | "/pipelines/objects"
-    | "/agents"
-    | "/distillations"
-    | "/pipelines"
-    | "/runtimes"
-    | "/pipelines/objects/$objectTypeId"
-    | "/pipelines/operations/new"
-    | "/runtimes/$runtimeId/edit"
-    | "/agents/$agentId"
-    | "/pipelines/operations"
-    | "/runtimes/$runtimeId"
-    | "/pipelines/operations/$operationId/edit"
-    | "/pipelines/operations/$operationId";
+    | '/'
+    | '/assistant'
+    | '/canvas'
+    | '/components'
+    | '/connectors'
+    | '/distillation-studio'
+    | '/plugins'
+    | '/schedule'
+    | '/settings'
+    | '/skills'
+    | '/usage'
+    | '/distillations/$distillationId'
+    | '/distillations/new'
+    | '/pipelines/$pipelineId'
+    | '/pipelines/jobs'
+    | '/pipelines/objects'
+    | '/agents'
+    | '/distillations'
+    | '/pipelines'
+    | '/runtimes'
+    | '/pipelines/objects/$objectTypeId'
+    | '/pipelines/operations/new'
+    | '/runtimes/$runtimeId/edit'
+    | '/agents/$agentId'
+    | '/pipelines/operations'
+    | '/runtimes/$runtimeId'
+    | '/pipelines/operations/$operationId/edit'
+    | '/pipelines/operations/$operationId'
   id:
-    | "__root__"
-    | "/"
-    | "/assistant"
-    | "/canvas"
-    | "/components"
-    | "/connectors"
-    | "/distillation-studio"
-    | "/distillations"
-    | "/pipelines"
-    | "/plugins"
-    | "/schedule"
-    | "/settings"
-    | "/skills"
-    | "/usage"
-    | "/distillations/$distillationId"
-    | "/distillations/new"
-    | "/pipelines/$pipelineId"
-    | "/pipelines/jobs"
-    | "/pipelines/objects"
-    | "/agents/"
-    | "/distillations/"
-    | "/pipelines/"
-    | "/runtimes/"
-    | "/pipelines/objects/$objectTypeId"
-    | "/pipelines/operations/new"
-    | "/runtimes/$runtimeId/edit"
-    | "/agents/$agentId/"
-    | "/pipelines/operations/"
-    | "/runtimes/$runtimeId/"
-    | "/pipelines/operations/$operationId/edit"
-    | "/pipelines/operations/$operationId/";
-  fileRoutesById: FileRoutesById;
+    | '__root__'
+    | '/'
+    | '/assistant'
+    | '/canvas'
+    | '/components'
+    | '/connectors'
+    | '/distillation-studio'
+    | '/distillations'
+    | '/pipelines'
+    | '/plugins'
+    | '/schedule'
+    | '/settings'
+    | '/skills'
+    | '/usage'
+    | '/distillations/$distillationId'
+    | '/distillations/new'
+    | '/pipelines/$pipelineId'
+    | '/pipelines/jobs'
+    | '/pipelines/objects'
+    | '/agents/'
+    | '/distillations/'
+    | '/pipelines/'
+    | '/runtimes/'
+    | '/pipelines/objects/$objectTypeId'
+    | '/pipelines/operations/new'
+    | '/runtimes/$runtimeId/edit'
+    | '/agents/$agentId/'
+    | '/pipelines/operations/'
+    | '/runtimes/$runtimeId/'
+    | '/pipelines/operations/$operationId/edit'
+    | '/pipelines/operations/$operationId/'
+  fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute;
-  AssistantRoute: typeof AssistantRoute;
-  CanvasRoute: typeof CanvasRoute;
-  ComponentsRoute: typeof ComponentsRoute;
-  ConnectorsRoute: typeof ConnectorsRoute;
-  DistillationStudioRoute: typeof DistillationStudioRoute;
-  DistillationsRoute: typeof DistillationsRouteWithChildren;
-  PipelinesRoute: typeof PipelinesRouteWithChildren;
-  PluginsRoute: typeof PluginsRoute;
-  ScheduleRoute: typeof ScheduleRoute;
-  SettingsRoute: typeof SettingsRoute;
-  SkillsRoute: typeof SkillsRoute;
-  UsageRoute: typeof UsageRoute;
-  AgentsIndexRoute: typeof AgentsIndexRoute;
-  RuntimesIndexRoute: typeof RuntimesIndexRoute;
-  RuntimesRuntimeIdEditRoute: typeof RuntimesRuntimeIdEditRoute;
-  AgentsAgentIdIndexRoute: typeof AgentsAgentIdIndexRoute;
-  RuntimesRuntimeIdIndexRoute: typeof RuntimesRuntimeIdIndexRoute;
+  IndexRoute: typeof IndexRoute
+  AssistantRoute: typeof AssistantRoute
+  CanvasRoute: typeof CanvasRoute
+  ComponentsRoute: typeof ComponentsRoute
+  ConnectorsRoute: typeof ConnectorsRoute
+  DistillationStudioRoute: typeof DistillationStudioRoute
+  DistillationsRoute: typeof DistillationsRouteWithChildren
+  PipelinesRoute: typeof PipelinesRouteWithChildren
+  PluginsRoute: typeof PluginsRoute
+  ScheduleRoute: typeof ScheduleRoute
+  SettingsRoute: typeof SettingsRoute
+  SkillsRoute: typeof SkillsRoute
+  UsageRoute: typeof UsageRoute
+  AgentsIndexRoute: typeof AgentsIndexRoute
+  RuntimesIndexRoute: typeof RuntimesIndexRoute
+  RuntimesRuntimeIdEditRoute: typeof RuntimesRuntimeIdEditRoute
+  AgentsAgentIdIndexRoute: typeof AgentsAgentIdIndexRoute
+  RuntimesRuntimeIdIndexRoute: typeof RuntimesRuntimeIdIndexRoute
 }
 
-declare module "@tanstack/react-router" {
+declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    "/usage": {
-      id: "/usage";
-      path: "/usage";
-      fullPath: "/usage";
-      preLoaderRoute: typeof UsageRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/skills": {
-      id: "/skills";
-      path: "/skills";
-      fullPath: "/skills";
-      preLoaderRoute: typeof SkillsRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/settings": {
-      id: "/settings";
-      path: "/settings";
-      fullPath: "/settings";
-      preLoaderRoute: typeof SettingsRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/schedule": {
-      id: "/schedule";
-      path: "/schedule";
-      fullPath: "/schedule";
-      preLoaderRoute: typeof ScheduleRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/plugins": {
-      id: "/plugins";
-      path: "/plugins";
-      fullPath: "/plugins";
-      preLoaderRoute: typeof PluginsRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/pipelines": {
-      id: "/pipelines";
-      path: "/pipelines";
-      fullPath: "/pipelines";
-      preLoaderRoute: typeof PipelinesRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/distillations": {
-      id: "/distillations";
-      path: "/distillations";
-      fullPath: "/distillations";
-      preLoaderRoute: typeof DistillationsRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/distillation-studio": {
-      id: "/distillation-studio";
-      path: "/distillation-studio";
-      fullPath: "/distillation-studio";
-      preLoaderRoute: typeof DistillationStudioRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/connectors": {
-      id: "/connectors";
-      path: "/connectors";
-      fullPath: "/connectors";
-      preLoaderRoute: typeof ConnectorsRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/components": {
-      id: "/components";
-      path: "/components";
-      fullPath: "/components";
-      preLoaderRoute: typeof ComponentsRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/canvas": {
-      id: "/canvas";
-      path: "/canvas";
-      fullPath: "/canvas";
-      preLoaderRoute: typeof CanvasRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/assistant": {
-      id: "/assistant";
-      path: "/assistant";
-      fullPath: "/assistant";
-      preLoaderRoute: typeof AssistantRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/": {
-      id: "/";
-      path: "/";
-      fullPath: "/";
-      preLoaderRoute: typeof IndexRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/runtimes/": {
-      id: "/runtimes/";
-      path: "/runtimes";
-      fullPath: "/runtimes/";
-      preLoaderRoute: typeof RuntimesIndexRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/pipelines/": {
-      id: "/pipelines/";
-      path: "/";
-      fullPath: "/pipelines/";
-      preLoaderRoute: typeof PipelinesIndexRouteImport;
-      parentRoute: typeof PipelinesRoute;
-    };
-    "/distillations/": {
-      id: "/distillations/";
-      path: "/";
-      fullPath: "/distillations/";
-      preLoaderRoute: typeof DistillationsIndexRouteImport;
-      parentRoute: typeof DistillationsRoute;
-    };
-    "/agents/": {
-      id: "/agents/";
-      path: "/agents";
-      fullPath: "/agents/";
-      preLoaderRoute: typeof AgentsIndexRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/pipelines/objects": {
-      id: "/pipelines/objects";
-      path: "/objects";
-      fullPath: "/pipelines/objects";
-      preLoaderRoute: typeof PipelinesObjectsRouteImport;
-      parentRoute: typeof PipelinesRoute;
-    };
-    "/pipelines/jobs": {
-      id: "/pipelines/jobs";
-      path: "/jobs";
-      fullPath: "/pipelines/jobs";
-      preLoaderRoute: typeof PipelinesJobsRouteImport;
-      parentRoute: typeof PipelinesRoute;
-    };
-    "/pipelines/$pipelineId": {
-      id: "/pipelines/$pipelineId";
-      path: "/$pipelineId";
-      fullPath: "/pipelines/$pipelineId";
-      preLoaderRoute: typeof PipelinesPipelineIdRouteImport;
-      parentRoute: typeof PipelinesRoute;
-    };
-    "/distillations/new": {
-      id: "/distillations/new";
-      path: "/new";
-      fullPath: "/distillations/new";
-      preLoaderRoute: typeof DistillationsNewRouteImport;
-      parentRoute: typeof DistillationsRoute;
-    };
-    "/distillations/$distillationId": {
-      id: "/distillations/$distillationId";
-      path: "/$distillationId";
-      fullPath: "/distillations/$distillationId";
-      preLoaderRoute: typeof DistillationsDistillationIdRouteImport;
-      parentRoute: typeof DistillationsRoute;
-    };
-    "/runtimes/$runtimeId/": {
-      id: "/runtimes/$runtimeId/";
-      path: "/runtimes/$runtimeId";
-      fullPath: "/runtimes/$runtimeId/";
-      preLoaderRoute: typeof RuntimesRuntimeIdIndexRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/pipelines/operations/": {
-      id: "/pipelines/operations/";
-      path: "/operations";
-      fullPath: "/pipelines/operations/";
-      preLoaderRoute: typeof PipelinesOperationsIndexRouteImport;
-      parentRoute: typeof PipelinesRoute;
-    };
-    "/agents/$agentId/": {
-      id: "/agents/$agentId/";
-      path: "/agents/$agentId";
-      fullPath: "/agents/$agentId/";
-      preLoaderRoute: typeof AgentsAgentIdIndexRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/runtimes/$runtimeId/edit": {
-      id: "/runtimes/$runtimeId/edit";
-      path: "/runtimes/$runtimeId/edit";
-      fullPath: "/runtimes/$runtimeId/edit";
-      preLoaderRoute: typeof RuntimesRuntimeIdEditRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/pipelines/operations/new": {
-      id: "/pipelines/operations/new";
-      path: "/operations/new";
-      fullPath: "/pipelines/operations/new";
-      preLoaderRoute: typeof PipelinesOperationsNewRouteImport;
-      parentRoute: typeof PipelinesRoute;
-    };
-    "/pipelines/objects/$objectTypeId": {
-      id: "/pipelines/objects/$objectTypeId";
-      path: "/$objectTypeId";
-      fullPath: "/pipelines/objects/$objectTypeId";
-      preLoaderRoute: typeof PipelinesObjectsObjectTypeIdRouteImport;
-      parentRoute: typeof PipelinesObjectsRoute;
-    };
-    "/pipelines/operations/$operationId/": {
-      id: "/pipelines/operations/$operationId/";
-      path: "/operations/$operationId";
-      fullPath: "/pipelines/operations/$operationId/";
-      preLoaderRoute: typeof PipelinesOperationsOperationIdIndexRouteImport;
-      parentRoute: typeof PipelinesRoute;
-    };
-    "/pipelines/operations/$operationId/edit": {
-      id: "/pipelines/operations/$operationId/edit";
-      path: "/operations/$operationId/edit";
-      fullPath: "/pipelines/operations/$operationId/edit";
-      preLoaderRoute: typeof PipelinesOperationsOperationIdEditRouteImport;
-      parentRoute: typeof PipelinesRoute;
-    };
+    '/usage': {
+      id: '/usage'
+      path: '/usage'
+      fullPath: '/usage'
+      preLoaderRoute: typeof UsageRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/skills': {
+      id: '/skills'
+      path: '/skills'
+      fullPath: '/skills'
+      preLoaderRoute: typeof SkillsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/schedule': {
+      id: '/schedule'
+      path: '/schedule'
+      fullPath: '/schedule'
+      preLoaderRoute: typeof ScheduleRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/plugins': {
+      id: '/plugins'
+      path: '/plugins'
+      fullPath: '/plugins'
+      preLoaderRoute: typeof PluginsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pipelines': {
+      id: '/pipelines'
+      path: '/pipelines'
+      fullPath: '/pipelines'
+      preLoaderRoute: typeof PipelinesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/distillations': {
+      id: '/distillations'
+      path: '/distillations'
+      fullPath: '/distillations'
+      preLoaderRoute: typeof DistillationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/distillation-studio': {
+      id: '/distillation-studio'
+      path: '/distillation-studio'
+      fullPath: '/distillation-studio'
+      preLoaderRoute: typeof DistillationStudioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/connectors': {
+      id: '/connectors'
+      path: '/connectors'
+      fullPath: '/connectors'
+      preLoaderRoute: typeof ConnectorsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/components': {
+      id: '/components'
+      path: '/components'
+      fullPath: '/components'
+      preLoaderRoute: typeof ComponentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/canvas': {
+      id: '/canvas'
+      path: '/canvas'
+      fullPath: '/canvas'
+      preLoaderRoute: typeof CanvasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/assistant': {
+      id: '/assistant'
+      path: '/assistant'
+      fullPath: '/assistant'
+      preLoaderRoute: typeof AssistantRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/runtimes/': {
+      id: '/runtimes/'
+      path: '/runtimes'
+      fullPath: '/runtimes/'
+      preLoaderRoute: typeof RuntimesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pipelines/': {
+      id: '/pipelines/'
+      path: '/'
+      fullPath: '/pipelines/'
+      preLoaderRoute: typeof PipelinesIndexRouteImport
+      parentRoute: typeof PipelinesRoute
+    }
+    '/distillations/': {
+      id: '/distillations/'
+      path: '/'
+      fullPath: '/distillations/'
+      preLoaderRoute: typeof DistillationsIndexRouteImport
+      parentRoute: typeof DistillationsRoute
+    }
+    '/agents/': {
+      id: '/agents/'
+      path: '/agents'
+      fullPath: '/agents/'
+      preLoaderRoute: typeof AgentsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pipelines/objects': {
+      id: '/pipelines/objects'
+      path: '/objects'
+      fullPath: '/pipelines/objects'
+      preLoaderRoute: typeof PipelinesObjectsRouteImport
+      parentRoute: typeof PipelinesRoute
+    }
+    '/pipelines/jobs': {
+      id: '/pipelines/jobs'
+      path: '/jobs'
+      fullPath: '/pipelines/jobs'
+      preLoaderRoute: typeof PipelinesJobsRouteImport
+      parentRoute: typeof PipelinesRoute
+    }
+    '/pipelines/$pipelineId': {
+      id: '/pipelines/$pipelineId'
+      path: '/$pipelineId'
+      fullPath: '/pipelines/$pipelineId'
+      preLoaderRoute: typeof PipelinesPipelineIdRouteImport
+      parentRoute: typeof PipelinesRoute
+    }
+    '/distillations/new': {
+      id: '/distillations/new'
+      path: '/new'
+      fullPath: '/distillations/new'
+      preLoaderRoute: typeof DistillationsNewRouteImport
+      parentRoute: typeof DistillationsRoute
+    }
+    '/distillations/$distillationId': {
+      id: '/distillations/$distillationId'
+      path: '/$distillationId'
+      fullPath: '/distillations/$distillationId'
+      preLoaderRoute: typeof DistillationsDistillationIdRouteImport
+      parentRoute: typeof DistillationsRoute
+    }
+    '/runtimes/$runtimeId/': {
+      id: '/runtimes/$runtimeId/'
+      path: '/runtimes/$runtimeId'
+      fullPath: '/runtimes/$runtimeId/'
+      preLoaderRoute: typeof RuntimesRuntimeIdIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pipelines/operations/': {
+      id: '/pipelines/operations/'
+      path: '/operations'
+      fullPath: '/pipelines/operations/'
+      preLoaderRoute: typeof PipelinesOperationsIndexRouteImport
+      parentRoute: typeof PipelinesRoute
+    }
+    '/agents/$agentId/': {
+      id: '/agents/$agentId/'
+      path: '/agents/$agentId'
+      fullPath: '/agents/$agentId/'
+      preLoaderRoute: typeof AgentsAgentIdIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/runtimes/$runtimeId/edit': {
+      id: '/runtimes/$runtimeId/edit'
+      path: '/runtimes/$runtimeId/edit'
+      fullPath: '/runtimes/$runtimeId/edit'
+      preLoaderRoute: typeof RuntimesRuntimeIdEditRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pipelines/operations/new': {
+      id: '/pipelines/operations/new'
+      path: '/operations/new'
+      fullPath: '/pipelines/operations/new'
+      preLoaderRoute: typeof PipelinesOperationsNewRouteImport
+      parentRoute: typeof PipelinesRoute
+    }
+    '/pipelines/objects/$objectTypeId': {
+      id: '/pipelines/objects/$objectTypeId'
+      path: '/$objectTypeId'
+      fullPath: '/pipelines/objects/$objectTypeId'
+      preLoaderRoute: typeof PipelinesObjectsObjectTypeIdRouteImport
+      parentRoute: typeof PipelinesObjectsRoute
+    }
+    '/pipelines/operations/$operationId/': {
+      id: '/pipelines/operations/$operationId/'
+      path: '/operations/$operationId'
+      fullPath: '/pipelines/operations/$operationId/'
+      preLoaderRoute: typeof PipelinesOperationsOperationIdIndexRouteImport
+      parentRoute: typeof PipelinesRoute
+    }
+    '/pipelines/operations/$operationId/edit': {
+      id: '/pipelines/operations/$operationId/edit'
+      path: '/operations/$operationId/edit'
+      fullPath: '/pipelines/operations/$operationId/edit'
+      preLoaderRoute: typeof PipelinesOperationsOperationIdEditRouteImport
+      parentRoute: typeof PipelinesRoute
+    }
   }
 }
 
 interface DistillationsRouteChildren {
-  DistillationsDistillationIdRoute: typeof DistillationsDistillationIdRoute;
-  DistillationsNewRoute: typeof DistillationsNewRoute;
-  DistillationsIndexRoute: typeof DistillationsIndexRoute;
+  DistillationsDistillationIdRoute: typeof DistillationsDistillationIdRoute
+  DistillationsNewRoute: typeof DistillationsNewRoute
+  DistillationsIndexRoute: typeof DistillationsIndexRoute
 }
 
 const DistillationsRouteChildren: DistillationsRouteChildren = {
   DistillationsDistillationIdRoute: DistillationsDistillationIdRoute,
   DistillationsNewRoute: DistillationsNewRoute,
   DistillationsIndexRoute: DistillationsIndexRoute,
-};
+}
 
 const DistillationsRouteWithChildren = DistillationsRoute._addFileChildren(
   DistillationsRouteChildren,
-);
+)
 
 interface PipelinesObjectsRouteChildren {
-  PipelinesObjectsObjectTypeIdRoute: typeof PipelinesObjectsObjectTypeIdRoute;
+  PipelinesObjectsObjectTypeIdRoute: typeof PipelinesObjectsObjectTypeIdRoute
 }
 
 const PipelinesObjectsRouteChildren: PipelinesObjectsRouteChildren = {
   PipelinesObjectsObjectTypeIdRoute: PipelinesObjectsObjectTypeIdRoute,
-};
+}
 
-const PipelinesObjectsRouteWithChildren = PipelinesObjectsRoute._addFileChildren(
-  PipelinesObjectsRouteChildren,
-);
+const PipelinesObjectsRouteWithChildren =
+  PipelinesObjectsRoute._addFileChildren(PipelinesObjectsRouteChildren)
 
 interface PipelinesRouteChildren {
-  PipelinesPipelineIdRoute: typeof PipelinesPipelineIdRoute;
-  PipelinesJobsRoute: typeof PipelinesJobsRoute;
-  PipelinesObjectsRoute: typeof PipelinesObjectsRouteWithChildren;
-  PipelinesIndexRoute: typeof PipelinesIndexRoute;
-  PipelinesOperationsNewRoute: typeof PipelinesOperationsNewRoute;
-  PipelinesOperationsIndexRoute: typeof PipelinesOperationsIndexRoute;
-  PipelinesOperationsOperationIdEditRoute: typeof PipelinesOperationsOperationIdEditRoute;
-  PipelinesOperationsOperationIdIndexRoute: typeof PipelinesOperationsOperationIdIndexRoute;
+  PipelinesPipelineIdRoute: typeof PipelinesPipelineIdRoute
+  PipelinesJobsRoute: typeof PipelinesJobsRoute
+  PipelinesObjectsRoute: typeof PipelinesObjectsRouteWithChildren
+  PipelinesIndexRoute: typeof PipelinesIndexRoute
+  PipelinesOperationsNewRoute: typeof PipelinesOperationsNewRoute
+  PipelinesOperationsIndexRoute: typeof PipelinesOperationsIndexRoute
+  PipelinesOperationsOperationIdEditRoute: typeof PipelinesOperationsOperationIdEditRoute
+  PipelinesOperationsOperationIdIndexRoute: typeof PipelinesOperationsOperationIdIndexRoute
 }
 
 const PipelinesRouteChildren: PipelinesRouteChildren = {
@@ -667,11 +669,15 @@ const PipelinesRouteChildren: PipelinesRouteChildren = {
   PipelinesIndexRoute: PipelinesIndexRoute,
   PipelinesOperationsNewRoute: PipelinesOperationsNewRoute,
   PipelinesOperationsIndexRoute: PipelinesOperationsIndexRoute,
-  PipelinesOperationsOperationIdEditRoute: PipelinesOperationsOperationIdEditRoute,
-  PipelinesOperationsOperationIdIndexRoute: PipelinesOperationsOperationIdIndexRoute,
-};
+  PipelinesOperationsOperationIdEditRoute:
+    PipelinesOperationsOperationIdEditRoute,
+  PipelinesOperationsOperationIdIndexRoute:
+    PipelinesOperationsOperationIdIndexRoute,
+}
 
-const PipelinesRouteWithChildren = PipelinesRoute._addFileChildren(PipelinesRouteChildren);
+const PipelinesRouteWithChildren = PipelinesRoute._addFileChildren(
+  PipelinesRouteChildren,
+)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
@@ -692,7 +698,7 @@ const rootRouteChildren: RootRouteChildren = {
   RuntimesRuntimeIdEditRoute: RuntimesRuntimeIdEditRoute,
   AgentsAgentIdIndexRoute: AgentsAgentIdIndexRoute,
   RuntimesRuntimeIdIndexRoute: RuntimesRuntimeIdIndexRoute,
-};
+}
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
-  ._addFileTypes<FileRouteTypes>();
+  ._addFileTypes<FileRouteTypes>()

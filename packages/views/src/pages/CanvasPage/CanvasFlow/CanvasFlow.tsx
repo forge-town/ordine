@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, type DragEvent, type Ref } from "react";
 import { useStore } from "zustand";
-import { useCanvasPageStore } from "../_store";
+import { type PipelineNode, useCanvasPageStore } from "../_store";
 import { useHotkeys } from "react-hotkeys-hook";
 import {
   ReactFlow,
@@ -11,6 +11,7 @@ import {
   useUpdateNodeInternals,
 } from "@xyflow/react";
 import { CompoundNode } from "../CompoundNode";
+import { DecisionNode } from "../DecisionNode";
 import { FileNode } from "../FileNode";
 import { ErrorNode } from "../ErrorNode";
 import { FolderNode } from "../FolderNode";
@@ -27,12 +28,14 @@ import {
 import { DEFAULT_CANVAS_VIEWPORT } from "../utils/canvasViewport";
 import { decorateEdgesWithPortHandles } from "../NodeCard";
 import { SemanticEdge } from "../SemanticEdge";
+import { cn } from "@repo/ui/lib/utils";
 
 // Must be defined outside the component to prevent React Flow infinite re-renders
 const nodeTypes = {
   default: ErrorNode,
   operation: OperationNode,
   compound: CompoundNode,
+  decision: DecisionNode,
   file: FileNode,
   folder: FolderNode,
   "github-project": GitHubProjectNode,
@@ -72,10 +75,25 @@ export const CanvasFlow = ({ viewportRef }: CanvasFlowProps) => {
   const edges = useStore(store, (s) => s.edges);
   const connectStart = useStore(store, (s) => s.connectStart);
   const isCanvasInteractive = useStore(store, (s) => s.isCanvasInteractive);
+  const isAgentStructureLocked = useStore(store, (s) => s.isAgentStructureLocked);
+  const agentNodeEffects = useStore(store, (s) => s.agentNodeEffects);
   const canvasTool = useStore(store, (s) => s.canvasTool);
+  const renderedNodes = useMemo<PipelineNode[]>(
+    () =>
+      nodes.map((node) => ({
+        ...node,
+        className: cn(
+          node.className,
+          agentNodeEffects[node.id] === "enter" && "agent-canvas-node-enter",
+          agentNodeEffects[node.id] === "update" && "agent-canvas-node-update",
+          agentNodeEffects[node.id] === "exit" && "agent-canvas-node-exit",
+        ),
+      })),
+    [agentNodeEffects, nodes],
+  );
   const portRoutedEdges = useMemo(
-    () => decorateEdgesWithPortHandles(nodes, edges, connectStart),
-    [connectStart, edges, nodes],
+    () => decorateEdgesWithPortHandles(renderedNodes, edges, connectStart),
+    [connectStart, edges, renderedNodes],
   );
   const semanticEdges = useMemo<typeof portRoutedEdges>(
     () => portRoutedEdges.map((edge) => ({ ...edge, animated: false, type: "semantic" as const })),
@@ -173,30 +191,35 @@ export const CanvasFlow = ({ viewportRef }: CanvasFlowProps) => {
     [],
   );
 
-  const interactiveHandlers = isCanvasInteractive
+  const selectionHandlers = isCanvasInteractive
     ? {
-        onConnect: (...args: Parameters<typeof handleConnect>) => {
-          handleConnect(...args);
-          scheduleUpdateAllNodeInternals();
-        },
-        onConnectEnd: (...args: Parameters<typeof handleFlowConnectEnd>) => {
-          handleFlowConnectEnd(...args);
-          scheduleUpdateAllNodeInternals();
-        },
-        onConnectStart: (...args: Parameters<typeof handleFlowConnectStart>) => {
-          handleFlowConnectStart(...args);
-          scheduleUpdateAllNodeInternals();
-        },
         onEdgeClick: handleFlowEdgeClick,
         onNodeClick: handleFlowNodeClick,
-        onNodeContextMenu: handleFlowNodeContextMenu,
-        onNodeDragStart: handleFlowNodeDragStart,
-        onNodeDrag: handleFlowNodeDrag,
-        onNodeDragStop: handleFlowNodeDragStop,
         onPaneClick: handleFlowPaneClick,
-        onPaneContextMenu: handleFlowPaneContextMenu,
       }
     : {};
+  const structuralHandlers =
+    isCanvasInteractive && !isAgentStructureLocked
+      ? {
+          onConnect: (...args: Parameters<typeof handleConnect>) => {
+            handleConnect(...args);
+            scheduleUpdateAllNodeInternals();
+          },
+          onConnectEnd: (...args: Parameters<typeof handleFlowConnectEnd>) => {
+            handleFlowConnectEnd(...args);
+            scheduleUpdateAllNodeInternals();
+          },
+          onConnectStart: (...args: Parameters<typeof handleFlowConnectStart>) => {
+            handleFlowConnectStart(...args);
+            scheduleUpdateAllNodeInternals();
+          },
+          onNodeContextMenu: handleFlowNodeContextMenu,
+          onNodeDragStart: handleFlowNodeDragStart,
+          onNodeDrag: handleFlowNodeDrag,
+          onNodeDragStop: handleFlowNodeDragStop,
+          onPaneContextMenu: handleFlowPaneContextMenu,
+        }
+      : {};
   useHotkeys(
     "mod+z",
     (e) => {
@@ -215,6 +238,7 @@ export const CanvasFlow = ({ viewportRef }: CanvasFlowProps) => {
   );
 
   const handleDrop = (event: DragEvent<HTMLDivElement>) => {
+    if (isAgentStructureLocked) return;
     const payload = decodeCanvasComponentDragPayload(
       event.dataTransfer.getData(CANVAS_COMPONENT_DRAG_MIME),
     );
@@ -242,8 +266,16 @@ export const CanvasFlow = ({ viewportRef }: CanvasFlowProps) => {
   };
 
   const handleNodesChangeWithInternals = (changes: Parameters<typeof handleNodesChange>[0]) => {
-    handleNodesChange(changes);
+    const allowedChanges = isAgentStructureLocked
+      ? changes.filter((change) => change.type === "select" || change.type === "dimensions")
+      : changes;
+    handleNodesChange(allowedChanges);
     scheduleUpdateAllNodeInternals();
+  };
+  const handleEdgesChangeWithLock = (changes: Parameters<typeof handleEdgesChange>[0]) => {
+    handleEdgesChange(
+      isAgentStructureLocked ? changes.filter((change) => change.type === "select") : changes,
+    );
   };
 
   return (
@@ -251,21 +283,23 @@ export const CanvasFlow = ({ viewportRef }: CanvasFlowProps) => {
       ref={viewportRef}
       className="canvas-container h-full w-full"
       data-testid="canvas-flow-viewport"
-      onDragOver={handleComponentDragOver}
+      onDragOver={isAgentStructureLocked ? undefined : handleComponentDragOver}
       onDrop={handleDrop}
     >
       <ReactFlow
         className="bg-canvas"
         defaultEdgeOptions={defaultEdgeOptions}
         defaultViewport={DEFAULT_CANVAS_VIEWPORT}
-        deleteKeyCode={isCanvasInteractive ? ["Backspace", "Delete"] : null}
+        deleteKeyCode={
+          isCanvasInteractive && !isAgentStructureLocked ? ["Backspace", "Delete"] : null
+        }
         edges={semanticEdges}
         edgeTypes={edgeTypes}
         elementsSelectable={isCanvasInteractive}
         minZoom={0.1}
-        nodes={nodes}
-        nodesConnectable={isCanvasInteractive}
-        nodesDraggable={isCanvasInteractive}
+        nodes={renderedNodes}
+        nodesConnectable={isCanvasInteractive && !isAgentStructureLocked}
+        nodesDraggable={isCanvasInteractive && !isAgentStructureLocked}
         nodeTypes={nodeTypes}
         panOnDrag={isCanvasInteractive ? (canvasTool === "hand" ? true : [1, 2]) : false}
         panOnScroll={false}
@@ -276,11 +310,12 @@ export const CanvasFlow = ({ viewportRef }: CanvasFlowProps) => {
         zoomOnDoubleClick={isCanvasInteractive}
         zoomOnPinch={isCanvasInteractive}
         zoomOnScroll={isCanvasInteractive}
-        onEdgesChange={handleEdgesChange}
+        onEdgesChange={handleEdgesChangeWithLock}
         onInit={handleFlowInit}
         onMove={(_event, viewport) => handleFlowMove(viewport.zoom)}
         onNodesChange={handleNodesChangeWithInternals}
-        {...interactiveHandlers}
+        {...selectionHandlers}
+        {...structuralHandlers}
       >
         {canvasSettings.showBackground && (
           <Background

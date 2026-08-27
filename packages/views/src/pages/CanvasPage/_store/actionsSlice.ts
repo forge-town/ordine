@@ -214,6 +214,7 @@ export const createActionsSlice = (
     URL.revokeObjectURL(url);
   },
   importCanvas: ({ name, title, sharedContext, nodes, edges }) => {
+    if (get().isAgentStructureLocked) return;
     const pipelineName =
       typeof name === "string" ? name : typeof title === "string" ? title : undefined;
     const pipelineSharedContext = typeof sharedContext === "string" ? sharedContext : undefined;

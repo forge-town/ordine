@@ -30,12 +30,13 @@ export const useCanvasWorkspacePersistence = ({
   const nodes = useStore(store, (state) => state.nodes);
   const edges = useStore(store, (state) => state.edges);
   const importCanvas = useStore(store, (state) => state.importCanvas);
+  const isAgentStructureLocked = useStore(store, (state) => state.isAgentStructureLocked);
   const handlePipelineIdChange = useStore(store, (state) => state.handlePipelineIdChange);
   const { mutate: updateCanvas, mutation: updateMutation } = useUpdate();
   const { mutate: createCanvas, mutation: createMutation } = useCreate();
 
   const displayPipelineName = pipelineName || t("canvas.pipelineTitlePlaceholder");
-  const isPending = updateMutation.isPending || createMutation.isPending;
+  const isPending = updateMutation.isPending || createMutation.isPending || isAgentStructureLocked;
 
   const showImportError = (error: CanvasImportError) => {
     const description =
@@ -53,6 +54,7 @@ export const useCanvasWorkspacePersistence = ({
   };
 
   const handleSave = () => {
+    if (isAgentStructureLocked) return;
     if (pipelineId) {
       updateCanvas({
         resource: ResourceName.pipelines,
@@ -120,10 +122,12 @@ export const useCanvasWorkspacePersistence = ({
   };
 
   const handleImport = () => {
+    if (isAgentStructureLocked) return;
     fileInputRef.current?.click();
   };
 
   const handleImportFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+    if (isAgentStructureLocked) return;
     const file = event.target.files?.[0];
     if (!file) {
       return;

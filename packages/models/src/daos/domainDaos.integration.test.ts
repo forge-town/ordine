@@ -3,8 +3,14 @@ import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { drizzle } from "drizzle-orm/postgres-js";
-import { agentRawExportsTable, pipelinesTable } from "@repo/db-schema";
-import type { DbExecutor } from "../types";
+import {
+  agentChangeSetsTable,
+  agentRawExportsTable,
+  pipelineAgentSessionsTable,
+  pipelinesTable,
+} from "@repo/db-schema";
+import type { DbConnection, DbExecutor } from "../types";
+import { createAgentControlRepository } from "../repositories/agentControlRepository";
 import {
   createConnectorsDao,
   createConversationMessagesDao,
@@ -189,6 +195,62 @@ describe("COD-116 domain DAOs with PostgreSQL", () => {
     expect(await routines.findById("routine-1")).toBeUndefined();
     expect(await assets.findById("asset-1")).toBeUndefined();
     expect(await connectors.findById("connector-1")).toBeUndefined();
+  });
+
+  it("keeps Agent Change Set undo and redo repeatable across multiple cycles", async () => {
+    const pipelineId = "pipeline-agent-history";
+    const threadId = "thread-agent-history";
+    const changeSetId = "changeset-agent-history";
+    const emptySnapshot = { nodes: [], edges: [] };
+    await executor.insert(pipelinesTable).values({ id: pipelineId, name: "Agent history" });
+    await executor.insert(pipelineAgentSessionsTable).values({
+      id: threadId,
+      title: "Agent history",
+      entrypoint: "global-agent-bar",
+      mode: "edit",
+      status: "completed",
+      pipelineId,
+    });
+    await executor.insert(agentChangeSetsTable).values({
+      id: changeSetId,
+      threadId,
+      actor: "local-owner",
+      kind: "agent-edit",
+      targetType: "pipeline",
+      targetId: pipelineId,
+      baseVersion: 1,
+      status: "ready",
+      baseSnapshot: emptySnapshot,
+      draftSnapshot: emptySnapshot,
+    });
+    const repository = createAgentControlRepository(executor as DbConnection);
+
+    const applied = await repository.applyChangeSet(changeSetId, 1);
+    expect(applied).toMatchObject({ type: "applied", newVersion: 2 });
+
+    const firstRevert = await repository.compensateChangeSet({
+      sourceChangeSetId: changeSetId,
+      expectedVersion: 2,
+      kind: "revert",
+      id: "changeset-agent-history-revert-1",
+    });
+    expect(firstRevert).toMatchObject({ type: "applied", newVersion: 3 });
+
+    const firstRedo = await repository.compensateChangeSet({
+      sourceChangeSetId: changeSetId,
+      expectedVersion: 3,
+      kind: "redo",
+      id: "changeset-agent-history-redo-1",
+    });
+    expect(firstRedo).toMatchObject({ type: "applied", newVersion: 4 });
+
+    const secondRevert = await repository.compensateChangeSet({
+      sourceChangeSetId: changeSetId,
+      expectedVersion: 4,
+      kind: "revert",
+      id: "changeset-agent-history-revert-2",
+    });
+    expect(secondRevert).toMatchObject({ type: "applied", newVersion: 5 });
   });
 
   it("returns the latest N conversation messages in chronological order", async () => {

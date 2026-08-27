@@ -253,6 +253,20 @@
       "when": 1787533200000,
       "tag": "0035_default_agent_full_access",
       "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1787644800000,
+      "tag": "0036_agent_control_plane",
+      "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "7",
+      "when": 1787731200000,
+      "tag": "0037_agent_action_argument_digest",
+      "breakpoints": true
     }
   ]
 }

@@ -58,6 +58,7 @@ export const SemanticEdge = ({
   const pendingProposal = useStore(store, (state) => state.agentPanel.pendingProposal);
   const sourceStatus = useStore(store, (state) => state.nodeRunStatuses[source]);
   const targetStatus = useStore(store, (state) => state.nodeRunStatuses[target]);
+  const agentEffect = useStore(store, (state) => state.agentEdgeEffects[id]);
   const [edgePath, labelX, labelY] = getBezierPath({
     sourcePosition,
     sourceX,
@@ -83,6 +84,8 @@ export const SemanticEdge = ({
           "stroke-[2px]",
           edgeStateClass[semanticState],
           isLoopEdge && "stroke-warning [stroke-dasharray:6_4]",
+          agentEffect === "enter" && "agent-canvas-edge-enter",
+          agentEffect === "exit" && "agent-canvas-edge-exit",
         )}
         id={id}
         path={edgePath}

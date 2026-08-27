@@ -90,12 +90,12 @@ export const firstPath = (
     .filter((line) => line.length > 0);
 
   if (platform === "win32") {
-    return (
-      paths.find((line) => line.toLowerCase().endsWith(".exe")) ??
-      paths.find((line) => line.toLowerCase().endsWith(".cmd")) ??
-      paths.find((line) => line.toLowerCase().endsWith(".bat")) ??
-      paths[0]
-    );
+    // `where.exe` already returns matches in PATH resolution order. Preserve
+    // that order while skipping extensionless npm shell scripts that cannot be
+    // spawned directly on Windows. Globally preferring `.exe` can otherwise
+    // select an inaccessible Microsoft Store package over an earlier, working
+    // npm `.cmd` shim.
+    return paths.find((line) => /\.(?:exe|cmd|bat)$/i.test(line)) ?? paths[0];
   }
 
   return paths[0];

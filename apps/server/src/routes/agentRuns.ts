@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { ResultAsync } from "neverthrow";
 import { z } from "zod/v4";
 import type { AgentRunEventEnvelope, AgentRunStatus } from "@repo/schemas";
+import { agentApiAuthMiddleware } from "../integrations/auth";
 import { agentRunsService } from "../services.js";
 
 const TERMINAL_STATUSES = new Set<AgentRunStatus>([
@@ -19,6 +20,8 @@ const encodeEvent = (envelope: AgentRunEventEnvelope): Uint8Array =>
   );
 
 export const agentRunsRoutes = new Hono();
+
+agentRunsRoutes.use("*", agentApiAuthMiddleware);
 
 agentRunsRoutes.get("/:id", async (context) => {
   const run = await agentRunsService.getById(context.req.param("id"));

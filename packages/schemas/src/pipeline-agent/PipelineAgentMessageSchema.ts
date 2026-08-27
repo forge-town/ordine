@@ -1,4 +1,5 @@
 import { z } from "zod/v4";
+import { AgentContextEnvelopeSchema } from "../agent-control/AgentControlSchema";
 
 export const PipelineAgentMessageRoleSchema = z.enum(["user", "assistant", "system"]);
 export type PipelineAgentMessageRole = z.infer<typeof PipelineAgentMessageRoleSchema>;
@@ -20,6 +21,8 @@ export const PipelineAgentMessageSchema = z.object({
   role: PipelineAgentMessageRoleSchema,
   kind: PipelineAgentMessageKindSchema,
   content: z.string(),
+  context: AgentContextEnvelopeSchema.nullable().default(null),
+  runId: z.string().min(1).nullable().default(null),
   createdAt: z.date(),
 });
 export type PipelineAgentMessage = z.infer<typeof PipelineAgentMessageSchema>;

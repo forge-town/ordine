@@ -15,7 +15,7 @@ import { CanvasEdgeInspector } from "../CanvasEdgeInspector";
 import { ConnectionMenu } from "../ConnectionMenu";
 import { NodeContextMenu } from "../NodeContextMenu";
 import { RunConsole } from "../RunConsole";
-import { AgentPanel } from "../AgentPanel";
+import { CanvasAgentControlPanel } from "../AgentControlBridge";
 import { LlmContentCard } from "../LlmContentCard/LlmContentCard";
 import { CanvasEmptyState } from "../CanvasEmptyState";
 import { CanvasNodeCreationPalette } from "../CanvasNodeCreationPalette";
@@ -31,7 +31,6 @@ import { getScreenViewportCenter, getViewportRectCenter } from "../utils/nodePos
 const AGENT_PANEL_COLLAPSE_AT = 248;
 
 export const CanvasInner = ({
-  onGeneratedPipeline: handleGeneratedPipeline,
   showCanvasMiniSidebar = true,
 }: {
   onGeneratedPipeline?: (pipelineId: string) => Promise<void> | void;
@@ -160,7 +159,7 @@ export const CanvasInner = ({
               data-testid="canvas-agent-panel-shell"
               style={{ width: `${agentPanelWidth}px`, maxWidth: "100%" }}
             >
-              <AgentPanel onGeneratedPipeline={handleGeneratedPipeline} />
+              <CanvasAgentControlPanel />
             </div>
           </div>
         </div>

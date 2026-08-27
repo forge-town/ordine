@@ -52,7 +52,7 @@ test.describe("Job execution workflow", () => {
     await runButton.click();
     const runConsole = page.getByTestId("canvas-run-console");
     await expect(runConsole).toBeVisible();
-    await expect(runConsole).toContainText(/done/, { timeout: 30_000 });
+    await expect(runConsole).toContainText(/done/i, { timeout: 30_000 });
     await expect(runConsole).toContainText("Script output (21 chars)");
 
     await navigateAndWait(page, "/pipelines/jobs");

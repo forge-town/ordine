@@ -15,6 +15,7 @@ import {
 } from "@repo/views/store/notificationStore";
 import { ThemeApplier, ThemeStoreProvider } from "@repo/views/store/themeStore";
 import { cn } from "@repo/ui/lib/utils";
+import { GlobalAgentSurface } from "@repo/views/GlobalAgentControl";
 
 export const AppLayout = ({
   canvasMode = false,
@@ -54,6 +55,7 @@ export const AppLayout = ({
                     <SharedToastContainer />
                     <SearchPipelineDialog />
                     <NewPipelineDialog />
+                    <GlobalAgentSurface />
                   </SidebarProvider>
                 </SharedSidebarStoreProvider>
               </SharedToastStoreProvider>

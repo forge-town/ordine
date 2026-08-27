@@ -1,4 +1,4 @@
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, inArray } from "drizzle-orm";
 import { pipelineAgentSessionsTable } from "@repo/db-schema";
 import type { DbExecutor } from "../../types";
 
@@ -9,7 +9,15 @@ export class PipelineAgentSessionsDao {
     const rows = await this.executor
       .select()
       .from(pipelineAgentSessionsTable)
-      .where(eq(pipelineAgentSessionsTable.id, id))
+      .where(
+        and(
+          eq(pipelineAgentSessionsTable.id, id),
+          inArray(pipelineAgentSessionsTable.entrypoint, [
+            "new-pipeline-dialog",
+            "canvas-agent-panel",
+          ]),
+        ),
+      )
       .limit(1);
 
     return rows[0];
@@ -23,6 +31,7 @@ export class PipelineAgentSessionsDao {
         and(
           eq(pipelineAgentSessionsTable.pipelineId, pipelineId),
           eq(pipelineAgentSessionsTable.mode, "edit"),
+          eq(pipelineAgentSessionsTable.entrypoint, "canvas-agent-panel"),
         ),
       )
       .orderBy(desc(pipelineAgentSessionsTable.updatedAt))
@@ -48,7 +57,15 @@ export class PipelineAgentSessionsDao {
     const [updated] = await this.executor
       .update(pipelineAgentSessionsTable)
       .set({ ...patch, updatedAt: new Date() })
-      .where(eq(pipelineAgentSessionsTable.id, id))
+      .where(
+        and(
+          eq(pipelineAgentSessionsTable.id, id),
+          inArray(pipelineAgentSessionsTable.entrypoint, [
+            "new-pipeline-dialog",
+            "canvas-agent-panel",
+          ]),
+        ),
+      )
       .returning();
 
     return updated;
