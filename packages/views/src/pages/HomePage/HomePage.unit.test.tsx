@@ -124,6 +124,7 @@ const catalogEntry = (
       usage: true,
       cancellation: "signal",
       resume: "cli",
+      pause: "none",
       mcpInjection: "config",
       imageInput: false,
     },
