@@ -11,9 +11,11 @@ import { cn } from "@repo/ui/lib/utils";
 import { useCustom, useCustomMutation, useOne } from "@refinedev/core";
 import { useStore } from "zustand";
 import { useShallow } from "zustand/shallow";
-import type { JobStatus } from "@repo/schemas";
+import { TRACE_MARKER, type JobStatus } from "@repo/schemas";
 import { ResourceName } from "../../../constants";
 import { FolderBrowserDialog } from "../../../components/FolderBrowserDialog/FolderBrowserDialog";
+import { AgentActivitySurface } from "../../../components/AgentActivity";
+import { usePlatform } from "../../../platform";
 import { useOperationDetailPageStore } from "../_store";
 
 interface JobData {
@@ -48,6 +50,20 @@ const isStructuredLog = (log: string): boolean => {
   return msg.startsWith("@@");
 };
 
+const extractAgentRunIds = (logs: readonly string[]): string[] => [
+  ...new Set(
+    logs.flatMap((log) => {
+      const markerIndex = log.indexOf(TRACE_MARKER.agentRun);
+      if (markerIndex < 0) return [];
+      const payload = log.slice(markerIndex + TRACE_MARKER.agentRun.length);
+      const separator = payload.indexOf("::");
+      const runId = separator >= 0 ? payload.slice(separator + 2).trim() : "";
+
+      return runId ? [runId] : [];
+    }),
+  ),
+];
+
 const STATUS_STYLES: Partial<Record<JobStatus, string>> = {
   queued: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300",
   running: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
@@ -61,6 +77,7 @@ interface OperationRunPanelProps {
 
 export const OperationRunPanel = ({ operationId }: OperationRunPanelProps) => {
   const { t } = useTranslation();
+  const platform = usePlatform();
   const { result: operation } = useOne<OperationDataForName>({
     resource: ResourceName.operations,
     id: operationId,
@@ -142,6 +159,7 @@ export const OperationRunPanel = ({ operationId }: OperationRunPanelProps) => {
   };
 
   const traceLogs = (tracesResult.data?.traces ?? []).map((trace) => trace.message);
+  const activityRunIds = extractAgentRunIds(traceLogs);
   const displayStatus = job ? job.status : runStatus;
   const isRunning = displayStatus === "running" || runStatus === "running";
   const hasResults = !!runJobId;
@@ -250,6 +268,15 @@ export const OperationRunPanel = ({ operationId }: OperationRunPanelProps) => {
                     {t("operations.run.starting")}
                   </div>
                 )}
+                {activityRunIds.map((runId) => (
+                  <AgentActivitySurface
+                    key={runId}
+                    className="mb-2 font-sans"
+                    platform={platform}
+                    runId={runId}
+                    variant="panel"
+                  />
+                ))}
                 {traceLogs
                   .filter((l) => !isStructuredLog(l))
                   .map((log, i) => (

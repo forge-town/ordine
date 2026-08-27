@@ -20,6 +20,7 @@ interface UsePipelineCreationSessionRecoveryOptions {
   onCompleted: (pipelineId: string) => void;
   onError: (error: Error) => void;
   onMissing: () => void;
+  onRunId?: (runId: string) => void;
   onSessionDetail: (session: PipelineAgentSessionClientDetail) => void;
   onPlanEvent: (event: PipelineAgentPlanEvent) => void;
 }
@@ -34,6 +35,7 @@ export const usePipelineCreationSessionRecovery = ({
   onCompleted,
   onError,
   onMissing,
+  onRunId,
   onSessionDetail,
   onPlanEvent,
 }: UsePipelineCreationSessionRecoveryOptions) => {
@@ -64,6 +66,8 @@ export const usePipelineCreationSessionRecovery = ({
           }
           await client.planSessionStream(savedSessionId, {
             signal: controller.signal,
+            onRunId,
+            useSharedActivity: true,
             onEvent: onPlanEvent,
           });
           if (controller.signal.aborted) {
@@ -150,6 +154,7 @@ export const usePipelineCreationSessionRecovery = ({
     onCompleted,
     onError,
     onMissing,
+    onRunId,
     onPlanEvent,
     onSessionDetail,
     sessionIdRef,

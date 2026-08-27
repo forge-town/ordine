@@ -117,6 +117,7 @@ export const PipelineCreationWorkspace = ({
   >("conversation");
   const [proposal, setProposal] = useState<PipelineAgentProposal | null>(null);
   const [proposalId, setProposalId] = useState<string | null>(null);
+  const [activityRunId, setActivityRunId] = useState<string | null>(null);
   const [streamingAssistantText, setStreamingAssistantText] = useState("");
   const [runtimeActivity, setRuntimeActivity] = useState<PipelineCreationRuntimeActivity[]>([]);
   const sessionIdRef = useRef<string | null>(null);
@@ -171,6 +172,7 @@ export const PipelineCreationWorkspace = ({
       setPhase("conversation");
       setProposal(null);
       setProposalId(null);
+      setActivityRunId(null);
       setStreamingAssistantText("");
       setRuntimeActivity([]);
     },
@@ -188,6 +190,7 @@ export const PipelineCreationWorkspace = ({
     proposal?.mode === "generate" && proposal.readiness === "ready_for_generation";
   const hasConversation =
     messages.length > 0 ||
+    activityRunId !== null ||
     streamingAssistantText.length > 0 ||
     attachments.length > 0 ||
     proposal !== null ||
@@ -281,6 +284,7 @@ export const PipelineCreationWorkspace = ({
     onCompleted: handleRestoredPipeline,
     onError: handleRestoreError,
     onMissing: handleMissingSession,
+    onRunId: setActivityRunId,
     onSessionDetail: applySessionDetail,
     onPlanEvent: handleRestoredPlanEvent,
   });
@@ -527,7 +531,9 @@ export const PipelineCreationWorkspace = ({
     const previousProposalId = proposalId;
     setProposal(null);
     setProposalId(null);
+    setActivityRunId(null);
     setStreamingAssistantText("");
+    setRuntimeActivity([]);
     setPhase("planning");
     const controller = new AbortController();
     activeRequestRef.current?.abort();
@@ -557,6 +563,8 @@ export const PipelineCreationWorkspace = ({
             ? {}
             : { firstOutputTimeoutSeconds: executionChoice.firstOutputTimeoutSeconds }),
           signal: controller.signal,
+          onRunId: setActivityRunId,
+          useSharedActivity: true,
           onEvent: (event) => {
             if (
               event.type === "question" ||
@@ -963,6 +971,7 @@ export const PipelineCreationWorkspace = ({
 
       {hasConversation && (
         <PipelineCreationMessages
+          activityRunId={activityRunId}
           attachments={attachments}
           canRemoveAttachments={phase === "conversation"}
           isHome={isHome}

@@ -10,6 +10,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@repo/ui/sheet";
+import { AgentActivitySurface } from "../../components/AgentActivity";
 import { usePlatform } from "../../platform";
 
 interface RuntimeConnectionTestSheetProps {
@@ -142,6 +143,7 @@ export const RuntimeConnectionTestSheet = ({
             {entry?.runtime === "codex" ? "native Codex sandbox" : "CLI policy / best-effort"}. The
             probe uses the same absolute executable and adapter as a product run.
           </div>
+          {runId && <AgentActivitySurface platform={platform} runId={runId} variant="panel" />}
           {error && (
             <div className="rounded-lg border border-destructive/40 bg-destructive/8 p-3 text-sm text-destructive">
               {error}
