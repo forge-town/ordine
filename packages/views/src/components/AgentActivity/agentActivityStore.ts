@@ -492,7 +492,7 @@ export type AgentActivityViewModel = ReturnType<typeof createAgentActivityViewMo
  * Cache the derived object for each immutable store state so the snapshot
  * identity remains stable even though the view model contains derived arrays.
  */
-export const selectAgentActivityViewModel = (state: AgentActivityState): AgentActivityViewModel => {
+export const selectAgentActivityViewModel = (state: AgentActivityState) => {
   const cached = activityViewModelCache.get(state);
   if (cached) return cached;
   const viewModel = createAgentActivityViewModel(state);
