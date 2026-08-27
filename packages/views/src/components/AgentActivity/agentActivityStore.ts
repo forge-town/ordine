@@ -78,6 +78,7 @@ type ActivityEntry = {
   elapsedTimer: ReturnType<typeof setInterval> | null;
   platform: AgentRunEventsTransport;
   listeners: Set<AgentActivityListener>;
+  deliveryQueue: Promise<void>;
 };
 
 const registry = new Map<string, ActivityEntry>();
@@ -118,41 +119,54 @@ const setElapsed = (entry: ActivityEntry): void => {
   entry.store.setState({ elapsedMs: Math.max(0, Date.now() - started) });
 };
 
-const applyEnvelope = (entry: ActivityEntry, envelope: AgentRunEventEnvelope): void => {
-  const state = entry.store.getState();
-  if (envelope.runId !== entry.store.getState().runId) return;
-  const current = state.snapshot;
-  if (!current) return;
-  const reduction = reduceAgentRunActivity(current, envelope);
-  if (!reduction.accepted) {
-    if (reduction.duplicate) {
-      entry.store.setState((previous) => ({
-        metrics: {
-          ...previous.metrics,
-          duplicateEventCount: previous.metrics.duplicateEventCount + 1,
-        },
-      }));
-    }
+const applyEnvelope = (entry: ActivityEntry, envelope: AgentRunEventEnvelope): Promise<void> => {
+  const deliver = async () => {
+    const state = entry.store.getState();
+    if (envelope.runId !== state.runId) return;
+    const current = state.snapshot;
+    if (!current) return;
+    const reduction = reduceAgentRunActivity(current, envelope);
+    if (!reduction.accepted) {
+      if (reduction.duplicate) {
+        entry.store.setState((previous) => ({
+          metrics: {
+            ...previous.metrics,
+            duplicateEventCount: previous.metrics.duplicateEventCount + 1,
+          },
+        }));
+      }
 
-    return;
-  }
-  const terminal = envelope.event.type === "terminal" ? envelope.event.status : null;
-  entry.store.setState((previous) => ({
-    snapshot: reduction.snapshot,
-    status: terminal ?? previous.status,
-    lastSequence: reduction.snapshot.latestSequence,
-    consecutiveSseFailures: 0,
-    connection: terminal ? "terminal" : "streaming",
-    error:
-      envelope.event.type === "diagnostic" && envelope.event.level === "error"
-        ? envelope.event.message
-        : previous.error,
-    finishedAt: terminal ? envelope.createdAt : previous.finishedAt,
-  }));
-  for (const listener of entry.listeners) {
-    void Promise.resolve(listener(envelope)).catch(() => undefined);
-  }
-  if (terminal) stopTransport(entry);
+      return;
+    }
+    const terminal = envelope.event.type === "terminal" ? envelope.event.status : null;
+    entry.store.setState((previous) => ({
+      snapshot: reduction.snapshot,
+      status: terminal ?? previous.status,
+      lastSequence: reduction.snapshot.latestSequence,
+      consecutiveSseFailures: 0,
+      connection: terminal ? "terminal" : "streaming",
+      error:
+        envelope.event.type === "diagnostic" && envelope.event.level === "error"
+          ? envelope.event.message
+          : previous.error,
+      finishedAt: terminal ? envelope.createdAt : previous.finishedAt,
+    }));
+    for (const listener of entry.listeners) {
+      try {
+        await listener(envelope);
+      } catch {
+        // A view subscriber must not stop delivery to the shared activity store.
+      }
+    }
+    if (terminal) stopTransport(entry);
+  };
+
+  // SSE chunks and polling can overlap around reconnects. Serialize reducer and
+  // subscriber delivery so control events (draft/apply/terminal) retain order.
+  const next = entry.deliveryQueue.catch(() => undefined).then(deliver);
+  entry.deliveryQueue = next;
+
+  return next;
 };
 
 const stopTransport = (entry: ActivityEntry): void => {
@@ -218,7 +232,7 @@ const pollOnce = async (entry: ActivityEntry): Promise<void> => {
   if (!response.ok) throw new Error(`Agent event polling failed with status ${response.status}`);
   const page = AgentRunEventPageSchema.safeParse(body);
   if (!page.success) throw new Error("Agent event polling returned invalid JSON");
-  for (const envelope of page.data.events) applyEnvelope(entry, envelope);
+  for (const envelope of page.data.events) await applyEnvelope(entry, envelope);
   if (page.data.terminal && entry.store.getState().connection !== "terminal") {
     entry.store.setState({ connection: "terminal" });
     stopTransport(entry);
@@ -350,6 +364,7 @@ const createEntry = (runId: string, platform: AgentRunEventsTransport): Activity
   entry.elapsedTimer = null;
   entry.platform = platform;
   entry.listeners = new Set();
+  entry.deliveryQueue = Promise.resolve();
 
   return entry;
 };

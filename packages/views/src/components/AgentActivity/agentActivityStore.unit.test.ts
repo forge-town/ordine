@@ -132,7 +132,10 @@ describe("shared Agent Activity store", () => {
       }),
     };
     const received: number[] = [];
-    const releaseSubscription = subscribeAgentActivity(runId, platform, (entry) => {
+    const releaseSubscription = subscribeAgentActivity(runId, platform, async (entry) => {
+      // A slow first subscriber must not let later control/terminal envelopes
+      // overtake it while the shared transport is delivering the stream.
+      if (entry.sequence === 3) await new Promise((resolve) => setTimeout(resolve, 10));
       received.push(entry.sequence);
     });
     const entry = getAgentActivityEntry(runId, platform);
