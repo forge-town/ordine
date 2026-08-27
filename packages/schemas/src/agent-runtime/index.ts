@@ -3,6 +3,8 @@ export * from "./AgentRuntimeConfigSchema";
 export * from "./AgentExecutionChoiceSchema";
 export * from "./AgentRuntimeCatalogSchema";
 export * from "./AgentRunSchema";
+export * from "./AgentRunUsageSchema";
+export * from "./AgentRunActivitySchema";
 export * from "./AgentRuntimeConnectionSchema";
 export * from "./AgentRunStatusSchema";
 export * from "./DetectedRuntimeSchema";

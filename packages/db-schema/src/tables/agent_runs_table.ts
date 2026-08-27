@@ -4,7 +4,10 @@ import type {
   AgentRunPermissionMode,
   AgentRunStatus,
   AgentRunUsage,
+  AgentRunActivityMetrics,
+  AgentRunActivitySnapshot,
   AgentRuntime,
+  RuntimeCapabilities,
 } from "@repo/schemas";
 
 export const agentRunsTable = pgTable(
@@ -36,6 +39,9 @@ export const agentRunsTable = pgTable(
     controlMode: boolean("control_mode").notNull().default(false),
     allowedTools: jsonb("allowed_tools").$type<string[]>().notNull().default([]),
     controlScopes: jsonb("control_scopes").$type<AgentControlScope[]>().notNull().default([]),
+    runtimeCapabilities: jsonb("runtime_capabilities").$type<RuntimeCapabilities | null>(),
+    activitySnapshot: jsonb("activity_snapshot").$type<AgentRunActivitySnapshot | null>(),
+    activityMetrics: jsonb("activity_metrics").$type<AgentRunActivityMetrics | null>(),
     executorId: text("executor_id"),
     leaseExpiresAt: timestamp("lease_expires_at"),
     heartbeatAt: timestamp("heartbeat_at"),

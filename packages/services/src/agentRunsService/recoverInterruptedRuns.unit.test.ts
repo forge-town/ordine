@@ -2,6 +2,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   createEvent: vi.fn(),
+  findById: vi.fn(),
+  findManyByRunIdAfter: vi.fn(),
   findManyRecoverable: vi.fn(),
   findTerminal: vi.fn(),
   transitionRun: vi.fn(),
@@ -12,8 +14,10 @@ vi.mock("@repo/models", () => ({
   createAgentRunEventsDao: () => ({
     create: mocks.createEvent,
     findTerminalByRunId: mocks.findTerminal,
+    findManyByRunIdAfter: mocks.findManyByRunIdAfter,
   }),
   createAgentRunsDao: () => ({
+    findById: mocks.findById,
     findManyRecoverable: mocks.findManyRecoverable,
     transition: mocks.transitionRun,
     update: mocks.updateRun,
@@ -32,15 +36,19 @@ describe("Agent Run restart recovery", () => {
     const createdAt = new Date("2026-08-23T00:00:00.000Z");
     const storedEvents: Array<{ runId: string; event: Record<string, unknown> }> = [];
     const observedEvents: Array<{ sequence: number; type: string }> = [];
+    const runRecord = {
+      id: "run-restarted",
+      runtime: "codex",
+      status: "running",
+      activitySnapshot: null,
+      activityMetrics: null,
+      runtimeCapabilities: null,
+      resultText: "partial result",
+      nativeSessionId: "thread-123",
+    };
 
-    mocks.findManyRecoverable.mockResolvedValue([
-      {
-        id: "run-restarted",
-        runtime: "codex",
-        resultText: "partial result",
-        nativeSessionId: "thread-123",
-      },
-    ]);
+    mocks.findManyRecoverable.mockResolvedValue([runRecord]);
+    mocks.findById.mockResolvedValue(runRecord);
     mocks.createEvent.mockImplementation(
       async ({ runId, event }: { runId: string; event: Record<string, unknown> }) => {
         storedEvents.push({ runId, event });
@@ -53,11 +61,21 @@ describe("Agent Run restart recovery", () => {
         };
       },
     );
+    mocks.findManyByRunIdAfter.mockImplementation(async () =>
+      storedEvents.map((entry, index) => ({
+        ...entry,
+        sequence: index + 1,
+        createdAt,
+      })),
+    );
     mocks.updateRun.mockImplementation(async (_runId: string, patch: Record<string, unknown>) => ({
       ...patch,
     }));
     mocks.transitionRun.mockImplementation(
-      async (_runId: string, _from: string[], patch: Record<string, unknown>) => ({ ...patch }),
+      async (_runId: string, _from: string[], patch: Record<string, unknown>) => ({
+        ...runRecord,
+        ...patch,
+      }),
     );
 
     const database = {
@@ -93,9 +111,10 @@ describe("Agent Run restart recovery", () => {
         errorCode: "SERVER_RESTART_INTERRUPTED",
       }),
     );
-    expect(mocks.updateRun).toHaveBeenCalledWith("run-restarted", {
-      terminalEventSequence: 2,
-    });
+    expect(mocks.updateRun).toHaveBeenCalledWith(
+      "run-restarted",
+      expect.objectContaining({ terminalEventSequence: 2 }),
+    );
     expect(observedEvents).toEqual([
       { sequence: 1, type: "diagnostic" },
       { sequence: 2, type: "terminal" },

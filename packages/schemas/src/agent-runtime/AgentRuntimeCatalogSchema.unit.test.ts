@@ -31,6 +31,7 @@ describe("AgentRuntimeCatalogEntrySchema", () => {
           usage: true,
           cancellation: "signal",
           resume: "session",
+          pause: "none",
           mcpInjection: "config",
           imageInput: true,
         },

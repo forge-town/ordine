@@ -9,6 +9,7 @@ const mocks = vi.hoisted(() => ({
   cancel: vi.fn(),
   getById: vi.fn(),
   getEvents: vi.fn(),
+  recordActivityTelemetry: vi.fn(),
   subscribe: vi.fn(),
 }));
 
@@ -71,6 +72,31 @@ describe("agentRunsRoutes", () => {
     expect(mocks.getEvents).not.toHaveBeenCalled();
   });
 
+  it("serves a bounded JSON event page for polling clients", async () => {
+    mocks.getById.mockResolvedValue({ id: "run-1", status: "running" });
+    mocks.getEvents.mockResolvedValue([terminalEnvelope]);
+
+    const response = await makeApp().request("/agent-runs/run-1/events?after=3&limit=25", {
+      headers: { ...authorizedHeaders, Accept: "application/json; charset=utf-8" },
+    });
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(mocks.getEvents).toHaveBeenCalledWith("run-1", 3, 25);
+    expect(body).toEqual({ events: [terminalEnvelope], nextSequence: 7, terminal: true });
+  });
+
+  it("rejects an unbounded polling page", async () => {
+    mocks.getById.mockResolvedValue({ id: "run-1", status: "running" });
+
+    const response = await makeApp().request("/agent-runs/run-1/events?limit=501", {
+      headers: { ...authorizedHeaders, Accept: "application/json" },
+    });
+
+    expect(response.status).toBe(400);
+    expect(mocks.getEvents).not.toHaveBeenCalled();
+  });
+
   it("makes cancellation idempotent by returning the current terminal run", async () => {
     const completed = { id: "run-1", status: "completed" };
     mocks.getById.mockResolvedValue(completed);
@@ -88,6 +114,38 @@ describe("agentRunsRoutes", () => {
     expect(first.status).toBe(200);
     expect(second.status).toBe(200);
     expect(mocks.cancel).toHaveBeenCalledTimes(2);
+  });
+
+  it("records validated activity telemetry through the authenticated run service", async () => {
+    const run = { id: "run-1", status: "running" };
+    const updated = { ...run, activityMetrics: { artifactOpenFailureCount: 1 } };
+    mocks.getById.mockResolvedValue(run);
+    mocks.recordActivityTelemetry.mockResolvedValue(updated);
+
+    const response = await makeApp().request("/agent-runs/run-1/activity/telemetry", {
+      method: "POST",
+      headers: { ...authorizedHeaders, "Content-Type": "application/json" },
+      body: JSON.stringify({ kind: "artifact_open_failed" }),
+    });
+
+    expect(response.status).toBe(200);
+    expect(mocks.recordActivityTelemetry).toHaveBeenCalledWith(run.id, {
+      kind: "artifact_open_failed",
+    });
+    await expect(response.json()).resolves.toEqual(updated);
+  });
+
+  it("rejects unknown activity telemetry without calling the service", async () => {
+    mocks.getById.mockResolvedValue({ id: "run-1", status: "running" });
+
+    const response = await makeApp().request("/agent-runs/run-1/activity/telemetry", {
+      method: "POST",
+      headers: { ...authorizedHeaders, "Content-Type": "application/json" },
+      body: JSON.stringify({ kind: "path_disclosure" }),
+    });
+
+    expect(response.status).toBe(400);
+    expect(mocks.recordActivityTelemetry).not.toHaveBeenCalled();
   });
 
   it("rejects unauthenticated run access before reading run state", async () => {
