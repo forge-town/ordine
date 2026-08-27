@@ -581,6 +581,10 @@ export const createAgentRunsService = (
   };
 
   const ensureActivityProjection = async (record: AgentRunRecord): Promise<AgentRunRecord> => {
+    // Legacy runs are projected from their canonical events without mutating
+    // the record during a read. New writes backfill the durable snapshot in
+    // the same event transaction, so this path remains a strictly read-only
+    // compatibility fallback.
     const parsedSnapshot = record.activitySnapshot
       ? AgentRunActivitySnapshotSchema.safeParse(record.activitySnapshot)
       : null;
@@ -620,10 +624,7 @@ export const createAgentRunsService = (
     const runtimeCapabilities = parsedCapabilities?.success
       ? parsedCapabilities.data
       : capabilitySnapshotForRuntime(record.runtime);
-    // Legacy runs are projected from their canonical events without mutating
-    // the record during a read. New writes backfill the durable snapshot in
-    // the same event transaction, so this path remains a strictly read-only
-    // compatibility fallback.
+
     return {
       ...record,
       runtimeCapabilities,

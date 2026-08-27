@@ -44,22 +44,15 @@ const truncateUtf8 = (value: string, maxBytes: number, marker: string): string =
   if (encoder.encode(value).byteLength <= maxBytes) return value;
   const markerBytes = encoder.encode(marker).byteLength;
   const budget = Math.max(0, maxBytes - markerBytes);
-  const prefix = Array.from(value).reduce(
-    (state, character) => {
-      if (state.done) return state;
-      const characterBytes = encoder.encode(character).byteLength;
-      if (state.bytes + characterBytes > budget) return { ...state, done: true };
+  const prefix = { text: "", bytes: 0 };
+  for (const character of value) {
+    const characterBytes = encoder.encode(character).byteLength;
+    if (prefix.bytes + characterBytes > budget) break;
+    prefix.text += character;
+    prefix.bytes += characterBytes;
+  }
 
-      return {
-        text: `${state.text}${character}`,
-        bytes: state.bytes + characterBytes,
-        done: false,
-      };
-    },
-    { text: "", bytes: 0, done: false },
-  ).text;
-
-  return `${prefix}${marker}`;
+  return `${prefix.text}${marker}`;
 };
 
 const truncateString = (value: string): string => {
