@@ -27,6 +27,7 @@ const entry: AgentRuntimeCatalogEntry = {
       cancellation: "signal",
       mcpInjection: "config",
       resume: "cli",
+      pause: "none",
       textStreaming: "message",
       thinking: true,
       toolEvents: true,

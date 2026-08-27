@@ -33,6 +33,7 @@ const catalogEntry: AgentRuntimeCatalogEntry = {
       usage: true,
       cancellation: "signal",
       resume: "session",
+      pause: "none",
       mcpInjection: "config",
       imageInput: false,
     },

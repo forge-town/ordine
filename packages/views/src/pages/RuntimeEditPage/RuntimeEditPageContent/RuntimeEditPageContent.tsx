@@ -35,7 +35,8 @@ const CONNECTION_MODES = ["local", "ssh"] as const;
 const s = "runtimes";
 
 const editFormSchema = AgentRuntimeConfigSchema;
-type EditFormValues = z.infer<typeof editFormSchema>;
+type EditFormInput = z.input<typeof editFormSchema>;
+type EditFormValues = z.output<typeof editFormSchema>;
 
 export const RuntimeEditPageContent = () => {
   const { t } = useTranslation();
@@ -49,7 +50,7 @@ export const RuntimeEditPageContent = () => {
 
   const runtime = result;
 
-  const form = useForm<EditFormValues>({
+  const form = useForm<EditFormInput, unknown, EditFormValues>({
     resolver: zodResolver(editFormSchema),
     defaultValues: runtime ? structuredClone(runtime) : undefined,
     values: runtime ? structuredClone(runtime) : undefined,
