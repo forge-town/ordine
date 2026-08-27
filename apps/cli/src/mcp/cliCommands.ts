@@ -99,6 +99,18 @@ const renderResult = (result: McpInstallResult, output: OutputOptions): void => 
     console.log(
       `Evidence: registered=${result.evidence.registered} launch=${result.evidence.commandLaunchable} initialize=${result.evidence.initialize} tools/list=${result.evidence.toolsList} safe-call=${result.evidence.safeToolCall}`,
     );
+    const readiness = [
+      typeof result.evidence.apiReachable === "boolean"
+        ? `api=${result.evidence.apiReachable}`
+        : null,
+      typeof result.evidence.dbReachable === "boolean" ? `db=${result.evidence.dbReachable}` : null,
+      typeof result.evidence.runtimeCatalogInitialized === "boolean"
+        ? `runtime-catalog=${result.evidence.runtimeCatalogInitialized}`
+        : null,
+      result.evidence.writePolicy ? `write-policy=${result.evidence.writePolicy}` : null,
+      result.evidence.failureLayer ? `failure-layer=${result.evidence.failureLayer}` : null,
+    ].filter((item): item is string => item !== null);
+    if (readiness.length > 0) console.log(`Readiness: ${readiness.join(" ")}`);
   }
   if (result.snippet) console.log(`\n${result.snippet}`);
 };

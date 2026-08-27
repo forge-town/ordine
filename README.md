@@ -116,7 +116,7 @@ ordine mcp status codex
 ordine mcp doctor
 ```
 
-The default MCP policy is read-only safe mode; full access requires an explicit `--policy yolo`. See the [runtime and MCP compatibility guide](docs/runtime-mcp-compatibility.md) for durable runs, evidence-layered diagnostics, backup, and uninstall behavior.
+The default MCP policy is safe mode: reads are available, reversible writes require `--allow-write`, and irreversible deletes require `--allow-irreversible` or `--policy yolo`. `doctor` validates the full session-ready chain from MCP registration through the local ORDINE API, DB-backed reads, runtime catalog, and safe tool calls. Open a fresh Codex session after installing so the client reloads the `ordine.*` tool list. See the [runtime and MCP compatibility guide](docs/runtime-mcp-compatibility.md) for durable runs, evidence-layered diagnostics, backup, and uninstall behavior.
 
 > **💡 Local Mode (self-hosted, single-user):**
 > Set `ORDINE_LOCAL_MODE=true` in `apps/app/.env` to skip the login page entirely.

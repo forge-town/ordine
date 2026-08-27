@@ -18,6 +18,7 @@ import {
   type InstallContext,
   type McpLaunchSpec,
 } from "../src/mcp/installRegistry";
+import { REQUIRED_SESSION_READY_TOOLS } from "../src/mcp/protocolDoctor";
 
 const temporaryDirectories: string[] = [];
 
@@ -224,6 +225,104 @@ describe("deletion-safe JSON registration", () => {
     expect(cliDoctor.status).toBe("drifted");
     expect(cliDoctor.evidence?.registered).toBe(false);
     expect(protocolProbe).not.toHaveBeenCalled();
+  });
+
+  it("reports session readiness drift when protocol succeeds but preflight fails", async () => {
+    const commandRunner = vi.fn(async () => ({
+      exitCode: 0,
+      stdout: ownedCodexOutput,
+      stderr: "",
+    }));
+    const protocolProbe = vi.fn(async () => ({
+      commandLaunchable: true,
+      initialize: true,
+      toolsList: true,
+      safeToolCall: true,
+      toolCount: 22,
+      apiReachable: false,
+      dbReachable: false,
+      runtimeCatalogInitialized: false,
+      writePolicy: "disabled" as const,
+      failureLayer: "api_unreachable" as const,
+      message: "Ordine API /health failed: network fetch failed",
+    }));
+
+    const result = await doctorMcpTarget({
+      target: "codex",
+      spec,
+      context: makeContext("C:\\Users\\test"),
+      commandRunner,
+      protocolProbe,
+    });
+
+    expect(result.status).toBe("drifted");
+    expect(result.message).toContain("api_unreachable");
+    expect(result.evidence).toMatchObject({
+      registered: true,
+      commandLaunchable: true,
+      initialize: true,
+      toolsList: true,
+      safeToolCall: true,
+      apiReachable: false,
+      dbReachable: false,
+      runtimeCatalogInitialized: false,
+      writePolicy: "disabled",
+      failureLayer: "api_unreachable",
+    });
+  });
+
+  it("requires complete readiness evidence before reporting healthy", async () => {
+    const commandRunner = vi.fn(async () => ({
+      exitCode: 0,
+      stdout: ownedCodexOutput,
+      stderr: "",
+    }));
+    const completeEvidence = {
+      commandLaunchable: true,
+      initialize: true,
+      toolsList: true,
+      safeToolCall: true,
+      toolCount: 22,
+      requiredTools: Object.fromEntries(
+        REQUIRED_SESSION_READY_TOOLS.map((toolName) => [toolName, true]),
+      ),
+      workspaceContext: true,
+      apiReachable: true,
+      dbReachable: true,
+      runtimeCatalogInitialized: true,
+    };
+    const invalidWorkspace = await doctorMcpTarget({
+      target: "codex",
+      spec,
+      context: makeContext("C:\\Users\\test"),
+      commandRunner,
+      protocolProbe: vi.fn(async () => ({
+        ...completeEvidence,
+        workspaceContext: false,
+        failureLayer: "workspace_context_unreadable" as const,
+      })),
+    });
+    const incompleteCatalog = await doctorMcpTarget({
+      target: "codex",
+      spec,
+      context: makeContext("C:\\Users\\test"),
+      commandRunner,
+      protocolProbe: vi.fn(async () => ({
+        ...completeEvidence,
+        requiredTools: { "ordine.search": true },
+      })),
+    });
+    const healthy = await doctorMcpTarget({
+      target: "codex",
+      spec,
+      context: makeContext("C:\\Users\\test"),
+      commandRunner,
+      protocolProbe: vi.fn(async () => completeEvidence),
+    });
+
+    expect(invalidWorkspace.status).toBe("drifted");
+    expect(incompleteCatalog.status).toBe("drifted");
+    expect(healthy.status).toBe("healthy");
   });
 
   it("verifies agent-owned CLI registration after installing", async () => {

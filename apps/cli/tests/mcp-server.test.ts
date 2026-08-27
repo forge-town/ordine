@@ -122,4 +122,96 @@ describe("ORDINE MCP server", () => {
       input: { callId: "delete-1", resourceType: "skill", id: "skill-1" },
     });
   });
+
+  it("keeps irreversible tools blocked when only reversible writes are enabled", async () => {
+    const response = await handleMcpRequest({
+      request: {
+        jsonrpc: "2.0",
+        id: 4,
+        method: "tools/call",
+        params: {
+          name: "ordine.delete_resource",
+          arguments: {
+            callId: "delete-blocked-1",
+            resourceType: "skill",
+            id: "skill-1",
+          },
+        },
+      },
+      policy: { mode: "safe", allowWrite: true, allowIrreversible: false },
+      apiClient: fakeApi,
+    });
+
+    expect(response).toMatchObject({ result: { isError: true } });
+    expect(fakeApi.post).not.toHaveBeenCalled();
+  });
+
+  it("supports the write-enabled Agent Control smoke path through MCP tools", async () => {
+    const server = createOrdineMcpServer({
+      policy: { mode: "safe", allowWrite: true, allowIrreversible: false },
+      apiClient: fakeApi,
+    });
+    const client = new Client({ name: "ordine-smoke-test", version: "1.0.0" });
+    const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+    await Promise.all([server.connect(serverTransport), client.connect(clientTransport)]);
+
+    const createdPipeline = await client.callTool({
+      name: "ordine.create_resource",
+      arguments: {
+        callId: "create-pipeline-1",
+        resourceType: "pipeline",
+        data: { id: "pipeline-1", name: "Smoke" },
+      },
+    });
+    const createdOperation = await client.callTool({
+      name: "ordine.create_resource",
+      arguments: {
+        callId: "create-operation-1",
+        resourceType: "operation",
+        data: { id: "operation-1", name: "Summarize" },
+      },
+    });
+    const updatedOperation = await client.callTool({
+      name: "ordine.update_resource",
+      arguments: {
+        callId: "update-operation-1",
+        resourceType: "operation",
+        id: "operation-1",
+        patch: { config: { executor: { type: "script" } } },
+      },
+    });
+    const run = await client.callTool({
+      name: "ordine.run_pipeline",
+      arguments: { callId: "run-pipeline-1", pipelineId: "pipeline-1" },
+    });
+    const traces = await client.callTool({
+      name: "ordine.get_job_trace",
+      arguments: { jobId: "job-1", limit: 10 },
+    });
+
+    expect(createdPipeline.isError).not.toBe(true);
+    expect(createdOperation.isError).not.toBe(true);
+    expect(updatedOperation.isError).not.toBe(true);
+    expect(run.isError).not.toBe(true);
+    expect(traces.isError).not.toBe(true);
+    expect(fakeApi.post).toHaveBeenCalledWith("/api/agent-control/tools/call", {
+      name: "ordine.create_resource",
+      input: {
+        callId: "create-pipeline-1",
+        resourceType: "pipeline",
+        data: { id: "pipeline-1", name: "Smoke" },
+      },
+    });
+    expect(fakeApi.post).toHaveBeenCalledWith("/api/agent-control/tools/call", {
+      name: "ordine.run_pipeline",
+      input: { callId: "run-pipeline-1", pipelineId: "pipeline-1" },
+    });
+    expect(fakeApi.post).toHaveBeenCalledWith("/api/agent-control/tools/call", {
+      name: "ordine.get_job_trace",
+      input: { jobId: "job-1", limit: 10 },
+    });
+
+    await client.close();
+    await server.close();
+  });
 });
