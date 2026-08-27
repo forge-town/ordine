@@ -7,6 +7,7 @@ import type { ConversationMessageMetadata, PipelineActionProposal } from "@repo/
 import { useCanvasPageStore } from "../_store";
 import {
   createPipelineAgentSessionsClient,
+  getStoredActiveAgentRun,
   type PipelineAgentPlanEvent,
 } from "../../../lib/pipelineAgentSessionsClient";
 import { usePlatform } from "../../../platform";
@@ -55,7 +56,6 @@ const planEventToActivity = (event: PipelineAgentPlanEvent): AgentActivityEntry 
       id: "thinking",
       kind: "thinking",
       title: "Reasoning",
-      detail: event.text,
       timestamp,
     };
   }
@@ -170,6 +170,7 @@ export const useAgentConversation = ({
   const activeSessionId = useAgentBarStore((state) => state.sessionId);
   const messages = useAgentBarStore((state) => state.messages);
   const streamingAssistantText = useAgentBarStore((state) => state.streamingAssistantText);
+  const activeRunId = useAgentBarStore((state) => state.activeRunId);
   const streamingProgress = useAgentBarStore((state) => state.streamingProgress);
   const streamingActivities = useAgentBarStore((state) => state.streamingActivities);
   const generateSession = useMemo(
@@ -226,6 +227,8 @@ export const useAgentConversation = ({
 
     saveEditSession(pipelineId, { graphSignature, sessionId: session.id });
     agentBarStore.getState().setSession(session.id, graphSignature);
+    const activeRun = getStoredActiveAgentRun(session.id);
+    agentBarStore.getState().setActiveRunId(activeRun?.runId ?? null);
 
     return session.id;
   }, [agentBarStore, client, generateSession, graphSignature, pipelineId]);
@@ -593,6 +596,7 @@ export const useAgentConversation = ({
       state.setStreamingAssistantText("");
       state.setStreamingActivities([]);
       state.setStreamingProgress(null);
+      state.setActiveRunId(null);
       const abortController = new AbortController();
       activeRequestAbortRef.current = abortController;
 
@@ -630,6 +634,8 @@ export const useAgentConversation = ({
             ...(speed ? { speed } : {}),
             ...(firstOutputTimeoutSeconds === undefined ? {} : { firstOutputTimeoutSeconds }),
             signal: abortController.signal,
+            onRunId: (runId) => state.setActiveRunId(runId),
+            useSharedActivity: true,
             onEvent: (event) => {
               if (
                 event.type === "question" ||
@@ -900,6 +906,7 @@ export const useAgentConversation = ({
     messages,
     resetSession: agentBarStore.getState().resetSession,
     streamingAssistantText,
+    activeRunId,
     streamingActivities,
     streamingProgress,
     stopConversation,

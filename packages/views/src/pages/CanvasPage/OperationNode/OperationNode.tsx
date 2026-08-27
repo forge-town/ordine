@@ -27,6 +27,8 @@ import { useCanvasPageStore, selectNodeRunState, selectNodePortCounts } from "..
 import type { OperationNodeData, NodeRunStatus, Operation, Agent } from "@repo/schemas";
 import { useList } from "@refinedev/core";
 import { ResourceName } from "../../../constants";
+import { AgentActivitySurface } from "../../../components/AgentActivity";
+import { usePlatform } from "../../../platform";
 import { NodeCard, useNodeCardActions } from "../NodeCard";
 
 export interface OperationNodeProps {
@@ -88,6 +90,7 @@ const stopCanvasInteraction = (event: SyntheticEvent) => event.stopPropagation()
 
 export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
   const { t } = useTranslation();
+  const platform = usePlatform();
   const store = useCanvasPageStore();
   const nodeCardActions = useNodeCardActions(id);
   const { runStatus: nodeRunStatus, dimmed } = useStore(store, useShallow(selectNodeRunState(id)));
@@ -166,6 +169,7 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
       : t("nodes.operation.defaultAgent");
 
   const hasLlmContent = !!nodeLlmContent[id];
+  const activeRunId = nodeAgentRunIds[id]?.at(-1) ?? null;
   const canInspect = isTestRunning || hasLlmContent || !!nodeAgentRunIds[id]?.length;
   const objectTypeLabels: Record<string, string> = {
     file: t("nodes.operation.objectTypes.file"),
@@ -325,6 +329,15 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
             <Brain className="h-3 w-3 shrink-0" />
             <span>{t("nodes.operation.inspectLlmOutput")}</span>
           </div>
+        )}
+
+        {activeRunId && (
+          <AgentActivitySurface
+            className="font-sans"
+            platform={platform}
+            runId={activeRunId}
+            variant="inline"
+          />
         )}
 
         <div className="nodrag nopan space-y-1.5" {...canvasInteractionHandlers}>

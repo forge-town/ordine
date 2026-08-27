@@ -19,6 +19,7 @@ export type AgentBarMessage = {
 };
 
 export type AgentBarState = {
+  activeRunId: string | null;
   conversationState: AgentConversationState;
   /** COD-346:空画布 generate 会话产生的建图方案(与画布 edit 提案互斥)。 */
   generateProposal: PipelineGenerationPlan | null;
@@ -39,6 +40,7 @@ export type AgentBarState = {
   resetSession: () => void;
   resolveMessage: (id: string) => void;
   setConversationState: (state: AgentConversationState) => void;
+  setActiveRunId: (runId: string | null) => void;
   setGenerateProposal: (proposal: PipelineGenerationPlan | null) => void;
   setMessages: (messages: AgentBarMessage[]) => void;
   setProposalId: (proposalId: string | null) => void;
@@ -49,6 +51,7 @@ export type AgentBarState = {
 };
 
 const initialSessionState = {
+  activeRunId: null,
   generateProposal: null,
   proposalId: null,
   sessionGraphSignature: null,
@@ -125,6 +128,7 @@ export const createAgentBarStore = (pipelineId: string | null = null): AgentBarS
         ),
       })),
     setConversationState: (conversationState) => set({ conversationState }),
+    setActiveRunId: (activeRunId) => set({ activeRunId }),
     setGenerateProposal: (generateProposal) => set({ generateProposal }),
     setMessages: (messages) => set({ messages }),
     setProposalId: (proposalId) => set({ proposalId }),

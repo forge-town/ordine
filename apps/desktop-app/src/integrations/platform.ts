@@ -1,4 +1,5 @@
 import { createScopedRequest, type PlatformCapabilities } from "@repo/views/platform";
+import { open } from "@tauri-apps/plugin-shell";
 import { getDesktopAuthToken } from "./sidecar/server";
 
 export const DESKTOP_API_BASE = "http://127.0.0.1:9433/api";
@@ -23,6 +24,13 @@ export const desktopRequest = createScopedRequest({
 export const desktopPlatform: PlatformCapabilities = {
   apiBaseUrl: DESKTOP_API_BASE,
   request: desktopRequest,
+  copyText: async (text) => {
+    if (!globalThis.navigator?.clipboard?.writeText) {
+      throw new Error("Clipboard API is unavailable");
+    }
+    await globalThis.navigator.clipboard.writeText(text);
+  },
+  openPath: (path) => open(path),
   downloadBlob: (blob, filename) => {
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement("a");

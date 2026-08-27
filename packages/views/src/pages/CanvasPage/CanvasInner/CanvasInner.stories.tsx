@@ -13,6 +13,7 @@ interface CanvasInnerStoryProps {
 
 const storyPlatform: PlatformCapabilities = {
   apiBaseUrl: "",
+  copyText: async () => undefined,
   downloadBlob: () => undefined,
   request: (input, init) => fetch(input, init),
 };

@@ -8,9 +8,20 @@ import { render } from "../../../test/test-wrapper";
 import { CanvasPageStoreProvider, useCanvasPageStore } from "../_store";
 import { CanvasRunEventSynchronizer } from "./CanvasRunEventSynchronizer";
 
-const consumeAgentRunEventStream = vi.hoisted(() => vi.fn());
+const subscribeAgentActivity = vi.hoisted(() => vi.fn());
+const getAgentActivityEntry = vi.hoisted(() =>
+  vi.fn(() => ({
+    store: {
+      getState: () => ({ snapshot: null }),
+      subscribe: () => () => undefined,
+    },
+  })),
+);
 
-vi.mock("../../../lib/agentRunEventsClient", () => ({ consumeAgentRunEventStream }));
+vi.mock("../../../components/AgentActivity/agentActivityStore", () => ({
+  getAgentActivityEntry,
+  subscribeAgentActivity,
+}));
 
 const job: Job = {
   id: "job-1",
@@ -80,13 +91,11 @@ const wrapper = ({ children }: React.PropsWithChildren) => (
 
 describe("CanvasRunEventSynchronizer", () => {
   it("replays a completed run while the console is closed", async () => {
-    consumeAgentRunEventStream.mockImplementation(
-      async (
+    subscribeAgentActivity.mockImplementation(
+      (
+        _runId: string,
         _platform: unknown,
-        input: {
-          after?: number;
-          onEnvelope: (envelope: AgentRunEventEnvelope) => Promise<void> | void;
-        },
+        onEnvelope: (envelope: AgentRunEventEnvelope) => Promise<void> | void,
       ) => {
         const events: AgentRunEventEnvelope[] = [
           {
@@ -137,9 +146,9 @@ describe("CanvasRunEventSynchronizer", () => {
             },
           },
         ];
-        for (const envelope of events) await input.onEnvelope(envelope);
+        for (const envelope of events) void onEnvelope(envelope);
 
-        return { lastSequence: 4, terminalStatus: "completed" as const };
+        return () => undefined;
       },
     );
 
@@ -160,9 +169,11 @@ describe("CanvasRunEventSynchronizer", () => {
     expect(screen.getByTestId("sync-state")).toHaveTextContent(
       '"activities":["status","tool","terminal"]',
     );
-    expect(consumeAgentRunEventStream).toHaveBeenCalledWith(
+    expect(subscribeAgentActivity).toHaveBeenCalledWith(
+      "run-1",
       expect.any(Object),
-      expect.objectContaining({ runId: "run-1", after: 0 }),
+      expect.any(Function),
     );
+    expect(getAgentActivityEntry).toHaveBeenCalledWith("run-1", expect.any(Object));
   });
 });

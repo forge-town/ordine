@@ -42,6 +42,7 @@ vi.mock("../../../lib/pipelineAgentSessionsClient", () => ({
     planSessionStream: (...args: unknown[]) => mocks.planSessionStream(...args),
     supersedeProposal: vi.fn(),
   }),
+  getStoredActiveAgentRun: () => null,
 }));
 
 vi.mock("./useAgentConversationPersistence", () => ({

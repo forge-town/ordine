@@ -47,6 +47,7 @@ export const canvasTestDataProvider: DataProvider = {
 
 const testPlatform: PlatformCapabilities = {
   apiBaseUrl: "http://localhost:9433/api",
+  copyText: async () => undefined,
   downloadBlob: () => undefined,
   request: (input, init) => globalThis.fetch(input, init),
 };

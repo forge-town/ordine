@@ -17,7 +17,9 @@ import { Button } from "@repo/ui/button";
 import { ScrollArea } from "@repo/ui/scroll-area";
 import { Textarea } from "@repo/ui/textarea";
 import { cn } from "@repo/ui/lib/utils";
+import { usePlatform } from "../../platform";
 import { AgentExecutionPicker, useAgentExecutionChoice } from "../AgentExecutionPicker";
+import { AgentActivitySurface } from "../AgentActivity";
 import { AgentApprovalCard } from "./AgentApprovalCard";
 import { AgentContextChips } from "./AgentContextChips";
 import { useAgentControl } from "./GlobalAgentControlProvider";
@@ -27,10 +29,12 @@ const isCanvasChangeSetVisible = (status: string) =>
 
 export const GlobalAgentPanel = ({ className }: { className?: string }) => {
   const { t } = useTranslation();
+  const platform = usePlatform();
   const capabilities = useAgentControl((state) => state.capabilities);
   const storedExecutionChoice = useAgentControl((state) => state.executionChoice);
   const threads = useAgentControl((state) => state.threads);
   const activeThreadId = useAgentControl((state) => state.activeThreadId);
+  const currentRunId = useAgentControl((state) => state.currentRunId);
   const messages = useAgentControl((state) => state.messages);
   const events = useAgentControl((state) => state.events);
   const actions = useAgentControl((state) => state.actions);
@@ -98,6 +102,7 @@ export const GlobalAgentPanel = ({ className }: { className?: string }) => {
         .reverse(),
     [events],
   );
+  const visibleRuntimeEvents = currentRunId ? [] : recentRuntimeEvents;
   const latestTerminalStatus = useMemo(() => {
     const latest = [...events].reverse().find(({ event }) => event.type === "terminal")?.event;
 
@@ -234,7 +239,11 @@ export const GlobalAgentPanel = ({ className }: { className?: string }) => {
             </div>
           )}
 
-          {(messages.length > 0 || streamingText) && (
+          {currentRunId && (
+            <AgentActivitySurface platform={platform} runId={currentRunId} variant="panel" />
+          )}
+
+          {(messages.length > 0 || (streamingText && !currentRunId)) && (
             <div className="space-y-2.5" aria-label={t("agentControl.conversation.title")}>
               <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
                 <MessageSquareText className="size-3" />
@@ -272,7 +281,7 @@ export const GlobalAgentPanel = ({ className }: { className?: string }) => {
                   )}
                 </article>
               ))}
-              {streamingText && (
+              {streamingText && !currentRunId && (
                 <article className="mr-auto max-w-[92%] rounded-2xl rounded-bl-md border border-primary/20 bg-primary/5 px-3 py-2.5 text-sm text-foreground">
                   <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-primary">
                     {t("agentControl.messageRole.assistant")}
@@ -328,13 +337,13 @@ export const GlobalAgentPanel = ({ className }: { className?: string }) => {
             </article>
           ))}
 
-          {(recentRuntimeEvents.length > 0 || recentActions.length > 0) && (
+          {(visibleRuntimeEvents.length > 0 || recentActions.length > 0) && (
             <div className="space-y-1.5 border-t border-border pt-3" data-testid="agent-activity">
               <p className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
                 <Clock3 className="size-3" />
                 {t("agentControl.activity.title")}
               </p>
-              {recentRuntimeEvents.map((envelope) => {
+              {visibleRuntimeEvents.map((envelope) => {
                 const runtimeEvent = envelope.event;
                 if (runtimeEvent.type !== "diagnostic" && runtimeEvent.type !== "terminal") {
                   return null;
@@ -395,7 +404,7 @@ export const GlobalAgentPanel = ({ className }: { className?: string }) => {
           )}
           {messages.length === 0 &&
             recentActions.length === 0 &&
-            recentRuntimeEvents.length === 0 &&
+            visibleRuntimeEvents.length === 0 &&
             capabilities?.enabled && (
               <div className="grid min-h-52 place-items-center px-6 text-center">
                 <div>

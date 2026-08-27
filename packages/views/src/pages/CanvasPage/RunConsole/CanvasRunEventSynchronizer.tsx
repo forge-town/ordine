@@ -2,15 +2,22 @@ import { useEffect, useRef } from "react";
 import { useDataProvider } from "@refinedev/core";
 import { ResultAsync } from "neverthrow";
 import { useStore } from "zustand";
-import { RuntimeEventSchema, type Job, type JobStatus } from "@repo/schemas";
-import { consumeAgentRunEventStream } from "../../../lib/agentRunEventsClient";
+import {
+  RuntimeEventSchema,
+  type AgentRunActivitySnapshot,
+  type Job,
+  type JobStatus,
+} from "@repo/schemas";
+import {
+  getAgentActivityEntry,
+  subscribeAgentActivity,
+} from "../../../components/AgentActivity/agentActivityStore";
 import { usePlatform } from "../../../platform";
 import { ResourceName } from "../../../constants";
 import { useCanvasPageStore } from "../_store";
 import { parseCanvasRunTraceEvents } from "./canvasRunTraceEvents";
 
 const POLL_INTERVAL_MS = 1_500;
-const RECONNECT_INTERVAL_MS = 500;
 
 type RunTrace = { id: number; message: string };
 
@@ -20,24 +27,6 @@ const isTerminalStatus = (status: JobStatus): boolean =>
   status === "cancelled" ||
   status === "expired" ||
   status === "skipped";
-
-const waitForReconnect = (signal: AbortSignal): Promise<void> =>
-  new Promise((resolve) => {
-    if (signal.aborted) {
-      resolve();
-
-      return;
-    }
-    const onAbort = () => {
-      globalThis.clearTimeout(timer);
-      resolve();
-    };
-    const timer = globalThis.setTimeout(() => {
-      signal.removeEventListener("abort", onAbort);
-      resolve();
-    }, RECONNECT_INTERVAL_MS);
-    signal.addEventListener("abort", onAbort, { once: true });
-  });
 
 export const CanvasRunEventSynchronizer = () => {
   const platform = usePlatform();
@@ -83,7 +72,7 @@ export const CanvasRunEventSynchronizer = () => {
     const state = {
       directNodes: new Set<string>(),
       lastProcessedTraceId: 0,
-      streamRunIds: new Set<string>(),
+      activityReleases: new Map<string, () => void>(),
       timer: null as ReturnType<typeof globalThis.setTimeout> | null,
     };
 
@@ -91,48 +80,47 @@ export const CanvasRunEventSynchronizer = () => {
       const actions = dependenciesRef.current;
       actions.registerNodeAgentRun(nodeId, runId);
       state.directNodes.add(nodeId);
-      if (state.streamRunIds.has(runId)) return;
-      state.streamRunIds.add(runId);
-
-      const stream = async () => {
-        const streamState = { lastSequence: 0, terminal: false };
-        while (!abortController.signal.aborted && !streamState.terminal) {
-          const consumed = await ResultAsync.fromPromise(
-            consumeAgentRunEventStream(platform, {
-              runId,
-              after: streamState.lastSequence,
-              signal: abortController.signal,
-              onEnvelope: (envelope) => {
-                const runtimeEvent = RuntimeEventSchema.safeParse(envelope.event);
-                if (runtimeEvent.success) {
-                  dependenciesRef.current.applyNodeRuntimeEvent(nodeId, runId, runtimeEvent.data);
-                }
-              },
-            }),
-            (cause) => (cause instanceof Error ? cause : new Error(String(cause))),
-          );
-          consumed.match(
-            (value) => {
-              streamState.lastSequence = value.lastSequence;
-              streamState.terminal = value.terminalStatus !== null;
-            },
-            (error) => {
-              if (abortController.signal.aborted) return;
-              dependenciesRef.current.applyNodeAgentActivity(nodeId, {
-                id: `${runId}:stream-error`,
-                kind: "diagnostic",
-                title: "Agent event stream disconnected",
-                detail: error.message,
-              });
-            },
-          );
-          if (!streamState.terminal && !abortController.signal.aborted) {
-            await waitForReconnect(abortController.signal);
-          }
+      const subscriptionKey = `${nodeId}:${runId}`;
+      if (state.activityReleases.has(subscriptionKey)) return;
+      const entry = getAgentActivityEntry(runId, platform);
+      const applySnapshot = (snapshot: AgentRunActivitySnapshot) => {
+        const current = dependenciesRef.current;
+        if (snapshot.content) current.applyNodeLlmContent(nodeId, snapshot.content);
+        else if (snapshot.terminalMessage) {
+          current.applyNodeLlmContent(nodeId, snapshot.terminalMessage);
+        }
+        for (const tool of [...snapshot.activeTools, ...snapshot.completedTools]) {
+          current.applyNodeAgentActivity(nodeId, {
+            id: `${runId}:tool-${tool.id}`,
+            kind: "tool",
+            title: `${tool.name} · ${tool.status}`,
+            timestamp: tool.completedAt ?? tool.startedAt,
+          });
+        }
+        if (snapshot.terminalAt) {
+          current.applyNodeAgentActivity(nodeId, {
+            id: `${runId}:terminal`,
+            kind: "terminal",
+            title: `Run ${snapshot.status}`,
+            timestamp: snapshot.terminalAt,
+          });
         }
       };
-
-      void stream();
+      const unsubscribeSnapshot = entry.store.subscribe((next, previous) => {
+        if (next.snapshot && next.snapshot !== previous.snapshot) applySnapshot(next.snapshot);
+      });
+      const hydratedSnapshot = entry.store.getState().snapshot;
+      if (hydratedSnapshot) applySnapshot(hydratedSnapshot);
+      const release = subscribeAgentActivity(runId, platform, (envelope) => {
+        const runtimeEvent = RuntimeEventSchema.safeParse(envelope.event);
+        if (runtimeEvent.success) {
+          dependenciesRef.current.applyNodeRuntimeEvent(nodeId, runId, runtimeEvent.data);
+        }
+      });
+      state.activityReleases.set(subscriptionKey, () => {
+        unsubscribeSnapshot();
+        release();
+      });
     };
 
     const applyTraceEvents = (traces: readonly RunTrace[]) => {
@@ -201,6 +189,8 @@ export const CanvasRunEventSynchronizer = () => {
     return () => {
       abortController.abort();
       if (state.timer) globalThis.clearTimeout(state.timer);
+      for (const release of state.activityReleases.values()) release();
+      state.activityReleases.clear();
     };
   }, [getDataProvider, jobId, platform]);
 
