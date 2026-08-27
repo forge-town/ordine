@@ -11,6 +11,12 @@ export const webPlatform: PlatformCapabilities = {
     globalThis.window === undefined ? undefined : globalThis.window.location,
   ),
   request: (input, init) => globalThis.fetch(input, init),
+  copyText: async (text) => {
+    if (!globalThis.navigator?.clipboard?.writeText) {
+      throw new Error("Clipboard API is unavailable");
+    }
+    await globalThis.navigator.clipboard.writeText(text);
+  },
   downloadBlob: (blob, filename) => {
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement("a");
