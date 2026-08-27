@@ -1,15 +1,9 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { render } from "../../test/test-wrapper";
 import { createNotificationStore, NotificationStoreContext } from "../../store/notificationStore";
 import { NotificationCenter } from "./NotificationCenter";
-
-const navigate = vi.fn();
-
-vi.mock("@tanstack/react-router", () => ({
-  useNavigate: () => navigate,
-}));
 
 const renderNotificationCenter = () => {
   const store = createNotificationStore();
@@ -20,7 +14,6 @@ const renderNotificationCenter = () => {
         kind: "error",
         message: "Pipeline run failed",
         read: false,
-        route: "/pipelines",
         timestamp: Date.now() - 60_000,
       },
       {
@@ -43,7 +36,7 @@ const renderNotificationCenter = () => {
 };
 
 describe("NotificationCenter", () => {
-  it("shows unread history, marks a selected item read, and navigates", async () => {
+  it("shows unread history and marks a selected item read", async () => {
     const user = userEvent.setup();
     const store = renderNotificationCenter();
 
@@ -57,7 +50,6 @@ describe("NotificationCenter", () => {
     await user.click(screen.getByTestId("notification-item-job-failed"));
 
     expect(store.getState().notifications[0]?.read).toBe(true);
-    expect(navigate).toHaveBeenCalledWith({ to: "/pipelines" });
   });
 
   it("marks all notifications read and clears history", async () => {

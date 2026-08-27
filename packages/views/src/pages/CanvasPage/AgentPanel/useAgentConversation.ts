@@ -18,7 +18,7 @@ import {
   saveGenerateSessionId,
 } from "./generateSessionStorage";
 import { clearEditSession, loadEditSession, saveEditSession } from "./editSessionStorage";
-import { hasPendingPipelinePrompt } from "./pendingPipelinePrompt";
+import { hasPendingPipelinePrompt } from "../../../lib/pendingPipelinePrompt";
 import {
   useAgentConversationPersistence,
   type SendAgentMessageInput,

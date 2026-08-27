@@ -11,12 +11,20 @@ import { CanvasPage } from "@repo/views/CanvasPage";
 import { PageLoadingState } from "@repo/views/PageLoadingState";
 import { PageState } from "@repo/views/PageState";
 import { AppLayout } from "@/components/AppLayout";
-import { ResourceName } from "@/integrations/refine/dataProvider";
+import { dataProvider, ResourceName } from "@/integrations/refine/dataProvider";
 import { useSession } from "@/integrations/better-auth-client";
+import { webPlatform } from "@/integrations/platform";
 import { requireAuthenticatedSession } from "./-requireAuthenticatedSession";
-import { materializeGeneratedPipeline } from "@/lib/materializeGeneratedPipeline";
+import { createMaterializeGeneratedPipeline } from "@repo/views/lib/materializeGeneratedPipeline";
+import { createPipelineAgentSessionsClient } from "@repo/views/lib/pipelineAgentSessionsClient";
 import { toastStore } from "@/store/toastStore";
 import { sidebarStore as sharedSidebarStore } from "@repo/views/store/sidebarStore";
+
+const pipelineAgentSessionsClient = createPipelineAgentSessionsClient(webPlatform);
+const materializeGeneratedPipeline = createMaterializeGeneratedPipeline({
+  client: pipelineAgentSessionsClient,
+  dataProvider,
+});
 
 const CanvasRouteComponent = () => {
   const { t } = useTranslation();

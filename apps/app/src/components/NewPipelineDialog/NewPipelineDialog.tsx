@@ -11,7 +11,7 @@ import { useSidebarStore } from "@/store/sidebarStore";
 import {
   PipelineCreationWorkspace,
   type PipelineCreationWorkspaceProps,
-} from "../PipelineCreationWorkspace";
+} from "@repo/views/PipelineCreationWorkspace";
 
 export interface NewPipelineDialogProps {
   client?: PipelineCreationWorkspaceProps["client"];

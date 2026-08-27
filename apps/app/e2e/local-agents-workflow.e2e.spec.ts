@@ -6,7 +6,7 @@ test.describe("Local Agent runtime workflow", () => {
     page,
     pageErrors,
   }) => {
-    await navigateAndWait(page, "/local-agents");
+    await navigateAndWait(page, "/runtimes");
     const rescanButton = page.getByRole("button", { name: "Re-scan" });
     await Promise.all([
       page.waitForResponse(

@@ -2,6 +2,7 @@ import { render } from "@/test/test-wrapper";
 import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { PipelineAgentSessionsClient } from "@repo/views/lib/pipelineAgentSessionsClient";
 import { NewPipelineDialog } from "./NewPipelineDialog";
 import { SidebarStoreContext, createSidebarStore, type SidebarStore } from "@/store/sidebarStore";
 
@@ -19,27 +20,25 @@ const mockRunMutate = vi.fn();
 const mockNavigate = vi.fn();
 const mockMaterializeGeneratedPipeline = vi.fn();
 
-vi.mock("@/lib/pipelineAgentSessionsClient", () => ({
-  pipelineAgentSessionsClient: {
-    appendMessage: (...args: unknown[]) => mockAppendMessage(...args),
-    approveProposal: (...args: unknown[]) => mockApproveProposal(...args),
-    createSession: (...args: unknown[]) => mockCreateSession(...args),
-    getLatestAssistantQuestion: (...args: unknown[]) => mockGetLatestAssistantQuestion(...args),
-    generatePipelineFromApprovedProposal: (...args: unknown[]) => mockGeneratePipeline(...args),
-    getLatestReadyProposal: (...args: unknown[]) => mockGetLatestReadyProposal(...args),
-    supersedeProposal: (...args: unknown[]) => mockSupersedeProposal(...args),
-    waitForCreatedPipeline: (...args: unknown[]) => mockWaitForCreatedPipeline(...args),
-    planSessionStream: (...args: unknown[]) => mockPlanSessionStream(...args),
-    uploadAttachment: (...args: unknown[]) => mockUploadAttachment(...args),
-  },
-}));
+const client = {
+  appendMessage: (...args: unknown[]) => mockAppendMessage(...args),
+  approveProposal: (...args: unknown[]) => mockApproveProposal(...args),
+  cancelSession: vi.fn().mockResolvedValue(undefined),
+  createSession: (...args: unknown[]) => mockCreateSession(...args),
+  getLatestAssistantQuestion: (...args: unknown[]) => mockGetLatestAssistantQuestion(...args),
+  generatePipelineFromApprovedProposal: (...args: unknown[]) => mockGeneratePipeline(...args),
+  getLatestReadyProposal: (...args: unknown[]) => mockGetLatestReadyProposal(...args),
+  getSessionById: vi.fn(),
+  removeAttachment: vi.fn().mockResolvedValue(undefined),
+  supersedeProposal: (...args: unknown[]) => mockSupersedeProposal(...args),
+  waitForCreatedPipeline: (...args: unknown[]) => mockWaitForCreatedPipeline(...args),
+  planSessionStream: (...args: unknown[]) => mockPlanSessionStream(...args),
+  uploadAttachment: (...args: unknown[]) => mockUploadAttachment(...args),
+} as unknown as PipelineAgentSessionsClient;
 
-vi.mock("@/lib/materializeGeneratedPipeline", () => ({
-  materializeGeneratedPipeline: (...args: unknown[]) => mockMaterializeGeneratedPipeline(...args),
-}));
-
-vi.mock("@/integrations/refine/dataProvider", () => ({
-  dataProvider: {
+vi.mock("@refinedev/core", async (importOriginal) => ({
+  ...(await importOriginal<Record<string, unknown>>()),
+  useDataProvider: () => () => ({
     custom: (params: { url: string; payload: unknown }) => {
       if (params.url === "pipelines/run") {
         return mockRunMutate(params.payload);
@@ -47,14 +46,27 @@ vi.mock("@/integrations/refine/dataProvider", () => ({
 
       return Promise.resolve({ data: {} });
     },
-  },
-  ResourceName: {
-    pipelines: "pipelines",
-  },
+  }),
 }));
 
+vi.mock("@tanstack/react-router", async (importOriginal) => ({
+  ...(await importOriginal<Record<string, unknown>>()),
+  useNavigate: () => mockNavigate,
+}));
+
+// app 侧 sidebarStore 的 dialog slice 引了 @/router(会拉起整条 routeTree → db),
+// 测试里挡掉;画布跳转断言走上面的 useNavigate mock。
 vi.mock("@/router", () => ({
   router: { navigate: (...args: unknown[]) => mockNavigate(...args) },
+}));
+
+vi.mock("@repo/views/platform", async (importOriginal) => ({
+  ...(await importOriginal<Record<string, unknown>>()),
+  usePlatform: () => ({
+    apiBaseUrl: "http://localhost:9433/api",
+    downloadBlob: () => undefined,
+    request: globalThis.fetch,
+  }),
 }));
 
 vi.mock("react-i18next", () => ({
@@ -174,14 +186,20 @@ describe("NewPipelineDialog", () => {
 
   it("does not render when dialog is closed", () => {
     const store = createSidebarStore();
-    render(<NewPipelineDialog />, { wrapper: createWrapper(store) });
+    render(
+      <NewPipelineDialog client={client} materializePipeline={mockMaterializeGeneratedPipeline} />,
+      { wrapper: createWrapper(store) },
+    );
     expect(screen.queryByTestId("dialog")).not.toBeInTheDocument();
   });
 
   it("renders conversation composer when dialog is open", () => {
     const store = createSidebarStore();
     store.setState({ newPipelineOpen: true });
-    render(<NewPipelineDialog />, { wrapper: createWrapper(store) });
+    render(
+      <NewPipelineDialog client={client} materializePipeline={mockMaterializeGeneratedPipeline} />,
+      { wrapper: createWrapper(store) },
+    );
 
     expect(screen.getByTestId("dialog")).toBeInTheDocument();
     expect(screen.getByText("nav.newPipeline")).toBeInTheDocument();
@@ -197,7 +215,10 @@ describe("NewPipelineDialog", () => {
 
     const store = createSidebarStore();
     store.setState({ newPipelineOpen: true });
-    render(<NewPipelineDialog />, { wrapper: createWrapper(store) });
+    render(
+      <NewPipelineDialog client={client} materializePipeline={mockMaterializeGeneratedPipeline} />,
+      { wrapper: createWrapper(store) },
+    );
 
     const textarea = screen.getByPlaceholderText("newPipelineDialog.messagePlaceholder");
     await userEvent.type(textarea, "Build me a review pipeline");
@@ -248,7 +269,10 @@ describe("NewPipelineDialog", () => {
 
     const store = createSidebarStore();
     store.setState({ newPipelineOpen: true });
-    render(<NewPipelineDialog />, { wrapper: createWrapper(store) });
+    render(
+      <NewPipelineDialog client={client} materializePipeline={mockMaterializeGeneratedPipeline} />,
+      { wrapper: createWrapper(store) },
+    );
 
     await userEvent.type(
       screen.getByPlaceholderText("newPipelineDialog.messagePlaceholder"),
@@ -287,7 +311,10 @@ describe("NewPipelineDialog", () => {
 
     const store = createSidebarStore();
     store.setState({ newPipelineOpen: true });
-    render(<NewPipelineDialog />, { wrapper: createWrapper(store) });
+    render(
+      <NewPipelineDialog client={client} materializePipeline={mockMaterializeGeneratedPipeline} />,
+      { wrapper: createWrapper(store) },
+    );
 
     await userEvent.type(
       screen.getByPlaceholderText("newPipelineDialog.messagePlaceholder"),
@@ -330,7 +357,10 @@ describe("NewPipelineDialog", () => {
 
     const store = createSidebarStore();
     store.setState({ newPipelineOpen: true });
-    render(<NewPipelineDialog />, { wrapper: createWrapper(store) });
+    render(
+      <NewPipelineDialog client={client} materializePipeline={mockMaterializeGeneratedPipeline} />,
+      { wrapper: createWrapper(store) },
+    );
 
     await userEvent.type(
       screen.getByPlaceholderText("newPipelineDialog.messagePlaceholder"),
@@ -371,7 +401,10 @@ describe("NewPipelineDialog", () => {
 
     const store = createSidebarStore();
     store.setState({ newPipelineOpen: true });
-    render(<NewPipelineDialog />, { wrapper: createWrapper(store) });
+    render(
+      <NewPipelineDialog client={client} materializePipeline={mockMaterializeGeneratedPipeline} />,
+      { wrapper: createWrapper(store) },
+    );
 
     await userEvent.type(
       screen.getByPlaceholderText("newPipelineDialog.messagePlaceholder"),
@@ -421,7 +454,10 @@ describe("NewPipelineDialog", () => {
 
     const store = createSidebarStore();
     store.setState({ newPipelineOpen: true });
-    render(<NewPipelineDialog />, { wrapper: createWrapper(store) });
+    render(
+      <NewPipelineDialog client={client} materializePipeline={mockMaterializeGeneratedPipeline} />,
+      { wrapper: createWrapper(store) },
+    );
 
     await userEvent.type(
       screen.getByPlaceholderText("newPipelineDialog.messagePlaceholder"),
@@ -457,7 +493,10 @@ describe("NewPipelineDialog", () => {
 
     const store = createSidebarStore();
     store.setState({ newPipelineOpen: true });
-    render(<NewPipelineDialog />, { wrapper: createWrapper(store) });
+    render(
+      <NewPipelineDialog client={client} materializePipeline={mockMaterializeGeneratedPipeline} />,
+      { wrapper: createWrapper(store) },
+    );
 
     await userEvent.type(
       screen.getByPlaceholderText("newPipelineDialog.messagePlaceholder"),
@@ -497,7 +536,10 @@ describe("NewPipelineDialog", () => {
 
     const store = createSidebarStore();
     store.setState({ newPipelineOpen: true });
-    render(<NewPipelineDialog />, { wrapper: createWrapper(store) });
+    render(
+      <NewPipelineDialog client={client} materializePipeline={mockMaterializeGeneratedPipeline} />,
+      { wrapper: createWrapper(store) },
+    );
 
     await userEvent.type(
       screen.getByPlaceholderText("newPipelineDialog.messagePlaceholder"),
@@ -549,7 +591,10 @@ describe("NewPipelineDialog", () => {
 
     const store = createSidebarStore();
     store.setState({ newPipelineOpen: true });
-    render(<NewPipelineDialog />, { wrapper: createWrapper(store) });
+    render(
+      <NewPipelineDialog client={client} materializePipeline={mockMaterializeGeneratedPipeline} />,
+      { wrapper: createWrapper(store) },
+    );
 
     await userEvent.type(
       screen.getByPlaceholderText("newPipelineDialog.messagePlaceholder"),
@@ -597,7 +642,10 @@ describe("NewPipelineDialog", () => {
 
     const store = createSidebarStore();
     store.setState({ newPipelineOpen: true });
-    render(<NewPipelineDialog />, { wrapper: createWrapper(store) });
+    render(
+      <NewPipelineDialog client={client} materializePipeline={mockMaterializeGeneratedPipeline} />,
+      { wrapper: createWrapper(store) },
+    );
 
     await userEvent.type(
       screen.getByPlaceholderText("newPipelineDialog.messagePlaceholder"),
@@ -647,7 +695,10 @@ describe("NewPipelineDialog", () => {
 
     const store = createSidebarStore();
     store.setState({ newPipelineOpen: true });
-    render(<NewPipelineDialog />, { wrapper: createWrapper(store) });
+    render(
+      <NewPipelineDialog client={client} materializePipeline={mockMaterializeGeneratedPipeline} />,
+      { wrapper: createWrapper(store) },
+    );
 
     await userEvent.type(
       screen.getByPlaceholderText("newPipelineDialog.messagePlaceholder"),
@@ -675,7 +726,10 @@ describe("NewPipelineDialog", () => {
   it("uploads a file into the session context", async () => {
     const store = createSidebarStore();
     store.setState({ newPipelineOpen: true });
-    render(<NewPipelineDialog />, { wrapper: createWrapper(store) });
+    render(
+      <NewPipelineDialog client={client} materializePipeline={mockMaterializeGeneratedPipeline} />,
+      { wrapper: createWrapper(store) },
+    );
 
     const file = new File(["hello"], "brief.txt", { type: "text/plain" });
     const input = screen.getByLabelText("newPipelineDialog.upload") as HTMLInputElement;

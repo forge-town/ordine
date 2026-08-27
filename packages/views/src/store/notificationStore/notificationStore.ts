@@ -10,7 +10,6 @@ export interface AppNotification {
   kind: NotificationKind;
   message: string;
   read: boolean;
-  route?: string;
   timestamp: number;
 }
 
@@ -39,7 +38,7 @@ export const createNotificationStore = (): NotificationStore =>
           set((state) => ({
             preferences: { ...state.preferences, [preference]: enabled },
           })),
-        addNotification: ({ id, kind, message, route }) =>
+        addNotification: ({ id, kind, message }) =>
           set((state) => ({
             notifications: [
               {
@@ -47,7 +46,6 @@ export const createNotificationStore = (): NotificationStore =>
                 kind,
                 message,
                 read: false,
-                route,
                 timestamp: Date.now(),
               },
               ...state.notifications.filter((notification) => notification.id !== id),

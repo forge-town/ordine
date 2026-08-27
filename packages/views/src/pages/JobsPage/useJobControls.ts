@@ -21,8 +21,7 @@ export const useJobControls = () => {
     const key =
       handlers.pendingKey ?? (request.action === "run" ? request.pipelineId : request.jobId);
     const url = request.action === "run" ? "pipelines/run" : `jobs/${request.action}`;
-    const values =
-      request.action === "run" ? { id: request.pipelineId } : { jobId: request.jobId };
+    const values = request.action === "run" ? { id: request.pipelineId } : { jobId: request.jobId };
     setPendingKey(key);
 
     void ResultAsync.fromPromise(

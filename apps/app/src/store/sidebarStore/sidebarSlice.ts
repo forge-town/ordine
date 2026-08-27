@@ -8,7 +8,6 @@ export interface SidebarSlice {
   view: SidebarViewType;
   searchOpen: boolean;
   newPipelineOpen: boolean;
-  newPipelineWorkspaceVersion: number;
 
   handleSidebarLocationChange: (pathname: string) => void;
   handleSearchDialogOpenChange: (open: boolean) => void;
@@ -16,14 +15,12 @@ export interface SidebarSlice {
   handleSidebarPipelineViewButtonClick: () => void;
   handleSearchButtonClick: () => void;
   handleNewPipelineButtonClick: () => void;
-  handleNewPipelineWorkspaceReset: () => void;
 }
 
 export const createSidebarSlice: StateCreator<SidebarSlice> = (set) => ({
   view: SidebarView.Main,
   searchOpen: false,
   newPipelineOpen: false,
-  newPipelineWorkspaceVersion: 0,
 
   handleSidebarLocationChange: (pathname) =>
     set({ view: isPipelinePathname(pathname) ? SidebarView.Pipeline : SidebarView.Main }),
@@ -32,6 +29,4 @@ export const createSidebarSlice: StateCreator<SidebarSlice> = (set) => ({
   handleSidebarPipelineViewButtonClick: () => set({ view: SidebarView.Pipeline }),
   handleSearchButtonClick: () => set({ searchOpen: true }),
   handleNewPipelineButtonClick: () => set({ newPipelineOpen: true }),
-  handleNewPipelineWorkspaceReset: () =>
-    set((state) => ({ newPipelineWorkspaceVersion: state.newPipelineWorkspaceVersion + 1 })),
 });

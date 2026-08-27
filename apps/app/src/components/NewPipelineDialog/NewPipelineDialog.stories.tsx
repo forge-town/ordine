@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { expect, userEvent, waitFor, within } from "storybook/test";
 import type { PipelineAgentProposal } from "@repo/schemas";
 import { SidebarStoreContext, createSidebarStore } from "@/store/sidebarStore";
-import { pipelineAgentSessionsClient } from "@/lib/pipelineAgentSessionsClient";
+import type { PipelineAgentSessionsClient } from "@repo/views/lib/pipelineAgentSessionsClient";
 import { NewPipelineDialog } from "./NewPipelineDialog";
 
 const readyProposal = {
@@ -19,20 +19,19 @@ const readyProposal = {
 
 const createStoryClient = (options?: { generation?: "pending" | "success" }) =>
   ({
-    ...pipelineAgentSessionsClient,
     createSession: async () => ({
       id: "storybook-session",
       entrypoint: "new-pipeline-dialog",
       mode: "generate",
       status: "draft",
     }),
-    appendMessage: async (_sessionId, input) => ({
+    appendMessage: async (_sessionId: string, input: { content: string }) => ({
       id: "storybook-message",
       ...input,
     }),
     getLatestAssistantQuestion: async () => null,
     getLatestReadyProposal: async () => null,
-    planSessionStream: async (_sessionId, input) => {
+    planSessionStream: async (_sessionId: string, input: { onEvent: (event: unknown) => void }) => {
       input.onEvent({
         type: "proposal_ready",
         proposal: readyProposal,
@@ -47,7 +46,7 @@ const createStoryClient = (options?: { generation?: "pending" | "success" }) =>
     supersedeProposal: async () => undefined,
     uploadAttachment: async () => ({}),
     waitForCreatedPipeline: async () => ({ pipelineId: "storybook-pipeline" }),
-  }) as typeof pipelineAgentSessionsClient;
+  }) as unknown as PipelineAgentSessionsClient;
 
 const renderDialog = (args: React.ComponentProps<typeof NewPipelineDialog>) => {
   const store = createSidebarStore();

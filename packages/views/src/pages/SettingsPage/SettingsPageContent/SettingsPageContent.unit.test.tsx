@@ -7,9 +7,9 @@ vi.mock("../sections", () => ({
   AutonomySection: () => <div>AutonomySection</div>,
   DefaultsSection: () => <div>DefaultsSection</div>,
   DeveloperSection: () => <div>DeveloperSection</div>,
-  KeyboardSection: () => <div>KeyboardSection</div>,
   LanguageSection: () => <div>LanguageSection</div>,
   NotificationsSection: () => <div>NotificationsSection</div>,
+  PagesSection: () => <div>PagesSection</div>,
   ProjectSection: () => <div>ProjectSection</div>,
 }));
 
@@ -39,11 +39,5 @@ describe("SettingsPageContent", () => {
     render(<SettingsPageContent />);
     fireEvent.click(screen.getByTestId("settings-nav-defaults"));
     expect(screen.getByText("DefaultsSection")).toBeTruthy();
-  });
-
-  it("opens keyboard help", () => {
-    render(<SettingsPageContent />);
-    fireEvent.click(screen.getByTestId("settings-keyboard-help"));
-    expect(screen.getByText("KeyboardSection")).toBeTruthy();
   });
 });
