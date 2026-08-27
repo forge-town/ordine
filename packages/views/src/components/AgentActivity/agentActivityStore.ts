@@ -446,7 +446,9 @@ export const subscribeAgentActivity = (
   };
 };
 
-export const selectAgentActivityViewModel = (state: AgentActivityState) => {
+const activityViewModelCache = new WeakMap<object, AgentActivityViewModel>();
+
+const createAgentActivityViewModel = (state: AgentActivityState) => {
   const snapshot = state.snapshot;
   const terminal = Boolean(state.status && TERMINAL_STATUSES.has(state.status));
 
@@ -483,4 +485,20 @@ export const selectAgentActivityViewModel = (state: AgentActivityState) => {
   };
 };
 
-export type AgentActivityViewModel = ReturnType<typeof selectAgentActivityViewModel>;
+export type AgentActivityViewModel = ReturnType<typeof createAgentActivityViewModel>;
+
+/**
+ * Zustand's React adapter reads a selector more than once during a render.
+ * Cache the derived object for each immutable store state so the snapshot
+ * identity remains stable even though the view model contains derived arrays.
+ */
+export const selectAgentActivityViewModel = (
+  state: AgentActivityState,
+): AgentActivityViewModel => {
+  const cached = activityViewModelCache.get(state);
+  if (cached) return cached;
+  const viewModel = createAgentActivityViewModel(state);
+  activityViewModelCache.set(state, viewModel);
+
+  return viewModel;
+};

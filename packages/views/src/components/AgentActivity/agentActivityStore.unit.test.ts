@@ -9,6 +9,7 @@ import {
 import {
   acquireAgentActivity,
   getAgentActivityEntry,
+  selectAgentActivityViewModel,
   subscribeAgentActivity,
 } from "./agentActivityStore";
 
@@ -85,6 +86,17 @@ const sseResponse = (events: readonly AgentRunEventEnvelope[]): Response =>
   );
 
 describe("shared Agent Activity store", () => {
+  it("caches the derived view model for an unchanged store snapshot", () => {
+    const runId = `store-selector-${crypto.randomUUID()}`;
+    const entry = getAgentActivityEntry(runId, {
+      apiBaseUrl: "/api",
+      request: vi.fn(),
+    });
+    const state = entry.store.getState();
+
+    expect(selectAgentActivityViewModel(state)).toBe(selectAgentActivityViewModel(state));
+  });
+
   it("deduplicates a run transport and replays canonical envelopes to subscribers", async () => {
     const runId = `store-dedupe-${crypto.randomUUID()}`;
     const run = createRun(runId);
