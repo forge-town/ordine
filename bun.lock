@@ -255,6 +255,7 @@
       "version": "0.0.2-preview.10",
       "dependencies": {
         "@repo/schemas": "workspace:*",
+        "neverthrow": "^8.2.0",
       },
       "devDependencies": {
         "@repo/typescript-config": "workspace:*",

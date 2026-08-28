@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+import { encodeAgentRunEventCursor } from "@repo/schemas";
 import { consumeAgentRunEventStream } from "./agentRunEventsClient";
 
 describe("consumeAgentRunEventStream", () => {
@@ -63,9 +64,11 @@ describe("consumeAgentRunEventStream", () => {
     expect(envelopes).toEqual([{ sequence: 2, text: "跨块中文" }, { sequence: 3 }]);
     expect(result).toEqual({ lastSequence: 3, terminalStatus: "completed" });
     expect(request).toHaveBeenCalledWith(
-      "http://localhost:9433/api/agent-runs/run-1/events?after=1",
+      `http://localhost:9433/api/agent-runs/run-1/events?after=${encodeURIComponent(encodeAgentRunEventCursor("run-1", 1))}`,
       expect.objectContaining({
-        headers: expect.objectContaining({ "Last-Event-ID": "1" }),
+        headers: expect.objectContaining({
+          "Last-Event-ID": encodeAgentRunEventCursor("run-1", 1),
+        }),
       }),
     );
   });

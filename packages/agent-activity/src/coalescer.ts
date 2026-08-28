@@ -1,6 +1,7 @@
 /* eslint-disable ordine-vars/no-let */
 
 import type { RuntimeEvent } from "@repo/schemas";
+import { ResultAsync } from "neverthrow";
 
 export const AGENT_ACTIVITY_DELTA_FLUSH_MS = 200;
 export const AGENT_ACTIVITY_DELTA_MAX_FLUSH_MS = 1_000;
@@ -60,11 +61,19 @@ export const createAgentRunEventCoalescer = (
   let maxFlushTimer: ReturnType<typeof setTimeout> | undefined;
   let delivery = Promise.resolve();
 
+  const settle = (promise: Promise<void>): Promise<void> =>
+    ResultAsync.fromPromise(promise, (cause) => cause).match(
+      () => undefined,
+      () => undefined,
+    );
+
   const queue = (event: RuntimeEvent, meta: AgentRunEventEmitMeta): Promise<void> => {
     const next = delivery.then(() => emit(event, meta));
     // Timer callbacks must never create an unhandled rejection. A caller that
-    // explicitly awaits flush/push still receives the original rejection.
-    delivery = next.catch(() => undefined);
+    // explicitly awaits flush/push still receives the original rejection. The
+    // background delivery chain is settled through ResultAsync so business
+    // code never relies on a promise catch handler.
+    delivery = settle(next);
 
     return next;
   };
@@ -93,8 +102,8 @@ export const createAgentRunEventCoalescer = (
 
   const schedule = (): void => {
     if (flushTimer || maxFlushTimer) return;
-    flushTimer = setTimeout(() => void flush().catch(() => undefined), flushIntervalMs);
-    maxFlushTimer = setTimeout(() => void flush().catch(() => undefined), maxFlushIntervalMs);
+    flushTimer = setTimeout(() => void settle(flush()), flushIntervalMs);
+    maxFlushTimer = setTimeout(() => void settle(flush()), maxFlushIntervalMs);
   };
 
   return {

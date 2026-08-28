@@ -15,7 +15,8 @@
     "quality": "bun run check-types && bun run lint && bun run test"
   },
   "dependencies": {
-    "@repo/schemas": "workspace:*"
+    "@repo/schemas": "workspace:*",
+    "neverthrow": "^8.2.0"
   },
   "devDependencies": {
     "@repo/typescript-config": "workspace:*",
