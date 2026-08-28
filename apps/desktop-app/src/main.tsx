@@ -4,6 +4,7 @@ import { RouterProvider, createRouter } from "@tanstack/react-router";
 import { Refine } from "@refinedev/core";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { PlatformProvider } from "@repo/views/platform";
+import { UiMotionProvider } from "@repo/ui/motion";
 import { GlobalAgentControlProvider } from "@repo/views/GlobalAgentControl";
 import { routeTree } from "./routeTree.gen";
 import { dataProvider } from "./integrations/refine/dataProvider";
@@ -26,17 +27,19 @@ const rootElement = document.querySelector("#root");
 if (rootElement) {
   createRoot(rootElement).render(
     <StrictMode>
-      <ServerGate>
-        <QueryClientProvider client={queryClient}>
-          <Refine dataProvider={dataProvider}>
-            <PlatformProvider value={desktopPlatform}>
-              <GlobalAgentControlProvider>
-                <RouterProvider router={router} />
-              </GlobalAgentControlProvider>
-            </PlatformProvider>
-          </Refine>
-        </QueryClientProvider>
-      </ServerGate>
+      <UiMotionProvider>
+        <ServerGate>
+          <QueryClientProvider client={queryClient}>
+            <Refine dataProvider={dataProvider}>
+              <PlatformProvider value={desktopPlatform}>
+                <GlobalAgentControlProvider>
+                  <RouterProvider router={router} />
+                </GlobalAgentControlProvider>
+              </PlatformProvider>
+            </Refine>
+          </QueryClientProvider>
+        </ServerGate>
+      </UiMotionProvider>
     </StrictMode>,
   );
 }

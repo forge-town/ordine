@@ -19,6 +19,7 @@
   "dependencies": {
     "@refinedev/core": "^5.0.12",
     "@repo/plugins": "workspace:*",
+    "@repo/ui": "workspace:*",
     "@repo/views": "workspace:*",
     "@tanstack/react-query": "^5.80.7",
     "@tanstack/react-router": "^1.168.7",

@@ -11,6 +11,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render as rtlRender, type RenderOptions } from "@testing-library/react";
 import { PlatformProvider, type PlatformCapabilities } from "../platform";
 import { ToastStoreContext, createToastStore } from "../store/toastStore";
+import { UiMotionProvider } from "@repo/ui/motion";
 import "./use-test-language";
 
 const createTestQueryClient = () =>
@@ -57,13 +58,15 @@ export const TestWrapper = ({ children }: React.PropsWithChildren) => {
   const toastStore = createToastStore();
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <Refine dataProvider={canvasTestDataProvider}>
-        <PlatformProvider value={testPlatform}>
-          <ToastStoreContext.Provider value={toastStore}>{children}</ToastStoreContext.Provider>
-        </PlatformProvider>
-      </Refine>
-    </QueryClientProvider>
+    <UiMotionProvider>
+      <QueryClientProvider client={queryClient}>
+        <Refine dataProvider={canvasTestDataProvider}>
+          <PlatformProvider value={testPlatform}>
+            <ToastStoreContext.Provider value={toastStore}>{children}</ToastStoreContext.Provider>
+          </PlatformProvider>
+        </Refine>
+      </QueryClientProvider>
+    </UiMotionProvider>
   );
 };
 

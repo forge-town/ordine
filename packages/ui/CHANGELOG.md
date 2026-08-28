@@ -1,5 +1,11 @@
 # @repo/ui
 
+## Unreleased
+
+### Minor Changes
+
+- adapt Animate UI motion recipes to the shared Base UI overlays
+
 ## 0.0.2-preview.10
 
 ### Patch Changes

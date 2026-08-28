@@ -10,6 +10,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Refine } from "@refinedev/core";
 import { ToastStoreProvider } from "@repo/views/store/toastStore";
 import { PlatformProvider } from "@repo/views/platform";
+import { UiMotionProvider } from "@repo/ui/motion";
 import { canvasStoryDataProvider } from "../../../packages/views/src/pages/CanvasPage/storybookData";
 import { webPlatform } from "../src/integrations/platform";
 import "@xyflow/react/dist/style.css";
@@ -44,17 +45,19 @@ const preview: Preview = {
   },
   decorators: [
     (Story) => (
-      <QueryClientProvider client={queryClient}>
-        <Refine dataProvider={canvasStoryDataProvider}>
-          <PlatformProvider value={webPlatform}>
-            <ToastStoreProvider>
-              <RouterContextProvider router={router}>
-                <Story />
-              </RouterContextProvider>
-            </ToastStoreProvider>
-          </PlatformProvider>
-        </Refine>
-      </QueryClientProvider>
+      <UiMotionProvider>
+        <QueryClientProvider client={queryClient}>
+          <Refine dataProvider={canvasStoryDataProvider}>
+            <PlatformProvider value={webPlatform}>
+              <ToastStoreProvider>
+                <RouterContextProvider router={router}>
+                  <Story />
+                </RouterContextProvider>
+              </ToastStoreProvider>
+            </PlatformProvider>
+          </Refine>
+        </QueryClientProvider>
+      </UiMotionProvider>
     ),
   ],
 };

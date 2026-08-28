@@ -1,4 +1,5 @@
 import { createRouter } from "@tanstack/react-router";
+import { UiMotionProvider } from "@repo/ui/motion";
 import { Provider } from "@/integrations/tanstack-query/root-provider";
 import { RefineProvider } from "@/integrations/refine/provider";
 import { routeTree } from "./routeTree.gen.ts";
@@ -11,9 +12,11 @@ const createAppRouter = () =>
     defaultPreloadStaleTime: 0,
     Wrap: ({ children }) => {
       return (
-        <Provider>
-          <RefineProvider>{children}</RefineProvider>
-        </Provider>
+        <UiMotionProvider>
+          <Provider>
+            <RefineProvider>{children}</RefineProvider>
+          </Provider>
+        </UiMotionProvider>
       );
     },
   });

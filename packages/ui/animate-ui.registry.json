@@ -1,0 +1,137 @@
+{
+  "$schema": "https://json.schemastore.org/json",
+  "source": {
+    "repository": "https://github.com/imskyleen/animate-ui",
+    "commit": "efeb96ffd7a3b7a4868667e4ac3c346620fb3044",
+    "license": "MIT + Commons Clause",
+    "licenseFile": "licenses/Animate-UI-MIT-Commons-Clause.txt"
+  },
+  "components": [
+    {
+      "name": "primitives-base-dialog",
+      "upstreamUrl": "https://raw.githubusercontent.com/imskyleen/animate-ui/efeb96ffd7a3b7a4868667e4ac3c346620fb3044/apps/www/registry/primitives/base/dialog/registry-item.json",
+      "upstreamSha256": "8608d35a6609bb6dedf028edce573191a412e9ae4354e89b04a1885c38170a47",
+      "localPath": "src/dialog.tsx",
+      "localSha256": "2877f1c5a1880ffd775e14cce08dd8083b899e6ae954ee6a66912b6ec6d99e3c",
+      "primitive": "@base-ui/react/dialog",
+      "registryDependencies": ["hooks-use-controlled-state", "lib-get-strict-context"]
+    },
+    {
+      "name": "primitives-base-popover",
+      "upstreamUrl": "https://raw.githubusercontent.com/imskyleen/animate-ui/efeb96ffd7a3b7a4868667e4ac3c346620fb3044/apps/www/registry/primitives/base/popover/registry-item.json",
+      "upstreamSha256": "8f4d9693bbc57f4d301137bc704b238974eb45b7f1b5b036e914b94521d85098",
+      "localPath": "src/popover.tsx",
+      "localSha256": "2dfb11d2c39ba850e9e38934b98d85f865034929fd2fdadbce71606959fba21f",
+      "primitive": "@base-ui/react/popover",
+      "registryDependencies": ["lib-get-strict-context", "hooks-use-controlled-state"]
+    },
+    {
+      "name": "primitives-base-tooltip",
+      "upstreamUrl": "https://raw.githubusercontent.com/imskyleen/animate-ui/efeb96ffd7a3b7a4868667e4ac3c346620fb3044/apps/www/registry/primitives/base/tooltip/registry-item.json",
+      "upstreamSha256": "5d4064c123400617fa02ffac8078c48de6740616567c093fc14b4fe7acd6b9ed",
+      "localPath": "src/tooltip.tsx",
+      "localSha256": "53e41514e659847a1e60b447ca259231030df0a8a43ec01b90df5cad730e9c20",
+      "primitive": "@base-ui/react/tooltip",
+      "registryDependencies": ["lib-get-strict-context", "hooks-use-controlled-state"]
+    },
+    {
+      "name": "primitives-base-menu",
+      "upstreamUrl": "https://raw.githubusercontent.com/imskyleen/animate-ui/efeb96ffd7a3b7a4868667e4ac3c346620fb3044/apps/www/registry/primitives/base/menu/registry-item.json",
+      "upstreamSha256": "331586d1da12c1f0b449544d11a57826109799075c51571e1da4703a31c1f05f",
+      "localPath": "src/dropdown-menu.tsx",
+      "localSha256": "f47f3211747fa6137d4e10a1948102ecf149624c3a58c6802dec73b186d3bc1d",
+      "primitive": "@base-ui/react/menu",
+      "registryDependencies": [
+        "primitives-effects-highlight",
+        "lib-get-strict-context",
+        "hooks-use-controlled-state",
+        "hooks-use-data-state"
+      ]
+    },
+    {
+      "name": "components-base-dialog",
+      "upstreamUrl": "https://raw.githubusercontent.com/imskyleen/animate-ui/efeb96ffd7a3b7a4868667e4ac3c346620fb3044/apps/www/registry/components/base/dialog/registry-item.json",
+      "upstreamSha256": "94a9f54f5779bdb11c4ccfabc34ff5d30e6563cb74c5e02d5f2815d9a72db7d1",
+      "localPath": "src/dialog.tsx",
+      "localSha256": "2877f1c5a1880ffd775e14cce08dd8083b899e6ae954ee6a66912b6ec6d99e3c",
+      "primitive": "@base-ui/react/dialog",
+      "registryDependencies": ["primitives-base-dialog"]
+    },
+    {
+      "name": "components-base-popover",
+      "upstreamUrl": "https://raw.githubusercontent.com/imskyleen/animate-ui/efeb96ffd7a3b7a4868667e4ac3c346620fb3044/apps/www/registry/components/base/popover/registry-item.json",
+      "upstreamSha256": "b195955a4ff9a53d469417a811de6958b0a4347c171883ec20327a7902efc55d",
+      "localPath": "src/popover.tsx",
+      "localSha256": "2dfb11d2c39ba850e9e38934b98d85f865034929fd2fdadbce71606959fba21f",
+      "primitive": "@base-ui/react/popover",
+      "registryDependencies": ["primitives-base-popover"]
+    },
+    {
+      "name": "components-base-tooltip",
+      "upstreamUrl": "https://raw.githubusercontent.com/imskyleen/animate-ui/efeb96ffd7a3b7a4868667e4ac3c346620fb3044/apps/www/registry/components/base/tooltip/registry-item.json",
+      "upstreamSha256": "386785b1a183ba684f31ef24dc0b3091d2c45f7dbbae06b63c18b4e34be73f3e",
+      "localPath": "src/tooltip.tsx",
+      "localSha256": "53e41514e659847a1e60b447ca259231030df0a8a43ec01b90df5cad730e9c20",
+      "primitive": "@base-ui/react/tooltip",
+      "registryDependencies": ["primitives-base-tooltip"]
+    },
+    {
+      "name": "components-base-menu",
+      "upstreamUrl": "https://raw.githubusercontent.com/imskyleen/animate-ui/efeb96ffd7a3b7a4868667e4ac3c346620fb3044/apps/www/registry/components/base/menu/registry-item.json",
+      "upstreamSha256": "8b80f45036398fe04f12b1da2c75f29497a63151ff03cef51fb3180364c526b5",
+      "localPath": "src/context-menu.tsx",
+      "localSha256": "0be1c41ae643ade9608b900ced53008834db8944f2a79fa9c1c2f529ffc1c105",
+      "primitive": "@base-ui/react/context-menu",
+      "registryDependencies": ["primitives-base-menu"]
+    },
+    {
+      "name": "primitives-radix-sheet",
+      "upstreamUrl": "https://raw.githubusercontent.com/imskyleen/animate-ui/efeb96ffd7a3b7a4868667e4ac3c346620fb3044/apps/www/registry/primitives/radix/sheet/registry-item.json",
+      "upstreamSha256": "fe0e000f96e4204f920793832edf115c5a244ca2ab05ce61e81791f3ae6d06b3",
+      "localPath": "src/sheet.tsx",
+      "localSha256": "d8b856d69b5d51d79fb1cc04dde1e4e2e537f78da673853a26804a04fe7a9daf",
+      "primitive": "@base-ui/react/dialog",
+      "registryDependencies": ["lib-get-strict-context", "hooks-use-controlled-state"]
+    },
+    {
+      "name": "components-radix-sheet",
+      "upstreamUrl": "https://raw.githubusercontent.com/imskyleen/animate-ui/efeb96ffd7a3b7a4868667e4ac3c346620fb3044/apps/www/registry/components/radix/sheet/registry-item.json",
+      "upstreamSha256": "5832a8cc4df65b3844612188efbb9962090dd527ea8c7587082cfc8285dfc2f2",
+      "localPath": "src/sheet.tsx",
+      "localSha256": "d8b856d69b5d51d79fb1cc04dde1e4e2e537f78da673853a26804a04fe7a9daf",
+      "primitive": "@base-ui/react/dialog",
+      "registryDependencies": ["primitives-radix-sheet"]
+    },
+    {
+      "name": "base-ui-select-motion-lifecycle",
+      "upstreamUrl": "https://base-ui.com/react/handbook/animation",
+      "upstreamSha256": null,
+      "localPath": "src/select.tsx",
+      "localSha256": "59bab586dfe94b60920220ddb5139ad041d8974aab0c27affebab99e55971444",
+      "primitive": "@base-ui/react/select",
+      "registryDependencies": []
+    }
+  ],
+  "transitiveDependencies": [
+    {
+      "name": "hooks-use-controlled-state",
+      "upstreamSha256": "c9f3c1f52c8d6eb5e9283b52cc6e22ab329f8a72b1ad60472d0f54293347ee73",
+      "targetPath": "hooks/use-controlled-state.tsx"
+    },
+    {
+      "name": "lib-get-strict-context",
+      "upstreamSha256": "4705aac6aaff21d3560b3df974db9b8be90cb582c2eff12ff0a1e4cd41cf5721",
+      "targetPath": "lib/get-strict-context.tsx"
+    },
+    {
+      "name": "primitives-effects-highlight",
+      "upstreamSha256": "7ef56bb96801f72627987141a807bb1da78240fa8b59fc0d5a252c571e51b12d",
+      "targetPath": "components/animate-ui/primitives/effects/highlight.tsx"
+    },
+    {
+      "name": "hooks-use-data-state",
+      "upstreamSha256": "ea0fa7f000404b0cef9093000731374f0bd2b3ae9f9a179d654b6ba0fa3b16e5",
+      "targetPath": "hooks/use-data-state.tsx"
+    }
+  ]
+}

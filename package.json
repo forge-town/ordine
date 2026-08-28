@@ -29,6 +29,7 @@
     "knip": "knip",
     "storybook": "turbo run storybook",
     "build-storybook": "turbo run build-storybook",
+    "ui:animate:inspect": "bun packages/ui/scripts/inspect-animate-ui.ts",
     "sync-skills": "bunx skills add https://github.com/forge-town/skills",
     "changeset": "changeset",
     "version-packages": "changeset version",

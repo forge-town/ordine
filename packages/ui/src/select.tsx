@@ -5,8 +5,66 @@ import { Select as SelectPrimitive } from "@base-ui/react/select";
 import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from "lucide-react";
 
 import { cn } from "./lib/utils";
+import { AnimatePresence, m, useControlledState, type Transition } from "./lib/motion";
 
-const Select = SelectPrimitive.Root;
+type SelectContextValue = {
+  isOpen: boolean;
+  unmount: () => void;
+};
+
+const SelectContext = React.createContext<SelectContextValue | null>(null);
+
+function useSelectOpen() {
+  const context = React.useContext(SelectContext);
+  if (!context) {
+    throw new Error("SelectContent must be used within Select");
+  }
+
+  return context;
+}
+
+type SelectRootProps<
+  Value,
+  Multiple extends boolean | undefined = false,
+> = SelectPrimitive.Root.Props<Value, Multiple>;
+
+function Select<Value, Multiple extends boolean | undefined = false>({
+  open,
+  defaultOpen = false,
+  onOpenChange,
+  actionsRef,
+  ...props
+}: SelectRootProps<Value, Multiple>) {
+  const internalActionsRef = React.useRef<SelectPrimitive.Root.Actions | null>(null);
+  const [isOpen, setIsOpen] = useControlledState({
+    value: open,
+    defaultValue: defaultOpen,
+    onChange: onOpenChange,
+  });
+
+  React.useImperativeHandle(
+    actionsRef,
+    () => ({
+      unmount: () => internalActionsRef.current?.unmount(),
+    }),
+    [],
+  );
+
+  return (
+    <SelectContext.Provider
+      value={{ isOpen, unmount: () => internalActionsRef.current?.unmount() }}
+    >
+      <SelectPrimitive.Root<Value, Multiple>
+        data-slot="select"
+        open={open}
+        defaultOpen={defaultOpen}
+        onOpenChange={setIsOpen}
+        actionsRef={internalActionsRef}
+        {...props}
+      />
+    </SelectContext.Provider>
+  );
+}
 
 function SelectGroup({ className, ...props }: SelectPrimitive.Group.Props) {
   return (
@@ -62,37 +120,64 @@ function SelectContent({
   align = "center",
   alignOffset = 0,
   alignItemWithTrigger = true,
+  transition = { duration: 0.18, ease: [0.23, 1, 0.32, 1] },
   ...props
-}: SelectPrimitive.Popup.Props &
-  Pick<
+}: Omit<SelectPrimitive.Popup.Props, "render"> & {
+  transition?: Transition;
+} & Pick<
     SelectPrimitive.Positioner.Props,
     "align" | "alignOffset" | "side" | "sideOffset" | "alignItemWithTrigger"
   >) {
+  const { isOpen, unmount } = useSelectOpen();
+  const motionInitial = alignItemWithTrigger
+    ? { opacity: 0 }
+    : { opacity: 0, transform: "scale(0.95)" };
+  const motionAnimate = alignItemWithTrigger
+    ? { opacity: 1 }
+    : { opacity: 1, transform: "scale(1)" };
+  const motionExit = alignItemWithTrigger
+    ? { opacity: 0 }
+    : { opacity: 0, transform: "scale(0.95)" };
+
   return (
-    <SelectPrimitive.Portal>
-      <SelectPrimitive.Positioner
-        side={side}
-        sideOffset={sideOffset}
-        align={align}
-        alignOffset={alignOffset}
-        alignItemWithTrigger={alignItemWithTrigger}
-        className="isolate z-50"
-      >
-        <SelectPrimitive.Popup
-          data-slot="select-content"
-          data-align-trigger={alignItemWithTrigger}
-          className={cn(
-            "relative isolate z-50 max-h-(--available-height) w-(--anchor-width) min-w-36 origin-(--transform-origin) overflow-x-hidden overflow-y-auto rounded-lg bg-popover text-popover-foreground shadow-md ring-1 ring-foreground/10 duration-100 data-[align-trigger=true]:animate-none data-[side=bottom]:slide-in-from-top-2 data-[side=inline-end]:slide-in-from-left-2 data-[side=inline-start]:slide-in-from-right-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
-            className,
-          )}
-          {...props}
-        >
-          <SelectScrollUpButton />
-          <SelectPrimitive.List>{children}</SelectPrimitive.List>
-          <SelectScrollDownButton />
-        </SelectPrimitive.Popup>
-      </SelectPrimitive.Positioner>
-    </SelectPrimitive.Portal>
+    <AnimatePresence onExitComplete={unmount}>
+      {isOpen && (
+        <SelectPrimitive.Portal>
+          <SelectPrimitive.Positioner
+            side={side}
+            sideOffset={sideOffset}
+            align={align}
+            alignOffset={alignOffset}
+            alignItemWithTrigger={alignItemWithTrigger}
+            className="isolate z-50"
+          >
+            <SelectPrimitive.Popup
+              data-slot="select-content"
+              data-align-trigger={alignItemWithTrigger}
+              className={cn(
+                "relative isolate z-50 max-h-(--available-height) w-(--anchor-width) min-w-36 origin-(--transform-origin) overflow-x-hidden overflow-y-auto rounded-lg bg-popover text-popover-foreground shadow-md ring-1 ring-foreground/10",
+                className,
+              )}
+              render={
+                <m.div
+                  data-slot="select-content"
+                  initial={motionInitial}
+                  animate={motionAnimate}
+                  exit={motionExit}
+                  transition={transition}
+                  style={{ willChange: "opacity, transform" }}
+                />
+              }
+              {...props}
+            >
+              <SelectScrollUpButton />
+              <SelectPrimitive.List>{children}</SelectPrimitive.List>
+              <SelectScrollDownButton />
+            </SelectPrimitive.Popup>
+          </SelectPrimitive.Positioner>
+        </SelectPrimitive.Portal>
+      )}
+    </AnimatePresence>
   );
 }
 

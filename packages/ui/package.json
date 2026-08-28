@@ -4,6 +4,7 @@
   "private": true,
   "exports": {
     "./lib/utils": "./src/lib/utils.ts",
+    "./motion": "./src/lib/motion.tsx",
     "./avatar": "./src/avatar.tsx",
     "./badge": "./src/badge.tsx",
     "./button": "./src/button.tsx",
@@ -36,7 +37,9 @@
     "@base-ui/react": "^1.3.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "framer-motion": "13.1.1",
     "lucide-react": "^1.7.0",
+    "motion": "13.1.1",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-hook-form": "^7.72.1",
@@ -45,8 +48,8 @@
   "devDependencies": {
     "@repo/typescript-config": "workspace:*",
     "@types/node": "^22.15.3",
-    "@types/react": "19.2.2",
-    "@types/react-dom": "19.2.2",
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
     "typescript": "5.9.2"
   }
 }

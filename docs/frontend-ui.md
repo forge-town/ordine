@@ -11,6 +11,32 @@ Ordine 使用本地维护的 shadcn/ui 风格组件：
 - 交互原语主要基于 `@base-ui/react`。
 - 样式使用 Tailwind CSS 与语义 token，禁止为页面卡片硬编码颜色或 box-shadow。
 
+## Animate UI 适配层
+
+Overlay 动效组件（Dialog、Sheet、Popover、Tooltip、Dropdown Menu、Context
+Menu、Select）统一从 `@repo/ui` 导出。它们参考
+[Animate UI](https://animate-ui.com) 的 shadcn 适配源码，但保留 Ordine 当前
+`@base-ui/react` 原语、公共 API 和 Web/Desktop 共享路径；不得在应用目录直接运行
+Animate UI Registry 的 `add` 命令，也不得引入 `@base-ui-components/react`、Radix
+或 Headless UI 的第二套原语栈。
+
+动效只使用 `opacity`、`transform` 和必要的 Motion layout projection：Dialog
+内容 `scale(0.96)` / 150-25 spring，Popover `scale(0.95)` / 300-25 spring，
+Tooltip 125ms，菜单 200ms，Sheet 使用 150-22 spring 从侧边进入，Select 对齐
+触发器时只淡入。组件通过 `UiMotionProvider` 的 `LazyMotion + domMax + m` 加载，
+并由 `MotionConfig reducedMotion="user"` 在减少动效偏好下保留 opacity、移除
+位移和缩放。
+
+上游审查基线、Registry 依赖和本地文件 hash 记录在
+`packages/ui/animate-ui.registry.json`。修改适配源码后先运行：
+
+```sh
+bun run ui:animate:inspect
+```
+
+该命令默认校验固定上游提交、工作区 hash 和原语导入；离线环境可使用
+`bun run ui:animate:inspect -- --offline`，但 PR 必须附带一次在线校验结果。
+
 页面卡片统一使用 `@repo/ui/card` 导出的 `Card` 或 `surfaceCardVariants`：
 
 ```tsx
@@ -40,12 +66,12 @@ rounded-lg bg-surface shadow-soft ring-1 ring-border
 
 统一规则：
 
-| 场景 | 内边距 | 交互 |
-|------|--------|------|
-| 重复内容卡片 | `p-3.5` | 可点击时启用 `interactive` |
-| 信息较多的复杂卡片 | `p-4` | 可点击时启用 `interactive` |
-| 图表、分析、详情主面板 | `p-5` | 通常不浮起 |
-| 表格、日历外壳 | 无整体 padding | 行或单元格自己控制间距 |
+| 场景                   | 内边距         | 交互                       |
+| ---------------------- | -------------- | -------------------------- |
+| 重复内容卡片           | `p-3.5`        | 可点击时启用 `interactive` |
+| 信息较多的复杂卡片     | `p-4`          | 可点击时启用 `interactive` |
+| 图表、分析、详情主面板 | `p-5`          | 通常不浮起                 |
+| 表格、日历外壳         | 无整体 padding | 行或单元格自己控制间距     |
 
 交互卡片统一由 `interactive` 提供：
 
