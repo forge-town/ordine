@@ -222,7 +222,7 @@ export function UiMotionProvider({ children }: React.PropsWithChildren) {
     setRuntimeReady(true);
   }, []);
 
-  if (!runtimeReady) {
+  if (isTestEnvironment || !runtimeReady) {
     return children;
   }
 
