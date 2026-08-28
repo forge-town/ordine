@@ -52,6 +52,14 @@ const extractAgentRunIds = (traces: readonly JobTrace[]): string[] => [
   ),
 ];
 
+const isLegacyAgentActivityTrace = (message: string): boolean => {
+  const normalized = message.replace(/^\[[^\]]+\]\s*/u, "");
+
+  return (
+    normalized.startsWith(TRACE_MARKER.agentRun) || normalized.startsWith(TRACE_MARKER.agentEvent)
+  );
+};
+
 export const JobDetailDrawer = ({ job: initialJob, onChanged, onClose }: JobDetailDrawerProps) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -79,6 +87,10 @@ export const JobDetailDrawer = ({ job: initialJob, onChanged, onClose }: JobDeta
   const traces = tracesResult?.data?.traces ?? [];
   const platform = usePlatform();
   const activityRunIds = extractAgentRunIds(traces);
+  const visibleTraces =
+    activityRunIds.length > 0
+      ? traces.filter((trace) => !isLegacyAgentActivityTrace(trace.message))
+      : traces;
 
   const nodeStatuses = job.nodeStatuses ?? {};
   const steps = (pipelineResult?.nodes ?? []).map((node) => ({
@@ -241,10 +253,10 @@ export const JobDetailDrawer = ({ job: initialJob, onChanged, onClose }: JobDeta
             {t("jobs.drawer.trace")}
           </div>
           <div className="space-y-0.5 rounded-lg bg-surface-2 p-3 font-mono text-[10.5px] leading-relaxed ring-1 ring-border">
-            {traces.length === 0 ? (
+            {visibleTraces.length === 0 ? (
               <div className="text-muted-foreground/60">{t("jobs.drawer.noTrace")}</div>
             ) : (
-              traces.slice(-80).map((trace) => (
+              visibleTraces.slice(-80).map((trace) => (
                 <div key={trace.id} className="break-all text-foreground/70">
                   {trace.message}
                 </div>
