@@ -213,7 +213,16 @@ const loadDomFeatures = async () => {
 export function UiMotionProvider({ children }: React.PropsWithChildren) {
   // Vitest renders the test tree synchronously. Keep that tree stable while
   // the browser-only Motion chunks are being requested in production.
-  if (isTestEnvironment) {
+  const [runtimeReady, setRuntimeReady] = React.useState(isTestEnvironment);
+
+  React.useEffect(() => {
+    // Do not suspend the initial SSR/hydration pass. TanStack Start keeps the
+    // document body hidden until that pass commits; deferring the Motion
+    // boundary to the first client effect preserves the existing first paint.
+    setRuntimeReady(true);
+  }, []);
+
+  if (!runtimeReady) {
     return children;
   }
 
