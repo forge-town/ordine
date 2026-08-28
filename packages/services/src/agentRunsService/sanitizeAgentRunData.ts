@@ -6,8 +6,8 @@ import {
   type RuntimeEvent,
 } from "@repo/schemas";
 
-const MAX_EVENT_STRING_CHARS = 64 * 1024;
-const MAX_EVENT_JSON_CHARS = 256 * 1024;
+const MAX_EVENT_STRING_BYTES = 64 * 1024;
+const MAX_EVENT_JSON_BYTES = 256 * 1024;
 const SENSITIVE_KEY =
   /(?:authorization|api[-_]?key|access[-_]?token|refresh[-_]?token|password|secret|cookie)/i;
 const CREDENTIAL_PATTERNS: ReadonlyArray<{
@@ -39,11 +39,30 @@ export const redactSensitiveText = (value: string): string =>
     value,
   );
 
+const truncateUtf8 = (value: string, maxBytes: number, marker: string): string => {
+  const encoder = new TextEncoder();
+  if (encoder.encode(value).byteLength <= maxBytes) return value;
+  const markerBytes = encoder.encode(marker).byteLength;
+  const budget = Math.max(0, maxBytes - markerBytes);
+  const prefix = { text: "", bytes: 0 };
+  for (const character of value) {
+    const characterBytes = encoder.encode(character).byteLength;
+    if (prefix.bytes + characterBytes > budget) break;
+    prefix.text += character;
+    prefix.bytes += characterBytes;
+  }
+
+  return `${prefix.text}${marker}`;
+};
+
 const truncateString = (value: string): string => {
   const redacted = redactSensitiveText(value);
-  if (redacted.length <= MAX_EVENT_STRING_CHARS) return redacted;
 
-  return `${redacted.slice(0, MAX_EVENT_STRING_CHARS)}\n[truncated: output exceeded ${MAX_EVENT_STRING_CHARS} characters]`;
+  return truncateUtf8(
+    redacted,
+    MAX_EVENT_STRING_BYTES,
+    `\n[truncated: output exceeded ${MAX_EVENT_STRING_BYTES} UTF-8 bytes]`,
+  );
 };
 
 const sanitizeUnknown = (value: unknown, key = "", depth = 0): unknown => {
@@ -74,13 +93,15 @@ export const sanitizeRuntimeEvent = (event: RuntimeEvent): RuntimeEvent => {
   const sanitized = sanitizeUnknown(event);
   const serialized = serialize(sanitized);
   const bounded =
-    serialized.isOk() && serialized.value.length > MAX_EVENT_JSON_CHARS
+    serialized.isOk() &&
+    new TextEncoder().encode(serialized.value).byteLength > MAX_EVENT_JSON_BYTES
       ? {
-          ...event,
+          runtime: event.runtime,
+          timestamp: event.timestamp,
           type: "diagnostic" as const,
           level: "warning" as const,
           code: "EVENT_TRUNCATED",
-          message: `Runtime event exceeded ${MAX_EVENT_JSON_CHARS} serialized characters and was truncated`,
+          message: `Runtime event exceeded ${MAX_EVENT_JSON_BYTES} serialized UTF-8 bytes and was truncated`,
           metadata: { originalType: event.type, reason: "serialized_size_limit" },
         }
       : sanitized;
@@ -92,14 +113,15 @@ export const sanitizeAgentRunEvent = (event: AgentRunEvent): AgentRunEvent => {
   const sanitized = sanitizeUnknown(event);
   const serialized = serialize(sanitized);
   const bounded =
-    serialized.isOk() && serialized.value.length > MAX_EVENT_JSON_CHARS
+    serialized.isOk() &&
+    new TextEncoder().encode(serialized.value).byteLength > MAX_EVENT_JSON_BYTES
       ? {
           runtime: event.runtime,
           timestamp: event.timestamp,
           type: "diagnostic" as const,
           level: "warning" as const,
           code: "EVENT_TRUNCATED",
-          message: `Agent Run event exceeded ${MAX_EVENT_JSON_CHARS} serialized characters and was truncated`,
+          message: `Agent Run event exceeded ${MAX_EVENT_JSON_BYTES} serialized UTF-8 bytes and was truncated`,
           metadata: { originalType: event.type, reason: "serialized_size_limit" },
         }
       : sanitized;

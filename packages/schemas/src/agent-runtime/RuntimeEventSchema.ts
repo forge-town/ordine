@@ -114,6 +114,13 @@ const RuntimeArtifactEventSchema = RuntimeEventBaseSchema.extend({
   type: z.literal("artifact"),
   path: z.string().min(1),
   mediaType: z.string().min(1).optional(),
+  id: z.string().min(1).optional(),
+  label: z.string().min(1).optional(),
+  contentType: z.string().min(1).optional(),
+  size: z.number().int().nonnegative().optional(),
+  localPath: z.string().min(1).nullable().optional(),
+  remotePath: z.string().min(1).nullable().optional(),
+  openModes: z.array(z.enum(["open", "copy_path", "download"])).optional(),
 });
 
 const RuntimeDiagnosticEventSchema = RuntimeEventBaseSchema.extend({

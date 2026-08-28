@@ -3,6 +3,12 @@ import { AgentRuntimeSchema } from "./AgentRuntimeSchema";
 import { AgentRunStatusSchema } from "./AgentRunStatusSchema";
 import { RuntimeEventSchema } from "./RuntimeEventSchema";
 import { AgentControlEventSchema, AgentControlScopeSchema } from "../agent-control";
+import {
+  AgentRunActivitySnapshotSchema,
+  AgentRunActivityMetricsSchema,
+} from "./AgentRunActivitySchema";
+import { AgentRunUsageSchema } from "./AgentRunUsageSchema";
+import { RuntimeCapabilitiesSchema } from "./RuntimeAdapterManifestSchema";
 
 export const AgentRunPermissionModeSchema = z.enum(["read-only", "workspace-write", "full-access"]);
 export type AgentRunPermissionMode = z.infer<typeof AgentRunPermissionModeSchema>;
@@ -52,14 +58,6 @@ export const AgentRunRequestSchema = z
 export type AgentRunRequest = z.input<typeof AgentRunRequestSchema>;
 export type ParsedAgentRunRequest = z.output<typeof AgentRunRequestSchema>;
 
-export const AgentRunUsageSchema = z.object({
-  inputTokens: z.number().int().nonnegative().optional(),
-  outputTokens: z.number().int().nonnegative().optional(),
-  cachedInputTokens: z.number().int().nonnegative().optional(),
-  costUsd: z.number().nonnegative().optional(),
-});
-export type AgentRunUsage = z.infer<typeof AgentRunUsageSchema>;
-
 export const AgentRunSchema = z.object({
   id: z.string().min(1),
   owner: AgentRunOwnerSchema,
@@ -80,6 +78,12 @@ export const AgentRunSchema = z.object({
   controlMode: z.boolean().default(false),
   allowedTools: z.array(z.string().min(1)).default([]),
   controlScopes: z.array(AgentControlScopeSchema).default([]),
+  runtimeCapabilities: z
+    .lazy(() => RuntimeCapabilitiesSchema)
+    .nullable()
+    .default(null),
+  activitySnapshot: AgentRunActivitySnapshotSchema.nullable().default(null),
+  activityMetrics: AgentRunActivityMetricsSchema.nullable().default(null),
   usage: AgentRunUsageSchema.nullable(),
   resultText: z.string().nullable(),
   errorCode: z.string().min(1).nullable(),

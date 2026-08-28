@@ -23,6 +23,9 @@ export const RuntimeCapabilitiesSchema = z.object({
   usage: z.boolean(),
   cancellation: z.enum(["protocol", "signal", "none"]),
   resume: z.enum(["protocol", "session", "cli", "none"]),
+  /** Pause is intentionally explicit so clients never infer support from a
+   * cancel or resume capability. Existing manifests default to none. */
+  pause: z.enum(["protocol", "signal", "none"]).default("none"),
   mcpInjection: z.enum(["protocol", "config", "none"]),
   imageInput: z.boolean(),
 });

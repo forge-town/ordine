@@ -250,6 +250,19 @@
         "vitest": "^4.1.4",
       },
     },
+    "packages/agent-activity": {
+      "name": "@repo/agent-activity",
+      "version": "0.0.2-preview.10",
+      "dependencies": {
+        "@repo/schemas": "workspace:*",
+        "neverthrow": "^8.2.0",
+      },
+      "devDependencies": {
+        "@repo/typescript-config": "workspace:*",
+        "typescript": "5.9.2",
+        "vitest": "^4.1.4",
+      },
+    },
     "packages/agent-control": {
       "name": "@repo/agent-control",
       "version": "0.0.2-preview.10",
@@ -423,6 +436,7 @@
       "version": "0.0.2-preview.10",
       "dependencies": {
         "@repo/agent": "workspace:*",
+        "@repo/agent-activity": "workspace:*",
         "@repo/agent-control": "workspace:*",
         "@repo/agent-engine": "workspace:*",
         "@repo/db": "workspace:*",
@@ -500,6 +514,7 @@
       "dependencies": {
         "@hookform/resolvers": "^5.2.2",
         "@refinedev/core": "^5.0.12",
+        "@repo/agent-activity": "workspace:*",
         "@repo/pipeline-engine": "workspace:*",
         "@repo/plugin": "workspace:*",
         "@repo/schemas": "workspace:*",
@@ -1129,6 +1144,8 @@
     "@refinedev/devtools-shared": ["@refinedev/devtools-shared@2.0.2", "https://registry.npmmirror.com/@refinedev/devtools-shared/-/devtools-shared-2.0.2.tgz", { "dependencies": { "@tanstack/react-query": "^5.81.5", "error-stack-parser": "^2.1.4" }, "peerDependencies": { "@types/react": "^18.0.0 || ^19.0.0", "@types/react-dom": "^18.0.0 || ^19.0.0", "react": "^18.0.0 || ^19.0.0", "react-dom": "^18.0.0 || ^19.0.0" } }, "sha512-3cTjR1mEWn0tHFZBfPD5aVpBGLUhpAkfjqYCwKrijIicr1Utp/j0BqiPRnNqTf+W71HTng3znBpUhnR83u+tuA=="],
 
     "@repo/agent": ["@repo/agent@workspace:packages/agent"],
+
+    "@repo/agent-activity": ["@repo/agent-activity@workspace:packages/agent-activity"],
 
     "@repo/agent-control": ["@repo/agent-control@workspace:packages/agent-control"],
 

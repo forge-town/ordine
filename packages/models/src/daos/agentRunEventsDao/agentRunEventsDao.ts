@@ -9,12 +9,13 @@ export const createAgentRunEventsDao = (executor: DbExecutor) => ({
     return rows[0]!;
   },
 
-  async findManyByRunIdAfter(runId: string, sequence: number) {
+  async findManyByRunIdAfter(runId: string, sequence: number, limit = 500) {
     return executor
       .select()
       .from(agentRunEventsTable)
       .where(and(eq(agentRunEventsTable.runId, runId), gt(agentRunEventsTable.sequence, sequence)))
-      .orderBy(asc(agentRunEventsTable.sequence));
+      .orderBy(asc(agentRunEventsTable.sequence))
+      .limit(limit);
   },
 
   async findTerminalByRunId(runId: string) {

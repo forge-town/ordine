@@ -1,6 +1,7 @@
 import { Result } from "neverthrow";
 import {
   AgentRunEventEnvelopeSchema,
+  encodeAgentRunEventCursor,
   type AgentRunEventEnvelope,
   type RuntimeTerminalStatus,
 } from "@repo/schemas";
@@ -40,12 +41,13 @@ export const consumeAgentRunEventStream = async (
     lastSequence: input.after ?? 0,
     terminalStatus: null as RuntimeTerminalStatus | null,
   };
+  const initialCursor = encodeAgentRunEventCursor(input.runId, state.lastSequence);
   const response = await platform.request(
-    `${platform.apiBaseUrl}/agent-runs/${encodeURIComponent(input.runId)}/events?after=${state.lastSequence}`,
+    `${platform.apiBaseUrl}/agent-runs/${encodeURIComponent(input.runId)}/events?after=${encodeURIComponent(initialCursor)}`,
     {
       headers: {
         accept: "text/event-stream",
-        ...(state.lastSequence > 0 ? { "Last-Event-ID": String(state.lastSequence) } : {}),
+        ...(state.lastSequence > 0 ? { "Last-Event-ID": initialCursor } : {}),
       },
       signal: input.signal,
     },

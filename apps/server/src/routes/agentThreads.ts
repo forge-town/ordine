@@ -594,7 +594,11 @@ agentThreadsRoutes.get("/:threadId/runs/latest", async (context) => {
   return context.json(run);
 });
 
-agentThreadsRoutes.get("/:threadId/runs/:runId/events", (context) => {
+agentThreadsRoutes.get("/:threadId/runs/:runId/events", async (context) => {
+  const run = await agentRunsService.getById(context.req.param("runId"));
+  if (!run || run.owner.type !== "agent-thread" || run.owner.id !== context.req.param("threadId")) {
+    return context.json({ code: "AGENT_RUN_NOT_FOUND", error: "Run not found" }, 404);
+  }
   const query = new URL(context.req.url).search;
 
   return context.redirect(

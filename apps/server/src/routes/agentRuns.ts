@@ -1,7 +1,13 @@
 import { Hono } from "hono";
-import { ResultAsync } from "neverthrow";
+import { Result, ResultAsync } from "neverthrow";
 import { z } from "zod/v4";
-import type { AgentRunEventEnvelope, AgentRunStatus } from "@repo/schemas";
+import {
+  AgentRunActivityTelemetrySchema,
+  decodeAgentRunEventCursor,
+  encodeAgentRunEventCursor,
+  type AgentRunEventEnvelope,
+  type AgentRunStatus,
+} from "@repo/schemas";
 import { agentApiAuthMiddleware } from "../integrations/auth";
 import { agentRunsService } from "../services.js";
 
@@ -12,11 +18,11 @@ const TERMINAL_STATUSES = new Set<AgentRunStatus>([
   "timed_out",
   "interrupted",
 ]);
-const afterSchema = z.coerce.number().int().nonnegative();
+const limitSchema = z.coerce.number().int().min(1).max(500);
 
 const encodeEvent = (envelope: AgentRunEventEnvelope): Uint8Array =>
   new TextEncoder().encode(
-    `id: ${envelope.sequence}\nevent: runtime_event\ndata: ${JSON.stringify(envelope)}\n\n`,
+    `id: ${encodeAgentRunEventCursor(envelope.runId, envelope.sequence)}\nevent: runtime_event\ndata: ${JSON.stringify(envelope)}\n\n`,
   );
 
 export const agentRunsRoutes = new Hono();
@@ -34,10 +40,38 @@ agentRunsRoutes.get("/:id/events", async (context) => {
   const runId = context.req.param("id");
   const run = await agentRunsService.getById(runId);
   if (!run) return context.json({ code: "AGENT_RUN_NOT_FOUND", error: "Run not found" }, 404);
-  const rawAfter = context.req.query("after") ?? context.req.header("Last-Event-ID") ?? "0";
-  const parsedAfter = afterSchema.safeParse(rawAfter);
-  if (!parsedAfter.success) {
-    return context.json({ code: "INVALID_SEQUENCE", error: "Invalid event sequence" }, 400);
+  const rawAfter =
+    context.req.query("after") ??
+    context.req.header("Last-Event-ID") ??
+    encodeAgentRunEventCursor(runId, 0);
+  const parsedAfter = Result.fromThrowable(
+    () => decodeAgentRunEventCursor(rawAfter),
+    () => null,
+  )();
+  if (parsedAfter.isErr() || parsedAfter.value.r !== runId) {
+    return context.json({ code: "INVALID_CURSOR", error: "Invalid event cursor" }, 400);
+  }
+  const afterSequence = parsedAfter.value.s;
+
+  const acceptsJson = (context.req.header("Accept") ?? "")
+    .split(",")
+    .some((value) => value.trim().toLowerCase().startsWith("application/json"));
+  if (acceptsJson) {
+    const rawLimit = context.req.query("limit") ?? "200";
+    const parsedLimit = limitSchema.safeParse(rawLimit);
+    if (!parsedLimit.success) {
+      return context.json({ code: "INVALID_LIMIT", error: "Invalid event page limit" }, 400);
+    }
+    const events = await agentRunsService.getEvents(runId, afterSequence, parsedLimit.data);
+    const lastEvent = events.at(-1);
+    const terminal =
+      Boolean(lastEvent?.event.type === "terminal") || TERMINAL_STATUSES.has(run.status);
+
+    return context.json({
+      events,
+      nextCursor: encodeAgentRunEventCursor(runId, lastEvent?.sequence ?? afterSequence),
+      terminal,
+    });
   }
 
   const stream = new ReadableStream<Uint8Array>({
@@ -45,7 +79,7 @@ agentRunsRoutes.get("/:id/events", async (context) => {
       const state = {
         closed: false,
         replaying: true,
-        lastSequence: parsedAfter.data,
+        lastSequence: afterSequence,
         pending: new Map<number, AgentRunEventEnvelope>(),
         heartbeat: undefined as ReturnType<typeof setInterval> | undefined,
         databasePoll: undefined as ReturnType<typeof setInterval> | undefined,
@@ -74,7 +108,7 @@ agentRunsRoutes.get("/:id/events", async (context) => {
         }
         send(envelope);
       });
-      const replay = await agentRunsService.getEvents(runId, parsedAfter.data);
+      const replay = await agentRunsService.getEvents(runId, afterSequence);
       for (const envelope of replay) send(envelope);
       while (!state.closed && state.pending.size > 0) {
         const pending = [...state.pending.values()].sort(
@@ -132,4 +166,18 @@ agentRunsRoutes.post("/:id/cancel", async (context) => {
   if (!run) return context.json({ code: "AGENT_RUN_NOT_FOUND", error: "Run not found" }, 404);
 
   return context.json(await agentRunsService.cancel(run.id));
+});
+
+agentRunsRoutes.post("/:id/activity/telemetry", async (context) => {
+  const run = await agentRunsService.getById(context.req.param("id"));
+  if (!run) return context.json({ code: "AGENT_RUN_NOT_FOUND", error: "Run not found" }, 404);
+  const parsed = AgentRunActivityTelemetrySchema.safeParse(await context.req.json());
+  if (!parsed.success) {
+    return context.json(
+      { code: "INVALID_ACTIVITY_TELEMETRY", error: "Invalid activity telemetry" },
+      400,
+    );
+  }
+
+  return context.json(await agentRunsService.recordActivityTelemetry(run.id, parsed.data));
 });

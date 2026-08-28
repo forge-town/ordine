@@ -10,6 +10,7 @@
     "./ScheduleEditor": "./src/components/ScheduleEditor/index.ts",
     "./SearchPipelineDialog": "./src/components/SearchPipelineDialog.tsx",
     "./AgentExecutionPicker": "./src/components/AgentExecutionPicker/index.ts",
+    "./AgentActivity": "./src/components/AgentActivity/index.ts",
     "./GlobalAgentControl": "./src/components/GlobalAgentControl/index.ts",
     "./primitives": "./src/components/primitives/index.ts",
     "./PipelineCreationWorkspace": "./src/components/PipelineCreationWorkspace/index.ts",
@@ -65,6 +66,7 @@
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
     "@refinedev/core": "^5.0.12",
+    "@repo/agent-activity": "workspace:*",
     "@repo/pipeline-engine": "workspace:*",
     "@repo/plugin": "workspace:*",
     "@repo/schemas": "workspace:*",

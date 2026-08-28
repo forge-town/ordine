@@ -1,8 +1,15 @@
 import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { isAbsolute, resolve } from "node:path";
+import {
+  applyAgentRunActivityPatch,
+  createAgentRunEventCoalescer,
+  reduceAgentRunActivity,
+  reduceAgentRunActivityEvents,
+  type AgentRunEventEmitMeta,
+} from "@repo/agent-activity";
 import { agentEngine, type AgentRunOptions, type AgentRunOutcome } from "@repo/agent-engine";
-import { probeRuntimeCapabilities, scanRuntimes } from "@repo/agent";
+import { getRuntimeManifest, probeRuntimeCapabilities, scanRuntimes } from "@repo/agent";
 import type { agentRunsTable, AgentRunRecord } from "@repo/db-schema";
 import {
   createAgentRunEventsDao,
@@ -13,9 +20,15 @@ import {
 import {
   AgentRunRequestSchema,
   AgentRunSchema,
+  AgentRunActivityMetricsSchema,
+  AgentRunActivitySnapshotSchema,
+  AgentRunActivityTelemetrySchema,
+  createInitialAgentRunActivityMetrics,
+  createInitialAgentRunActivitySnapshot,
   AgentControlEventSchema,
   RuntimeEventSchema,
   parseLocalAgentRuntimeId,
+  RuntimeCapabilitiesSchema,
   type AgentRun,
   type AgentControlEvent,
   type AgentRunEvent,
@@ -25,6 +38,9 @@ import {
   type AgentRunStatus,
   type AgentRunUsage,
   type AgentRuntime,
+  type AgentRunActivityMetrics,
+  type AgentRunActivityTelemetry,
+  type RuntimeCapabilities,
   type RuntimeEvent,
 } from "@repo/schemas";
 import { ResultAsync } from "neverthrow";
@@ -57,6 +73,7 @@ type TerminalAgentRunStatus = Extract<
   "completed" | "failed" | "cancelled" | "timed_out"
 >;
 type AgentRunPatch = Partial<Omit<typeof agentRunsTable.$inferInsert, "id">>;
+type ActivityMetricsDelta = Partial<Record<keyof AgentRunActivityMetrics, number>>;
 
 type ActiveRun = {
   controller: AbortController;
@@ -76,6 +93,7 @@ type ResolvedRuntime = {
   supportsVariant: boolean;
   supportsAutoPermissions: boolean;
   supportsResume: boolean;
+  runtimeCapabilities: RuntimeCapabilities;
 };
 
 type AgentRunsServiceDependencies = {
@@ -183,6 +201,7 @@ export const resolveRuntimeExecutable = async ({
       continue;
     }
     const capabilities = capabilitiesResult.value;
+    const manifest = getRuntimeManifest(runtime);
     const missingCapabilities = [
       capabilities.structuredOutput ? null : "structured_output",
       capabilities.resume ? null : "native_resume",
@@ -209,6 +228,16 @@ export const resolveRuntimeExecutable = async ({
       supportsVariant: capabilities.variant,
       supportsAutoPermissions: capabilities.autoPermissions,
       supportsResume: capabilities.resume,
+      runtimeCapabilities: {
+        ...manifest.capabilities,
+        textStreaming: capabilities.partialMessages ? "delta" : manifest.capabilities.textStreaming,
+        cancellation:
+          manifest.capabilities.cancellation === "none"
+            ? "none"
+            : manifest.capabilities.cancellation,
+        resume: capabilities.resume ? manifest.capabilities.resume : "none",
+        pause: "none",
+      },
     };
   }
 
@@ -240,6 +269,9 @@ const toPublicRun = (record: AgentRunRecord): AgentRun =>
     controlMode: record.controlMode,
     allowedTools: record.allowedTools,
     controlScopes: record.controlScopes,
+    runtimeCapabilities: record.runtimeCapabilities ?? null,
+    activitySnapshot: record.activitySnapshot ?? null,
+    activityMetrics: record.activityMetrics ?? null,
     usage: record.usage,
     resultText: record.resultText,
     errorCode: record.errorCode,
@@ -257,6 +289,25 @@ const runtimeEvent = (runtime: AgentRuntime, payload: Record<string, unknown>): 
     runtime,
     timestamp: new Date().toISOString(),
   });
+
+const bytesOfJson = (value: unknown): number =>
+  new TextEncoder().encode(JSON.stringify(value) ?? "").byteLength;
+
+const mergeActivityMetrics = (
+  current: AgentRunActivityMetrics | null | undefined,
+  delta: ActivityMetricsDelta,
+): AgentRunActivityMetrics => {
+  const next = AgentRunActivityMetricsSchema.parse(current ?? {});
+  for (const [key, value] of Object.entries(delta) as [keyof AgentRunActivityMetrics, number][]) {
+    if (!value) continue;
+    next[key] += value;
+  }
+
+  return AgentRunActivityMetricsSchema.parse(next);
+};
+
+const capabilitySnapshotForRuntime = (runtime: AgentRuntime): RuntimeCapabilities =>
+  getRuntimeManifest(runtime).capabilities;
 
 const isOutputEvent = (event: RuntimeEvent): boolean =>
   event.type === "text_delta" ||
@@ -341,6 +392,7 @@ export const createAgentRunsService = (
   const activeRuns = new Map<string, ActiveRun>();
   const executions = new Map<string, Promise<AgentRun>>();
   const listeners = new Map<string, Set<EventListener>>();
+  const eventPersistenceQueues = new Map<string, Promise<unknown>>();
 
   const broadcast = async (envelope: AgentRunEventEnvelope): Promise<void> => {
     const runListeners = listeners.get(envelope.runId);
@@ -348,31 +400,52 @@ export const createAgentRunsService = (
     await Promise.allSettled([...runListeners].map((listener) => listener(envelope)));
   };
 
+  const serializeRunPersistence = <T>(runId: string, operation: () => Promise<T>): Promise<T> => {
+    const previous = eventPersistenceQueues.get(runId) ?? Promise.resolve();
+    const current = previous.then(operation, operation);
+    const marker = current.then(
+      () => {
+        if (eventPersistenceQueues.get(runId) === marker) eventPersistenceQueues.delete(runId);
+      },
+      () => {
+        if (eventPersistenceQueues.get(runId) === marker) eventPersistenceQueues.delete(runId);
+      },
+    );
+    eventPersistenceQueues.set(runId, marker);
+
+    return current;
+  };
+
   const persistEvent = async (
     runId: string,
     event: AgentRunEvent,
     runPatch: AgentRunPatch = {},
+    activityMetricsDelta: ActivityMetricsDelta = {},
   ): Promise<AgentRunEventEnvelope> => {
     const sanitized = sanitizeAgentRunEvent(event);
 
-    return commitAgentRunEventBeforeBroadcast(
-      () =>
-        db.transaction(async (transaction) => {
-          const transactionRunsDao = createAgentRunsDao(transaction);
-          const transactionEventsDao = createAgentRunEventsDao(transaction);
-          if (sanitized.type === "terminal") {
-            const transitioned = await transactionRunsDao.transition(
-              runId,
-              ["queued", "running", "cancelling"],
-              {
-                ...runPatch,
-                status: sanitized.status,
-                executorId: null,
-                heartbeatAt: null,
-                leaseExpiresAt: null,
-              },
-            );
-            if (!transitioned) {
+    return serializeRunPersistence(runId, async () =>
+      commitAgentRunEventBeforeBroadcast(
+        () =>
+          db.transaction(async (transaction) => {
+            const transactionRunsDao = createAgentRunsDao(transaction);
+            const transactionEventsDao = createAgentRunEventsDao(transaction);
+            const current = await transactionRunsDao.findById(runId);
+            if (!current) throw new Error(`Agent run not found: ${runId}`);
+            if (TERMINAL_STATUSES.has(current.status) && sanitized.type !== "terminal") {
+              throw new Error(`Agent run ${runId} has an immutable terminal state`);
+            }
+            const terminalTransition =
+              sanitized.type === "terminal"
+                ? await transactionRunsDao.transition(runId, ["queued", "running", "cancelling"], {
+                    ...runPatch,
+                    status: sanitized.status,
+                    executorId: null,
+                    heartbeatAt: null,
+                    leaseExpiresAt: null,
+                  })
+                : null;
+            if (sanitized.type === "terminal" && !terminalTransition) {
               const existing = await transactionEventsDao.findTerminalByRunId(runId);
               if (!existing) throw new Error(`Agent run ${runId} has an immutable terminal state`);
 
@@ -383,29 +456,86 @@ export const createAgentRunsService = (
                 event: existing.event,
               } satisfies AgentRunEventEnvelope;
             }
-          }
-          const created = await transactionEventsDao.create({
-            runId,
-            event: sanitized,
-          });
-          if (sanitized.type === "terminal") {
-            await transactionRunsDao.update(runId, { terminalEventSequence: created.sequence });
-          } else if (Object.keys(runPatch).length > 0) {
-            await transactionRunsDao.transition(
-              runId,
-              ["queued", "running", "cancelling"],
-              runPatch,
-            );
-          }
+            const transitioned =
+              terminalTransition ??
+              (Object.keys(runPatch).length > 0
+                ? await transactionRunsDao.transition(
+                    runId,
+                    ["queued", "running", "cancelling"],
+                    runPatch,
+                  )
+                : null) ??
+              current;
 
-          return {
-            runId,
-            sequence: created.sequence,
-            createdAt: created.createdAt.toISOString(),
-            event: created.event,
-          } satisfies AgentRunEventEnvelope;
-        }),
-      broadcast,
+            const created = await transactionEventsDao.create({ runId, event: sanitized });
+            const envelope = {
+              runId,
+              sequence: created.sequence,
+              createdAt: created.createdAt.toISOString(),
+              event: created.event,
+            } satisfies AgentRunEventEnvelope;
+            const priorSnapshot = transitioned.activitySnapshot
+              ? AgentRunActivitySnapshotSchema.safeParse(transitioned.activitySnapshot)
+              : null;
+            const snapshotBeforeEvent = priorSnapshot?.success
+              ? priorSnapshot.data
+              : reduceAgentRunActivityEvents(
+                  runId,
+                  transitioned.runtime,
+                  (await transactionEventsDao.findManyByRunIdAfter(runId, 0, 100_000)).map(
+                    (entry) => ({
+                      runId,
+                      sequence: entry.sequence,
+                      createdAt: entry.createdAt.toISOString(),
+                      event: entry.event,
+                    }),
+                  ),
+                  "queued",
+                );
+            const reducedSnapshot = reduceAgentRunActivity(snapshotBeforeEvent, envelope).snapshot;
+            const snapshot = applyAgentRunActivityPatch(reducedSnapshot, {
+              ...(sanitized.type === "terminal"
+                ? {
+                    status: sanitized.status,
+                    terminalMessage: sanitized.resultText ?? null,
+                    terminalAt: envelope.createdAt,
+                  }
+                : {}),
+              ...(runPatch.status ? { status: runPatch.status } : {}),
+              ...(runPatch.usage !== undefined
+                ? { usage: (runPatch.usage ?? null) as AgentRunUsage | null }
+                : {}),
+              ...(runPatch.errorCode !== undefined
+                ? { errorCode: runPatch.errorCode ?? null }
+                : {}),
+              ...(runPatch.resultText !== undefined
+                ? { terminalMessage: runPatch.resultText ?? null }
+                : {}),
+              ...(runPatch.finishedAt !== undefined
+                ? { terminalAt: runPatch.finishedAt?.toISOString() ?? null }
+                : {}),
+            });
+            const existingMetrics = transitioned.activityMetrics
+              ? AgentRunActivityMetricsSchema.safeParse(transitioned.activityMetrics)
+              : null;
+            const metrics = mergeActivityMetrics(
+              existingMetrics?.success ? existingMetrics.data : null,
+              {
+                eventCount: 1,
+                bytes: bytesOfJson(sanitized),
+                ...activityMetricsDelta,
+              },
+            );
+            await transactionRunsDao.update(runId, {
+              ...(sanitized.type === "terminal" ? { terminalEventSequence: created.sequence } : {}),
+              activitySnapshot: snapshot,
+              activityMetrics: metrics,
+            });
+
+            return envelope;
+          }),
+        broadcast,
+      ),
     );
   };
 
@@ -450,6 +580,62 @@ export const createAgentRunsService = (
     return run;
   };
 
+  const ensureActivityProjection = async (record: AgentRunRecord): Promise<AgentRunRecord> => {
+    // Legacy runs are projected from their canonical events without mutating
+    // the record during a read. New writes backfill the durable snapshot in
+    // the same event transaction, so this path remains a strictly read-only
+    // compatibility fallback.
+    const parsedSnapshot = record.activitySnapshot
+      ? AgentRunActivitySnapshotSchema.safeParse(record.activitySnapshot)
+      : null;
+    const parsedMetrics = record.activityMetrics
+      ? AgentRunActivityMetricsSchema.safeParse(record.activityMetrics)
+      : null;
+    const parsedCapabilities = record.runtimeCapabilities
+      ? RuntimeCapabilitiesSchema.safeParse(record.runtimeCapabilities)
+      : null;
+    if (parsedSnapshot?.success && parsedMetrics?.success && parsedCapabilities?.success) {
+      return record;
+    }
+
+    const events = await eventsDao.findManyByRunIdAfter(record.id, 0, 100_000);
+    const envelopes = events.map((event) => ({
+      runId: record.id,
+      sequence: event.sequence,
+      createdAt: event.createdAt.toISOString(),
+      event: event.event,
+    })) satisfies AgentRunEventEnvelope[];
+    const rebuiltSnapshot = parsedSnapshot?.success
+      ? applyAgentRunActivityPatch(parsedSnapshot.data, {
+          status: record.status,
+          usage: record.usage,
+          errorCode: record.errorCode,
+          terminalMessage: record.resultText,
+          terminalAt: record.finishedAt?.toISOString() ?? null,
+        })
+      : reduceAgentRunActivityEvents(record.id, record.runtime, envelopes, "queued");
+    const snapshot = AgentRunActivitySnapshotSchema.parse(rebuiltSnapshot);
+    const metrics = parsedMetrics?.success
+      ? parsedMetrics.data
+      : AgentRunActivityMetricsSchema.parse({
+          eventCount: events.length,
+          bytes: events.reduce((total, event) => total + bytesOfJson(event.event), 0),
+        });
+    const runtimeCapabilities = parsedCapabilities?.success
+      ? parsedCapabilities.data
+      : capabilitySnapshotForRuntime(record.runtime);
+
+    return {
+      ...record,
+      runtimeCapabilities,
+      activitySnapshot: snapshot,
+      activityMetrics: metrics,
+    };
+  };
+
+  const getPublicRun = async (record: AgentRunRecord): Promise<AgentRun> =>
+    toPublicRun(await ensureActivityProjection(record));
+
   const finishRun = async ({
     runId,
     runtime,
@@ -492,7 +678,7 @@ export const createAgentRunsService = (
       },
     );
 
-    return toPublicRun(await getRunRecord(runId));
+    return getPublicRun(await getRunRecord(runId));
   };
 
   const executeRun = async (
@@ -543,6 +729,7 @@ export const createAgentRunsService = (
       });
     }
     const resolvedRuntime = resolvedResult.value;
+    await runsDao.update(runId, { runtimeCapabilities: resolvedRuntime.runtimeCapabilities });
     if (resolvedRuntime.resolutionWarning) {
       await persistEvent(
         runId,
@@ -622,7 +809,10 @@ export const createAgentRunsService = (
     resetFirstOutputTimer();
     resetInactivityTimer();
 
-    const handleEvent = async (event: RuntimeEvent): Promise<void> => {
+    const handleEvent = async (
+      event: RuntimeEvent,
+      emitMeta: AgentRunEventEmitMeta = { coalesced: false, deltaCount: 1 },
+    ): Promise<void> => {
       if (event.type === "terminal") return;
       const now = new Date();
       const patch: AgentRunPatch = {
@@ -647,10 +837,13 @@ export const createAgentRunsService = (
       if (request.controlMode && (event.type === "text_delta" || event.type === "thinking_delta")) {
         return;
       }
-      await persistEvent(runId, event, patch);
+      await persistEvent(runId, event, patch, {
+        ...(emitMeta.coalesced ? { coalescedEventCount: 1 } : {}),
+      });
     };
+    const eventCoalescer = createAgentRunEventCoalescer(handleEvent);
     const handleAdapterEvent = async (event: RuntimeEvent): Promise<void> => {
-      const handled = await ResultAsync.fromPromise(handleEvent(event), toError);
+      const handled = await ResultAsync.fromPromise(eventCoalescer.push(event), toError);
       if (handled.isErr()) state.eventPersistenceError ??= handled.error;
     };
 
@@ -783,7 +976,11 @@ export const createAgentRunsService = (
       );
     }
 
+    const flushedEvents = await ResultAsync.fromPromise(eventCoalescer.flush(), toError);
+    if (flushedEvents.isErr()) state.eventPersistenceError ??= flushedEvents.error;
+    eventCoalescer.dispose();
     clearTimers();
+    applyEventPersistenceFailure();
     if (active.controller.signal.aborted) {
       const reason = active.abortReason ?? "user_cancel";
       const error = abortError(reason, effectiveFirstOutputTimeoutMs, inactivityTimeoutMs);
@@ -848,6 +1045,9 @@ export const createAgentRunsService = (
     }
     const id = crypto.randomUUID();
     const now = new Date();
+    const runtimeCapabilities = capabilitySnapshotForRuntime(runtimeConfig.type);
+    const activitySnapshot = createInitialAgentRunActivitySnapshot(id, runtimeConfig.type);
+    const activityMetrics = createInitialAgentRunActivityMetrics();
     await runsDao.create({
       id,
       ownerType: request.owner.type,
@@ -868,6 +1068,9 @@ export const createAgentRunsService = (
       controlMode: request.controlMode,
       allowedTools: request.allowedTools,
       controlScopes: request.controlScopes,
+      runtimeCapabilities,
+      activitySnapshot,
+      activityMetrics,
       createdAt: now,
       updatedAt: now,
       expiresAt: new Date(now.getTime() + EVENT_RETENTION_MS),
@@ -967,7 +1170,7 @@ export const createAgentRunsService = (
             errorMessage: failure.message,
           });
         }
-        if (existing) return toPublicRun(existing);
+        if (existing) return getPublicRun(existing);
         throw failure;
       },
     );
@@ -994,28 +1197,29 @@ export const createAgentRunsService = (
     async getById(runId: string): Promise<AgentRun | null> {
       const run = await runsDao.findById(runId);
 
-      return run ? toPublicRun(run) : null;
+      return run ? getPublicRun(run) : null;
     },
 
     async getLatestByOwner(ownerType: string, ownerId: string): Promise<AgentRun | null> {
       const run = await runsDao.findLatestByOwner(ownerType, ownerId);
 
-      return run ? toPublicRun(run) : null;
+      return run ? getPublicRun(run) : null;
     },
 
     async wait(runId: string): Promise<AgentRun> {
       const execution = executions.get(runId);
       if (execution) return execution;
       const run = await getRunRecord(runId);
-      if (TERMINAL_STATUSES.has(run.status)) return toPublicRun(run);
+      if (TERMINAL_STATUSES.has(run.status)) return getPublicRun(run);
 
       throw new Error(`Agent run ${runId} is not executing in this service process`);
     },
 
-    async getEvents(runId: string, after = 0): Promise<AgentRunEventEnvelope[]> {
+    async getEvents(runId: string, after = 0, limit = 500): Promise<AgentRunEventEnvelope[]> {
       const run = await runsDao.findById(runId);
       if (!run) throw new Error(`Agent run not found: ${runId}`);
-      const events = await eventsDao.findManyByRunIdAfter(runId, after);
+      const boundedLimit = Math.max(1, Math.min(Math.floor(limit), 2_000));
+      const events = await eventsDao.findManyByRunIdAfter(runId, after, boundedLimit);
 
       return events.map((event) => ({
         runId,
@@ -1052,7 +1256,7 @@ export const createAgentRunsService = (
 
     async cancel(runId: string): Promise<AgentRun> {
       const run = await getRunRecord(runId);
-      if (TERMINAL_STATUSES.has(run.status)) return toPublicRun(run);
+      if (TERMINAL_STATUSES.has(run.status)) return getPublicRun(run);
       const requested = await runsDao.requestCancel(runId, new Date());
       const active = activeRuns.get(runId);
       if (active && !active.controller.signal.aborted) {
@@ -1064,7 +1268,21 @@ export const createAgentRunsService = (
       }
       const updated = requested ?? (await runsDao.findById(runId));
 
-      return toPublicRun(updated ?? run);
+      return getPublicRun(updated ?? run);
+    },
+
+    async recordActivityTelemetry(
+      runId: string,
+      input: AgentRunActivityTelemetry,
+    ): Promise<AgentRun> {
+      const telemetry = AgentRunActivityTelemetrySchema.parse(input);
+      const run = await getRunRecord(runId);
+      const metrics = mergeActivityMetrics(run.activityMetrics, {
+        ...(telemetry.kind === "artifact_open_failed" ? { artifactOpenFailureCount: 1 } : {}),
+      });
+      const updated = await runsDao.update(runId, { activityMetrics: metrics });
+
+      return getPublicRun(updated ?? { ...run, activityMetrics: metrics });
     },
 
     async recoverInterruptedRuns(): Promise<{ count: number; runIds: string[] }> {
