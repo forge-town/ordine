@@ -10,17 +10,16 @@ export type AgentRunEventCursor = z.infer<typeof AgentRunEventCursorPayloadSchem
 
 const toBase64Url = (value: string): string => {
   const bytes = new TextEncoder().encode(value);
-  let binary = "";
-  for (const byte of bytes) binary += String.fromCharCode(byte);
+  const binary = Array.from(bytes, (byte) => String.fromCodePoint(byte)).join("");
 
-  return globalThis.btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/u, "");
+  return globalThis.btoa(binary).replaceAll("+", "-").replaceAll("/", "_").replace(/=+$/u, "");
 };
 
 const fromBase64Url = (value: string): string => {
-  const normalized = value.replace(/-/g, "+").replace(/_/g, "/");
+  const normalized = value.replaceAll("-", "+").replaceAll("_", "/");
   const padded = `${normalized}${"=".repeat((4 - (normalized.length % 4)) % 4)}`;
   const binary = globalThis.atob(padded);
-  const bytes = Uint8Array.from(binary, (character) => character.charCodeAt(0));
+  const bytes = Uint8Array.from(binary, (character) => character.codePointAt(0) ?? 0);
 
   return new TextDecoder().decode(bytes);
 };
