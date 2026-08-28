@@ -37,6 +37,17 @@ bun run ui:animate:inspect
 该命令默认校验固定上游提交、工作区 hash 和原语导入；离线环境可使用
 `bun run ui:animate:inspect -- --offline`，但 PR 必须附带一次在线校验结果。
 
+上游 Registry 变更必须先在临时目录审查，例如：
+
+```sh
+mkdir -p "$TMPDIR/ordine-animate-review"
+cd "$TMPDIR/ordine-animate-review"
+bunx --bun shadcn@4.5.0 view @animate-ui/primitives-base-dialog
+```
+
+如需验证 `add` 的生成结果，也只能写入该临时目录，再人工迁移并重新运行
+`ui:animate:inspect`；禁止直接把 Registry `add` 写入应用或 `packages/ui/src`。
+
 页面卡片统一使用 `@repo/ui/card` 导出的 `Card` 或 `surfaceCardVariants`：
 
 ```tsx
