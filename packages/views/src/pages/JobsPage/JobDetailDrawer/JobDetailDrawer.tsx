@@ -3,6 +3,7 @@ import { ExternalLink, Pause, Play, RotateCcw, Square, Workflow, X } from "lucid
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "@tanstack/react-router";
 import {
+  TRACE_MARKER,
   type Job,
   type JobTrace,
   type NodeRunStatus,
@@ -13,6 +14,8 @@ import { Button } from "@repo/ui/button";
 import { cn } from "@repo/ui/lib/utils";
 import { ResourceName } from "../../../constants";
 import { StatusPill } from "../../../components/primitives";
+import { AgentActivitySurface } from "../../../components/AgentActivity";
+import { usePlatform } from "../../../platform";
 import { useJobControls } from "../useJobControls";
 
 export type JobDetailDrawerProps = {
@@ -33,6 +36,28 @@ const stepTone = (status: NodeRunStatus): string => {
   }
 
   return "ring-border bg-surface";
+};
+
+const extractAgentRunIds = (traces: readonly JobTrace[]): string[] => [
+  ...new Set(
+    traces.flatMap((trace) => {
+      const markerIndex = trace.message.indexOf(TRACE_MARKER.agentRun);
+      if (markerIndex < 0) return [];
+      const payload = trace.message.slice(markerIndex + TRACE_MARKER.agentRun.length);
+      const separator = payload.indexOf("::");
+      const runId = separator >= 0 ? payload.slice(separator + 2).trim() : "";
+
+      return runId ? [runId] : [];
+    }),
+  ),
+];
+
+const isLegacyAgentActivityTrace = (message: string): boolean => {
+  const normalized = message.replace(/^\[[^\]]+\]\s*/u, "");
+
+  return (
+    normalized.startsWith(TRACE_MARKER.agentRun) || normalized.startsWith(TRACE_MARKER.agentEvent)
+  );
 };
 
 export const JobDetailDrawer = ({ job: initialJob, onChanged, onClose }: JobDetailDrawerProps) => {
@@ -60,6 +85,12 @@ export const JobDetailDrawer = ({ job: initialJob, onChanged, onClose }: JobDeta
     url: "jobs/traces",
   });
   const traces = tracesResult?.data?.traces ?? [];
+  const platform = usePlatform();
+  const activityRunIds = extractAgentRunIds(traces);
+  const visibleTraces =
+    activityRunIds.length > 0
+      ? traces.filter((trace) => !isLegacyAgentActivityTrace(trace.message))
+      : traces;
 
   const nodeStatuses = job.nodeStatuses ?? {};
   const steps = (pipelineResult?.nodes ?? []).map((node) => ({
@@ -202,14 +233,30 @@ export const JobDetailDrawer = ({ job: initialJob, onChanged, onClose }: JobDeta
             </div>
           )}
 
+          {activityRunIds.length > 0 && (
+            <div className="mt-5 space-y-2">
+              <div className="mb-2 text-[10px] font-semibold uppercase text-muted-foreground">
+                {t("jobs.agentRuns.activity", "Agent activity")}
+              </div>
+              {activityRunIds.map((runId) => (
+                <AgentActivitySurface
+                  key={runId}
+                  platform={platform}
+                  runId={runId}
+                  variant="panel"
+                />
+              ))}
+            </div>
+          )}
+
           <div className="mb-2 mt-5 text-[10px] font-semibold uppercase text-muted-foreground">
             {t("jobs.drawer.trace")}
           </div>
           <div className="space-y-0.5 rounded-lg bg-surface-2 p-3 font-mono text-[10.5px] leading-relaxed ring-1 ring-border">
-            {traces.length === 0 ? (
+            {visibleTraces.length === 0 ? (
               <div className="text-muted-foreground/60">{t("jobs.drawer.noTrace")}</div>
             ) : (
-              traces.slice(-80).map((trace) => (
+              visibleTraces.slice(-80).map((trace) => (
                 <div key={trace.id} className="break-all text-foreground/70">
                   {trace.message}
                 </div>

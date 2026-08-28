@@ -27,6 +27,7 @@ import {
 } from "@repo/ui/sheet";
 import { PageHeader } from "../../../components/PageHeader";
 import { PageLoadingState } from "../../../components/PageLoadingState";
+import { AgentActivitySurface } from "../../../components/AgentActivity";
 import { RuntimeIcon } from "../../../pages/RuntimesPage/RuntimeIcon";
 import { usePlatform } from "../../../platform";
 
@@ -350,6 +351,13 @@ export const RuntimeDetailPageContent = () => {
               . The probe performs one safe model request with the same local-agent invocation
               policy.
             </div>
+            {connectionTestRunId && (
+              <AgentActivitySurface
+                platform={platform}
+                runId={connectionTestRunId}
+                variant="panel"
+              />
+            )}
             {connectionTestError && (
               <div className="rounded-lg border border-destructive/40 bg-destructive/8 p-3 text-sm text-destructive">
                 {connectionTestError}

@@ -3,6 +3,8 @@ import { Activity, CalendarClock, CircleAlert, Wrench, WandSparkles } from "luci
 import { Badge } from "@repo/ui/badge";
 import { cn } from "@repo/ui/lib/utils";
 import type { PipelineAgentProposal } from "@repo/schemas";
+import { AgentActivitySurface } from "../AgentActivity";
+import { usePlatform } from "../../platform";
 import {
   PipelineCreationAttachments,
   type PipelineCreationAttachment,
@@ -23,6 +25,7 @@ export interface PipelineCreationRuntimeActivity {
 }
 
 interface PipelineCreationMessagesProps {
+  activityRunId: string | null;
   attachments: PipelineCreationAttachment[];
   canRemoveAttachments: boolean;
   isHome: boolean;
@@ -35,6 +38,7 @@ interface PipelineCreationMessagesProps {
 }
 
 export const PipelineCreationMessages = ({
+  activityRunId,
   attachments,
   canRemoveAttachments,
   isHome,
@@ -46,6 +50,7 @@ export const PipelineCreationMessages = ({
   onRemoveAttachment: handleRemoveAttachment,
 }: PipelineCreationMessagesProps) => {
   const { t } = useTranslation();
+  const platform = usePlatform();
 
   return (
     <div
@@ -69,12 +74,15 @@ export const PipelineCreationMessages = ({
           {message.content}
         </div>
       ))}
-      {streamingAssistantText && (
+      {activityRunId && (
+        <AgentActivitySurface platform={platform} runId={activityRunId} variant="panel" />
+      )}
+      {!activityRunId && streamingAssistantText && (
         <div className="max-w-[88%] whitespace-pre-wrap break-words rounded-xl border border-dashed border-border bg-card px-3.5 py-2.5 text-sm leading-6 text-muted-foreground [overflow-wrap:anywhere]">
           {streamingAssistantText}
         </div>
       )}
-      {runtimeActivity.length > 0 && (
+      {!activityRunId && runtimeActivity.length > 0 && (
         <div className="max-w-[92%] space-y-1.5 rounded-xl border border-border bg-surface-2 p-2.5">
           {runtimeActivity.map((activity) => {
             const Icon =
