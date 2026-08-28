@@ -1,4 +1,5 @@
 import { createStore, type StoreApi } from "zustand/vanilla";
+import { Result, ResultAsync } from "neverthrow";
 import { z } from "zod/v4";
 import {
   AgentRunActivityMetricsSchema,
@@ -7,6 +8,7 @@ import {
   AgentRunSchema,
   RuntimeCapabilitiesSchema,
   createInitialAgentRunActivitySnapshot,
+  encodeAgentRunEventCursor,
   type AgentRun,
   type AgentRunActivityMetrics,
   type AgentRunActivitySnapshot,
@@ -33,7 +35,7 @@ const MAX_EVENTS_PER_POLL = 200;
 const EMPTY_METRICS = AgentRunActivityMetricsSchema.parse({});
 const AgentRunEventPageSchema = z.object({
   events: z.array(AgentRunEventEnvelopeSchema),
-  nextSequence: z.number().int().nonnegative(),
+  nextCursor: z.string().min(1),
   terminal: z.boolean(),
 });
 
@@ -67,6 +69,7 @@ export type AgentActivityStore = StoreApi<AgentActivityState>;
 type AgentActivityListener = (envelope: AgentRunEventEnvelope) => Promise<void> | void;
 
 type ActivityEntry = {
+  registryKey: string;
   store: AgentActivityStore;
   refs: number;
   started: boolean;
@@ -82,17 +85,40 @@ type ActivityEntry = {
 };
 
 const registry = new Map<string, ActivityEntry>();
+const requestIdentities = new WeakMap<AgentRunEventsTransport["request"], number>();
+let nextRequestIdentity = 0;
+
+const getRequestIdentity = (request: AgentRunEventsTransport["request"]): number => {
+  const existing = requestIdentities.get(request);
+  if (existing) return existing;
+  nextRequestIdentity += 1;
+  requestIdentities.set(request, nextRequestIdentity);
+
+  return nextRequestIdentity;
+};
+
+const getRegistryKey = (runId: string, platform: AgentRunEventsTransport): string =>
+  `${runId}\u0000${platform.apiBaseUrl}\u0000${getRequestIdentity(platform.request)}`;
 
 const toError = (error: unknown): Error =>
   error instanceof Error ? error : new Error(String(error));
 
+const settle = (promise: Promise<void>): Promise<void> =>
+  ResultAsync.fromPromise(promise, toError).match(
+    () => undefined,
+    () => undefined,
+  );
+
+const observe = <T>(promise: Promise<T>, onError: (error: Error) => void): void => {
+  void ResultAsync.fromPromise(promise, toError).match(() => undefined, onError);
+};
+
 const parseJson = async (response: Response): Promise<unknown> => {
   const raw = await response.text();
-  try {
-    return JSON.parse(raw) as unknown;
-  } catch {
-    return null;
-  }
+  return Result.fromThrowable(
+    () => JSON.parse(raw) as unknown,
+    () => null,
+  )().unwrapOr(null);
 };
 
 const requestRun = async (platform: AgentRunEventsTransport, runId: string): Promise<AgentRun> => {
@@ -152,18 +178,18 @@ const applyEnvelope = (entry: ActivityEntry, envelope: AgentRunEventEnvelope): P
       finishedAt: terminal ? envelope.createdAt : previous.finishedAt,
     }));
     for (const listener of entry.listeners) {
-      try {
-        await listener(envelope);
-      } catch {
-        // A view subscriber must not stop delivery to the shared activity store.
-      }
+      const delivered = await ResultAsync.fromPromise(
+        Promise.resolve().then(() => listener(envelope)),
+        toError,
+      );
+      if (delivered.isErr()) continue;
     }
     if (terminal) stopTransport(entry);
   };
 
   // SSE chunks and polling can overlap around reconnects. Serialize reducer and
   // subscriber delivery so control events (draft/apply/terminal) retain order.
-  const next = entry.deliveryQueue.catch(() => undefined).then(deliver);
+  const next = settle(entry.deliveryQueue).then(deliver);
   entry.deliveryQueue = next;
 
   return next;
@@ -221,8 +247,9 @@ const markSseFailure = (entry: ActivityEntry, error: Error): void => {
 const pollOnce = async (entry: ActivityEntry): Promise<void> => {
   if (entry.destroyed || entry.sseInFlight) return;
   const state = entry.store.getState();
+  const eventCursor = encodeAgentRunEventCursor(state.runId, state.lastSequence);
   const response = await entry.platform.request(
-    `${entry.platform.apiBaseUrl}/agent-runs/${encodeURIComponent(entry.store.getState().runId)}/events?after=${state.lastSequence}&limit=${MAX_EVENTS_PER_POLL}`,
+    `${entry.platform.apiBaseUrl}/agent-runs/${encodeURIComponent(entry.store.getState().runId)}/events?after=${encodeURIComponent(eventCursor)}&limit=${MAX_EVENTS_PER_POLL}`,
     {
       headers: { accept: "application/json" },
       signal: entry.controller?.signal,
@@ -242,15 +269,13 @@ const pollOnce = async (entry: ActivityEntry): Promise<void> => {
 const startPolling = (entry: ActivityEntry): void => {
   if (entry.pollTimer || entry.destroyed || entry.refs === 0) return;
   entry.store.setState({ connection: "polling" });
-  entry.pollTimer = setInterval(() => {
-    void pollOnce(entry).catch((error: unknown) => {
-      entry.store.setState({ error: toError(error).message });
+  const runPoll = () =>
+    observe(pollOnce(entry), (error) => {
+      entry.store.setState({ error: error.message });
     });
-  }, POLL_INTERVAL_MS);
+  entry.pollTimer = setInterval(runPoll, POLL_INTERVAL_MS);
   scheduleSseRetry(entry, SSE_RETRY_INTERVAL_MS);
-  void pollOnce(entry).catch((error: unknown) => {
-    entry.store.setState({ error: toError(error).message });
-  });
+  runPoll();
 };
 
 const startSse = async (entry: ActivityEntry): Promise<void> => {
@@ -265,8 +290,8 @@ const startSse = async (entry: ActivityEntry): Promise<void> => {
   const controller = new AbortController();
   entry.controller = controller;
   entry.store.setState({ connection: "streaming" });
-  try {
-    const result = await consumeAgentRunEventStream(entry.platform, {
+  const consumed = await ResultAsync.fromPromise(
+    consumeAgentRunEventStream(entry.platform, {
       runId: entry.store.getState().runId,
       after: entry.store.getState().lastSequence,
       signal: controller.signal,
@@ -275,16 +300,21 @@ const startSse = async (entry: ActivityEntry): Promise<void> => {
         if (!entry.destroyed) entry.store.setState({ connection: "streaming" });
       },
       onEnvelope: (envelope) => applyEnvelope(entry, envelope),
-    });
-    if (!entry.destroyed && !controller.signal.aborted && !result.terminalStatus) {
-      markSseFailure(entry, new Error("Agent event stream ended before terminal state"));
-    }
-  } catch (error: unknown) {
-    if (!entry.destroyed && !controller.signal.aborted) markSseFailure(entry, toError(error));
-  } finally {
-    entry.sseInFlight = false;
-    if (entry.controller === controller) entry.controller = null;
-  }
+    }),
+    toError,
+  );
+  consumed.match(
+    (result) => {
+      if (!entry.destroyed && !controller.signal.aborted && !result.terminalStatus) {
+        markSseFailure(entry, new Error("Agent event stream ended before terminal state"));
+      }
+    },
+    (error) => {
+      if (!entry.destroyed && !controller.signal.aborted) markSseFailure(entry, error);
+    },
+  );
+  entry.sseInFlight = false;
+  if (entry.controller === controller) entry.controller = null;
 };
 
 const hydrate = async (entry: ActivityEntry): Promise<void> => {
@@ -324,7 +354,11 @@ const hydrate = async (entry: ActivityEntry): Promise<void> => {
   await startSse(entry);
 };
 
-const createEntry = (runId: string, platform: AgentRunEventsTransport): ActivityEntry => {
+const createEntry = (
+  runId: string,
+  platform: AgentRunEventsTransport,
+  registryKey: string,
+): ActivityEntry => {
   const entry = {} as ActivityEntry;
   const store = createStore<AgentActivityState>(() => ({
     runId,
@@ -353,6 +387,7 @@ const createEntry = (runId: string, platform: AgentRunEventsTransport): Activity
       store.setState({ status: run.status, finishedAt: run.finishedAt });
     },
   }));
+  entry.registryKey = registryKey;
   entry.store = store;
   entry.refs = 0;
   entry.started = false;
@@ -373,10 +408,11 @@ export const getAgentActivityEntry = (
   runId: string,
   platform: AgentRunEventsTransport,
 ): ActivityEntry => {
-  const existing = registry.get(runId);
+  const registryKey = getRegistryKey(runId, platform);
+  const existing = registry.get(registryKey);
   if (existing) return existing;
-  const entry = createEntry(runId, platform);
-  registry.set(runId, entry);
+  const entry = createEntry(runId, platform, registryKey);
+  registry.set(registryKey, entry);
 
   return entry;
 };
@@ -392,22 +428,29 @@ export const recordAgentActivityArtifactOpenFailure = (
       artifactOpenFailureCount: state.metrics.artifactOpenFailureCount + 1,
     },
   }));
-  void platform
-    .request(`${platform.apiBaseUrl}/agent-runs/${encodeURIComponent(runId)}/activity/telemetry`, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ kind: "artifact_open_failed" }),
-    })
-    .catch(() => undefined);
+  observe(
+    platform.request(
+      `${platform.apiBaseUrl}/agent-runs/${encodeURIComponent(runId)}/activity/telemetry`,
+      {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ kind: "artifact_open_failed" }),
+      },
+    ),
+    () => undefined,
+  );
+  if (entry.refs === 0 && registry.get(entry.registryKey) === entry) {
+    entry.destroyed = true;
+    registry.delete(entry.registryKey);
+  }
 };
 
 export const acquireAgentActivity = (entry: ActivityEntry): (() => void) => {
   entry.refs += 1;
   if (!entry.started) {
     entry.started = true;
-    void hydrate(entry).catch((error: unknown) => {
-      if (!entry.destroyed)
-        entry.store.setState({ connection: "error", error: toError(error).message });
+    observe(hydrate(entry), (error) => {
+      if (!entry.destroyed) entry.store.setState({ connection: "error", error: error.message });
     });
   }
   let released = false;
@@ -419,6 +462,8 @@ export const acquireAgentActivity = (entry: ActivityEntry): (() => void) => {
     if (entry.refs === 0) {
       stopTransport(entry);
       entry.started = false;
+      entry.destroyed = true;
+      if (registry.get(entry.registryKey) === entry) registry.delete(entry.registryKey);
     }
   };
 };
@@ -471,7 +516,10 @@ const createAgentActivityViewModel = (state: AgentActivityState) => {
     error: state.error,
     capabilities: state.capabilities,
     canCancel:
-      !terminal && state.status !== "cancelling" && state.capabilities?.cancellation !== "none",
+      !terminal &&
+      state.status !== "cancelling" &&
+      state.capabilities?.cancellation !== undefined &&
+      state.capabilities.cancellation !== "none",
     canPause:
       !terminal && state.capabilities?.pause !== undefined && state.capabilities.pause !== "none",
     canResume:

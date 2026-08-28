@@ -7,6 +7,8 @@ import {
   Square,
   Wrench,
 } from "lucide-react";
+import { ResultAsync } from "neverthrow";
+import { Button } from "@repo/ui/button";
 import { cn } from "@repo/ui/lib/utils";
 import type { PlatformCapabilities } from "../../platform";
 import { recordAgentActivityArtifactOpenFailure } from "./agentActivityStore";
@@ -18,6 +20,13 @@ const formatElapsed = (milliseconds: number): string => {
   const seconds = Math.floor(milliseconds / 1_000);
   const minutes = Math.floor(seconds / 60);
   return `${minutes}:${String(seconds % 60).padStart(2, "0")}`;
+};
+
+const runPlatformAction = (action: () => Promise<void>, onFailure: () => void): void => {
+  void ResultAsync.fromPromise(Promise.resolve().then(action), () => undefined).match(
+    () => undefined,
+    onFailure,
+  );
 };
 
 export const AgentActivitySurface = ({
@@ -96,37 +105,41 @@ export const AgentActivitySurface = ({
                     {artifact.openModes.includes("open") &&
                     artifact.localPath &&
                     platform.openPath ? (
-                      <button
-                        type="button"
+                      <Button
+                        variant="ghost"
+                        size="icon-xs"
                         aria-label={`Open ${artifact.label}`}
-                        className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 hover:bg-muted"
+                        className="rounded px-1.5 py-0.5"
                         title="Open artifact"
-                        onClick={() => {
-                          void platform.openPath!(artifact.localPath!).catch(() =>
-                            recordAgentActivityArtifactOpenFailure(runId, platform),
-                          );
-                        }}
+                        onClick={() =>
+                          runPlatformAction(
+                            () => platform.openPath!(artifact.localPath!),
+                            () => recordAgentActivityArtifactOpenFailure(runId, platform),
+                          )
+                        }
                       >
                         <ExternalLink className="size-3" />
-                      </button>
+                      </Button>
                     ) : null}
                     {artifact.openModes.includes("copy_path") &&
                     (artifact.localPath || artifact.remotePath) ? (
-                      <button
-                        type="button"
+                      <Button
+                        variant="ghost"
+                        size="icon-xs"
                         aria-label={`Copy ${artifact.label} path`}
-                        className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 hover:bg-muted"
+                        className="rounded px-1.5 py-0.5"
                         title={artifact.remotePath ? "Remote artifact: copy path" : "Copy path"}
                         onClick={() => {
                           const path = artifact.localPath ?? artifact.remotePath;
                           if (!path) return;
-                          void platform
-                            .copyText(path)
-                            .catch(() => recordAgentActivityArtifactOpenFailure(runId, platform));
+                          runPlatformAction(
+                            () => platform.copyText(path),
+                            () => recordAgentActivityArtifactOpenFailure(runId, platform),
+                          );
                         }}
                       >
                         <Copy className="size-3" />
-                      </button>
+                      </Button>
                     ) : null}
                   </div>
                 </div>
@@ -136,13 +149,14 @@ export const AgentActivitySurface = ({
         </>
       )}
       {!terminal && activity.canCancel && variant !== "inline" && (
-        <button
-          type="button"
-          className="mt-2 inline-flex items-center gap-1 rounded border border-border px-2 py-1 text-[11px] hover:bg-muted"
-          onClick={() => void activity.cancel()}
+        <Button
+          variant="outline"
+          size="xs"
+          className="mt-2 text-[11px]"
+          onClick={() => runPlatformAction(activity.cancel, () => undefined)}
         >
           <Square className="size-3" /> Cancel
-        </button>
+        </Button>
       )}
     </section>
   );

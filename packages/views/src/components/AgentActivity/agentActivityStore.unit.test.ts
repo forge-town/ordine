@@ -97,6 +97,47 @@ describe("shared Agent Activity store", () => {
     expect(selectAgentActivityViewModel(state)).toBe(selectAgentActivityViewModel(state));
   });
 
+  it("does not expose cancellation before runtime capabilities are known", () => {
+    const runId = `store-capabilities-${crypto.randomUUID()}`;
+    const entry = getAgentActivityEntry(runId, {
+      apiBaseUrl: "/api",
+      request: vi.fn(),
+    });
+
+    entry.store.setState({ status: "running", capabilities: null });
+
+    expect(selectAgentActivityViewModel(entry.store.getState()).canCancel).toBe(false);
+  });
+
+  it("isolates transports and removes a zero-reference entry from the registry", () => {
+    const runId = `store-registry-${crypto.randomUUID()}`;
+    const run = createRun(runId);
+    const requestA = vi.fn(async (input: RequestInfo | URL) => {
+      if (String(input).endsWith(`/agent-runs/${runId}`)) {
+        return new Response(JSON.stringify(run));
+      }
+
+      return new Response("stream unavailable", { status: 503 });
+    });
+    const requestB = vi.fn(async (input: RequestInfo | URL) => {
+      if (String(input).endsWith(`/agent-runs/${runId}`)) {
+        return new Response(JSON.stringify(run));
+      }
+
+      return new Response("stream unavailable", { status: 503 });
+    });
+    const platformA = { apiBaseUrl: "/api", request: requestA };
+    const platformB = { apiBaseUrl: "/api", request: requestB };
+    const entryA = getAgentActivityEntry(runId, platformA);
+
+    expect(getAgentActivityEntry(runId, platformB)).not.toBe(entryA);
+
+    const release = acquireAgentActivity(entryA);
+    release();
+
+    expect(getAgentActivityEntry(runId, platformA)).not.toBe(entryA);
+  });
+
   it("deduplicates a run transport and replays canonical envelopes to subscribers", async () => {
     const runId = `store-dedupe-${crypto.randomUUID()}`;
     const run = createRun(runId);
@@ -198,7 +239,7 @@ describe("shared Agent Activity store", () => {
             return new Response(
               JSON.stringify({
                 events: [terminal],
-                nextSequence: terminal.sequence,
+                nextCursor: "test-cursor",
                 terminal: true,
               }),
               { headers: { "content-type": "application/json" } },
