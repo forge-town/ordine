@@ -139,8 +139,7 @@ export type AgentControlState = {
 export type AgentControlStore = StoreApi<AgentControlState>;
 
 export const createAgentControlStore = (client: AgentControlClient): AgentControlStore => {
-  const streamControllers = new Map<string, AbortController>();
-  const lastSequences = new Map<string, number>();
+  const activitySubscriptions = new Map<string, () => void>();
   const integration = {
     invalidator: null as ResourceInvalidator | null,
     navigator: null as AgentNavigator | null,
@@ -222,7 +221,6 @@ export const createAgentControlStore = (client: AgentControlClient): AgentContro
 
   const processEnvelope = async (threadId: string, envelope: AgentRunEventEnvelope) => {
     if (store.getState().activeThreadId !== threadId) return;
-    lastSequences.set(envelope.runId, envelope.sequence);
     store.setState((state) => ({
       events: [
         ...state.events.filter(
@@ -300,34 +298,16 @@ export const createAgentControlStore = (client: AgentControlClient): AgentContro
   };
 
   const startEventStream = (threadId: string, runId: string) => {
-    if (streamControllers.has(runId)) return;
-    const controller = new AbortController();
-    streamControllers.set(runId, controller);
-    void ResultAsync.fromPromise(
-      client.consumeEvents(runId, {
-        after: lastSequences.get(runId) ?? 0,
-        signal: controller.signal,
-        onEnvelope: (envelope) => processEnvelope(threadId, envelope),
-      }),
-      toError,
-    ).match(
-      () => {
-        streamControllers.delete(runId);
-      },
-      async (error) => {
-        streamControllers.delete(runId);
-        if (controller.signal.aborted || store.getState().activeThreadId !== threadId) return;
-        store.setState({ error: `Agent event stream disconnected: ${error.message}` });
-        await wait(1_000);
-        startEventStream(threadId, runId);
-      },
+    if (activitySubscriptions.has(runId)) return;
+    const release = client.subscribeActivity(runId, (envelope) =>
+      processEnvelope(threadId, envelope),
     );
+    activitySubscriptions.set(runId, release);
   };
 
   const loadThread = async (threadId: string) => {
-    for (const controller of streamControllers.values()) controller.abort();
-    streamControllers.clear();
-    lastSequences.clear();
+    for (const release of activitySubscriptions.values()) release();
+    activitySubscriptions.clear();
     store.setState({
       activeThreadId: threadId,
       messages: [],

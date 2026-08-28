@@ -6,6 +6,7 @@ import { useCustom, useDataProvider, useOne } from "@refinedev/core";
 import { useStore } from "zustand";
 import { useCanvasPageStore } from "../_store";
 import { StatusIcon } from "./StatusIcon";
+import { AgentActivitySurface } from "../../../components/AgentActivity";
 import {
   buildRunTimeline,
   summarizeMultiInputNodes,
@@ -13,6 +14,7 @@ import {
 } from "./runTraceParser";
 import { ResourceName } from "../../../constants";
 import type { Job, JobStatus } from "@repo/schemas";
+import { usePlatform } from "../../../platform";
 
 const POLL_INTERVAL = 1500;
 
@@ -80,6 +82,7 @@ export const RunConsole = ({ visible = true }: { visible?: boolean }) => {
   const handleToggleConsoleCollapse = useStore(store, (s) => s.handleToggleConsoleCollapse);
   const getDataProvider = useDataProvider();
   const dataProvider = getDataProvider();
+  const platform = usePlatform();
 
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -143,6 +146,11 @@ export const RunConsole = ({ visible = true }: { visible?: boolean }) => {
     runTimeline.currentNodeId === null
       ? t("canvas.runConsole.currentStepIdle")
       : (nodeLabelById.get(runTimeline.currentNodeId) ?? runTimeline.currentNodeId);
+  const nodeAgentRunIds = useStore(store, (s) => s.nodeAgentRunIds);
+  const currentRunId =
+    (runTimeline.currentNodeId ? nodeAgentRunIds[runTimeline.currentNodeId]?.at(-1) : undefined) ??
+    Object.values(nodeAgentRunIds).flat().at(-1) ??
+    null;
 
   if (!visible) return null;
 
@@ -197,6 +205,14 @@ export const RunConsole = ({ visible = true }: { visible?: boolean }) => {
             ref={scrollRef}
             className="h-44 overflow-y-auto px-3.5 py-2.5 font-mono text-[10.5px] leading-relaxed"
           >
+            {currentRunId && (
+              <AgentActivitySurface
+                className="mb-2 font-sans"
+                platform={platform}
+                runId={currentRunId}
+                variant="console"
+              />
+            )}
             {!job && (
               <div className="flex items-center gap-2 text-muted-foreground">
                 <Loader2 className="size-3.5 animate-spin" />

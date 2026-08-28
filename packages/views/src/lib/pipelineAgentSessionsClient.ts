@@ -4,6 +4,10 @@ import type { PlatformCapabilities } from "../platform";
 import { projectPipelineAgentMessage } from "./projectPipelineAgentMessage";
 import { consumeAgentRunEventStream } from "./agentRunEventsClient";
 import {
+  getAgentActivityEntry,
+  subscribeAgentActivity,
+} from "../components/AgentActivity/agentActivityStore";
+import {
   AgentRunSchema,
   OperationSchema,
   PipelineSchema,
@@ -177,6 +181,7 @@ const readActiveAgentRun = (sessionId: string) => {
 
   return parsed.unwrapOr(null);
 };
+export const getStoredActiveAgentRun = (sessionId: string) => readActiveAgentRun(sessionId);
 const writeActiveAgentRun = (sessionId: string, runId: string, lastSequence: number) => {
   if (globalThis.window === undefined) return;
   globalThis.window.localStorage.setItem(
@@ -235,7 +240,7 @@ const mapAgentRunEvent = (envelope: AgentRunEventEnvelope): PipelineAgentPlanEve
   if (event.type === "text_delta") {
     return { type: "assistant_chunk", text: event.text };
   }
-  if (event.type === "thinking_delta") return { type: "thinking", text: event.text };
+  if (event.type === "thinking_delta") return { type: "thinking", text: "" };
   if (event.type === "tool_start") {
     return { type: "tool", phase: "start", id: event.id, name: event.name };
   }
@@ -605,6 +610,8 @@ export const createPipelineAgentSessionsClient = (platform: PipelineAgentSession
         speed?: string;
         firstOutputTimeoutSeconds?: number;
         signal?: AbortSignal;
+        onRunId?: (runId: string) => void;
+        useSharedActivity?: boolean;
         onEvent: (event: PipelineAgentPlanEvent) => void;
       },
     ) {
@@ -653,6 +660,7 @@ export const createPipelineAgentSessionsClient = (platform: PipelineAgentSession
       }
       const runId = activeRunState.runId;
       if (!runId) throw new Error(`Agent run did not start for session ${sessionId}`);
+      input.onRunId?.(runId);
       const streamControl = {
         lastSequence: activeRunState.lastSequence,
         terminalStatus: null as z.infer<typeof AgentRunSchema>["status"] | null,
@@ -663,7 +671,48 @@ export const createPipelineAgentSessionsClient = (platform: PipelineAgentSession
         phase: streamControl.lastSequence > 0 ? "reconnecting" : "analyzing",
       });
 
-      while (!streamControl.terminalStatus && !input.signal?.aborted) {
+      if (input.useSharedActivity) {
+        const entry = getAgentActivityEntry(runId, platform);
+        await new Promise<void>((resolve, reject) => {
+          const lifecycle = { settled: false };
+          const finish = (error?: Error) => {
+            if (lifecycle.settled) return;
+            lifecycle.settled = true;
+            unsubscribeSnapshot();
+            releaseActivity();
+            input.signal?.removeEventListener("abort", handleAbort);
+            if (error) reject(error);
+            else resolve();
+          };
+          const handleAbort = () => finish();
+          const unsubscribeSnapshot = entry.store.subscribe((next, previous) => {
+            if (next.snapshot === previous.snapshot) return;
+            if (next.snapshot && isTerminalRunStatus(next.snapshot.status)) {
+              streamControl.terminalStatus = next.snapshot.status;
+              finish();
+            }
+          });
+          const releaseActivity = subscribeAgentActivity(runId, platform, (envelope) => {
+            if (envelope.sequence <= streamControl.lastSequence) return;
+            streamControl.lastSequence = envelope.sequence;
+            writeActiveAgentRun(sessionId, runId, streamControl.lastSequence);
+            const event = mapAgentRunEvent(envelope);
+            if (event) input.onEvent(event);
+            if (envelope.event.type === "terminal") {
+              streamControl.terminalStatus = envelope.event.status;
+              finish();
+            }
+          });
+          input.signal?.addEventListener("abort", handleAbort, { once: true });
+          const current = entry.store.getState();
+          if (current.snapshot && isTerminalRunStatus(current.snapshot.status)) {
+            streamControl.terminalStatus = current.snapshot.status;
+            finish();
+          }
+        });
+      }
+
+      while (!input.useSharedActivity && !streamControl.terminalStatus && !input.signal?.aborted) {
         const consumed = await consumeAgentRunEventStream(platform, {
           runId,
           after: streamControl.lastSequence,

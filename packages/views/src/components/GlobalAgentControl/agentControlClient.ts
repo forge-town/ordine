@@ -13,6 +13,7 @@ import {
   type AgentContextEnvelope,
 } from "@repo/schemas";
 import { consumeAgentRunEventStream } from "../../lib/agentRunEventsClient";
+import { subscribeAgentActivity } from "../AgentActivity/agentActivityStore";
 import type { PlatformCapabilities } from "../../platform";
 
 const AgentThreadMessageClientSchema = z.object({
@@ -217,6 +218,8 @@ export const createAgentControlClient = (platform: AgentControlTransport) => {
       runId: string,
       input: Omit<Parameters<typeof consumeAgentRunEventStream>[1], "runId">,
     ) => consumeAgentRunEventStream(platform, { ...input, runId }),
+    subscribeActivity: (runId: string, listener: Parameters<typeof subscribeAgentActivity>[2]) =>
+      subscribeAgentActivity(runId, platform, listener),
   };
 };
 

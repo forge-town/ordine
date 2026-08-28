@@ -8,6 +8,37 @@ const json = (route: Route, body: unknown, status = 200) =>
     status,
   });
 
+const mockedAgentRun = (runId: string, ownerId: string, timestamp: string) => ({
+  id: runId,
+  owner: { type: "agent_thread", id: ownerId },
+  runtimeConfigId: "local-codex",
+  runtime: "claude-code",
+  status: "running",
+  executablePath: null,
+  executableVersion: null,
+  executableFingerprint: null,
+  model: null,
+  reasoningEffort: null,
+  speed: null,
+  cwd: "C:\\",
+  nativeSessionId: null,
+  resumeFromRunId: null,
+  permissionMode: "full-access",
+  networkAccess: true,
+  controlMode: true,
+  allowedTools: ["*"],
+  controlScopes: [],
+  usage: null,
+  resultText: null,
+  errorCode: null,
+  errorMessage: null,
+  createdAt: timestamp,
+  startedAt: timestamp,
+  firstOutputAt: null,
+  lastActivityAt: timestamp,
+  finishedAt: null,
+});
+
 const seedPipeline = async (page: Page, pipelineId: string, name: string) => {
   const response = await page.request.post("/api/trpc/pipelines.create?batch=1", {
     data: {
@@ -203,6 +234,11 @@ const mockCanvasChangeSet = async (page: Page, pipelineId: string) => {
     }
     if (pathname === `/api/agent-threads/${threadId}/runs` && request.method() === "POST") {
       await json(route, { runId }, 202);
+
+      return;
+    }
+    if (pathname === `/api/agent-runs/${runId}` && request.method() === "GET") {
+      await json(route, mockedAgentRun(runId, threadId, timestamp));
 
       return;
     }

@@ -13,6 +13,7 @@ import {
   changeExecutionRuntime,
   useAgentExecutionChoice,
 } from "../../../components/AgentExecutionPicker";
+import { AgentActivitySurface } from "../../../components/AgentActivity";
 import { createPipelineAgentSessionsClient } from "../../../lib/pipelineAgentSessionsClient";
 import { usePlatform } from "../../../platform";
 import { toastStore } from "../../../store/toastStore";
@@ -64,6 +65,7 @@ export const AgentPanel = ({ onGeneratedPipeline }: AgentPanelProps) => {
   const addMessage = useAgentBarStore((state) => state.addMessage);
   const generateProposal = useAgentBarStore((state) => state.generateProposal);
   const {
+    activeRunId,
     applyProposal,
     agentContext,
     discardProposal,
@@ -645,14 +647,20 @@ export const AgentPanel = ({ onGeneratedPipeline }: AgentPanelProps) => {
             onSubmit={handleMessageSubmit}
           />
         ))}
-        {streamingAssistantText && (
-          <Assistant className="whitespace-pre-wrap">{streamingAssistantText}</Assistant>
-        )}
-
-        <AgentActivityFeed active={isConversationActive} entries={streamingActivities} />
-
-        {isConversationActive && streamingActivities.length === 0 && (
-          <Assistant isThinking>{streamingProgress ?? t("canvas.agentPanel.thinking")}</Assistant>
+        {activeRunId ? (
+          <AgentActivitySurface platform={platform} runId={activeRunId} variant="panel" />
+        ) : (
+          <>
+            {streamingAssistantText && (
+              <Assistant className="whitespace-pre-wrap">{streamingAssistantText}</Assistant>
+            )}
+            <AgentActivityFeed active={isConversationActive} entries={streamingActivities} />
+            {isConversationActive && streamingActivities.length === 0 && (
+              <Assistant isThinking>
+                {streamingProgress ?? t("canvas.agentPanel.thinking")}
+              </Assistant>
+            )}
+          </>
         )}
         <div ref={messagesEndRef} />
 

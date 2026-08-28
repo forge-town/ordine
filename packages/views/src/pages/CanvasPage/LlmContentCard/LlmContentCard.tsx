@@ -6,15 +6,19 @@ import { ScrollArea } from "@repo/ui/scroll-area";
 import { useStore } from "zustand";
 import { useCanvasPageStore } from "../_store";
 import { AgentActivityFeed } from "../../../components/AgentActivityFeed";
+import { AgentActivitySurface } from "../../../components/AgentActivity";
+import { useOptionalPlatform } from "../../../platform";
 
 export const LlmContentCard = () => {
   const { t } = useTranslation();
+  const platform = useOptionalPlatform();
   const store = useCanvasPageStore();
   const inspectingNodeId = useStore(store, (s) => s.inspectingNodeId);
   const handleDismissInspection = useStore(store, (s) => s.handleDismissInspection);
   const nodeLlmContent = useStore(store, (s) => s.nodeLlmContent);
   const nodeAgentActivities = useStore(store, (s) => s.nodeAgentActivities);
   const nodeRunStatuses = useStore(store, (s) => s.nodeRunStatuses);
+  const nodeAgentRunIds = useStore(store, (s) => s.nodeAgentRunIds);
   const nodes = useStore(store, (s) => s.nodes);
 
   if (!inspectingNodeId) return null;
@@ -22,6 +26,7 @@ export const LlmContentCard = () => {
   const content = nodeLlmContent[inspectingNodeId];
   const activities = nodeAgentActivities[inspectingNodeId] ?? [];
   const status = nodeRunStatuses[inspectingNodeId];
+  const runId = nodeAgentRunIds[inspectingNodeId]?.at(-1) ?? null;
   const node = nodes.find((n) => n.id === inspectingNodeId);
   const nodeLabel = (node?.data as Record<string, unknown>)?.label as string | undefined;
 
@@ -46,8 +51,12 @@ export const LlmContentCard = () => {
       </div>
       <ScrollArea className="max-h-[60vh] min-h-0">
         <div className="overflow-hidden p-4">
-          <AgentActivityFeed active={status === "running"} entries={activities} />
-          {status === "running" && !content && activities.length === 0 && (
+          {runId && platform ? (
+            <AgentActivitySurface platform={platform} runId={runId} variant="bar" />
+          ) : (
+            <AgentActivityFeed active={status === "running"} entries={activities} />
+          )}
+          {status === "running" && !content && activities.length === 0 && !runId && (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Loader2 className="h-4 w-4 animate-spin" />
               <span>{t("canvas.llmContent.running")}</span>

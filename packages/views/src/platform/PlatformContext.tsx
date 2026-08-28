@@ -10,6 +10,10 @@ import { createContext, useContext, type ReactNode } from "react";
 export interface PlatformCapabilities {
   /** 将二进制内容保存到本地。Web 端走浏览器下载，Desktop 端可走原生保存对话框。 */
   downloadBlob: (blob: Blob, filename: string) => void;
+  /** 将一段路径/文本复制到当前客户端剪贴板。 */
+  copyText: (text: string) => Promise<void>;
+  /** 使用客户端默认程序打开路径；Web 端对不支持的本地路径可拒绝。 */
+  openPath?: (path: string) => Promise<void>;
   /** 当前客户端的 Ordine REST API 根地址（不含末尾斜杠）。 */
   apiBaseUrl: string;
   /** 发起平台感知的请求。Desktop 实现会为 sidecar 请求附加认证头。 */
@@ -36,3 +40,10 @@ export const usePlatform = (): PlatformCapabilities => {
 
   return ctx;
 };
+
+/**
+ * Read platform capabilities when a view can also render in an isolated
+ * preview/test tree. Run-backed activity surfaces still require a provider;
+ * callers can keep their local fallback when no platform is available.
+ */
+export const useOptionalPlatform = (): PlatformCapabilities | null => useContext(PlatformContext);

@@ -33,6 +33,7 @@ export const consumeAgentRunEventStream = async (
     runId: string;
     after?: number;
     signal?: AbortSignal;
+    onConnected?: () => void;
     onEnvelope: (envelope: AgentRunEventEnvelope) => Promise<void> | void;
   },
 ): Promise<{ lastSequence: number; terminalStatus: RuntimeTerminalStatus | null }> => {
@@ -58,6 +59,7 @@ export const consumeAgentRunEventStream = async (
   }
   const reader = response.body?.getReader();
   if (!reader) throw new Error(`Agent run ${input.runId} did not return an event stream`);
+  input.onConnected?.();
 
   const emitBufferedMessages = async () => {
     const messages = state.buffer.split(/\r?\n\r?\n/);
