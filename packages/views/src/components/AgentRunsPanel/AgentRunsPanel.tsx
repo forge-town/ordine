@@ -4,8 +4,8 @@ import { useCustom } from "@refinedev/core";
 import type { AgentRawExport } from "@repo/schemas";
 import { surfaceCardVariants } from "@repo/ui/card";
 import { cn } from "@repo/ui/lib/utils";
-import { AgentActivitySurface } from "../../../components/AgentActivity";
-import { usePlatform } from "../../../platform";
+import { AgentActivitySurface } from "../AgentActivity";
+import { usePlatform } from "../../platform";
 import { AgentRunCard } from "./AgentRunCard";
 
 interface AgentRunsPanelProps {

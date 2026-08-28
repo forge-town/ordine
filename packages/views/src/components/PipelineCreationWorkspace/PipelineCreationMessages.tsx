@@ -3,8 +3,8 @@ import { Activity, CalendarClock, CircleAlert, Wrench, WandSparkles } from "luci
 import { Badge } from "@repo/ui/badge";
 import { cn } from "@repo/ui/lib/utils";
 import type { PipelineAgentProposal } from "@repo/schemas";
-import { AgentActivitySurface } from "@repo/views/AgentActivity";
-import { webPlatform } from "@/integrations/platform";
+import { AgentActivitySurface } from "../AgentActivity";
+import { usePlatform } from "../../platform";
 import {
   PipelineCreationAttachments,
   type PipelineCreationAttachment,
@@ -50,6 +50,7 @@ export const PipelineCreationMessages = ({
   onRemoveAttachment: handleRemoveAttachment,
 }: PipelineCreationMessagesProps) => {
   const { t } = useTranslation();
+  const platform = usePlatform();
 
   return (
     <div
@@ -74,7 +75,7 @@ export const PipelineCreationMessages = ({
         </div>
       ))}
       {activityRunId && (
-        <AgentActivitySurface platform={webPlatform} runId={activityRunId} variant="panel" />
+        <AgentActivitySurface platform={platform} runId={activityRunId} variant="panel" />
       )}
       {!activityRunId && streamingAssistantText && (
         <div className="max-w-[88%] whitespace-pre-wrap break-words rounded-xl border border-dashed border-border bg-card px-3.5 py-2.5 text-sm leading-6 text-muted-foreground [overflow-wrap:anywhere]">
