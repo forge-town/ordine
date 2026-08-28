@@ -5,5 +5,3 @@ export const envSchema = z.object({
   ORDINE_DESKTOP_AUTH_TOKEN: z.string().min(32).optional(),
   ORDINE_DESKTOP_AUTH_TOKEN_FILE: z.string().min(1).optional(),
 });
-
-export type Env = z.infer<typeof envSchema>;

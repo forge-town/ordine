@@ -6,7 +6,6 @@ export const McpResourceUriSchema = z.enum([
   "ordine://workspace/context",
   "ordine://catalog/tools",
 ]);
-export type McpResourceUri = z.infer<typeof McpResourceUriSchema>;
 
 const resources = [
   {

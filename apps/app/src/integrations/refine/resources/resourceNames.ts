@@ -22,5 +22,3 @@ export const ResourceName = {
   settings: "settings",
   operationOutputItemTemplates: "operationOutputItemTemplates",
 } as const;
-
-export type ResourceNameValue = (typeof ResourceName)[keyof typeof ResourceName];

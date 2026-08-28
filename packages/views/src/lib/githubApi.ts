@@ -6,8 +6,6 @@ const GITHUB_API_BASE = "https://api.github.com";
 const defaultRequest: PlatformCapabilities["request"] = (input, init) =>
   globalThis.fetch(input, init);
 
-export type GitHubTokenStatus = { valid: true; login: string } | { valid: false; error: string };
-
 export interface GitHubRepoInfo {
   owner: string;
   repo: string;
@@ -32,7 +30,7 @@ export const getGitHubHeaders = (token?: string | null): HeadersInit => {
 export const verifyGitHubToken = async (
   token: string | null,
   request: PlatformCapabilities["request"] = defaultRequest,
-): Promise<GitHubTokenStatus> => {
+): Promise<{ valid: true; login: string } | { valid: false; error: string }> => {
   const t = i18n.t.bind(i18n);
 
   if (!token?.trim()) {
@@ -88,13 +86,9 @@ export const verifyGitHubToken = async (
   };
 };
 
-export interface ParsedGitHubUrl {
-  owner: string;
-  repo: string;
-  branch?: string;
-}
-
-export const parseGitHubUrl = (url: string): ParsedGitHubUrl | null => {
+export const parseGitHubUrl = (
+  url: string,
+): { owner: string; repo: string; branch?: string } | null => {
   const urlResult = Result.fromThrowable(
     () => new URL(url.trim()),
     () => null,
@@ -115,16 +109,6 @@ export const parseGitHubUrl = (url: string): ParsedGitHubUrl | null => {
 
   return { owner, repo, branch };
 };
-
-export class GitHubApiError extends Error {
-  constructor(
-    message: string,
-    public readonly statusCode?: number,
-  ) {
-    super(message);
-    this.name = "GitHubApiError";
-  }
-}
 
 export const fetchRepoInfo = (
   owner: string,

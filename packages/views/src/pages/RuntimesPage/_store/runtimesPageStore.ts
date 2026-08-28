@@ -1,27 +1,18 @@
 import { createContext, useContext } from "react";
-import { createStore, type StoreApi, type StateCreator } from "zustand";
+import { createStore } from "zustand";
 import { createRuntimesPageSlice, type RuntimesPageSlice } from "./runtimesPageSlice";
 
-export interface RuntimesPageState extends RuntimesPageSlice {}
-
-export type RuntimesPageStoreSlice<T = RuntimesPageState> = StateCreator<
-  RuntimesPageState,
-  [],
-  [],
-  T
->;
-
-export type RuntimesPageStore = StoreApi<RuntimesPageState>;
-
 export const createRuntimesPageStore = () => {
-  return createStore<RuntimesPageState>()((set, get, api) => ({
+  return createStore<RuntimesPageSlice>()((set, get, api) => ({
     ...createRuntimesPageSlice(set, get, api),
   }));
 };
 
-export const RuntimesPageStoreContext = createContext<RuntimesPageStore | null>(null);
+export const RuntimesPageStoreContext = createContext<ReturnType<
+  typeof createRuntimesPageStore
+> | null>(null);
 
-export const useRuntimesPageStore = (): RuntimesPageStore => {
+export const useRuntimesPageStore = (): ReturnType<typeof createRuntimesPageStore> => {
   const context = useContext(RuntimesPageStoreContext);
   if (!context) {
     throw new Error("useRuntimesPageStore must be used within a RuntimesPageStoreProvider");

@@ -7,4 +7,3 @@ export const RefinementRunSchema = z.object({
   sourceDistillationId: z.string(),
   meta: MetaSchema.optional(),
 });
-export type RefinementRun = z.infer<typeof RefinementRunSchema>;

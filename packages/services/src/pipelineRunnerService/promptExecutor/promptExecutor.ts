@@ -5,16 +5,6 @@ import type { AgentRunController } from "@repo/agent-engine";
 import { TRACE_MARKER, type OutputItem, type SshConnection } from "@repo/schemas";
 import { runAgent, type McpConnectorInjectionProvider } from "../agentRunner/agentRunner";
 
-export class PromptExecutionError extends Error {
-  constructor(
-    message: string,
-    public readonly cause?: unknown,
-  ) {
-    super(message);
-    this.name = "PromptExecutionError";
-  }
-}
-
 const PROMPT_AGENT_ID = "prompt-executor";
 
 type PromptExecutorOptions = RunPromptOptions & {
@@ -145,9 +135,9 @@ const run = ({
   onRuntimeEvent,
   onAgentRunStarted,
   agentRunController,
-}: PromptExecutorOptions): ResultAsync<string, PromptExecutionError> => {
+}: PromptExecutorOptions): ResultAsync<string, Error> => {
   if (!prompt?.trim()) {
-    return errAsync(new PromptExecutionError("Prompt text is empty"));
+    return errAsync(new Error("Prompt text is empty"));
   }
 
   const outputSection = buildOutputItemsSection(outputItems, outputDir);
@@ -199,12 +189,10 @@ const run = ({
         `[LLM] runPrompt: Error — ${cause instanceof Error ? cause.message : String(cause)}`,
       );
 
-      return cause instanceof PromptExecutionError
-        ? cause
-        : new PromptExecutionError(
-            `Prompt execution failed: ${cause instanceof Error ? cause.message : String(cause)}`,
-            cause,
-          );
+      return new Error(
+        `Prompt execution failed: ${cause instanceof Error ? cause.message : String(cause)}`,
+        { cause },
+      );
     },
   );
 };

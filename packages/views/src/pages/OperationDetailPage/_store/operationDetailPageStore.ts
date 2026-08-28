@@ -1,5 +1,5 @@
 import { createContext, useContext } from "react";
-import { createStore, type StoreApi, type StateCreator } from "zustand";
+import { createStore } from "zustand";
 import {
   createOperationDetailPageSlice,
   type OperationDetailPageSlice,
@@ -8,15 +8,6 @@ import { createOperationRunSlice, type OperationRunSlice } from "./operationRunS
 
 export interface OperationDetailPageState extends OperationDetailPageSlice, OperationRunSlice {}
 
-export type OperationDetailPageStoreSlice<T = OperationDetailPageState> = StateCreator<
-  OperationDetailPageState,
-  [],
-  [],
-  T
->;
-
-export type OperationDetailPageStore = StoreApi<OperationDetailPageState>;
-
 export const createOperationDetailPageStore = () => {
   return createStore<OperationDetailPageState>()((set, get, api) => ({
     ...createOperationDetailPageSlice(set, get, api),
@@ -24,7 +15,9 @@ export const createOperationDetailPageStore = () => {
   }));
 };
 
-export const OperationDetailPageStoreContext = createContext<OperationDetailPageStore | null>(null);
+export const OperationDetailPageStoreContext = createContext<ReturnType<
+  typeof createOperationDetailPageStore
+> | null>(null);
 
 export const useOperationDetailPageStore = () => {
   const context = useContext(OperationDetailPageStoreContext);

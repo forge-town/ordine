@@ -11,4 +11,3 @@ export const PipelineRunSchema = z.object({
   result: JobResultSchema.nullable(),
   meta: MetaSchema.optional(),
 });
-export type PipelineRun = z.infer<typeof PipelineRunSchema>;

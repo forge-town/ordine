@@ -8,13 +8,6 @@ export const authClient = createAuthClient({
   session: { refreshOnWindowFocus: true, refreshInterval: 60 * 10 },
 });
 
-export class AuthError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "AuthError";
-  }
-}
-
 export const signUpWithEmail = (input: {
   email: string;
   password: string;
@@ -26,9 +19,9 @@ export const signUpWithEmail = (input: {
       ...input,
       callbackURL: input.callbackURL ?? "/",
     }),
-    (e) => new AuthError(e instanceof Error ? e.message : "Signup request failed"),
+    (e) => new Error(e instanceof Error ? e.message : "Signup request failed"),
   ).andThen(({ data, error }) => {
-    if (error) return err(new AuthError(error.message ?? "Signup failed"));
+    if (error) return err(new Error(error.message ?? "Signup failed"));
 
     return ok(data);
   });
@@ -44,9 +37,9 @@ export const signInWithEmail = (input: {
       ...input,
       callbackURL: input.callbackURL ?? "/",
     }),
-    (e) => new AuthError(e instanceof Error ? e.message : "Login request failed"),
+    (e) => new Error(e instanceof Error ? e.message : "Login request failed"),
   ).andThen(({ data, error }) => {
-    if (error) return err(new AuthError(error.message ?? "Login failed"));
+    if (error) return err(new Error(error.message ?? "Login failed"));
 
     return ok(data);
   });
@@ -68,4 +61,4 @@ export const signInWithGoogle = (callbackURL = "/") =>
 
 export const signOut = (cb?: () => void) => authClient.signOut({ fetchOptions: { onSuccess: cb } });
 
-export const { useSession, getSession } = authClient;
+export const { useSession } = authClient;
