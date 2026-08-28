@@ -48,6 +48,11 @@ bunx --bun shadcn@4.5.0 view @animate-ui/primitives-base-dialog
 如需验证 `add` 的生成结果，也只能写入该临时目录，再人工迁移并重新运行
 `ui:animate:inspect`；禁止直接把 Registry `add` 写入应用或 `packages/ui/src`。
 
+选择边界：普通 shadcn/Base UI 组件继续按现有规范维护；Animate UI 适配层只负责
+这七类 Overlay 的生命周期动效；独立产品动效（例如页面转场或业务反馈）由所属
+产品模块单独设计。Button、Input、Card、Canvas、页面转场以及 Tabs/Highlight
+不在本次适配范围内，也不因 Overlay 统一而切换实现。
+
 页面卡片统一使用 `@repo/ui/card` 导出的 `Card` 或 `surfaceCardVariants`：
 
 ```tsx
