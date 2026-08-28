@@ -115,22 +115,26 @@
   "transitiveDependencies": [
     {
       "name": "hooks-use-controlled-state",
-      "upstreamSha256": "c9f3c1f52c8d6eb5e9283b52cc6e22ab329f8a72b1ad60472d0f54293347ee73",
+      "upstreamUrl": "https://raw.githubusercontent.com/imskyleen/animate-ui/efeb96ffd7a3b7a4868667e4ac3c346620fb3044/apps/www/registry/hooks/use-controlled-state/registry-item.json",
+      "upstreamSha256": "95fbbcdd43645d52977e80015c578291e6ea1a39aa4469f29ecd30d11f4d857f",
       "targetPath": "hooks/use-controlled-state.tsx"
     },
     {
       "name": "lib-get-strict-context",
-      "upstreamSha256": "4705aac6aaff21d3560b3df974db9b8be90cb582c2eff12ff0a1e4cd41cf5721",
+      "upstreamUrl": "https://raw.githubusercontent.com/imskyleen/animate-ui/efeb96ffd7a3b7a4868667e4ac3c346620fb3044/apps/www/registry/lib/get-strict-context/registry-item.json",
+      "upstreamSha256": "e0871755df934269041106beb7ec559dd41068e2bdf207a18af3e6e9619bb0ab",
       "targetPath": "lib/get-strict-context.tsx"
     },
     {
       "name": "primitives-effects-highlight",
-      "upstreamSha256": "7ef56bb96801f72627987141a807bb1da78240fa8b59fc0d5a252c571e51b12d",
+      "upstreamUrl": "https://raw.githubusercontent.com/imskyleen/animate-ui/efeb96ffd7a3b7a4868667e4ac3c346620fb3044/apps/www/registry/primitives/effects/highlight/registry-item.json",
+      "upstreamSha256": "4185f62b22d122f56d5a947b69203804c0debc989bee65de4562169a74d82486",
       "targetPath": "components/animate-ui/primitives/effects/highlight.tsx"
     },
     {
       "name": "hooks-use-data-state",
-      "upstreamSha256": "ea0fa7f000404b0cef9093000731374f0bd2b3ae9f9a179d654b6ba0fa3b16e5",
+      "upstreamUrl": "https://raw.githubusercontent.com/imskyleen/animate-ui/efeb96ffd7a3b7a4868667e4ac3c346620fb3044/apps/www/registry/hooks/use-data-state/registry-item.json",
+      "upstreamSha256": "f873ee76675ea4399810882c3aa00df729a8308c687b281598cf8a175c6cf527",
       "targetPath": "hooks/use-data-state.tsx"
     }
   ]

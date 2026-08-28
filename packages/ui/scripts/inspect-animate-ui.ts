@@ -14,6 +14,7 @@ type RegistryComponent = {
 
 type TransitiveDependency = {
   name: string;
+  upstreamUrl?: string;
   upstreamSha256: string;
   targetPath?: string;
 };
@@ -145,6 +146,26 @@ function printDependencyTree(name: string, indent: string, ancestors: Set<string
 console.log("Registry dependency graph:");
 for (const component of manifest.components) {
   printDependencyTree(component.name, "  ", new Set());
+}
+
+if (!offline) {
+  for (const dependency of transitiveDependencies) {
+    if (!dependency.upstreamUrl) continue;
+
+    try {
+      const response = await fetch(dependency.upstreamUrl);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const upstreamSha256 = sha256(new Uint8Array(await response.arrayBuffer()));
+      console.log(`  ${dependency.name} upstreamSha256=${upstreamSha256}`);
+      if (upstreamSha256 !== dependency.upstreamSha256) {
+        console.error(`  ERROR upstream hash drift: expected ${dependency.upstreamSha256}`);
+        failed = true;
+      }
+    } catch (error) {
+      console.error(`  ERROR transitive Registry check failed: ${String(error)}`);
+      failed = true;
+    }
+  }
 }
 
 if (failed) {
