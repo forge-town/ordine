@@ -21,5 +21,3 @@ export const serverEnvSchema = z.object({
     .default("false")
     .transform((v) => v === "true"),
 });
-
-export type ServerEnv = z.infer<typeof serverEnvSchema>;

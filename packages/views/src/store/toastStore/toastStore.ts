@@ -1,7 +1,7 @@
-import { createStore, type StoreApi, type StateCreator } from "zustand";
+import { createStore, type StateCreator } from "zustand";
 import { createContext, useContext } from "react";
 
-export interface ToastMessage {
+interface ToastMessage {
   id: string;
   type: "success" | "error";
   title: string;
@@ -9,17 +9,13 @@ export interface ToastMessage {
   duration?: number;
 }
 
-export interface ToastSlice {
+interface ToastSlice {
   toasts: ToastMessage[];
   addToast: (toast: Omit<ToastMessage, "id"> & { id?: string }) => void;
   removeToast: (id: string) => void;
 }
 
-export type ToastStore = StoreApi<ToastSlice>;
-
-export type ToastStoreSlice<T = ToastSlice> = StateCreator<ToastSlice, [], [], T>;
-
-export const createToastSlice = (set: Parameters<ToastStoreSlice>[0]): ToastSlice => ({
+const createToastSlice = (set: Parameters<StateCreator<ToastSlice>>[0]): ToastSlice => ({
   toasts: [],
   addToast: (toast) => {
     const id = toast.id ?? Math.random().toString(36).slice(2, 9);
@@ -34,14 +30,13 @@ export const createToastSlice = (set: Parameters<ToastStoreSlice>[0]): ToastSlic
   },
 });
 
-export const createToastStore = (): ToastStore =>
-  createStore<ToastSlice>()((set) => createToastSlice(set));
+export const createToastStore = () => createStore<ToastSlice>()((set) => createToastSlice(set));
 
 export const toastStore = createToastStore();
 
-export const ToastStoreContext = createContext<ToastStore | null>(null);
+export const ToastStoreContext = createContext<ReturnType<typeof createToastStore> | null>(null);
 
-export const useToastStore = (): ToastStore => {
+export const useToastStore = (): ReturnType<typeof createToastStore> => {
   const context = useContext(ToastStoreContext);
   if (!context) {
     throw new Error("useToastStore must be used within ToastStoreProvider");

@@ -7,4 +7,3 @@ export const SCRIPT_LANGUAGE_ENUM = {
 } as const;
 
 export const ScriptLanguageSchema = z.enum(SCRIPT_LANGUAGE_ENUM);
-export type ScriptLanguage = z.infer<typeof ScriptLanguageSchema>;

@@ -6,9 +6,6 @@ import {
   FormProvider,
   Controller,
   type ControllerProps,
-  type ControllerRenderProps,
-  type ControllerFieldState,
-  type UseFormStateReturn,
 } from "react-hook-form";
 import { cn } from "./lib/utils";
 import { Label } from "./label";
@@ -163,5 +160,3 @@ export {
   FormMessage,
   useFormField,
 };
-
-export type { ControllerRenderProps, ControllerFieldState, UseFormStateReturn, FieldValues };

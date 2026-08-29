@@ -1,20 +1,16 @@
 import { createContext, useContext } from "react";
-import { createStore, type StoreApi, type StateCreator } from "zustand";
+import { createStore } from "zustand";
 import { createSkillsPageSlice, type SkillsPageSlice } from "./skillsPageSlice";
 
-export interface SkillsPageState extends SkillsPageSlice {}
-
-export type SkillsPageStoreSlice<T = SkillsPageState> = StateCreator<SkillsPageState, [], [], T>;
-
-export type SkillsPageStore = StoreApi<SkillsPageState>;
-
 export const createSkillsPageStore = () => {
-  return createStore<SkillsPageState>()((set, get, api) => ({
+  return createStore<SkillsPageSlice>()((set, get, api) => ({
     ...createSkillsPageSlice(set, get, api),
   }));
 };
 
-export const SkillsPageStoreContext = createContext<SkillsPageStore | null>(null);
+export const SkillsPageStoreContext = createContext<ReturnType<
+  typeof createSkillsPageStore
+> | null>(null);
 
 export const useSkillsPageStore = () => {
   const context = useContext(SkillsPageStoreContext);

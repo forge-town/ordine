@@ -1,5 +1,5 @@
 import { createContext, useContext } from "react";
-import { createStore, type StoreApi, type StateCreator } from "zustand";
+import { createStore } from "zustand";
 import { createSettingsPageDataSlice, type SettingsPageDataSlice } from "./settingsPageDataSlice";
 import { createSettingsPageMetaSlice, type SettingsPageMetaSlice } from "./settingsPageMetaSlice";
 
@@ -12,15 +12,6 @@ export interface AppSettings {
 
 export interface SettingsPageState extends SettingsPageDataSlice, SettingsPageMetaSlice {}
 
-export type SettingsPageStoreSlice<T = SettingsPageState> = StateCreator<
-  SettingsPageState,
-  [],
-  [],
-  T
->;
-
-export type SettingsPageStore = StoreApi<SettingsPageState>;
-
 const defaultSettings: AppSettings = {
   language: {
     language: "zh-CN",
@@ -28,9 +19,7 @@ const defaultSettings: AppSettings = {
   },
 };
 
-export const createSettingsPageStore = (
-  initialOverrides?: Partial<AppSettings>,
-): SettingsPageStore => {
+export const createSettingsPageStore = (initialOverrides?: Partial<AppSettings>) => {
   const initial: AppSettings = {
     language: { ...defaultSettings.language, ...initialOverrides?.language },
   };
@@ -41,9 +30,11 @@ export const createSettingsPageStore = (
   }));
 };
 
-export const SettingsPageStoreContext = createContext<SettingsPageStore | null>(null);
+export const SettingsPageStoreContext = createContext<ReturnType<
+  typeof createSettingsPageStore
+> | null>(null);
 
-export const useSettingsPageStore = (): SettingsPageStore => {
+export const useSettingsPageStore = (): ReturnType<typeof createSettingsPageStore> => {
   const context = useContext(SettingsPageStoreContext);
   if (!context) {
     throw new Error("useSettingsPageStore must be used within a SettingsPageStoreProvider");

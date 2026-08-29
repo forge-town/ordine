@@ -9,4 +9,3 @@ export const DistillationRunSchema = z.object({
   result: DistillationResultSchema.nullable(),
   meta: MetaSchema.optional(),
 });
-export type DistillationRun = z.infer<typeof DistillationRunSchema>;
