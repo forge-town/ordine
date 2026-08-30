@@ -20,6 +20,7 @@ import type {
   SkillsDao,
   AgentRawExportsDao,
 } from "@repo/models";
+import { createJobLeaseController, type JobLeaseTimingOptions } from "../../jobLease";
 
 /**
  * Sum the persisted token usage of every agent raw export attached to the job.
@@ -51,37 +52,6 @@ const aggregateUsageTotalsSafely = async ({
   );
 
   return { totalTokens };
-};
-
-/**
- * A terminal status may only overwrite a live (running/paused) status. In
- * particular, a run cancelled while a node was still executing must stay
- * cancelled when that node later settles as done/failed. Fails open on read
- * errors — leaving a job stuck "running" is worse than a stale overwrite.
- */
-const canFinalizeJob = async ({
-  jobsDao,
-  jobId,
-}: {
-  jobsDao: JobsDao;
-  jobId: string;
-}): Promise<boolean> => {
-  const current = await ResultAsync.fromPromise(
-    (async () => jobsDao.findById(jobId))(),
-    (cause) => cause,
-  );
-  if (current.isErr()) {
-    logger.error(
-      { err: current.error, jobId },
-      "runPipeline: could not read job status before finalizing — proceeding with write",
-    );
-
-    return true;
-  }
-
-  const status = current.value?.status;
-
-  return status === "running" || status === "paused";
 };
 
 /**
@@ -129,19 +99,8 @@ const recordUsageOnFinalizedJobSafely = async ({
 }): Promise<void> => {
   if (!usageTotals) return;
 
-  const current = await ResultAsync.fromPromise(
-    (async () => jobsDao.findById(jobId))(),
-    (cause) => cause,
-  );
-  const status = current.isOk() ? current.value?.status : undefined;
-  if (!status) {
-    logger.warn({ jobId }, "runPipeline: could not record usage totals on finalized job");
-
-    return;
-  }
-
   const safeUpdate = await ResultAsync.fromPromise(
-    jobsDao.updateStatus(jobId, status, { ...usageTotals }),
+    jobsDao.updateUsageTotals(jobId, usageTotals.totalTokens),
     (e) => e,
   );
   if (safeUpdate.isErr()) {
@@ -153,9 +112,9 @@ const recordUsageOnFinalizedJobSafely = async ({
 };
 
 /**
- * Mark a job as failed. Swallows any DAO/trace errors to guarantee the caller
- * never sees an unhandled rejection from this helper. Skips the write when the
- * job already left the running/paused states (e.g. it was cancelled).
+ * Mark a live job as failed with a compare-and-set transition. If the expiry
+ * sweep wins the race, preserve the provider error without changing the
+ * terminal `expired` status. Never leaks DAO or trace failures to the caller.
  */
 const failJobSafely = async ({
   jobsDao,
@@ -179,17 +138,8 @@ const failJobSafely = async ({
     );
   }
 
-  if (!(await canFinalizeJob({ jobsDao, jobId }))) {
-    logger.info(
-      { jobId },
-      "runPipeline: job already finalized elsewhere — not overwriting with failed",
-    );
-
-    return;
-  }
-
   const safeUpdate = await ResultAsync.fromPromise(
-    jobsDao.updateStatus(jobId, "failed", {
+    jobsDao.transitionStatus(jobId, ["queued", "running", "paused"], "failed", {
       finishedAt: new Date(),
       error: message,
       ...usageTotals,
@@ -201,7 +151,27 @@ const failJobSafely = async ({
       { err: safeUpdate.error, jobId },
       "runPipeline: CRITICAL — could not mark job as failed",
     );
+
+    return;
   }
+  if (safeUpdate.value) return;
+
+  const preservedError = await ResultAsync.fromPromise(
+    jobsDao.recordErrorIfExpired(jobId, message),
+    (e) => e,
+  );
+  if (preservedError.isErr()) {
+    logger.error(
+      { err: preservedError.error, jobId },
+      "runPipeline: could not preserve provider error on expired job",
+    );
+
+    return;
+  }
+  logger.info(
+    { jobId, errorPreserved: Boolean(preservedError.value) },
+    "runPipeline: job already finalized elsewhere — not overwriting with failed",
+  );
 };
 
 export const pipelineRunExecutor = {
@@ -221,6 +191,7 @@ export const pipelineRunExecutor = {
     skillsDao: SkillsDao;
     agentRawExportsDao: AgentRawExportsDao;
     engineDeps: PipelineEngineDeps;
+    jobLease?: JobLeaseTimingOptions;
     runControl?: PipelineRunControl;
     onRunSettled?: () => void;
   }): Promise<void> => {
@@ -238,10 +209,17 @@ export const pipelineRunExecutor = {
       engineDeps,
     } = opts;
     const updateNodeStatus = createNodeStatusWriter({ jobsDao, jobId });
+    const lease = createJobLeaseController({ jobsDao, jobId, options: opts.jobLease });
 
     const runResult = await ResultAsync.fromPromise(
       (async () => {
-        await jobsDao.updateStatus(jobId, "running", { startedAt: new Date() });
+        const claimed = await lease.claim();
+        if (!claimed) {
+          logger.info({ jobId }, "runPipeline: execution lease was not claimed");
+
+          return;
+        }
+        lease.start();
         await trace(jobId, `Starting pipeline ${pipelineId}`);
 
         const pipeline = await pipelinesDao.findById(pipelineId);
@@ -330,12 +308,11 @@ export const pipelineRunExecutor = {
 
         if (outcome.ok) {
           await pipelineRunsDao.update(jobId, { result: { summary: outcome.summary } });
-          if (await canFinalizeJob({ jobsDao, jobId })) {
-            await jobsDao.updateStatus(jobId, "done", {
-              finishedAt: new Date(),
-              ...usageTotals,
-            });
-          } else {
+          const finalized = await jobsDao.transitionStatus(jobId, ["running", "paused"], "done", {
+            finishedAt: new Date(),
+            ...usageTotals,
+          });
+          if (!finalized) {
             logger.info(
               { jobId },
               "runPipeline: job already finalized elsewhere — not overwriting with done",
@@ -351,7 +328,9 @@ export const pipelineRunExecutor = {
           // the usage totals gathered so far.
           await trace(jobId, `Run cancelled: ${outcome.error.message}`);
           const safeUpdate = await ResultAsync.fromPromise(
-            jobsDao.updateStatus(jobId, "cancelled", { ...usageTotals }),
+            jobsDao.transitionStatus(jobId, ["queued", "running", "paused"], "cancelled", {
+              ...usageTotals,
+            }),
             (e) => e,
           );
           if (safeUpdate.isErr()) {
@@ -359,6 +338,8 @@ export const pipelineRunExecutor = {
               { err: safeUpdate.error, jobId },
               "runPipeline: failed to record usage totals on cancelled job",
             );
+          } else if (!safeUpdate.value) {
+            await recordUsageOnFinalizedJobSafely({ jobsDao, jobId, usageTotals });
           }
         } else {
           await failJobSafely({
@@ -371,6 +352,7 @@ export const pipelineRunExecutor = {
       })(),
       (cause) => (cause instanceof Error ? cause : new Error(String(cause))),
     );
+    lease.stop();
 
     if (runResult.isErr()) {
       logger.error({ err: runResult.error, jobId }, "runPipeline: unhandled error in pipeline run");

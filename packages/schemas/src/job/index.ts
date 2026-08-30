@@ -1,4 +1,5 @@
 export * from "./JobSchema";
+export * from "./JobExpiryContextSchema";
 export * from "./JobStatusSchema";
 export * from "./JobTriggeredBySchema";
 export * from "./JobTypeSchema";

@@ -10,6 +10,7 @@ export * from "./distillationsService";
 export * from "./filesystemService";
 export * from "./githubProjectsService";
 export * from "./jobsService";
+export * from "./jobLease";
 export * from "./operationsService";
 export * from "./operationRunnerService";
 export * from "./pipelineAssetsService";
