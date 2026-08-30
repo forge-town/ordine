@@ -41,6 +41,7 @@ const {
     mockJobsDao: {
       findById: vi.fn(),
       updateStatus: vi.fn().mockResolvedValue(undefined),
+      transitionStatus: vi.fn().mockResolvedValue({ id: "job-1" }),
       create: vi.fn().mockResolvedValue(undefined),
       setNodeStatuses: vi.fn().mockResolvedValue(undefined),
     },
@@ -129,6 +130,7 @@ describe("createPipelineRunnerService run controls", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockJobsDao.updateStatus.mockResolvedValue(undefined);
+    mockJobsDao.transitionStatus.mockResolvedValue({ id: "job-1" });
     mockMcpInjections.length = 0;
     mockConnectorsDao.findMany.mockResolvedValue([]);
     mockOperationsDao.findById.mockReset();
@@ -170,7 +172,12 @@ describe("createPipelineRunnerService run controls", () => {
 
     expect(result.isOk()).toBe(true);
     expect(releaseState.released).toBe(true);
-    expect(mockJobsDao.updateStatus).toHaveBeenCalledWith(jobId, "running", undefined);
+    expect(mockJobsDao.transitionStatus).toHaveBeenCalledWith(
+      jobId,
+      ["paused", "running"],
+      "running",
+      undefined,
+    );
 
     pipelineRunControl.clear(jobId);
   });
@@ -183,7 +190,12 @@ describe("createPipelineRunnerService run controls", () => {
     const result = await service.resumeRun(jobId);
 
     expect(result.isOk()).toBe(true);
-    expect(mockJobsDao.updateStatus).toHaveBeenCalledWith(jobId, "running", undefined);
+    expect(mockJobsDao.transitionStatus).toHaveBeenCalledWith(
+      jobId,
+      ["paused", "running"],
+      "running",
+      undefined,
+    );
 
     pipelineRunControl.clear(jobId);
   });
@@ -198,7 +210,7 @@ describe("createPipelineRunnerService run controls", () => {
     if (result.isErr()) {
       expect(result.error).toBeInstanceOf(InvalidJobStatusError);
     }
-    expect(mockJobsDao.updateStatus).not.toHaveBeenCalled();
+    expect(mockJobsDao.transitionStatus).not.toHaveBeenCalled();
   });
 
   it("resumeRun rejects unknown jobs", async () => {
@@ -224,8 +236,9 @@ describe("createPipelineRunnerService run controls", () => {
     if (result.isOk()) {
       expect(result.value).toEqual({ jobId, cancelled: true });
     }
-    expect(mockJobsDao.updateStatus).toHaveBeenCalledWith(
+    expect(mockJobsDao.transitionStatus).toHaveBeenCalledWith(
       jobId,
+      ["queued", "running", "paused"],
       "cancelled",
       expect.objectContaining({ finishedAt: expect.any(Date) }),
     );
@@ -243,12 +256,12 @@ describe("createPipelineRunnerService run controls", () => {
     if (result.isErr()) {
       expect(result.error).toBeInstanceOf(InvalidJobStatusError);
     }
-    expect(mockJobsDao.updateStatus).not.toHaveBeenCalled();
+    expect(mockJobsDao.transitionStatus).not.toHaveBeenCalled();
   });
 
   it("surfaces a DB write failure as an error result", async () => {
     mockJobsDao.findById.mockResolvedValue({ id: "job-db", status: "running" });
-    mockJobsDao.updateStatus.mockRejectedValueOnce(new Error("DB down"));
+    mockJobsDao.transitionStatus.mockRejectedValueOnce(new Error("DB down"));
     const service = makeService();
 
     const result = await service.pauseRun("job-db");

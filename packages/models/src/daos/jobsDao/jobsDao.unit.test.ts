@@ -120,6 +120,109 @@ describe("jobsDao", () => {
     );
   });
 
+  it("claims and renews an execution lease with caller-provided UTC instants", async () => {
+    const claimedAt = new Date("2026-06-01T12:00:00.000Z");
+    const firstExpiry = new Date("2026-06-01T12:01:30.000Z");
+    const heartbeatAt = new Date("2026-06-01T12:00:30.000Z");
+    const renewedExpiry = new Date("2026-06-01T12:02:00.000Z");
+    mockReturning.mockResolvedValueOnce([makeRow("job-lease", "running")]);
+    mockReturning.mockResolvedValueOnce([{ status: "running" }]);
+
+    await dao.claimExecutionLease("job-lease", "worker-1", claimedAt, firstExpiry);
+    await dao.renewExecutionLease("job-lease", "worker-1", heartbeatAt, renewedExpiry);
+
+    expect(mockSet).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({
+        status: "running",
+        startedAt: claimedAt,
+        lastProgressAt: claimedAt,
+        heartbeatAt: claimedAt,
+        leaseOwnerId: "worker-1",
+        leaseExpiresAt: firstExpiry,
+      }),
+    );
+    expect(mockSet).toHaveBeenNthCalledWith(2, {
+      heartbeatAt,
+      leaseExpiresAt: renewedExpiry,
+      updatedAt: heartbeatAt,
+    });
+  });
+
+  it("clears a lease whenever a Job reaches a terminal status", async () => {
+    mockReturning.mockResolvedValueOnce([makeRow("job-terminal", "done")]);
+
+    await dao.transitionStatus("job-terminal", ["running", "paused"], "done", {
+      finishedAt: new Date("2026-06-01T12:00:00.000Z"),
+    });
+
+    expect(mockSet).toHaveBeenCalledWith(
+      expect.objectContaining({ status: "done", leaseOwnerId: null, leaseExpiresAt: null }),
+    );
+  });
+
+  it("uses one observed instant and records structured reasons during a stale sweep", async () => {
+    const observedAt = new Date("2026-06-01T12:00:00.000Z");
+    mockReturning
+      .mockResolvedValueOnce([
+        {
+          id: "queued-stale",
+          expiryContext: { reason: "queue_timeout" },
+        },
+      ])
+      .mockResolvedValueOnce([
+        {
+          id: "running-stale",
+          expiryContext: { reason: "lease_expired" },
+        },
+      ])
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([]);
+
+    const expired = await dao.expireStaleJobs({
+      observedAt,
+      queuedTimeoutMs: 60_000,
+      legacyNoLeaseTimeoutMs: 120_000,
+      sweeperId: "sweeper-1",
+    });
+
+    expect(expired.map(({ id }) => id)).toEqual(["queued-stale", "running-stale"]);
+    expect(mockSet).toHaveBeenCalledTimes(5);
+    expect(mockSet).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({
+        status: "expired",
+        finishedAt: observedAt,
+        updatedAt: observedAt,
+        expiryContext: {
+          reason: "queue_timeout",
+          previousStatus: "queued",
+          observedAtMs: observedAt.getTime(),
+          staleBeforeMs: observedAt.getTime() - 60_000,
+          timeoutMs: 60_000,
+          sweeperId: "sweeper-1",
+        },
+      }),
+    );
+    expect(mockSet).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({
+        expiryContext: expect.objectContaining({
+          reason: "lease_expired",
+          previousStatus: "running",
+          observedAtMs: observedAt.getTime(),
+          staleBeforeMs: observedAt.getTime(),
+          timeoutMs: null,
+        }),
+      }),
+    );
+    const statusPatches = mockSet.mock.calls as unknown as Array<[Record<string, unknown>]>;
+    for (const [patch] of statusPatches) {
+      expect(patch).not.toHaveProperty("error");
+    }
+  });
+
   it("delete calls db.delete", async () => {
     await dao.delete("job-6");
     expect(mockWhere).toHaveBeenCalled();

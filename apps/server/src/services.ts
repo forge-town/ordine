@@ -21,9 +21,21 @@ import {
   createRoutinesService,
   createSkillsService,
   createUsageService,
+  DEFAULT_JOB_HEARTBEAT_INTERVAL_MS,
+  DEFAULT_JOB_LEASE_DURATION_MS,
   agentRunCapabilityStore,
   listDirectory,
 } from "@repo/services";
+import { getEnv } from "./integrations/env";
+
+const env = getEnv();
+const jobLease = {
+  leaseDurationMs: env.JOB_LEASE_DURATION_MS ?? DEFAULT_JOB_LEASE_DURATION_MS,
+  heartbeatIntervalMs: env.JOB_HEARTBEAT_INTERVAL_MS ?? DEFAULT_JOB_HEARTBEAT_INTERVAL_MS,
+};
+if (jobLease.heartbeatIntervalMs >= jobLease.leaseDurationMs) {
+  throw new Error("JOB_HEARTBEAT_INTERVAL_MS must be less than JOB_LEASE_DURATION_MS");
+}
 
 export const agentsService = createAgentsService(db);
 export const agentRunsService = createAgentRunsService(db);
@@ -35,13 +47,16 @@ export const conversationMessagesService = createConversationMessagesService(db)
 export const distillationsService = createDistillationsService(db);
 export const jobsService = createJobsService(db);
 export const operationsService = createOperationsService(db);
-export const operationRunnerService = createOperationRunnerService(db);
+export const operationRunnerService = createOperationRunnerService(db, jobLease);
 export const pipelineAgentSessionsService = createPipelineAgentSessionsService(db, {
   agentRunsService,
 });
 export const pipelineAssetsService = createPipelineAssetsService(db);
 export const pipelinesService = createPipelinesService(db);
-export const pipelineRunnerService = createPipelineRunnerService(db, { agentRunController });
+export const pipelineRunnerService = createPipelineRunnerService(db, {
+  agentRunController,
+  jobLease,
+});
 export const projectsService = createProjectsService(db);
 export const routinesService = createRoutinesService(db, {
   startRun: (opts) => pipelineRunnerService.startRun(opts),
