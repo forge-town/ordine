@@ -177,6 +177,41 @@ describe("promptExecutor", () => {
     expect(callArgs.systemPrompt).toContain("@@USER_ACTION::");
   });
 
+  it("fails instead of forwarding a valid user-action request as successful output", async () => {
+    const onProgress = vi.fn();
+    vi.mocked(agentEngine.run).mockResolvedValueOnce({
+      text: [
+        '@@USER_ACTION::{"kind":"provide-info","message":"Provide the final paper"}',
+        "Partial answer",
+      ].join("\n"),
+      usage: null,
+    });
+
+    const result = await promptExecutor.run({ ...baseOpts, agent: "codex", onProgress });
+
+    expect(result.isErr()).toBe(true);
+    if (result.isErr()) {
+      expect(result.error.message).toContain("Provide the final paper");
+    }
+    expect(onProgress).toHaveBeenCalledWith(
+      '@@USER_ACTION::{"kind":"provide-info","message":"Provide the final paper"}',
+    );
+  });
+
+  it("fails closed when an agent emits a malformed user-action request", async () => {
+    vi.mocked(agentEngine.run).mockResolvedValueOnce({
+      text: "@@USER_ACTION::{not-json}",
+      usage: null,
+    });
+
+    const result = await promptExecutor.run({ ...baseOpts, agent: "codex" });
+
+    expect(result.isErr()).toBe(true);
+    if (result.isErr()) {
+      expect(result.error.message).toContain("invalid user-action marker");
+    }
+  });
+
   it("requires content-preserving operations to return a complete downstream artifact", async () => {
     const result = await promptExecutor.run({ ...baseOpts, agent: "codex" });
 

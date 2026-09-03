@@ -1,8 +1,14 @@
-import { ResultAsync, errAsync } from "neverthrow";
+import { err, errAsync, ok, Result, ResultAsync } from "neverthrow";
 import { logger } from "@repo/logger";
 import type { OperationRuntimeContext, RunPromptOptions } from "@repo/pipeline-engine";
 import type { AgentRunController } from "@repo/agent-engine";
-import { TRACE_MARKER, type OutputItem, type SshConnection } from "@repo/schemas";
+import {
+  TRACE_MARKER,
+  UserActionPayloadSchema,
+  type OutputItem,
+  type SshConnection,
+  type UserActionPayload,
+} from "@repo/schemas";
 import { runAgent, type McpConnectorInjectionProvider } from "../agentRunner/agentRunner";
 
 const PROMPT_AGENT_ID = "prompt-executor";
@@ -30,6 +36,26 @@ const USER_ACTION_SECTION = [
   "Do NOT emit the marker when nothing is missing.",
   "",
 ].join("\n");
+
+type UserActionRequest = { line: string; payload: UserActionPayload };
+
+const parseUserActionRequest = (rawText: string): Result<UserActionRequest | null, Error> => {
+  const line = rawText
+    .split(/\r?\n/)
+    .map((candidate) => candidate.trim())
+    .find((candidate) => candidate.startsWith(TRACE_MARKER.userAction));
+  if (!line) return ok(null);
+  const payloadText = line.slice(TRACE_MARKER.userAction.length);
+  const decoded = Result.fromThrowable(
+    () => JSON.parse(payloadText) as unknown,
+    () => new Error("Agent emitted an invalid user-action marker"),
+  )();
+  if (decoded.isErr()) return err(decoded.error);
+  const parsed = UserActionPayloadSchema.safeParse(decoded.value);
+  if (!parsed.success) return err(new Error("Agent emitted an invalid user-action marker"));
+
+  return ok({ line, payload: parsed.data });
+};
 
 const DOWNSTREAM_DATA_CONTRACT_SECTION = [
   "",
@@ -179,6 +205,12 @@ const run = ({
         onAgentRunStarted,
         agentRunController,
       });
+      const userAction = parseUserActionRequest(raw);
+      if (userAction.isErr()) throw userAction.error;
+      if (userAction.value) {
+        await onProgress?.(userAction.value.line);
+        throw new Error(`Agent requires user action: ${userAction.value.payload.message}`);
+      }
       if (onChunk) await onChunk(raw);
 
       return raw;

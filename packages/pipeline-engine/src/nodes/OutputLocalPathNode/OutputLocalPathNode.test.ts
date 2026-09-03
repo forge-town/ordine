@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeAll, afterAll, beforeEach } from "vitest";
-import { mkdir, rm } from "node:fs/promises";
+import { mkdir, readdir, rm } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { homedir, tmpdir } from "node:os";
@@ -128,6 +128,21 @@ describe("processOutputLocalPathNode", () => {
       "abcdef12-3456-7890",
       expect.stringContaining("output_abcdef12_"),
     );
+  });
+
+  it("treats a filename-shaped localPath as a file hint instead of a directory", async () => {
+    const outputDir = join(testDir, "file-hint-test");
+    const configuredFilePath = join(outputDir, "paper.md");
+    const deps = makeDeps();
+    const node = makeNode({ localPath: configuredFilePath });
+    const ctx = makeCtx(node, deps);
+
+    await processOutputLocalPathNode(ctx);
+
+    const files = await readdir(outputDir);
+    expect(files).toHaveLength(1);
+    expect(files[0]).toMatch(/^paper_abcdef12_.*\.md$/);
+    expect(existsSync(configuredFilePath)).toBe(false);
   });
 
   it("always emits NODE_DONE", async () => {

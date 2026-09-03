@@ -81,6 +81,7 @@ export const pipelinesRouter = router({
         model: z.string().min(1).optional(),
         reasoningEffort: z.string().min(1).optional(),
         speed: z.string().min(1).optional(),
+        firstOutputTimeoutSeconds: z.number().int().min(0).max(3600).optional(),
       }),
     )
     .mutation(async ({ input }) => {
@@ -98,6 +99,10 @@ export const pipelinesRouter = router({
         model: input.model,
         reasoningEffort: input.reasoningEffort,
         speed: input.speed,
+        firstOutputTimeoutMs:
+          input.firstOutputTimeoutSeconds === undefined
+            ? undefined
+            : input.firstOutputTimeoutSeconds * 1000,
       });
 
       if (result.isErr()) {
