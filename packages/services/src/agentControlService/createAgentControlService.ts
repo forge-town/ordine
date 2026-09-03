@@ -45,9 +45,11 @@ import {
   type AgentControlToolResult,
   type AgentResourceRef,
   type AgentRuntime,
+  type AgentRunStatus,
 } from "@repo/schemas";
 import { err, ok, ResultAsync, type Result } from "neverthrow";
 import { createCanvasControl, type CanvasReadValue } from "./canvasControl";
+import { canAppendControlRunEvent } from "./controlRunEvent";
 import { createExecutionPreflight, type ExecutionPreflightValue } from "./executionPreflight";
 import {
   createResourceControl,
@@ -84,6 +86,7 @@ export type AgentControlRunEventPort = {
   getRun: (runId: string) => Promise<{
     runtime: AgentRuntime;
     controlMode: boolean;
+    status: AgentRunStatus;
   } | null>;
   append: (runId: string, event: AgentControlEvent) => Promise<unknown>;
 };
@@ -371,7 +374,7 @@ export const createAgentControlService = (
   ): Promise<void> => {
     if (!runId || !options.runEvents) return;
     const run = await options.runEvents.getRun(runId);
-    if (!run?.controlMode) return;
+    if (!run || !canAppendControlRunEvent(run)) return;
     const event = AgentControlEventSchema.parse({
       ...payload,
       runtime: run.runtime,
