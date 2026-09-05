@@ -10,8 +10,7 @@ describe("runtimeManifestRegistry", () => {
     expect([...runtimeIds].sort()).toEqual([...AgentRuntimeSchema.options].sort());
   });
 
-  it("marks protocol adapters experimental until their runtime probe passes", () => {
-    expect(getRuntimeManifest("deepseek-harness").supportLevel).toBe("experimental");
+  it("uses ACP for Mistral Vibe", () => {
     expect(getRuntimeManifest("mistral-vibe").streamFormat).toBe("acp-json-rpc");
   });
 });

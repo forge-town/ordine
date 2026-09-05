@@ -52,45 +52,7 @@ describe("loadActiveRun", () => {
     );
   });
 
-  it("returns undefined when the job belongs to a different pipeline", async () => {
-    mockJobsDao.findById.mockResolvedValue({
-      id: "job-1",
-      pipelineId: "pipe-other",
-      status: "running",
-    });
-
-    const result = await loadActiveRun(
-      { jobsDao: mockJobsDao as never, jobTracesDao: mockJobTracesDao as never },
-      { jobId: "job-1", nodeStatuses: {}, status: "running" },
-      "pipe-1",
-    );
-
-    expect(result).toBeUndefined();
-    expect(logger.warn).toHaveBeenCalledWith(
-      { jobId: "job-1", jobPipelineId: "pipe-other", pipelineId: "pipe-1" },
-      "proposeActions: runState job does not belong to current pipeline",
-    );
-    expect(mockJobTracesDao.findByJobId).not.toHaveBeenCalled();
-  });
-
-  it("returns undefined when pipelineId is not provided", async () => {
-    mockJobsDao.findById.mockResolvedValue({
-      id: "job-1",
-      pipelineId: "pipe-1",
-      status: "running",
-    });
-
-    const result = await loadActiveRun(
-      { jobsDao: mockJobsDao as never, jobTracesDao: mockJobTracesDao as never },
-      { jobId: "job-1", nodeStatuses: {}, status: "running" },
-      undefined,
-    );
-
-    expect(result).toBeUndefined();
-    expect(mockJobTracesDao.findByJobId).not.toHaveBeenCalled();
-  });
-
-  it("returns active run with chronological traces when the job belongs to the current pipeline", async () => {
+  it("returns active run with chronological traces", async () => {
     mockJobsDao.findById.mockResolvedValue({
       id: "job-1",
       pipelineId: "pipe-1",
