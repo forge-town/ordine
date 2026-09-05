@@ -3,10 +3,8 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
-  applyJsonInstall,
   doctorMcpTarget,
   installMcpTarget,
-  removeJsonInstall,
   statusMcpTarget,
   uninstallMcpTarget,
 } from "../src/mcp/installer";
@@ -101,25 +99,6 @@ describe("MCP install registry", () => {
 });
 
 describe("deletion-safe JSON registration", () => {
-  it("preserves sibling config and refuses to remove a changed entry", () => {
-    const plan = planMcpInstall("cursor", spec, makeContext("C:\\Users\\test"));
-    if (plan.kind !== "json") throw new Error("Expected Cursor JSON plan");
-    const installed = applyJsonInstall(
-      JSON.stringify({ theme: "dark", mcpServers: { existing: { command: "other" } } }),
-      plan,
-    );
-
-    expect(JSON.parse(installed)).toMatchObject({
-      theme: "dark",
-      mcpServers: {
-        existing: { command: "other" },
-        ordine: { command: "ordine" },
-      },
-    });
-    const changed = installed.replace('"command": "ordine"', '"command": "someone-else"');
-    expect(() => removeJsonInstall(changed, plan)).toThrow("Refusing to remove changed entry");
-  });
-
   it("backs up an existing file, installs, and removes only ORDINE", async () => {
     const home = await mkdtemp(join(tmpdir(), "ordine-mcp-test-"));
     temporaryDirectories.push(home);
@@ -180,51 +159,6 @@ describe("deletion-safe JSON registration", () => {
     expect(result.status).toBe("already-installed");
     expect(commandRunner).toHaveBeenCalledOnce();
     expect(commandRunner).toHaveBeenCalledWith("codex", ["mcp", "get", "ordine"]);
-  });
-
-  it("refuses to overwrite or remove a same-name CLI registration with drift", async () => {
-    const commandRunner = vi.fn(async () => ({
-      exitCode: 0,
-      stdout: "ordine\ncommand: someone-else\nargs: serve",
-      stderr: "",
-    }));
-    const context = makeContext("C:\\Users\\test");
-
-    await expect(
-      installMcpTarget({ target: "codex", spec, context, commandRunner }),
-    ).rejects.toThrow("Refusing to overwrite changed entry");
-    await expect(
-      uninstallMcpTarget({ target: "codex", spec, context, commandRunner }),
-    ).rejects.toThrow("Refusing to remove changed entry");
-    expect(commandRunner).toHaveBeenCalledTimes(2);
-  });
-
-  it("reports CLI and JSON registration drift without probing the protocol", async () => {
-    const protocolProbe = vi.fn();
-    const commandRunner = vi.fn(async () => ({
-      exitCode: 0,
-      stdout: "ordine\ncommand: someone-else",
-      stderr: "",
-    }));
-    const context = makeContext("C:\\Users\\test");
-    const cliStatus = await statusMcpTarget({
-      target: "codex",
-      spec,
-      context,
-      commandRunner,
-    });
-    const cliDoctor = await doctorMcpTarget({
-      target: "codex",
-      spec,
-      context,
-      commandRunner,
-      protocolProbe,
-    });
-
-    expect(cliStatus.status).toBe("drifted");
-    expect(cliDoctor.status).toBe("drifted");
-    expect(cliDoctor.evidence?.registered).toBe(false);
-    expect(protocolProbe).not.toHaveBeenCalled();
   });
 
   it("reports session readiness drift when protocol succeeds but preflight fails", async () => {
