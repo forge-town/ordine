@@ -64,7 +64,8 @@ const extract = ({ rawText }: { rawText: string }): string => {
 // ─── JSON → Markdown ──────────────────────────────────────────────────────────
 
 const toMarkdown = ({ content }: { content: string }): string => {
-  const parsed = tryParseJson({ text: content });
+  const parsed =
+    tryParseJson({ text: content }) ?? tryParseJson({ text: extractJsonFromText(content) });
   if (parsed === undefined) return content;
 
   if (

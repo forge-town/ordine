@@ -57,6 +57,8 @@ export const createAgentRunController =
         runtimeConfigId,
         cwd: options.cwd,
         ...(options.model ? { model: options.model } : {}),
+        ...(options.reasoningEffort ? { reasoningEffort: options.reasoningEffort } : {}),
+        ...(options.speed ? { speed: options.speed } : {}),
         systemPrompt: options.systemPrompt,
         prompt: options.userPrompt,
         rebuildPrompt: options.rebuildPrompt ?? options.userPrompt,

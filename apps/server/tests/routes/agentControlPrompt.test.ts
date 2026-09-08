@@ -35,4 +35,12 @@ describe("buildAgentControlPrompt", () => {
     expect(large.prompt).not.toContain("secret-node-");
     expect(large.prompt).not.toContain("secret-edge-");
   });
+
+  it("requires semantic input coverage in addition to structural Canvas validation", () => {
+    const result = promptWithAccidentalSnapshot(0);
+
+    expect(result.systemPrompt).toContain("validate_canvas only proves structural validity");
+    expect(result.systemPrompt).toContain("localPath is an output directory");
+    expect(result.systemPrompt).toContain("outputFileName");
+  });
 });

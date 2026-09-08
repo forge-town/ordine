@@ -145,5 +145,17 @@ Trailing text`;
         "# Review Report\n\nGenerated markdown body.",
       );
     });
+
+    it("unwraps a result envelope surrounded by agent prose", () => {
+      const envelope = JSON.stringify({
+        result: "# Review Report\n\nGenerated markdown body.",
+        outputs: ["review.md"],
+      });
+      const input = `I will save the reviewed document.\n${envelope}\nDone.`;
+
+      expect(structuredOutput.toMarkdown({ content: input })).toBe(
+        "# Review Report\n\nGenerated markdown body.",
+      );
+    });
   });
 });

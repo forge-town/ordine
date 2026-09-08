@@ -27,6 +27,7 @@ import {
   createInitialAgentRunActivitySnapshot,
   AgentControlEventSchema,
   RuntimeEventSchema,
+  TERMINAL_AGENT_RUN_STATUSES,
   parseLocalAgentRuntimeId,
   RuntimeCapabilitiesSchema,
   type AgentRun,
@@ -48,13 +49,6 @@ import { redactSensitiveText, sanitizeAgentRunEvent } from "./sanitizeAgentRunDa
 
 const SUPPORTED_RUNTIMES = new Set<AgentRuntime>(["claude-code", "codex", "opencode"]);
 const CONTROL_MODE_SUPPORTED_RUNTIMES = new Set<AgentRuntime>(["claude-code", "codex"]);
-const TERMINAL_STATUSES = new Set<AgentRunStatus>([
-  "completed",
-  "failed",
-  "cancelled",
-  "timed_out",
-  "interrupted",
-]);
 const EVENT_RETENTION_MS = 30 * 24 * 60 * 60 * 1000;
 const FIRST_OUTPUT_TIMEOUT_MS = 45_000;
 const INACTIVITY_TIMEOUT_MS = 10 * 60 * 1000;
@@ -432,7 +426,7 @@ export const createAgentRunsService = (
             const transactionEventsDao = createAgentRunEventsDao(transaction);
             const current = await transactionRunsDao.findById(runId);
             if (!current) throw new Error(`Agent run not found: ${runId}`);
-            if (TERMINAL_STATUSES.has(current.status) && sanitized.type !== "terminal") {
+            if (TERMINAL_AGENT_RUN_STATUSES.has(current.status) && sanitized.type !== "terminal") {
               throw new Error(`Agent run ${runId} has an immutable terminal state`);
             }
             const terminalTransition =
@@ -1158,7 +1152,7 @@ export const createAgentRunsService = (
         await cleanup();
         const failure = toError(error);
         const existing = await runsDao.findById(id);
-        if (existing && !TERMINAL_STATUSES.has(existing.status)) {
+        if (existing && !TERMINAL_AGENT_RUN_STATUSES.has(existing.status)) {
           return finishRun({
             runId: id,
             runtime: runtimeConfig.type,
@@ -1210,7 +1204,7 @@ export const createAgentRunsService = (
       const execution = executions.get(runId);
       if (execution) return execution;
       const run = await getRunRecord(runId);
-      if (TERMINAL_STATUSES.has(run.status)) return getPublicRun(run);
+      if (TERMINAL_AGENT_RUN_STATUSES.has(run.status)) return getPublicRun(run);
 
       throw new Error(`Agent run ${runId} is not executing in this service process`);
     },
@@ -1256,7 +1250,7 @@ export const createAgentRunsService = (
 
     async cancel(runId: string): Promise<AgentRun> {
       const run = await getRunRecord(runId);
-      if (TERMINAL_STATUSES.has(run.status)) return getPublicRun(run);
+      if (TERMINAL_AGENT_RUN_STATUSES.has(run.status)) return getPublicRun(run);
       const requested = await runsDao.requestCancel(runId, new Date());
       const active = activeRuns.get(runId);
       if (active && !active.controller.signal.aborted) {

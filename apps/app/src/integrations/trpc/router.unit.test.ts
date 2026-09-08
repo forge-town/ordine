@@ -239,6 +239,33 @@ describe("domain tRPC routers", () => {
     expect(mocks.pipelineStartRun).not.toHaveBeenCalled();
   });
 
+  it("forwards the selected runtime profile to the pipeline runner", async () => {
+    mocks.pipelinesGetById.mockResolvedValueOnce({ id: "pipeline-1" });
+    mocks.pipelineStartRun.mockResolvedValueOnce(ok({ jobId: "job-1" }));
+    const caller = domainRouter.createCaller({ session: null });
+
+    await expect(
+      caller.pipelines.run({
+        id: "pipeline-1",
+        runtimeConfigId: "local-codex",
+        model: "gpt-5.6-luna",
+        reasoningEffort: "xhigh",
+        speed: "priority",
+        firstOutputTimeoutSeconds: 600,
+      }),
+    ).resolves.toEqual({ jobId: "job-1" });
+    expect(mocks.pipelineStartRun).toHaveBeenCalledWith(
+      expect.objectContaining({
+        pipelineId: "pipeline-1",
+        runtimeConfigId: "local-codex",
+        model: "gpt-5.6-luna",
+        reasoningEffort: "xhigh",
+        speed: "priority",
+        firstOutputTimeoutMs: 600_000,
+      }),
+    );
+  });
+
   it("maps missing Operation references during a run to CONFLICT", async () => {
     const missingOperation = new Error("Pipeline references a missing Operation");
     Object.assign(missingOperation, {

@@ -1,5 +1,5 @@
 import { mkdir, writeFile } from "node:fs/promises";
-import { existsSync } from "node:fs";
+import { existsSync, statSync } from "node:fs";
 import { basename, dirname, extname, join, resolve } from "node:path";
 import { trace } from "@repo/obs";
 import { encodeNodeDone, encodeNodeFail } from "@repo/schemas";
@@ -28,9 +28,28 @@ export const processOutputLocalPathNode = async (ctx: NodeContext): Promise<Node
 
   const data = node.data;
   const configuredPath = data.localPath ?? "";
-  const rawPath = resolveRawPath(configuredPath, defaultOutputPath);
-  const baseOutputFileName = data.outputFileName?.trim() || "output.md";
+  const explicitOutputFileName = data.outputFileName?.trim();
+  const expandedPath = expandTilde(configuredPath);
+  const isDirectory =
+    /[\\/]$/.test(configuredPath) ||
+    statSync(expandedPath, { throwIfNoEntry: false })?.isDirectory();
+  const inferredOutputFileName =
+    !explicitOutputFileName &&
+    !isDirectory &&
+    [".md", ".txt", ".json"].includes(extname(configuredPath).toLowerCase())
+      ? basename(configuredPath)
+      : "";
+  const configuredDirectory = inferredOutputFileName ? dirname(configuredPath) : configuredPath;
+  const rawPath = resolveRawPath(configuredDirectory, defaultOutputPath);
+  const baseOutputFileName = explicitOutputFileName || inferredOutputFileName || "output.md";
   const outputMode = data.outputMode ?? "overwrite";
+
+  if (inferredOutputFileName) {
+    await trace(
+      jobId,
+      `Interpreting filename-shaped localPath as directory ${configuredDirectory} with outputFileName ${inferredOutputFileName}`,
+    );
+  }
 
   const shortJobId = jobId.slice(0, 8);
   const timestamp = new Date().toISOString().replaceAll(/[:.]/g, "-").slice(0, 19);
