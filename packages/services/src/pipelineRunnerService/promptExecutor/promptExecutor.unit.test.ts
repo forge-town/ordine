@@ -1,3 +1,4 @@
+import { UserActionRequiredError } from "@repo/pipeline-engine";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -191,6 +192,7 @@ describe("promptExecutor", () => {
 
     expect(result.isErr()).toBe(true);
     if (result.isErr()) {
+      expect(result.error).toBeInstanceOf(UserActionRequiredError);
       expect(result.error.message).toContain("Provide the final paper");
     }
     expect(onProgress).toHaveBeenCalledWith(

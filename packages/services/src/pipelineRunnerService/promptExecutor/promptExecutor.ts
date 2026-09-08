@@ -1,6 +1,10 @@
 import { err, errAsync, ok, Result, ResultAsync } from "neverthrow";
 import { logger } from "@repo/logger";
-import type { OperationRuntimeContext, RunPromptOptions } from "@repo/pipeline-engine";
+import {
+  UserActionRequiredError,
+  type OperationRuntimeContext,
+  type RunPromptOptions,
+} from "@repo/pipeline-engine";
 import type { AgentRunController } from "@repo/agent-engine";
 import {
   TRACE_MARKER,
@@ -209,7 +213,9 @@ const run = ({
       if (userAction.isErr()) throw userAction.error;
       if (userAction.value) {
         await onProgress?.(userAction.value.line);
-        throw new Error(`Agent requires user action: ${userAction.value.payload.message}`);
+        throw new UserActionRequiredError(
+          `Agent requires user action: ${userAction.value.payload.message}`,
+        );
       }
       if (onChunk) await onChunk(raw);
 
@@ -220,6 +226,8 @@ const run = ({
       void onProgress?.(
         `[LLM] runPrompt: Error — ${cause instanceof Error ? cause.message : String(cause)}`,
       );
+
+      if (cause instanceof UserActionRequiredError) return cause;
 
       return new Error(
         `Prompt execution failed: ${cause instanceof Error ? cause.message : String(cause)}`,

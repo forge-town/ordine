@@ -5,6 +5,7 @@ import { makeNode } from "../helpers/makeNode";
 import type { OperationInfo } from "../../nodes/types";
 import { makeEdge } from "../helpers/makeEdge";
 import { makePromptFailureDeps, makeTestDeps } from "../helpers/makeTestDeps";
+import { UserActionRequiredError } from "../../errors";
 
 /*
 Pipeline shape:
@@ -16,6 +17,46 @@ Expected runtime behavior:
   - downstream-op never runs
 */
 describe("pipeline scenario: failure flow", () => {
+  it.each([false, true])(
+    "stops self-healing for user action, after transient failure: %s",
+    async (transientFirst) => {
+      const userAction = new UserActionRequiredError("Agent requires user action: select input");
+      const runPrompt = vi.fn().mockReturnValue(errAsync(userAction));
+      if (transientFirst) runPrompt.mockReturnValueOnce(errAsync(new Error("temporary failure")));
+      const statuses: string[] = [];
+      const result = await executeScenario({
+        deps: makeTestDeps({ runPrompt }),
+        operations: new Map([
+          [
+            "needs-input",
+            {
+              id: "needs-input",
+              name: "Needs input",
+              config: {
+                executor: { type: "agent", agentMode: "prompt", prompt: "Read input" },
+              },
+            },
+          ],
+        ]),
+        nodes: [
+          makeNode("needs-input", "operation", { operationId: "needs-input" }),
+          makeNode("downstream", "operation", { operationId: "needs-input" }),
+        ],
+        edges: [makeEdge("needs-input", "downstream")],
+        selfHealRetries: 3,
+        onNodeStatusChange: ({ nodeId, status }) => {
+          statuses.push(`${nodeId}:${status}`);
+        },
+      });
+      expect(result).toMatchObject({ ok: false, error: userAction });
+      expect(runPrompt).toHaveBeenCalledTimes(transientFirst ? 2 : 1);
+      expect(statuses).toContain("downstream:skipped");
+      expect(statuses.filter((status) => status.endsWith(":retrying"))).toHaveLength(
+        transientFirst ? 1 : 0,
+      );
+    },
+  );
+
   it("stops executing downstream levels after an operation failure", async () => {
     const deps = makePromptFailureDeps();
     const operations = new Map<string, OperationInfo>([

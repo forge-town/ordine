@@ -1,12 +1,4 @@
-import type { AgentRunStatus } from "@repo/schemas";
-
-const TERMINAL_AGENT_RUN_STATUSES = new Set<AgentRunStatus>([
-  "completed",
-  "failed",
-  "cancelled",
-  "timed_out",
-  "interrupted",
-]);
+import { TERMINAL_AGENT_RUN_STATUSES, type AgentRunStatus } from "@repo/schemas";
 
 type ControlRunState = {
   controlMode: boolean;

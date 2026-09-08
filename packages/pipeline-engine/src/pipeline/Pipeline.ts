@@ -29,7 +29,12 @@ import {
   type MetaNodeType,
 } from "@repo/schemas";
 import type { PipelineEngineDeps } from "../deps";
-import { PipelineCancelledError, ScriptExecutionError, type PipelineRunError } from "../errors";
+import {
+  PipelineCancelledError,
+  ScriptExecutionError,
+  UserActionRequiredError,
+  type PipelineRunError,
+} from "../errors";
 import { buildExecutionLevels, type CycleDetectedError } from "../dagScheduler";
 import { validateHandoffGraph } from "../handoff";
 import { expandTilde, safeReadInputFile } from "../infrastructure";
@@ -423,7 +428,7 @@ export class Pipeline {
     }
 
     const firstResult = await this.processNode(node);
-    if (firstResult.ok || !this.canSelfHeal(node)) {
+    if (firstResult.ok || !this.canSelfHeal(node, firstResult.error)) {
       return firstResult;
     }
 
@@ -445,14 +450,18 @@ export class Pipeline {
 
         return retryResult;
       }
+      if (!this.canSelfHeal(node, retryResult.error)) return retryResult;
       retryState.lastFailure = retryResult;
     }
 
     return retryState.lastFailure;
   }
 
-  private canSelfHeal(node: PipelineNode): boolean {
-    return node.data.nodeType === BUILTIN_NODE_TYPE_ENUM.OPERATION;
+  private canSelfHeal(node: PipelineNode, error: PipelineRunError): boolean {
+    return (
+      node.data.nodeType === BUILTIN_NODE_TYPE_ENUM.OPERATION &&
+      !(error instanceof UserActionRequiredError)
+    );
   }
 
   /**

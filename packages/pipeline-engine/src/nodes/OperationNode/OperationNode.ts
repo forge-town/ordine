@@ -12,7 +12,7 @@ import {
 import type { NodeCtx, OperationRuntimeContext } from "../../schemas";
 import { trace } from "@repo/obs";
 import { ResultAsync } from "neverthrow";
-import { ScriptExecutionError } from "../../errors";
+import { ScriptExecutionError, UserActionRequiredError } from "../../errors";
 import { runScript, safeParseConfig } from "../../infrastructure";
 import type { OperationNodeContext, OperationExecResult, NodeResult } from "../types";
 import { captureOutputArtifact } from "./captureOutputArtifact";
@@ -230,7 +230,13 @@ export const executeOperationNode = async (
     if (promptResult.isErr()) {
       await trace(jobId, encodeNodeFail(node.id));
 
-      return { outcome: "failed", error: new ScriptExecutionError(promptResult.error.message) };
+      return {
+        outcome: "failed",
+        error:
+          promptResult.error instanceof UserActionRequiredError
+            ? promptResult.error
+            : new ScriptExecutionError(promptResult.error.message, promptResult.error),
+      };
     }
     opResult.value = promptResult.value;
     await traceFinalLlmContent(opResult.value);

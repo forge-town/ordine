@@ -145,6 +145,37 @@ describe("processOutputLocalPathNode", () => {
     expect(existsSync(configuredFilePath)).toBe(false);
   });
 
+  it.each(["v2.0", "archive.d", "2026.09.05", "new.md/", "new.txt\\"])(
+    "keeps dotted or explicitly marked directory %s as a directory",
+    async (directory) => {
+      const configuredPath = `${testDir}/${directory}`;
+      // Use a platform-native separator for the Windows directory marker.
+      const localPath =
+        configuredPath.endsWith("\\") && process.platform !== "win32"
+          ? `${configuredPath.slice(0, -1)}/`
+          : configuredPath;
+      const deps = makeDeps();
+      await processOutputLocalPathNode(makeCtx(makeNode({ localPath }), deps));
+      expect(await readdir(localPath)).toEqual([expect.stringMatching(/^output_abcdef12_.*\.md$/)]);
+      expect(deps.structuredJsonToMarkdown).toHaveBeenCalledWith("test content");
+    },
+  );
+
+  it("honors an existing directory even when its name has a known output extension", async () => {
+    const localPath = join(testDir, "existing.json");
+    await mkdir(localPath);
+    await processOutputLocalPathNode(makeCtx(makeNode({ localPath }), makeDeps()));
+    expect(await readdir(localPath)).toEqual([expect.stringMatching(/^output_abcdef12_.*\.md$/)]);
+  });
+
+  it("honors an explicit output filename inside a dotted directory", async () => {
+    const localPath = join(testDir, "explicit.md");
+    await processOutputLocalPathNode(
+      makeCtx(makeNode({ localPath, outputFileName: "report.txt" }), makeDeps()),
+    );
+    expect(await readdir(localPath)).toEqual([expect.stringMatching(/^report_abcdef12_.*\.txt$/)]);
+  });
+
   it("always emits NODE_DONE", async () => {
     const deps = makeDeps();
     const node = makeNode({ localPath: join(testDir, "done-test") });

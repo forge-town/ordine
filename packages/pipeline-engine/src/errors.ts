@@ -15,6 +15,13 @@ export class ScriptExecutionError extends Error {
   }
 }
 
+export class UserActionRequiredError extends ScriptExecutionError {
+  constructor(message: string) {
+    super(message);
+    this.name = "UserActionRequiredError";
+  }
+}
+
 export class ConfigParseError extends Error {
   constructor(
     public readonly operationName: string,
