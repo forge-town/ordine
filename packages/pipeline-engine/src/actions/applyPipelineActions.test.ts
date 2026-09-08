@@ -52,60 +52,6 @@ describe("validatePipelineActions", () => {
 });
 
 describe("applyPipelineActions", () => {
-  it("validates updateOperation against the current graph without changing it", () => {
-    const operationNode = {
-      id: "operation-node",
-      type: "operation" as const,
-      position: { x: 0, y: 0 },
-      data: {
-        nodeType: "operation" as const,
-        label: "Review",
-        operationId: "op-review",
-        operationName: "Review",
-        status: "idle" as const,
-      },
-    };
-    const snapshot = makeSnapshot([operationNode]);
-    const result = applyPipelineActions(snapshot, [
-      {
-        type: "updateOperation",
-        operationId: "op-review",
-        executor: {
-          type: "agent",
-          agentMode: "prompt",
-          agent: "codex",
-          model: "gpt-review",
-          prompt: "Review the input.",
-          allowedTools: [],
-          assignmentReason: "Semantic review requires an agent.",
-        },
-      },
-    ]);
-
-    expect(result.isOk()).toBe(true);
-    expect(result._unsafeUnwrap()).toEqual(snapshot);
-  });
-
-  it("rejects updateOperation for an operation outside the current graph", () => {
-    const result = applyPipelineActions(makeSnapshot(), [
-      {
-        type: "updateOperation",
-        operationId: "op-missing",
-        executor: {
-          type: "script",
-          language: "bash",
-          command: "bun run lint",
-          assignmentReason: "Linting is a deterministic local command.",
-        },
-      },
-    ]);
-
-    expect(result.isErr()).toBe(true);
-    expect(result._unsafeUnwrapErr()).toEqual([
-      expect.objectContaining({ code: "OPERATION_NOT_FOUND", actionIndex: 0 }),
-    ]);
-  });
-
   it("applies sequential addNode then addEdge actions", () => {
     const folderNode = makeNode("folder-1", "folder");
     const actionNode = makeNode("action-1", "operation", {

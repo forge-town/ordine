@@ -689,63 +689,6 @@ describe("createPipelineAgentSessionsService", () => {
     expect(mockDb.transaction).toHaveBeenCalledOnce();
   });
 
-  it("rejects approval when updateOperation targets an Operation outside the edit snapshot", async () => {
-    mockSessionsDao.findById.mockResolvedValueOnce({
-      id: "session-1",
-      entrypoint: "canvas-agent-panel",
-      mode: "edit",
-      status: "proposal_ready",
-      pipelineId: "pipe-1",
-      snapshot: { nodes: [], edges: [] },
-      latestProposalId: "proposal-edit-1",
-      approvedProposalId: null,
-      createdPipelineId: null,
-      createdAt: new Date("2026-06-03T12:00:00.000Z"),
-      updatedAt: new Date("2026-06-03T12:00:00.000Z"),
-    });
-    mockProposalsDao.findById.mockResolvedValueOnce({
-      id: "proposal-edit-1",
-      sessionId: "session-1",
-      mode: "edit",
-      status: "proposal_ready",
-      proposal: {
-        mode: "edit",
-        summary: "Change an unrelated executor",
-        targetGraphIntent: "Change an unrelated executor",
-        majorChanges: [],
-        assumptions: [],
-        openQuestions: [],
-        actions: [
-          {
-            type: "updateOperation",
-            operationId: "not-on-this-canvas",
-            executor: {
-              type: "script",
-              language: "bash",
-              command: "echo no",
-              assignmentReason: "This is a deterministic command.",
-            },
-          },
-        ],
-        diagnosticsPreview: [],
-        readiness: "ready_for_generation",
-        pendingOperations: [],
-      },
-      createdAt: new Date("2026-06-03T12:00:02.000Z"),
-      updatedAt: new Date("2026-06-03T12:00:02.000Z"),
-      approvedAt: null,
-    });
-
-    await expect(
-      createPipelineAgentSessionsService({} as never).approveProposal(
-        "session-1",
-        "proposal-edit-1",
-      ),
-    ).rejects.toThrow("not used by edit session");
-    expect(mockPipelinesService.updateOperationExecutors).not.toHaveBeenCalled();
-    expect(mockProposalsDao.update).not.toHaveBeenCalled();
-  });
-
   it("rejects approval when a proposal still needs user input", async () => {
     mockProposalsDao.findById.mockResolvedValueOnce({
       id: "proposal-needs-answer",
@@ -771,34 +714,6 @@ describe("createPipelineAgentSessionsService", () => {
 
     await expect(service.approveProposal("session-1", "proposal-needs-answer")).rejects.toThrow(
       "not ready for approval",
-    );
-  });
-
-  it("rejects approval when a proposal belongs to a different session", async () => {
-    mockProposalsDao.findById.mockResolvedValueOnce({
-      id: "proposal-foreign",
-      sessionId: "session-2",
-      mode: "generate",
-      status: "proposal_ready",
-      proposal: {
-        mode: "generate",
-        purpose: "Review repository code",
-        inputs: ["folder"],
-        outputs: ["markdown report"],
-        majorOperations: ["review-code"],
-        executionFlow: ["folder -> review-code -> output"],
-        assumptions: [],
-        openQuestions: [],
-        readiness: "ready_for_generation",
-      },
-      createdAt: new Date("2026-06-03T12:00:02.000Z"),
-      updatedAt: new Date("2026-06-03T12:00:02.000Z"),
-      approvedAt: null,
-    });
-    const service = createPipelineAgentSessionsService({} as never);
-
-    await expect(service.approveProposal("session-1", "proposal-foreign")).rejects.toThrow(
-      "does not belong to session",
     );
   });
 

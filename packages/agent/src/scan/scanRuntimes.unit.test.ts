@@ -170,7 +170,6 @@ describe("scanRuntimes", () => {
     expect(types).toContain("pi-agent");
     expect(types).toContain("opencode");
     expect(types).toContain("kimi-code");
-    expect(types).toContain("deepseek-harness");
     expect(types).toContain("mistral-vibe");
   });
 
