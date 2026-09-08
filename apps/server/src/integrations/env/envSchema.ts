@@ -2,7 +2,11 @@ import { z } from "zod/v4";
 
 export const envSchema = z.object({
   PORT: z.coerce.number().optional(),
-  JOB_TIMEOUT_MS: z.coerce.number().optional(),
+  JOB_TIMEOUT_MS: z.coerce.number().int().positive().optional(),
+  JOB_QUEUE_TIMEOUT_MS: z.coerce.number().int().positive().optional(),
+  JOB_LEGACY_STALE_TIMEOUT_MS: z.coerce.number().int().positive().optional(),
+  JOB_LEASE_DURATION_MS: z.coerce.number().int().positive().optional(),
+  JOB_HEARTBEAT_INTERVAL_MS: z.coerce.number().int().positive().optional(),
   ORDINE_AGENT_API_TOKEN: z.string().min(32).optional(),
   ORDINE_AGENT_CONTROL_ENABLED: z
     .enum(["true", "false"])

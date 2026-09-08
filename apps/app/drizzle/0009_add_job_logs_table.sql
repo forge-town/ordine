@@ -19,7 +19,7 @@ CREATE TABLE "job_logs" (
 --> statement-breakpoint
 ALTER TABLE "works" DISABLE ROW LEVEL SECURITY;--> statement-breakpoint
 DROP TABLE "works" CASCADE;--> statement-breakpoint
-ALTER TABLE "jobs" DROP CONSTRAINT "jobs_work_id_works_id_fk";
+ALTER TABLE "jobs" DROP CONSTRAINT IF EXISTS "jobs_work_id_works_id_fk";
 --> statement-breakpoint
 ALTER TABLE "rules" ADD COLUMN "check_script" text;--> statement-breakpoint
 ALTER TABLE "rules" ADD COLUMN "script_language" text DEFAULT 'typescript';--> statement-breakpoint

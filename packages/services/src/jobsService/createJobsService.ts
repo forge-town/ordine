@@ -27,6 +27,7 @@ export const createJobsService = (db: DbConnection) => {
     getAgentRunById: (id: number) => agentRawExportsDao.findById(id),
     getSpansByJobId: (jobId: string) => agentSpansDao.findByJobId(jobId),
     getSpansByRawExportId: (rawExportId: number) => agentSpansDao.findByRawExportId(rawExportId),
-    expireStaleJobs: (defaultTimeoutMs: number) => jobsDao.expireStaleJobs(defaultTimeoutMs),
+    expireStaleJobs: (...args: Parameters<typeof jobsDao.expireStaleJobs>) =>
+      jobsDao.expireStaleJobs(...args),
   };
 };

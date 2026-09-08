@@ -30,11 +30,13 @@ import {
   type PipelineOperationReferencesError,
 } from "../../pipelinesService/checkPipelineOperationReferences";
 import type { ServiceError } from "../../serviceErrors";
+import type { JobLeaseTimingOptions } from "../../jobLease";
 
 export interface PipelineRunnerServiceOptions {
   encryptionSecret?: string;
   env?: Readonly<Record<string, string | undefined>>;
   agentRunController?: AgentRunController;
+  jobLease?: JobLeaseTimingOptions;
 }
 
 export class PipelineNotFoundError extends Error {
@@ -110,11 +112,12 @@ export const createPipelineRunnerService = (
 
   const persistStatus = (
     jobId: string,
+    from: readonly JobStatus[],
     status: JobStatus,
     extra?: { finishedAt?: Date },
   ): ResultAsync<unknown, Error> =>
     ResultAsync.fromPromise(
-      jobsDao.updateStatus(jobId, status, extra),
+      jobsDao.transitionStatus(jobId, from, status, extra),
       (cause) =>
         new Error(
           `Failed to persist status "${status}" for job ${jobId}: ${cause instanceof Error ? cause.message : String(cause)}`,
@@ -315,6 +318,7 @@ export const createPipelineRunnerService = (
             getMcpConnectorInjection: buildMcpConnectorInjectionProvider(runtimeConfig.type),
             signal: pipelineRunControl.signal(jobId),
           }),
+          jobLease: options.jobLease,
           runControl,
           onRunSettled: () => pipelineRunControl.clear(jobId),
         }),
@@ -335,8 +339,11 @@ export const createPipelineRunnerService = (
       const guard = await guardJobStatus("pause", jobId, ["running"]);
       if (guard.isErr()) return err(guard.error);
 
-      const write = await persistStatus(jobId, "paused");
+      const write = await persistStatus(jobId, ["running"], "paused");
       if (write.isErr()) return err(write.error);
+      if (!write.value) {
+        return err(new InvalidJobStatusError("pause", jobId, "changed concurrently", ["running"]));
+      }
 
       return ok(pipelineRunControl.pause(jobId));
     },
@@ -349,8 +356,13 @@ export const createPipelineRunnerService = (
       const guard = await guardJobStatus("resume", jobId, ["paused", "running"]);
       if (guard.isErr()) return err(guard.error);
 
-      const write = await persistStatus(jobId, "running");
+      const write = await persistStatus(jobId, ["paused", "running"], "running");
       if (write.isErr()) return err(write.error);
+      if (!write.value) {
+        return err(
+          new InvalidJobStatusError("resume", jobId, "changed concurrently", ["paused", "running"]),
+        );
+      }
 
       return ok(pipelineRunControl.resume(jobId));
     },
@@ -364,8 +376,19 @@ export const createPipelineRunnerService = (
 
       // Persist the cancelled status before releasing any waiter, so the
       // executor's terminal-status guard reliably sees "cancelled".
-      const write = await persistStatus(jobId, "cancelled", { finishedAt: new Date() });
+      const write = await persistStatus(jobId, ["queued", "running", "paused"], "cancelled", {
+        finishedAt: new Date(),
+      });
       if (write.isErr()) return err(write.error);
+      if (!write.value) {
+        return err(
+          new InvalidJobStatusError("cancel", jobId, "changed concurrently", [
+            "queued",
+            "running",
+            "paused",
+          ]),
+        );
+      }
 
       return ok(pipelineRunControl.cancel(jobId));
     },

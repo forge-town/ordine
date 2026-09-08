@@ -7,6 +7,10 @@ const mockOperationsDao = {
 const mockJobsDao = {
   create: vi.fn().mockResolvedValue(undefined),
   updateStatus: vi.fn().mockResolvedValue(undefined),
+  transitionStatus: vi.fn().mockResolvedValue({ id: "job-1" }),
+  claimExecutionLease: vi.fn().mockResolvedValue({ id: "job-1", status: "running" }),
+  renewExecutionLease: vi.fn().mockResolvedValue({ status: "running" }),
+  recordErrorIfExpired: vi.fn().mockResolvedValue(undefined),
 };
 
 const mockSettingsDao = {
@@ -73,6 +77,8 @@ import {
 describe("createOperationRunnerService", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockJobsDao.transitionStatus.mockResolvedValue({ id: "job-1" });
+    mockJobsDao.claimExecutionLease.mockResolvedValue({ id: "job-1", status: "running" });
   });
 
   it("returns OperationNotFoundError when operation does not exist", async () => {

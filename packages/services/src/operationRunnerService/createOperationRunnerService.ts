@@ -22,6 +22,7 @@ import {
   createAgentRuntimesDao,
   type DbConnection,
 } from "@repo/models";
+import { createJobLeaseController, type JobLeaseTimingOptions } from "../jobLease";
 
 export class OperationNotFoundError extends Error {
   constructor(operationId: string) {
@@ -30,7 +31,10 @@ export class OperationNotFoundError extends Error {
   }
 }
 
-export const createOperationRunnerService = (db: DbConnection) => {
+export const createOperationRunnerService = (
+  db: DbConnection,
+  jobLeaseOptions?: JobLeaseTimingOptions,
+) => {
   const agentsDao = createAgentsDao(db);
   const operationsDao = createOperationsDao(db);
   const jobsDao = createJobsDao(db);
@@ -43,6 +47,41 @@ export const createOperationRunnerService = (db: DbConnection) => {
 
   initObs(jobTracesDao);
   initSpanRecorder({ agentRawExportsDao, agentSpansDao });
+
+  const failJobSafely = async (jobId: string, message: string): Promise<void> => {
+    const safeTrace = await ResultAsync.fromPromise(
+      trace(jobId, `ERROR: ${message}`, "error"),
+      (cause) => (cause instanceof Error ? cause : new Error(String(cause))),
+    );
+    if (safeTrace.isErr()) {
+      logger.error({ err: safeTrace.error, jobId }, "operationRunner: error trace failed");
+    }
+
+    const failed = await ResultAsync.fromPromise(
+      jobsDao.transitionStatus(jobId, ["queued", "running", "paused"], "failed", {
+        finishedAt: new Date(),
+        error: message,
+      }),
+      (cause) => (cause instanceof Error ? cause : new Error(String(cause))),
+    );
+    if (failed.isErr()) {
+      logger.error({ err: failed.error, jobId }, "operationRunner: failed to finalize job");
+
+      return;
+    }
+    if (failed.value) return;
+
+    const preserved = await ResultAsync.fromPromise(
+      jobsDao.recordErrorIfExpired(jobId, message),
+      (cause) => (cause instanceof Error ? cause : new Error(String(cause))),
+    );
+    if (preserved.isErr()) {
+      logger.error(
+        { err: preserved.error, jobId },
+        "operationRunner: could not preserve provider error on expired job",
+      );
+    }
+  };
 
   const buildDepsForJob = ({
     jobId,
@@ -91,6 +130,11 @@ export const createOperationRunnerService = (db: DbConnection) => {
         startedAt: null,
         finishedAt: null,
       });
+      const lease = createJobLeaseController({
+        jobsDao,
+        jobId,
+        options: jobLeaseOptions,
+      });
 
       const settings = normalizeSettingsRecord(await settingsDao.get());
 
@@ -110,7 +154,13 @@ export const createOperationRunnerService = (db: DbConnection) => {
 
       void ResultAsync.fromPromise(
         (async () => {
-          await jobsDao.updateStatus(jobId, "running", { startedAt: new Date() });
+          const claimed = await lease.claim();
+          if (!claimed) {
+            logger.info({ jobId }, "operationRunner: execution lease was not claimed");
+
+            return;
+          }
+          lease.start();
           await trace(jobId, `Starting operation "${operation.name}" (${opts.operationId})`);
 
           const operationInfo: OperationInfo = {
@@ -180,26 +230,35 @@ export const createOperationRunnerService = (db: DbConnection) => {
 
           if (result.outcome === "completed") {
             await trace(jobId, `Operation completed successfully (${result.content.length} chars)`);
-            await jobsDao.updateStatus(jobId, "done", { finishedAt: new Date() });
+            const finalized = await jobsDao.transitionStatus(jobId, ["running", "paused"], "done", {
+              finishedAt: new Date(),
+            });
+            if (!finalized) {
+              logger.info(
+                { jobId },
+                "operationRunner: job already finalized elsewhere — not overwriting with done",
+              );
+            }
           } else {
             const message =
               result.outcome === "failed"
                 ? result.error.message
                 : "Operation was skipped (incomplete configuration)";
-            await trace(jobId, `ERROR: ${message}`, "error");
-            await jobsDao.updateStatus(jobId, "failed", {
-              finishedAt: new Date(),
-              error: message,
-            });
+            await failJobSafely(jobId, message);
           }
         })(),
         (error) => error,
       ).match(
-        () => undefined,
-        (error) => {
+        () => lease.stop(),
+        async (error) => {
+          lease.stop();
           logger.error(
             { err: error, jobId },
             "operationRunner: unhandled rejection from background operation run",
+          );
+          await failJobSafely(
+            jobId,
+            `Unhandled error: ${error instanceof Error ? error.message : String(error)}`,
           );
         },
       );

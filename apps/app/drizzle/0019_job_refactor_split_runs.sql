@@ -36,7 +36,7 @@ DROP INDEX "jobs_pipeline_id_idx";--> statement-breakpoint
 ALTER TABLE "jobs" ALTER COLUMN "type" DROP DEFAULT;--> statement-breakpoint
 ALTER TABLE "settings" ALTER COLUMN "default_model" SET DEFAULT 'kimi-for-coding/k2p6';--> statement-breakpoint
 ALTER TABLE "jobs" ADD COLUMN "parent_job_id" text;--> statement-breakpoint
-ALTER TABLE "settings" ADD COLUMN "agent_runtimes" jsonb DEFAULT '[]'::jsonb NOT NULL;--> statement-breakpoint
+ALTER TABLE "settings" ADD COLUMN IF NOT EXISTS "agent_runtimes" jsonb DEFAULT '[]'::jsonb NOT NULL;--> statement-breakpoint
 ALTER TABLE "distillation_runs" ADD CONSTRAINT "distillation_runs_id_jobs_id_fk" FOREIGN KEY ("id") REFERENCES "public"."jobs"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "distillation_runs" ADD CONSTRAINT "distillation_runs_distillation_id_distillations_id_fk" FOREIGN KEY ("distillation_id") REFERENCES "public"."distillations"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "pipeline_runs" ADD CONSTRAINT "pipeline_runs_id_jobs_id_fk" FOREIGN KEY ("id") REFERENCES "public"."jobs"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint

@@ -1,5 +1,11 @@
 import { index, integer, jsonb, pgTable, text, timestamp } from "drizzle-orm/pg-core";
-import type { JobStatus, JobTriggeredBy, JobType, NodeRunStatus } from "@repo/schemas";
+import type {
+  JobExpiryContext,
+  JobStatus,
+  JobTriggeredBy,
+  JobType,
+  NodeRunStatus,
+} from "@repo/schemas";
 import { pipelinesTable } from "./pipelines_table";
 import { projectsTable } from "./projects_table";
 
@@ -19,6 +25,11 @@ export const jobsTable = pgTable(
     error: text("error"),
     startedAt: timestamp("started_at"),
     finishedAt: timestamp("finished_at"),
+    lastProgressAt: timestamp("last_progress_at").notNull().defaultNow(),
+    heartbeatAt: timestamp("heartbeat_at"),
+    leaseOwnerId: text("lease_owner_id"),
+    leaseExpiresAt: timestamp("lease_expires_at"),
+    expiryContext: jsonb("expiry_context").$type<JobExpiryContext>(),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
@@ -28,6 +39,9 @@ export const jobsTable = pgTable(
     index("jobs_parent_job_id_idx").on(table.parentJobId),
     index("jobs_pipeline_id_idx").on(table.pipelineId),
     index("jobs_project_id_idx").on(table.projectId),
+    index("jobs_status_created_at_idx").on(table.status, table.createdAt),
+    index("jobs_status_last_progress_at_idx").on(table.status, table.lastProgressAt),
+    index("jobs_status_lease_expires_at_idx").on(table.status, table.leaseExpiresAt),
   ],
 );
 export type JobRecord = typeof jobsTable.$inferSelect;

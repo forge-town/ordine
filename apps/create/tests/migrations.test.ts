@@ -93,13 +93,13 @@ describe("runMigrations", () => {
 
     expect(first.isOk()).toBe(true);
     expect(second.isOk()).toBe(true);
-    expect([first._unsafeUnwrap(), second._unsafeUnwrap()].sort((a, b) => a - b)).toEqual([0, 13]);
+    expect([first._unsafeUnwrap(), second._unsafeUnwrap()].sort((a, b) => a - b)).toEqual([0, 14]);
 
     const db = postgres(resolvedDatabaseUrl, { onnotice: () => {} });
     const applied = await db.unsafe<{ name: string }[]>(
       `SELECT name FROM _ordine_migrations ORDER BY name`,
     );
-    expect(applied).toHaveLength(13);
+    expect(applied).toHaveLength(14);
     const [permissionColumn] = await db.unsafe<{ column_default: string | null }[]>(
       `SELECT column_default
          FROM information_schema.columns
@@ -108,6 +108,27 @@ describe("runMigrations", () => {
            AND column_name = 'permission_mode'`,
     );
     expect(permissionColumn?.column_default).toContain("full-access");
+    const jobLeaseColumns = await db.unsafe<{ column_name: string }[]>(
+      `SELECT column_name
+         FROM information_schema.columns
+         WHERE table_schema = 'public'
+           AND table_name = 'jobs'
+           AND column_name IN (
+             'last_progress_at',
+             'heartbeat_at',
+             'lease_owner_id',
+             'lease_expires_at',
+             'expiry_context'
+           )
+         ORDER BY column_name`,
+    );
+    expect(jobLeaseColumns.map(({ column_name }) => column_name)).toEqual([
+      "expiry_context",
+      "heartbeat_at",
+      "last_progress_at",
+      "lease_expires_at",
+      "lease_owner_id",
+    ]);
     await db.end();
   }, 15_000);
 
@@ -118,7 +139,7 @@ describe("runMigrations", () => {
     const result = await runMigrations(resolvedDatabaseUrl, migrationsDir);
 
     expect(result.isOk()).toBe(true);
-    expect(result._unsafeUnwrap()).toBe(12);
+    expect(result._unsafeUnwrap()).toBe(13);
     const migrations = await db.unsafe<{ name: string }[]>(
       `SELECT name FROM _ordine_migrations ORDER BY name`,
     );
@@ -136,6 +157,7 @@ describe("runMigrations", () => {
       "0010_agent_control_plane.sql",
       "0011_agent_action_argument_digest.sql",
       "0012_agent_activity_projection.sql",
+      "0013_job_execution_leases.sql",
     ]);
     const projects = await db.unsafe<{ table_name: string }[]>(
       `SELECT table_name FROM information_schema.tables WHERE table_name = 'projects'`,
@@ -152,7 +174,7 @@ describe("runMigrations", () => {
     const result = await runMigrations(resolvedDatabaseUrl, migrationsDir);
 
     expect(result.isOk()).toBe(true);
-    expect(result._unsafeUnwrap()).toBe(12);
+    expect(result._unsafeUnwrap()).toBe(13);
 
     const migrations = await db.unsafe<{ name: string }[]>(
       `SELECT name FROM _ordine_migrations ORDER BY name`,
@@ -171,6 +193,7 @@ describe("runMigrations", () => {
       "0010_agent_control_plane.sql",
       "0011_agent_action_argument_digest.sql",
       "0012_agent_activity_projection.sql",
+      "0013_job_execution_leases.sql",
     ]);
 
     const columns = await db.unsafe<{ column_name: string; table_name: string }[]>(

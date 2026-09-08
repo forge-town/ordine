@@ -1,5 +1,11 @@
 DO $$
 BEGIN
+  -- Some installations renamed the table with db:push; journal-only installs did not.
+  IF to_regclass('public.agents') IS NULL
+     AND to_regclass('public.agent_definitions') IS NOT NULL THEN
+    ALTER TABLE "agent_definitions" RENAME TO "agents";
+  END IF;
+
   IF EXISTS (
     SELECT 1
     FROM information_schema.tables
