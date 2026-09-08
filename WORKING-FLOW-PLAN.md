@@ -21,7 +21,8 @@
 
 基线：`7f63ac3d`。本次修改位于 `chore/streamline-runtime-tests`；原主目录的未提交修改保持原样。
 
-- 删除 15 个 ownership/归属专项用例：项目切换归属、proposal/session、Job/Pipeline、Operation/graph、MCP 注册归属，以及仅验证控制器归属或扫描源码的测试。
+- 删除 10 个 ownership/归属专项用例：项目切换归属、proposal/session、Operation/graph，以及仅验证控制器归属或扫描源码的测试。
+- 保留 3 个 MCP 注册漂移防护用例和 2 个 Job/Pipeline 隔离负例：拒绝覆盖或删除被修改的注册项，漂移时不探测协议，跨 Pipeline 或缺少 Pipeline ID 时不读取 traces。这 5 条验证实际安全契约，不纳入重复归属断言的删减。
 - DSH 独立单测 **3 → 0，删除 100%**，达到至少削减 80% 的要求；runtime manifest 和扫描测试里的两处 DSH 专属断言也已移除。通用客户端目录仅保留一个 DSH 枚举成员。若按这六处显式 DSH 校验统计，**6 → 1，减少 83.3%**；此数字不是单元测试用例数量，目录枚举也不是集成执行证据。
 - 保留真实 LLM 测试及原入口：
   - `packages/agent/src/mastra/runMastra.test.ts`：Kimi 真实调用。
@@ -29,7 +30,7 @@
   - `packages/services/src/agentRunsService/agentRunsService.windows.integration.test.ts`：Codex、Claude Code、OpenCode 的真实执行、文件写入、续跑和取消。
   - `.github/workflows/runtime-integration.yml` 及现有 MCP 集成测试保留。
 - 本次不修改生产归属检查、DSH adapter 或其他 runtime 实现。后续实现工作只修改实际阻断。
-- 不追逐覆盖率数字、不恢复 ownership/DSH 专项、不新开以增加单元测试数量为目标的任务。缺少凭据、服务或平台条件时写“未运行”，不能写“通过”。
+- 不追逐覆盖率数字、不恢复重复 ownership/DSH 专项、不新开以增加单元测试数量为目标的任务。缺少凭据、服务或平台条件时写“未运行”，不能写“通过”。
 
 真实 LLM 执行仍使用原文件和原开关。在对应 package 目录运行 `bun run test <测试文件相对路径>`：Kimi 使用 `KIMI_API_KEY`；OpenClaw 使用 `OPENCLAW_INTEGRATION=1` 与可用 gateway；Windows 用例使用 `ORDINE_WINDOWS_RUNTIME_ACCEPTANCE=1`、`ORDINE_WINDOWS_RUNTIME_ACCEPTANCE_ROOT` 和独立数据库，`ORDINE_WINDOWS_RUNTIME` 可选择 Codex、Claude Code 或 OpenCode。这些入口、成功条件和已有 skip 条件均未修改。
 
@@ -55,3 +56,5 @@
 本轮命令、退出码、日志、逐文件删减计数和保留文件 blob 对照保存在工作区父目录的 `outputs/streamline-runtime-tests-20260905/`。它是执行证据，不是另一份计划。修改的文档按仓库 oxfmt 配置格式化，CI 格式检查覆盖全部变更文件；差异检查使用 `git -c core.whitespace=cr-at-eol diff --check`。
 
 这些结果证明本次精简后的相关测试可运行；本计划中的产品主链路尚待执行，不能据此宣称产品已跑通。COD-390 保持 In Progress，最终合并与交付状态以关联 PR 和该事项为准。
+
+2026-09-08 review 修订：恢复上述 5 个安全契约用例，最终相对基线净删除 13 个用例声明（归属 10 个、DSH 3 个）。前文 2026-09-05 的验证数字是原提交的历史结果；本次修订的验证以 PR 最新检查记录为准。
