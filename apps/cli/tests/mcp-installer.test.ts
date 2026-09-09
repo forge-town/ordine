@@ -6,6 +6,7 @@ import {
   applyJsonInstall,
   doctorMcpTarget,
   installMcpTarget,
+  printMcpTargetConfig,
   removeJsonInstall,
   statusMcpTarget,
   uninstallMcpTarget,
@@ -46,6 +47,22 @@ const spec: McpLaunchSpec = {
 const ownedCodexOutput = "ordine\ncommand: ordine\nargs: mcp serve --policy safe";
 
 describe("MCP install registry", () => {
+  it.each(["ORDINE_AGENT_API_TOKEN", "ORDINE_DESKTOP_AUTH_TOKEN"])(
+    "rejects raw %s before config output or installation",
+    async (key) => {
+      const rawSpec = { ...spec, env: { [key]: "s".repeat(32) } };
+      const context = makeContext("C:\\Users\\test");
+      const commandRunner = vi.fn();
+      expect(() => printMcpTargetConfig({ target: "codex", spec: rawSpec, context })).toThrow(
+        /token file/i,
+      );
+      expect(() => planMcpInstall("cursor", rawSpec, context)).toThrow(/token file/i);
+      await expect(
+        installMcpTarget({ target: "codex", spec: rawSpec, context, commandRunner }),
+      ).rejects.toThrow(/token file/i);
+      expect(commandRunner).not.toHaveBeenCalled();
+    },
+  );
   it("limits product commands to three targets and accepts the Claude Code alias", () => {
     expect(FORMAL_MCP_TARGET_IDS).toEqual(["codex", "claude", "opencode"]);
     expect(parseFormalMcpTargetId("claude-code")).toBe("claude");
@@ -101,6 +118,39 @@ describe("MCP install registry", () => {
 });
 
 describe("deletion-safe JSON registration", () => {
+  it("does not include sibling credentials in dry-run install or uninstall output", async () => {
+    const home = await mkdtemp(join(tmpdir(), "ordine-mcp-redaction-"));
+    temporaryDirectories.push(home);
+    const context = makeContext(home);
+    const plan = planMcpInstall("cursor", spec, context);
+    if (plan.kind !== "json") throw new Error("Expected JSON plan");
+    const secret = "private-existing-token-value-123456789";
+    const existing = JSON.stringify({
+      mcpServers: { existing: { env: { ORDINE_AGENT_API_TOKEN: secret } } },
+    });
+    await mkdir(join(home, ".cursor"), { recursive: true });
+    await writeFile(plan.configPath, existing, "utf8");
+    const install = await installMcpTarget({ target: "cursor", spec, context, dryRun: true });
+    expect(JSON.stringify(install)).not.toContain(secret);
+    await writeFile(plan.configPath, applyJsonInstall(existing, plan), "utf8");
+    const uninstall = await uninstallMcpTarget({ target: "cursor", spec, context, dryRun: true });
+    expect(JSON.stringify(uninstall)).not.toContain(secret);
+    expect(await readFile(plan.configPath, "utf8")).toContain(secret);
+  });
+
+  it("does not echo client stderr that may contain existing credentials", async () => {
+    const secret = "private-existing-token-value-123456789";
+    const commandRunner = vi.fn(async () => ({ exitCode: 1, stdout: "", stderr: secret }));
+    const options = {
+      target: "codex" as const,
+      spec,
+      context: makeContext("C:\\Users\\test"),
+      commandRunner,
+    };
+    const result = await doctorMcpTarget(options);
+    expect(JSON.stringify(result)).not.toContain(secret);
+    await expect(installMcpTarget(options)).rejects.not.toThrow(secret);
+  });
   it("preserves sibling config and refuses to remove a changed entry", () => {
     const plan = planMcpInstall("cursor", spec, makeContext("C:\\Users\\test"));
     if (plan.kind !== "json") throw new Error("Expected Cursor JSON plan");
@@ -289,7 +339,7 @@ describe("deletion-safe JSON registration", () => {
       workspaceContext: true,
       apiReachable: true,
       dbReachable: true,
-      runtimeCatalogInitialized: true,
+      runtimeCatalogInitialized: false,
     };
     const invalidWorkspace = await doctorMcpTarget({
       target: "codex",
@@ -309,7 +359,7 @@ describe("deletion-safe JSON registration", () => {
       commandRunner,
       protocolProbe: vi.fn(async () => ({
         ...completeEvidence,
-        requiredTools: { "ordine.search": true },
+        requiredTools: { "ordine.v2.jobs.list": true },
       })),
     });
     const healthy = await doctorMcpTarget({

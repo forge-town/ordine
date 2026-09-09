@@ -196,8 +196,15 @@ const buildMutation = (
           id: parsed.edgeId,
           source: parsed.source,
           target: parsed.target,
-          sourceHandle: parsed.sourceHandle ?? null,
-          targetHandle: parsed.targetHandle ?? null,
+          sourceHandle:
+            snapshot.nodes.find((node) => node.id === parsed.source)?.data.nodeType === "operation"
+              ? `output:${parsed.data.handoff.sourcePortId}`
+              : parsed.data.handoff.sourcePortId,
+          targetHandle:
+            snapshot.nodes.find((node) => node.id === parsed.target)?.data.nodeType === "operation"
+              ? `input:${parsed.data.handoff.targetPortId}`
+              : parsed.data.handoff.targetPortId,
+          data: parsed.data,
         },
       },
       inverse: [{ type: "removeEdge", edgeId: parsed.edgeId }],
@@ -232,8 +239,15 @@ const buildMutation = (
         edgeId: parsed.edgeId,
         source: parsed.source,
         target: parsed.target,
-        sourceHandle: parsed.sourceHandle ?? null,
-        targetHandle: parsed.targetHandle ?? null,
+        sourceHandle:
+          snapshot.nodes.find((node) => node.id === parsed.source)?.data.nodeType === "operation"
+            ? `output:${parsed.data.handoff.sourcePortId}`
+            : parsed.data.handoff.sourcePortId,
+        targetHandle:
+          snapshot.nodes.find((node) => node.id === parsed.target)?.data.nodeType === "operation"
+            ? `input:${parsed.data.handoff.targetPortId}`
+            : parsed.data.handoff.targetPortId,
+        data: parsed.data,
       },
       inverse: [
         {
@@ -243,6 +257,7 @@ const buildMutation = (
           target: edge.target,
           sourceHandle: edge.sourceHandle ?? null,
           targetHandle: edge.targetHandle ?? null,
+          data: edge.data,
         },
       ],
     });
@@ -913,7 +928,7 @@ export const createCanvasControl = (
 
       return ok({
         resources: [{ type: "pipeline", id: pipelineId, label: resolved.pipeline.name }],
-        summary: `Change Set ${changeSet.id} is valid and ready for Apply.`,
+        summary: `Change Set ${changeSet.id} is valid and ready for Apply. Stop editing and ask the user to click Apply and save. Do not prepare execution until the user has applied the Change Set.`,
         data: { changeSetId: changeSet.id, baseVersion: changeSet.baseVersion, actionCount },
       });
     },

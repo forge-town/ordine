@@ -1,7 +1,6 @@
+import { legacyExecutionDisabled } from "./legacyExecutionDisabled.js";
 import { Hono } from "hono";
-import { ResultAsync } from "neverthrow";
-import type { AgentRuntime } from "@repo/schemas";
-import { operationsService, operationRunnerService } from "../services.js";
+import { operationsService } from "../services.js";
 
 export const operationsRoutes = new Hono();
 
@@ -101,29 +100,4 @@ operationsRoutes.delete("/:id", async (c) => {
   return c.body(null, 204);
 });
 
-operationsRoutes.post("/:id/run", async (c) => {
-  const id = c.req.param("id");
-
-  const parseResult = await ResultAsync.fromPromise(
-    c.req.json() as Promise<Record<string, unknown>>,
-    () => undefined,
-  );
-  const body = parseResult.unwrapOr({} as Record<string, unknown>);
-
-  const inputPath = body.inputPath as string | undefined;
-  const inputContent = body.inputContent as string | undefined;
-  const agentOverride = body.agentOverride as string | undefined;
-
-  const result = await operationRunnerService.startRun({
-    operationId: id,
-    inputPath,
-    inputContent,
-    agentOverride: agentOverride as AgentRuntime | undefined,
-  });
-
-  if (result.isErr()) {
-    return c.json({ error: result.error.message }, 404);
-  }
-
-  return c.json({ jobId: result.value.jobId }, 202);
-});
+operationsRoutes.post("/:id/run", legacyExecutionDisabled);

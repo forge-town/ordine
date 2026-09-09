@@ -12,6 +12,7 @@ import {
 import {
   createRuntimeCatalogCache,
   projectRuntimeCatalogFromConfigs,
+  resolveRuntimeCatalogFromConfigs,
   scanRuntimeCatalog,
   scanRuntimes,
 } from "@repo/agent";
@@ -75,18 +76,6 @@ const toCatalogRuntimeConfig = (entry: AgentRuntimeCatalogEntry): AgentRuntimeCo
   };
 };
 
-const mergeCatalogRuntimeConfigIds = (
-  catalog: AgentRuntimeCatalogEntry[],
-  runtimes: AgentRuntimeConfig[],
-): AgentRuntimeCatalogEntry[] =>
-  catalog.map((entry) => ({
-    ...entry,
-    runtimeConfigId:
-      runtimes.find(
-        (runtime) => runtime.type === entry.runtime && runtime.connection.mode === "local",
-      )?.id ?? entry.runtimeConfigId,
-  }));
-
 export const agentRuntimesRouter = router({
   getMany: publicProcedure.query(async () => {
     const [runtimes] = await Promise.all([
@@ -114,7 +103,7 @@ export const agentRuntimesRouter = router({
     const runtimes = await agentRuntimesService.getAll();
     const catalog = await getRuntimeCatalog(projectRuntimeCatalogFromConfigs(runtimes));
 
-    return mergeCatalogRuntimeConfigIds(catalog, runtimes);
+    return resolveRuntimeCatalogFromConfigs(catalog, runtimes);
   }),
 
   create: publicProcedure
@@ -151,7 +140,7 @@ export const agentRuntimesRouter = router({
     });
     const runtimes = await agentRuntimesService.syncAll(detected);
 
-    return mergeCatalogRuntimeConfigIds(catalog, runtimes);
+    return resolveRuntimeCatalogFromConfigs(catalog, runtimes);
   }),
 
   scanRuntimes: publicProcedure.query(() => (localRuntimeScanEnabled ? scanRuntimes() : [])),

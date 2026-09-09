@@ -8,6 +8,8 @@ export const envSchema = z.object({
   JOB_LEASE_DURATION_MS: z.coerce.number().int().positive().optional(),
   JOB_HEARTBEAT_INTERVAL_MS: z.coerce.number().int().positive().optional(),
   ORDINE_AGENT_API_TOKEN: z.string().min(32).optional(),
+  ORDINE_EXECUTION_API_TARGET: z.url().optional(),
+  ORDINE_EXECUTION_AGENT_TOKEN_FILE: z.string().min(1).optional(),
   ORDINE_AGENT_CONTROL_ENABLED: z
     .enum(["true", "false"])
     .default("true")
@@ -17,6 +19,10 @@ export const envSchema = z.object({
     .default("false")
     .transform((v) => v === "true"),
   DESKTOP_AUTH_TOKEN: z.string().min(32).optional(),
+  ORDINE_DESKTOP_ALLOWED_ORIGINS: z
+    .string()
+    .transform((value) => z.array(z.string()).parse(JSON.parse(value)))
+    .optional(),
   ORDINE_DATA_DIR: z.string().min(1).optional(),
   ORDINE_MCP_SIDECAR_PATH: z.string().min(1).optional(),
 });

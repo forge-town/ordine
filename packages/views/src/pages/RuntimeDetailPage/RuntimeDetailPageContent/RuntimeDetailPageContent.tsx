@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "@tanstack/react-router";
-import { useOne, useCustomMutation } from "@refinedev/core";
+import { useOne, useDelete } from "@refinedev/core";
 import {
   CheckCircle2,
   CircleAlert,
@@ -63,7 +63,7 @@ export const RuntimeDetailPageContent = () => {
     resource: "agentRuntimes",
     id: runtimeId,
   });
-  const { mutateAsync: syncAll } = useCustomMutation();
+  const { mutate: deleteRuntime, mutation: deleteMutation } = useDelete();
   const [deleteConfirm, setDeleteConfirm] = useState(false);
   const [connectionTestOpen, setConnectionTestOpen] = useState(false);
   const [connectionTestRun, setConnectionTestRun] = useState<AgentRun | null>(null);
@@ -165,15 +165,12 @@ export const RuntimeDetailPageContent = () => {
 
       return;
     }
-    if (!runtime) return;
-    syncAll({
-      url: "agentRuntimes/syncAll",
-      method: "post",
-      values: { runtimes: [] },
-    }).then(() => {
-      navigate({ to: "/runtimes" });
-    });
-  }, [deleteConfirm, runtime, syncAll, navigate]);
+    if (!runtime || deleteMutation.isPending) return;
+    deleteRuntime(
+      { resource: "agentRuntimes", id: runtime.id },
+      { onSuccess: () => void navigate({ to: "/runtimes" }) },
+    );
+  }, [deleteConfirm, runtime, deleteRuntime, deleteMutation.isPending, navigate]);
 
   if (runtimeQuery.isLoading) {
     return (
@@ -233,6 +230,8 @@ export const RuntimeDetailPageContent = () => {
               {t(`${s}.edit`)}
             </Button>
             <Button
+              aria-label={t("common.delete", "Delete")}
+              disabled={deleteMutation.isPending}
               size="icon"
               variant={deleteConfirm ? "destructive" : "ghost"}
               onBlur={handleDeleteBlur}

@@ -33,6 +33,7 @@ import { Route as LayoutRuntimesIndexRouteImport } from "./routes/_layout/runtim
 import { Route as LayoutPipelinesIndexRouteImport } from "./routes/_layout/pipelines.index";
 import { Route as LayoutDistillationsIndexRouteImport } from "./routes/_layout/distillations.index";
 import { Route as LayoutAgentsIndexRouteImport } from "./routes/_layout/agents.index";
+import { Route as ApiV2SplatRouteImport } from "./routes/api/v2.$";
 import { Route as ApiTrpcSplatRouteImport } from "./routes/api/trpc.$";
 import { Route as ApiPipelinesSplatRouteImport } from "./routes/api/pipelines.$";
 import { Route as ApiPipelineAgentSessionsSplatRouteImport } from "./routes/api/pipeline-agent-sessions.$";
@@ -174,6 +175,11 @@ const LayoutAgentsIndexRoute = LayoutAgentsIndexRouteImport.update({
   id: "/agents/",
   path: "/agents/",
   getParentRoute: () => LayoutRoute,
+} as any);
+const ApiV2SplatRoute = ApiV2SplatRouteImport.update({
+  id: "/api/v2/$",
+  path: "/api/v2/$",
+  getParentRoute: () => rootRouteImport,
 } as any);
 const ApiTrpcSplatRoute = ApiTrpcSplatRouteImport.update({
   id: "/api/trpc/$",
@@ -321,6 +327,7 @@ export interface FileRoutesByFullPath {
   "/api/pipeline-agent-sessions/$": typeof ApiPipelineAgentSessionsSplatRoute;
   "/api/pipelines/$": typeof ApiPipelinesSplatRoute;
   "/api/trpc/$": typeof ApiTrpcSplatRoute;
+  "/api/v2/$": typeof ApiV2SplatRoute;
   "/agents/": typeof LayoutAgentsIndexRoute;
   "/distillations/": typeof LayoutDistillationsIndexRoute;
   "/pipelines/": typeof LayoutPipelinesIndexRoute;
@@ -364,6 +371,7 @@ export interface FileRoutesByTo {
   "/api/pipeline-agent-sessions/$": typeof ApiPipelineAgentSessionsSplatRoute;
   "/api/pipelines/$": typeof ApiPipelinesSplatRoute;
   "/api/trpc/$": typeof ApiTrpcSplatRoute;
+  "/api/v2/$": typeof ApiV2SplatRoute;
   "/agents": typeof LayoutAgentsIndexRoute;
   "/distillations": typeof LayoutDistillationsIndexRoute;
   "/pipelines": typeof LayoutPipelinesIndexRoute;
@@ -413,6 +421,7 @@ export interface FileRoutesById {
   "/api/pipeline-agent-sessions/$": typeof ApiPipelineAgentSessionsSplatRoute;
   "/api/pipelines/$": typeof ApiPipelinesSplatRoute;
   "/api/trpc/$": typeof ApiTrpcSplatRoute;
+  "/api/v2/$": typeof ApiV2SplatRoute;
   "/_layout/agents/": typeof LayoutAgentsIndexRoute;
   "/_layout/distillations/": typeof LayoutDistillationsIndexRoute;
   "/_layout/pipelines/": typeof LayoutPipelinesIndexRoute;
@@ -462,6 +471,7 @@ export interface FileRouteTypes {
     | "/api/pipeline-agent-sessions/$"
     | "/api/pipelines/$"
     | "/api/trpc/$"
+    | "/api/v2/$"
     | "/agents/"
     | "/distillations/"
     | "/pipelines/"
@@ -505,6 +515,7 @@ export interface FileRouteTypes {
     | "/api/pipeline-agent-sessions/$"
     | "/api/pipelines/$"
     | "/api/trpc/$"
+    | "/api/v2/$"
     | "/agents"
     | "/distillations"
     | "/pipelines"
@@ -553,6 +564,7 @@ export interface FileRouteTypes {
     | "/api/pipeline-agent-sessions/$"
     | "/api/pipelines/$"
     | "/api/trpc/$"
+    | "/api/v2/$"
     | "/_layout/agents/"
     | "/_layout/distillations/"
     | "/_layout/pipelines/"
@@ -583,6 +595,7 @@ export interface RootRouteChildren {
   ApiOperationsSplatRoute: typeof ApiOperationsSplatRoute;
   ApiPipelinesSplatRoute: typeof ApiPipelinesSplatRoute;
   ApiTrpcSplatRoute: typeof ApiTrpcSplatRoute;
+  ApiV2SplatRoute: typeof ApiV2SplatRoute;
 }
 
 declare module "@tanstack/react-router" {
@@ -754,6 +767,13 @@ declare module "@tanstack/react-router" {
       fullPath: "/agents/";
       preLoaderRoute: typeof LayoutAgentsIndexRouteImport;
       parentRoute: typeof LayoutRoute;
+    };
+    "/api/v2/$": {
+      id: "/api/v2/$";
+      path: "/api/v2/$";
+      fullPath: "/api/v2/$";
+      preLoaderRoute: typeof ApiV2SplatRouteImport;
+      parentRoute: typeof rootRouteImport;
     };
     "/api/trpc/$": {
       id: "/api/trpc/$";
@@ -1060,6 +1080,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiOperationsSplatRoute: ApiOperationsSplatRoute,
   ApiPipelinesSplatRoute: ApiPipelinesSplatRoute,
   ApiTrpcSplatRoute: ApiTrpcSplatRoute,
+  ApiV2SplatRoute: ApiV2SplatRoute,
 };
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

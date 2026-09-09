@@ -1,10 +1,7 @@
+import { legacyExecutionDisabled } from "./legacyExecutionDisabled";
 import { z } from "zod/v4";
 import { authedProcedure, publicProcedure, router } from "../init";
-import { jobsService, pipelineRunnerService } from "../services";
-import { JobStatusSchema, JobTypeSchema } from "@repo/schemas";
-import { unwrapResult } from "./result";
-
-const JobControlInputSchema = z.object({ jobId: z.string() });
+import { jobsService } from "../services";
 
 export const jobsRouter = router({
   getMany: publicProcedure.query(() => jobsService.getAll()),
@@ -25,64 +22,9 @@ export const jobsRouter = router({
     .input(z.object({ rawExportId: z.number() }))
     .query(({ input }) => jobsService.getSpansByRawExportId(input.rawExportId)),
 
-  create: publicProcedure
-    .input(
-      z.object({
-        id: z.string(),
-        title: z.string(),
-        type: JobTypeSchema,
-        parentJobId: z.string().nullable().default(null),
-        error: z.string().nullable().default(null),
-        status: JobStatusSchema.default("queued"),
-        startedAt: z
-          .number()
-          .nullable()
-          .default(null)
-          .transform((v) => (v == null ? null : new Date(v))),
-        finishedAt: z
-          .number()
-          .nullable()
-          .default(null)
-          .transform((v) => (v == null ? null : new Date(v))),
-      }),
-    )
-    .mutation(({ input }) => jobsService.create(input)),
-
-  updateStatus: publicProcedure
-    .input(
-      z.object({
-        id: z.string(),
-        status: JobStatusSchema,
-        error: z.string().optional(),
-        startedAt: z
-          .number()
-          .optional()
-          .transform((v) => (v == null ? undefined : new Date(v))),
-        finishedAt: z
-          .number()
-          .optional()
-          .transform((v) => (v == null ? undefined : new Date(v))),
-      }),
-    )
-    .mutation(({ input }) => {
-      const { id, status, ...extra } = input;
-
-      return jobsService.updateStatus(id, status, extra);
-    }),
-
-  pause: authedProcedure
-    .input(JobControlInputSchema)
-    .mutation(async ({ input }) => unwrapResult(await pipelineRunnerService.pauseRun(input.jobId))),
-
-  resume: authedProcedure
-    .input(JobControlInputSchema)
-    .mutation(async ({ input }) =>
-      unwrapResult(await pipelineRunnerService.resumeRun(input.jobId)),
-    ),
-
-  cancel: authedProcedure
-    .input(JobControlInputSchema)
-    .mutation(async ({ input }) =>
-      unwrapResult(await pipelineRunnerService.cancelRun(input.jobId)),
-    ),
+  create: publicProcedure.input(z.unknown().optional()).mutation(legacyExecutionDisabled),
+  updateStatus: publicProcedure.input(z.unknown().optional()).mutation(legacyExecutionDisabled),
+  pause: authedProcedure.input(z.unknown().optional()).mutation(legacyExecutionDisabled),
+  resume: authedProcedure.input(z.unknown().optional()).mutation(legacyExecutionDisabled),
+  cancel: authedProcedure.input(z.unknown().optional()).mutation(legacyExecutionDisabled),
 });

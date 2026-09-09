@@ -30,9 +30,23 @@ jobs:
           --health-interval 5s
           --health-timeout 5s
           --health-retries 10
+      execution-postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: ordine_pipeline_v2_r5
+        ports:
+          - 36435:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d ordine_pipeline_v2_r5"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     env:
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/ordine
       PLAYWRIGHT_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/ordine_playwright
+      ORDINE_EXECUTION_TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:36435/ordine_pipeline_v2_r5
     steps:
       - uses: actions/checkout@v4
         with:

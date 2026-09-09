@@ -3,7 +3,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { CalendarClock, Pencil, Play, Plus } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useCustomMutation, useList } from "@refinedev/core";
-import type { Job, PipelineData, Routine } from "@repo/schemas";
+import type { ExecutionJobSummary, PipelineData, Routine } from "@repo/schemas";
 import { Button } from "@repo/ui/button";
 import { cn } from "@repo/ui/lib/utils";
 import { ResourceName } from "../../../constants";
@@ -39,8 +39,10 @@ export const SchedulePageContent = () => {
   const { result: pipelinesResult } = useList<PipelineData>({
     resource: ResourceName.pipelines,
   });
-  const { result: jobsResult, query: jobsQuery } = useList<Job>({
-    resource: ResourceName.jobs,
+  const { result: jobsResult, query: jobsQuery } = useList<ExecutionJobSummary>({
+    dataProviderName: "execution",
+    resource: "job-summaries",
+    pagination: { mode: "off" },
   });
   const { mutateAsync: runNow, mutation: runNowMutation } = useCustomMutation();
   const [scheduling, setScheduling] = useState<SchedulingState>(null);
@@ -187,7 +189,6 @@ export const SchedulePageContent = () => {
 
         <JobsCalendar
           jobs={jobs}
-          pipelineNameById={pipelineNameById}
           routines={routines}
           onEditRoutine={handleEditRoutine}
           onNewRoutine={handleNewRoutineClick}

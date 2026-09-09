@@ -12,8 +12,15 @@ vi.mock("@refinedev/core", async (importOriginal) => ({
   useList: ({ resource }: { resource: string }) => ({
     result: {
       data:
-        resource === "agents"
-          ? [{ id: "agent-claude", name: "Claude", defaultRuntime: "claude-code" }]
+        resource === "agentRuntimes"
+          ? [
+              {
+                id: "runtime-claude",
+                name: "Claude",
+                type: "claude-code",
+                connection: { mode: "local" },
+              },
+            ]
           : [],
     },
   }),
@@ -223,16 +230,17 @@ describe("CanvasNodePropertiesPanel", () => {
     );
   });
 
-  it("clears stale agentRuntime when choosing an operation agent from the properties panel", async () => {
+  it("writes a runtime configuration and clears legacy persona fields only after explicit selection", async () => {
     const user = userEvent.setup();
     const store = renderPanel(operationNode);
 
-    await user.click(screen.getByRole("combobox", { name: /Agent/i }));
+    await user.click(screen.getByRole("combobox", { name: "运行时" }));
     await user.click(await screen.findByRole("option", { name: "Claude" }));
 
     expect(store.getState().nodes[0]?.data).toEqual(
       expect.objectContaining({
-        agentId: "agent-claude",
+        agentId: undefined,
+        executionOverrides: { runtimeConfigId: "runtime-claude" },
         agentRuntime: undefined,
       }),
     );

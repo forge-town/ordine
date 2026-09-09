@@ -2,216 +2,185 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { createOrdineMcpServer, handleMcpRequest } from "../src/mcp/server";
+import { ORDINE_MCP_TOOLS } from "../src/mcp/toolCatalog";
+import type { McpPolicy } from "../src/mcp/policy";
+import { job } from "./fixtures/execution";
+import { api } from "../src/api";
 
 const safe = { mode: "safe", allowWrite: false, allowIrreversible: false } as const;
-
-const fakeApi = {
-  get: vi.fn(async () => ({ ok: true as const, data: [{ id: "pipeline-1" }] })),
-  post: vi.fn(async () => ({
-    ok: true as const,
-    data: {
-      actionId: "action-1",
-      status: "succeeded",
-      resources: [],
-      summary: "done",
-      warnings: [],
-    },
-  })),
-  patch: vi.fn(async () => ({ ok: true as const, data: { id: "updated" } })),
-  del: vi.fn(async () => ({ ok: true as const, data: undefined })),
+const write = { ...safe, allowWrite: true };
+const requestId = "11111111-1111-4111-8111-111111111111";
+const request = { apiVersion: 2, requestId, pipelineId: "pipeline-1", expectedRevision: 1 };
+const pending = {
+  apiVersion: 2,
+  requestId,
+  preparedRunId: "prepared-1",
+  state: "awaiting_approval",
+  approvalId: "approval-1",
+  expiresAt: "2026-09-08T12:00:00Z",
 };
+const fakeApi = {
+  get: vi.fn<typeof api.get>(),
+  post: vi.fn<typeof api.post>(),
+  put: vi.fn<typeof api.put>(),
+  getBytes: vi.fn<typeof api.getBytes>(),
+};
+const call = (name: string, input: unknown = {}, policy: McpPolicy = write) =>
+  handleMcpRequest({
+    request: { jsonrpc: "2.0", id: 1, method: "tools/call", params: { name, arguments: input } },
+    policy,
+    apiClient: fakeApi,
+  });
+beforeEach(() => {
+  vi.resetAllMocks();
+  fakeApi.get.mockResolvedValue({ ok: true, data: [] });
+  fakeApi.post.mockResolvedValue({ ok: true, data: pending });
+});
 
-beforeEach(() => vi.clearAllMocks());
-
-describe("ORDINE MCP server", () => {
-  it("negotiates tools and resources through the official MCP SDK", async () => {
+describe("ORDINE execution v2 MCP", () => {
+  it("negotiates the v2 catalog and safe read through the official SDK", async () => {
     const server = createOrdineMcpServer({ policy: safe, apiClient: fakeApi });
-    const client = new Client({ name: "ordine-test", version: "1.0.0" });
+    const client = new Client({ name: "test", version: "1" });
     const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
     await Promise.all([server.connect(serverTransport), client.connect(clientTransport)]);
-
     const tools = await client.listTools();
-    const resources = await client.listResources();
-    const context = await client.readResource({ uri: "ordine://workspace/context" });
-    const pipelines = await client.callTool({
-      name: "ordine.search",
-      arguments: { query: "pipeline" },
+    expect(tools.tools.map((tool) => tool.name)).toEqual(ORDINE_MCP_TOOLS.map((tool) => tool.name));
+    expect(tools.tools.every((tool) => tool.name.startsWith("ordine.v2."))).toBe(true);
+    expect(tools.tools.some((tool) => /approve|reject/.test(tool.name))).toBe(false);
+    expect((await client.listResources()).resources).toHaveLength(2);
+    expect(await client.readResource({ uri: "ordine://workspace/context" })).toMatchObject({
+      contents: [{ text: expect.stringContaining('"apiVersion": 2') }],
     });
-
-    expect(tools.tools).toHaveLength(22);
-    expect(resources.resources).toHaveLength(2);
-    expect(context.contents[0]).toMatchObject({
-      uri: "ordine://workspace/context",
-      mimeType: "application/json",
-    });
-    expect(pipelines).toMatchObject({ content: [{ type: "text" }] });
-
+    expect(
+      await client.callTool({ name: "ordine.v2.jobs.list", arguments: {} }),
+    ).not.toHaveProperty("isError", true);
+    expect(fakeApi.get).toHaveBeenCalledWith("/api/v2/jobs");
     await client.close();
     await server.close();
   });
-
-  it("negotiates MCP and publishes the full risk-annotated tool catalog", async () => {
-    const initialized = await handleMcpRequest({
-      request: { jsonrpc: "2.0", id: 1, method: "initialize", params: {} },
-      policy: safe,
-      apiClient: fakeApi,
+  it("blocks writes under safe policy before calling the API", async () => {
+    expect(await call("ordine.v2.run_requests.submit", request, safe)).toMatchObject({
+      result: { isError: true },
     });
-    const listed = await handleMcpRequest({
-      request: { jsonrpc: "2.0", id: 2, method: "tools/list" },
-      policy: safe,
-      apiClient: fakeApi,
-    });
-
-    expect(initialized).toMatchObject({ result: { serverInfo: { name: "ordine" } } });
-    expect(listed).toMatchObject({ result: { tools: expect.any(Array) } });
-    expect((listed?.["result"] as { tools: unknown[] }).tools).toHaveLength(22);
-  });
-
-  it("allows reads while safe mode blocks writes before the API call", async () => {
-    const read = await handleMcpRequest({
-      request: {
-        jsonrpc: "2.0",
-        id: 1,
-        method: "tools/call",
-        params: { name: "ordine.search", arguments: { query: "pipeline" } },
-      },
-      policy: safe,
-      apiClient: fakeApi,
-    });
-    const write = await handleMcpRequest({
-      request: {
-        jsonrpc: "2.0",
-        id: 2,
-        method: "tools/call",
-        params: {
-          name: "ordine.create_resource",
-          arguments: {
-            callId: "create-1",
-            resourceType: "pipeline",
-            data: { name: "x" },
-          },
-        },
-      },
-      policy: safe,
-      apiClient: fakeApi,
-    });
-
-    expect(read).toMatchObject({ result: { content: [{ type: "text" }] } });
-    expect(write).toMatchObject({ result: { isError: true } });
-    expect(fakeApi.post).toHaveBeenCalledTimes(1);
-  });
-
-  it("allows irreversible tools only in explicit yolo mode", async () => {
-    const response = await handleMcpRequest({
-      request: {
-        jsonrpc: "2.0",
-        id: 3,
-        method: "tools/call",
-        params: {
-          name: "ordine.delete_resource",
-          arguments: { callId: "delete-1", resourceType: "skill", id: "skill-1" },
-        },
-      },
-      policy: { mode: "yolo", allowWrite: false, allowIrreversible: false },
-      apiClient: fakeApi,
-    });
-
-    expect(response).toMatchObject({ result: { content: [{ type: "text" }] } });
-    expect(fakeApi.post).toHaveBeenCalledWith("/api/agent-control/tools/call", {
-      name: "ordine.delete_resource",
-      input: { callId: "delete-1", resourceType: "skill", id: "skill-1" },
-    });
-  });
-
-  it("keeps irreversible tools blocked when only reversible writes are enabled", async () => {
-    const response = await handleMcpRequest({
-      request: {
-        jsonrpc: "2.0",
-        id: 4,
-        method: "tools/call",
-        params: {
-          name: "ordine.delete_resource",
-          arguments: {
-            callId: "delete-blocked-1",
-            resourceType: "skill",
-            id: "skill-1",
-          },
-        },
-      },
-      policy: { mode: "safe", allowWrite: true, allowIrreversible: false },
-      apiClient: fakeApi,
-    });
-
-    expect(response).toMatchObject({ result: { isError: true } });
     expect(fakeApi.post).not.toHaveBeenCalled();
   });
-
-  it("supports the write-enabled Agent Control smoke path through MCP tools", async () => {
-    const server = createOrdineMcpServer({
-      policy: { mode: "safe", allowWrite: true, allowIrreversible: false },
-      apiClient: fakeApi,
-    });
-    const client = new Client({ name: "ordine-smoke-test", version: "1.0.0" });
-    const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
-    await Promise.all([server.connect(serverTransport), client.connect(clientTransport)]);
-
-    const createdPipeline = await client.callTool({
-      name: "ordine.create_resource",
-      arguments: {
-        callId: "create-pipeline-1",
-        resourceType: "pipeline",
-        data: { id: "pipeline-1", name: "Smoke" },
+  it("returns awaiting approval immediately with recovery instructions and no poll or approval call", async () => {
+    const result = await call("ordine.v2.run_requests.submit", request);
+    expect(result).toMatchObject({
+      result: {
+        structuredContent: { ...pending, nextStep: expect.stringContaining("ORDINE App") },
       },
     });
-    const createdOperation = await client.callTool({
-      name: "ordine.create_resource",
-      arguments: {
-        callId: "create-operation-1",
-        resourceType: "operation",
-        data: { id: "operation-1", name: "Summarize" },
+    expect(fakeApi.post).toHaveBeenCalledOnce();
+    expect(fakeApi.post).toHaveBeenCalledWith("/api/v2/run-requests", {
+      ...request,
+      inputs: {},
+      executionOverrides: {},
+      deliveryRequirements: [],
+    });
+    expect(fakeApi.get).not.toHaveBeenCalled();
+  });
+  it("requires an explicit UUID and rejects legacy fields before network activity", async () => {
+    for (const input of [
+      { ...request, requestId: undefined },
+      { ...request, inputPath: "C:/guess.txt" },
+      { ...request, apiVersion: 1 },
+    ]) {
+      expect(await call("ordine.v2.run_requests.submit", input)).toMatchObject({
+        result: { isError: true },
+      });
+    }
+    expect(fakeApi.post).not.toHaveBeenCalled();
+  });
+  it("never aliases old tools or exposes approval even in yolo mode", async () => {
+    for (const name of [
+      "ordine.run_pipeline",
+      "ordine.search",
+      "ordine.create_resource",
+      "ordine.v2.run_requests.approve",
+      "ordine.v2.run_requests.reject",
+    ]) {
+      expect(
+        await call(name, {}, { mode: "yolo", allowWrite: true, allowIrreversible: true }),
+      ).toMatchObject({ result: { isError: true } });
+    }
+    expect(fakeApi.post).not.toHaveBeenCalled();
+  });
+  it("preserves requestId recovery after timeout without retries", async () => {
+    fakeApi.post.mockResolvedValue({
+      ok: false,
+      status: 0,
+      code: "API_NETWORK_ERROR",
+      message: "timeout",
+    });
+    expect(await call("ordine.v2.run_requests.submit", request)).toMatchObject({
+      result: {
+        isError: true,
+        content: [{ text: expect.stringContaining(`requestId=${requestId}`) }],
       },
     });
-    const updatedOperation = await client.callTool({
-      name: "ordine.update_resource",
-      arguments: {
-        callId: "update-operation-1",
-        resourceType: "operation",
-        id: "operation-1",
-        patch: { config: { executor: { type: "script" } } },
+    expect(fakeApi.post).toHaveBeenCalledOnce();
+    expect(fakeApi.get).not.toHaveBeenCalled();
+    fakeApi.get.mockResolvedValue({
+      ok: true,
+      data: {
+        apiVersion: 2,
+        requestId,
+        preparedRunId: "prepared-1",
+        state: "accepted",
+        jobId: "job-1",
+        acceptedAt: "2026-09-08T12:00:00Z",
       },
     });
-    const run = await client.callTool({
-      name: "ordine.run_pipeline",
-      arguments: { callId: "run-pipeline-1", pipelineId: "pipeline-1" },
+    expect(await call("ordine.v2.run_requests.get", { requestId })).toMatchObject({
+      result: { structuredContent: { state: "accepted", jobId: "job-1" } },
     });
-    const traces = await client.callTool({
-      name: "ordine.get_job_trace",
-      arguments: { jobId: "job-1", limit: 10 },
+    expect(fakeApi.get).toHaveBeenCalledWith(`/api/v2/run-requests/${requestId}`);
+  });
+  it("passes event cursors, control and checkpoint paths explicitly", async () => {
+    fakeApi.post.mockResolvedValue({ ok: true, data: job });
+    await call("ordine.v2.jobs.events", { jobId: "job-1", afterSequence: 7, limit: 25 });
+    expect(fakeApi.get).toHaveBeenCalledWith("/api/v2/jobs/job-1/events?afterSequence=7&limit=25");
+    await call("ordine.v2.jobs.control", { jobId: "job-1", action: "pause" });
+    expect(fakeApi.post).toHaveBeenCalledWith("/api/v2/jobs/job-1/control", { action: "pause" });
+    await call("ordine.v2.jobs.checkpoint_ack", { jobId: "job-1", nodeId: "node-1" });
+    expect(fakeApi.post).toHaveBeenCalledWith("/api/v2/jobs/job-1/checkpoints/node-1/ack", {});
+    expect(
+      await call("ordine.v2.jobs.control", { jobId: "job-1", action: "approve" }),
+    ).toMatchObject({ result: { isError: true } });
+  });
+  it("delivers exact binary bytes as base64 and rejects oversized ranges", async () => {
+    fakeApi.getBytes.mockResolvedValue({ ok: true, data: Uint8Array.from([0, 255, 128]) });
+    expect(
+      await call("ordine.v2.artifacts.content", { id: "artifact-1", offset: 2, length: 3 }),
+    ).toMatchObject({
+      result: { structuredContent: { offset: 2, sizeBytes: 3, contentBase64: "AP+A" } },
     });
-
-    expect(createdPipeline.isError).not.toBe(true);
-    expect(createdOperation.isError).not.toBe(true);
-    expect(updatedOperation.isError).not.toBe(true);
-    expect(run.isError).not.toBe(true);
-    expect(traces.isError).not.toBe(true);
-    expect(fakeApi.post).toHaveBeenCalledWith("/api/agent-control/tools/call", {
-      name: "ordine.create_resource",
-      input: {
-        callId: "create-pipeline-1",
-        resourceType: "pipeline",
-        data: { id: "pipeline-1", name: "Smoke" },
-      },
-    });
-    expect(fakeApi.post).toHaveBeenCalledWith("/api/agent-control/tools/call", {
-      name: "ordine.run_pipeline",
-      input: { callId: "run-pipeline-1", pipelineId: "pipeline-1" },
-    });
-    expect(fakeApi.post).toHaveBeenCalledWith("/api/agent-control/tools/call", {
-      name: "ordine.get_job_trace",
-      input: { jobId: "job-1", limit: 10 },
-    });
-
-    await client.close();
-    await server.close();
+    expect(fakeApi.getBytes).toHaveBeenCalledWith(
+      "/api/v2/artifacts/artifact-1/content?offset=2&length=3",
+    );
+    expect(
+      await call("ordine.v2.artifacts.content", { id: "artifact-1", length: 2 }),
+    ).toMatchObject({ result: { isError: true } });
+  });
+  it("rejects artifact paths, invalid base64, oversized imports and invalid cursors", async () => {
+    for (const input of [
+      { name: "../x", contentBase64: "eA==" },
+      { name: "x", contentBase64: "not base64" },
+      { name: "x", contentBase64: Buffer.alloc(8 * 1024 * 1024 + 1).toString("base64") },
+    ]) {
+      expect(
+        await call("ordine.v2.input_assets.import", {
+          importRequestId: requestId,
+          mimeType: "text/plain",
+          ...input,
+        }),
+      ).toMatchObject({ result: { isError: true } });
+    }
+    expect(
+      await call("ordine.v2.jobs.events", { jobId: "../jobs", afterSequence: -1 }),
+    ).toMatchObject({ result: { isError: true } });
+    expect(fakeApi.post).not.toHaveBeenCalled();
+    expect(fakeApi.get).not.toHaveBeenCalled();
   });
 });

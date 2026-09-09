@@ -1,6 +1,7 @@
 import { cn } from "./lib/utils";
+import type { ComponentPropsWithoutRef } from "react";
 
-function Skeleton({ className, ...props }: React.ComponentProps<"div">) {
+function Skeleton({ className, ...props }: ComponentPropsWithoutRef<"div">) {
   return (
     <div
       data-slot="skeleton"

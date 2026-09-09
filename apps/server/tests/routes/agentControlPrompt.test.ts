@@ -40,7 +40,7 @@ describe("buildAgentControlPrompt", () => {
     const result = promptWithAccidentalSnapshot(0);
 
     expect(result.systemPrompt).toContain("validate_canvas only proves structural validity");
-    expect(result.systemPrompt).toContain("localPath is an output directory");
+    expect(result.systemPrompt).toContain("storage:'artifact', localPath:''");
     expect(result.systemPrompt).toContain("outputFileName");
   });
 });

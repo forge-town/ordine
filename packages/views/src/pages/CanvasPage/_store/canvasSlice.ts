@@ -21,6 +21,8 @@ import type {
 import { computeAutoLayout } from "./autoLayout";
 import { DUPLICATE_NODE_OFFSET, offsetPosition } from "../utils/nodePosition";
 import i18n from "i18next";
+import { handoffFromConnection } from "../NodeCard/semanticPorts";
+import { toastStore } from "../../../store/toastStore";
 
 /**
  * Sort nodes so that parents (compound nodes) appear before their children.
@@ -121,6 +123,21 @@ export const createCanvasSlice = (
         return;
       }
 
+      const handoff = handoffFromConnection(connection, sourceNode, targetNode);
+      if (
+        !handoff &&
+        ["prompt", "operation"].includes(sourceNode.type ?? "") &&
+        ["operation", "output-local-path"].includes(targetNode.type ?? "")
+      ) {
+        toastStore.getState().addToast({
+          type: "error",
+          title: "请选择明确的输入和输出端口",
+          description: "请从带名称的端口重新连线；无法推断 Operation 端口。",
+        });
+
+        return;
+      }
+
       recordCommand(
         {
           type: "ADD_EDGE",
@@ -132,7 +149,12 @@ export const createCanvasSlice = (
         },
         (draft) => {
           draft.edges = addEdge(
-            { ...connection, type: "default", animated: true, data: { label: "" } },
+            {
+              ...connection,
+              type: "default",
+              animated: true,
+              data: { label: "", ...(handoff ? { handoff } : {}) },
+            },
             draft.edges,
           );
         },

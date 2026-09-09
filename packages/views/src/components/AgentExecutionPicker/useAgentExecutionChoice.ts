@@ -21,10 +21,14 @@ import { getAgentRuntimeCatalogData } from "./agentRuntimeCatalogData";
 
 interface UseAgentExecutionChoiceOptions {
   requestedRuntimeConfigId?: string | null;
+  scope?: "session" | "run";
+  runScopeId?: string | null;
 }
 
 export const useAgentExecutionChoice = ({
   requestedRuntimeConfigId,
+  scope = "session",
+  runScopeId = null,
 }: UseAgentExecutionChoiceOptions = {}) => {
   const { result: catalogResult, query: catalogQuery } = useCustom<AgentRuntimeCatalogEntry[]>({
     method: "get",
@@ -36,6 +40,11 @@ export const useAgentExecutionChoice = ({
   });
   const { mutate: updateSettings, mutation: updateMutation } = useUpdate();
   const [localChoice, setLocalChoice] = useState<AgentExecutionChoice | null>(null);
+  const [localRunScopeId, setLocalRunScopeId] = useState<string | null>(null);
+  const [runSelection, setRunSelection] = useState<{
+    scopeId: string | null;
+    overrides: Partial<AgentExecutionChoice>;
+  } | null>(null);
   const [cachedCatalog] = useState(readAgentRuntimeCatalogCache);
   const preferencesRef = useRef<AgentRuntimePreferences>({});
   const liveCatalog = useMemo(
@@ -59,17 +68,44 @@ export const useAgentExecutionChoice = ({
   const localEntry = catalog.find(
     (entry) => entry.runtimeConfigId === localChoice?.runtimeConfigId,
   );
-  const choice =
-    localChoice && localEntry && runtimeCatalogEntryIsSelectable(localEntry)
+  const explicitChoice =
+    localChoice &&
+    localEntry &&
+    runtimeCatalogEntryIsSelectable(localEntry) &&
+    (scope !== "run" || localRunScopeId === runScopeId)
       ? localChoice
-      : persistedChoice;
+      : null;
+  const explicitOverrides =
+    scope === "run" && runSelection?.scopeId === runScopeId ? runSelection.overrides : null;
+  const displayedChoice = explicitChoice ?? persistedChoice;
+  const choice =
+    displayedChoice && explicitOverrides
+      ? { ...displayedChoice, ...explicitOverrides }
+      : displayedChoice;
 
   const persistChoice = useCallback(
-    (nextChoice: AgentExecutionChoice) => {
+    (nextChoice: AgentExecutionChoice, changedFields?: Array<keyof AgentExecutionChoice>) => {
       const entry = catalog.find(
         (candidate) => candidate.runtimeConfigId === nextChoice.runtimeConfigId,
       );
       if (!entry || !runtimeCatalogEntryIsSelectable(entry)) return;
+      setLocalChoice(nextChoice);
+      setLocalRunScopeId(runScopeId);
+      if (scope === "run") {
+        const fields =
+          changedFields ?? (Object.keys(nextChoice) as Array<keyof AgentExecutionChoice>);
+        const patch = Object.fromEntries(
+          fields
+            .filter((field) => nextChoice[field] !== undefined)
+            .map((field) => [field, nextChoice[field]]),
+        );
+        setRunSelection((current) => ({
+          scopeId: runScopeId,
+          overrides: { ...(current?.scopeId === runScopeId ? current.overrides : {}), ...patch },
+        }));
+
+        return;
+      }
       const preference: AgentRuntimePreference = {
         ...(nextChoice.model ? { model: nextChoice.model } : {}),
         ...(nextChoice.reasoningEffort ? { reasoningEffort: nextChoice.reasoningEffort } : {}),
@@ -83,7 +119,6 @@ export const useAgentExecutionChoice = ({
         [nextChoice.runtimeConfigId]: preference,
       };
       preferencesRef.current = nextPreferences;
-      setLocalChoice(nextChoice);
       updateSettings(
         {
           errorNotification: false,
@@ -105,13 +140,13 @@ export const useAgentExecutionChoice = ({
         },
       );
     },
-    [catalog, settings, updateSettings],
+    [catalog, runScopeId, scope, settings, updateSettings],
   );
 
   const selectRuntime = useCallback(
     (runtimeConfigId: string) => {
       const nextChoice = changeExecutionRuntime(catalog, settings, runtimeConfigId);
-      if (nextChoice) persistChoice(nextChoice);
+      if (nextChoice) persistChoice(nextChoice, ["runtimeConfigId"]);
     },
     [catalog, persistChoice, settings],
   );
@@ -120,8 +155,10 @@ export const useAgentExecutionChoice = ({
     catalog,
     catalogQuery,
     choice,
+    explicitChoice,
+    explicitOverrides,
     isLoading: (catalog.length === 0 && catalogQuery.isLoading) || settingsQuery.isLoading,
-    isSaving: updateMutation.isPending,
+    isSaving: scope === "session" && updateMutation.isPending,
     persistChoice,
     selectRuntime,
     settings,

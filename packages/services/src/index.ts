@@ -27,3 +27,8 @@ export * from "./settingsService";
 export * from "./skillsService";
 export * from "./usageService";
 export * from "./operationOutputItemTemplatesService";
+export * from "./executionService";
+export * from "./executionArtifacts";
+export * from "./executionActors";
+export * from "./executionGateway";
+export * from "./canvasExecution";

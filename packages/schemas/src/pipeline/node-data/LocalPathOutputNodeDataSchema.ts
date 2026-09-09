@@ -6,7 +6,10 @@ export const LocalPathOutputNodeDataSchema = z.object({
   nodeType: z.literal("output-local-path"),
   localPath: z
     .string()
-    .describe("Output directory. Put the filename in outputFileName instead of appending it here."),
+    .describe(
+      "Legacy output directory, not a filename. Leave empty for v2 managed artifact output.",
+    ),
+  storage: z.literal("artifact").optional(),
   outputFileName: z
     .string()
     .optional()

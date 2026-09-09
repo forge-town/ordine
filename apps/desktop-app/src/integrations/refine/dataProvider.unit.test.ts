@@ -4,12 +4,11 @@ const { desktopRequest } = vi.hoisted(() => ({
   desktopRequest: vi.fn(),
 }));
 
-vi.mock("../platform", () => ({
-  DESKTOP_API_BASE: "http://desktop.test/api",
-  desktopRequest,
-}));
-
-const { dataProvider } = await import("./dataProvider");
+const { createDesktopAuthoringDataProvider } = await import("./dataProvider");
+const dataProvider = createDesktopAuthoringDataProvider({
+  baseUrl: "http://desktop.test",
+  request: desktopRequest,
+});
 
 const jsonResponse = (data: unknown, status = 200) =>
   new Response(JSON.stringify(data), {
@@ -23,6 +22,95 @@ beforeEach(() => {
 });
 
 describe("desktop dataProvider", () => {
+  it.each([404, 401, 500])(
+    "preserves getOne HTTP status %s for resource fallback decisions",
+    async (status) => {
+      desktopRequest.mockResolvedValueOnce(
+        jsonResponse({ message: "not inferred from text" }, status),
+      );
+      await expect(
+        dataProvider.getOne({ resource: "pipelines", id: "canonical-only" }),
+      ).rejects.toMatchObject({ statusCode: status });
+    },
+  );
+  it("uses the canonical authoring runtime resource path", async () => {
+    await dataProvider.getList!({ resource: "agentRuntimes" });
+    expect(desktopRequest).toHaveBeenCalledWith("http://desktop.test/api/agent-runtimes");
+    await dataProvider.getOne!({ resource: "agentRuntimes", id: "runtime-1" });
+    expect(desktopRequest).toHaveBeenLastCalledWith(
+      "http://desktop.test/api/agent-runtimes/runtime-1",
+    );
+  });
+  it.each([
+    {
+      endpoint: "skills/previewImport",
+      path: "preview-import",
+      payload: { rootPath: "C:/skills" },
+    },
+    { endpoint: "skills/importCandidates", path: "import-candidates", payload: { candidates: [] } },
+  ])(
+    "maps authoring $endpoint without an execution request",
+    async ({ endpoint, path, payload }) => {
+      await dataProvider.custom!({ url: endpoint, method: "post", payload });
+      expect(desktopRequest).toHaveBeenCalledOnce();
+      expect(desktopRequest).toHaveBeenCalledWith(`http://desktop.test/api/skills/${path}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+    },
+  );
+  it("persists runtime editor changes through the existing metadata sync contract", async () => {
+    const payload = { runtimes: [{ id: "local-runtime", name: "Local" }] };
+    await dataProvider.custom!({ url: "agentRuntimes/syncAll", method: "post", payload });
+    expect(desktopRequest).toHaveBeenCalledWith("http://desktop.test/api/agent-runtimes/sync-all", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+  });
+  it.each(["execution/publish-canvas", "execution/publish-operation"])(
+    "publishes %s without starting execution",
+    async (endpoint) => {
+      const payload = { pipelineId: "draft", executionOverrides: {} };
+      desktopRequest.mockResolvedValueOnce(
+        jsonResponse({
+          pipeline: { id: "published", revision: 2 },
+          inputs: {},
+          executionOverrides: {},
+        }),
+      );
+      await expect(
+        dataProvider.custom!({ url: endpoint, method: "post", payload }),
+      ).resolves.toMatchObject({ data: { pipeline: { id: "published", revision: 2 } } });
+      expect(desktopRequest).toHaveBeenCalledOnce();
+      expect(desktopRequest).toHaveBeenCalledWith(`http://desktop.test/api/${endpoint}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+    },
+  );
+  it.each([
+    "pipelines/run",
+    "operations/run",
+    "routines/runNow",
+    "distillations/run",
+    "jobs/pause",
+    "jobs/resume",
+    "jobs/cancel",
+    "https://example.com/api/jobs",
+    "http://desktop.test/api/v2/jobs",
+  ])("refuses legacy or unregistered endpoint %s", async (endpoint) => {
+    await expect(
+      dataProvider.custom!({
+        url: endpoint,
+        method: "post",
+        payload: { id: "legacy", jobId: "job" },
+      }),
+    ).rejects.toThrow();
+    expect(desktopRequest).not.toHaveBeenCalled();
+  });
   it("uses registered resource paths and only forwards supported list filters", async () => {
     await dataProvider.getList!({
       resource: "conversationMessages",
@@ -60,15 +148,6 @@ describe("desktop dataProvider", () => {
   });
 
   it.each([
-    {
-      endpoint: "pipelines/run",
-      payload: { id: "pipeline-1", inputPath: "/input" },
-      request: [
-        "http://desktop.test/api/pipelines/pipeline-1/run",
-        "POST",
-        { inputPath: "/input" },
-      ],
-    },
     {
       endpoint: "pipelines/analyzeIntent",
       payload: { name: "Pipeline", description: "Description" },
@@ -125,11 +204,6 @@ describe("desktop dataProvider", () => {
       request: ["http://desktop.test/api/pipeline-assets/distill/pipeline-1", "POST"],
     },
     {
-      endpoint: "routines/runNow",
-      payload: { id: "routine-1" },
-      request: ["http://desktop.test/api/routines/routine-1/run-now", "POST"],
-    },
-    {
       endpoint: "routines/occurrences",
       payload: {
         from: "2026-08-03T00:00:00.000Z",
@@ -171,35 +245,6 @@ describe("desktop dataProvider", () => {
       endpoint: "jobs/agentRunSpans",
       payload: { jobId: "job-1", rawExportId: 42 },
       request: ["http://desktop.test/api/jobs/job-1/agent-runs/42/spans", "GET"],
-    },
-    {
-      endpoint: "jobs/pause",
-      payload: { jobId: "job-1" },
-      request: ["http://desktop.test/api/jobs/job-1/pause", "POST"],
-    },
-    {
-      endpoint: "jobs/resume",
-      payload: { jobId: "job-1" },
-      request: ["http://desktop.test/api/jobs/job-1/resume", "POST"],
-    },
-    {
-      endpoint: "jobs/cancel",
-      payload: { jobId: "job-1" },
-      request: ["http://desktop.test/api/jobs/job-1/cancel", "POST"],
-    },
-    {
-      endpoint: "distillations/run",
-      payload: { id: "distillation-1" },
-      request: ["http://desktop.test/api/distillations/distillation-1/run", "POST"],
-    },
-    {
-      endpoint: "operations/run",
-      payload: { operationId: "operation-1", inputContent: "content" },
-      request: [
-        "http://desktop.test/api/operations/operation-1/run",
-        "POST",
-        { inputContent: "content" },
-      ],
     },
     {
       endpoint: "agentRuntimes/getCatalog",
@@ -283,10 +328,7 @@ describe("desktop dataProvider", () => {
       "pipelines/optimizeFromDistillation",
       "refinements/start",
       "settings/scanRuntimes",
-      "agentRuntimes/syncAll",
       "agentRuntimes/scanAndSync",
-      "skills/previewImport",
-      "skills/importCandidates",
     ]) {
       await expect(dataProvider.custom!({ url: endpoint, method: "post" })).rejects.toThrow(
         `Unsupported Desktop custom endpoint "${endpoint}"`,

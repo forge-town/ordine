@@ -1,3 +1,4 @@
+import { legacyExecutionDisabled } from "./legacyExecutionDisabled.js";
 import { Hono, type Context } from "hono";
 import { ResultAsync } from "neverthrow";
 import { z } from "zod/v4";
@@ -7,7 +8,7 @@ import {
   ProposeAttachmentSchema,
   ProposePendingOperationSchema,
 } from "@repo/schemas";
-import { pipelinesService, pipelineRunnerService } from "../services.js";
+import { pipelinesService } from "../services.js";
 
 export const pipelinesRoutes = new Hono();
 
@@ -68,17 +69,6 @@ const generateStructureBodySchema = z
     model: z.string().min(1).optional(),
   })
   .strict();
-
-const runPipelineBodySchema = z.object({
-  inputPath: z.string().optional(),
-  githubToken: z.string().optional(),
-  inputs: z.record(z.string(), z.string()).optional(),
-  runtimeConfigId: z.string().min(1).optional(),
-  model: z.string().min(1).optional(),
-  reasoningEffort: z.string().min(1).optional(),
-  speed: z.string().min(1).optional(),
-  firstOutputTimeoutSeconds: z.number().int().min(0).max(3600).optional(),
-});
 
 pipelinesRoutes.get("/", async (c) => {
   const pipelines = await pipelinesService.getAll();
@@ -213,58 +203,7 @@ pipelinesRoutes.post("/:id/propose-actions", async (c) => {
   return c.json(result);
 });
 
-pipelinesRoutes.post("/:id/run", async (c) => {
-  const id = c.req.param("id");
-  const pipeline = await pipelinesService.getById(id);
-  if (!pipeline) return c.json({ error: "Pipeline not found" }, 404);
-
-  const bodyResult = await ResultAsync.fromPromise(
-    c.req.json() as Promise<unknown>,
-    () => undefined,
-  );
-  const parsed = runPipelineBodySchema.safeParse(bodyResult.unwrapOr({}));
-  if (!parsed.success) {
-    return c.json({ error: "Invalid request body", issues: parsed.error.issues }, 400);
-  }
-
-  const result = await pipelineRunnerService.startRun({
-    pipelineId: id,
-    inputPath: parsed.data.inputPath,
-    githubToken: parsed.data.githubToken,
-    inputs: parsed.data.inputs,
-    runtimeConfigId: parsed.data.runtimeConfigId,
-    model: parsed.data.model,
-    reasoningEffort: parsed.data.reasoningEffort,
-    speed: parsed.data.speed,
-    firstOutputTimeoutMs:
-      parsed.data.firstOutputTimeoutSeconds === undefined
-        ? undefined
-        : parsed.data.firstOutputTimeoutSeconds * 1000,
-  });
-
-  if (result.isErr()) {
-    const missingOperation = missingOperationResponse(c, result.error);
-    if (missingOperation) return missingOperation;
-
-    const error = result.error as Error & { code?: string };
-    const runtimeMissing = error.code === "AGENT_RUNTIME_NOT_FOUND";
-    const pipelineMissing = error.name === "PipelineNotFoundError";
-
-    return c.json(
-      {
-        code: runtimeMissing
-          ? "AGENT_RUNTIME_NOT_FOUND"
-          : pipelineMissing
-            ? "PIPELINE_NOT_FOUND"
-            : "PIPELINE_RUN_FAILED",
-        error: error.message,
-      },
-      runtimeMissing ? 409 : pipelineMissing ? 404 : 500,
-    );
-  }
-
-  return c.json({ jobId: result.value.jobId }, 202);
-});
+pipelinesRoutes.post("/:id/run", legacyExecutionDisabled);
 
 pipelinesRoutes.post("/generate-structure", async (c) => {
   const bodyResult = await ResultAsync.fromPromise(

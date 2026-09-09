@@ -46,8 +46,9 @@ export const readMcpResource = async ({
           mimeType: "application/json",
           text: JSON.stringify(
             {
-              apiUrl: process.env.ORDINE_API_URL ?? "http://localhost:9433",
-              threadId: "agent-control-stdio-local-owner",
+              apiUrl: process.env.ORDINE_API_URL ?? "http://localhost:19433",
+              apiVersion: 2,
+              approvalAuthority: "user-in-app",
               policy,
             },
             null,

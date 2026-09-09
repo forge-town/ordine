@@ -64,6 +64,7 @@ vi.mock("@repo/pipeline-engine/actions", () => ({
 
 vi.mock("../../../lib/canvasDataProvider", () => ({
   setCanvasDataProvider: vi.fn(),
+  setCanvasExecutionDataProvider: vi.fn(),
   getCanvasDataProvider: () => ({
     getOne: (...args: unknown[]) => mockGetOne(...args),
     getList: (...args: unknown[]) => mockGetList(...args),

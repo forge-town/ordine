@@ -2,12 +2,6 @@
 import { Command } from "commander";
 import packageJson from "../package.json";
 import {
-  listPipelines,
-  getPipeline,
-  createPipeline,
-  updatePipeline,
-  deletePipeline,
-  runPipeline,
   listRules,
   getRule,
   createRule,
@@ -18,15 +12,6 @@ import {
   createSkill,
   updateSkill,
   deleteSkill,
-  listOperations,
-  getOperation,
-  createOperation,
-  updateOperation,
-  deleteOperation,
-  listJobs,
-  getJob,
-  listJobTraces,
-  deleteJob,
   listBestPractices,
   getBestPractice,
   createBestPractice,
@@ -36,6 +21,7 @@ import {
   importBestPractices,
   browseFilesystem,
 } from "./commands";
+import { registerExecutionCommands } from "./executionCommands";
 import { startDaemon } from "./daemon";
 import { registerAgentSetupCommands, registerMcpCommands } from "./mcp/cliCommands";
 
@@ -49,46 +35,9 @@ program
 
 const outputOptions = (): { json?: boolean } => program.opts<{ json?: boolean }>();
 
-// ─── Pipelines ───────────────────────────────────────────────────────
-
-const pipelinesCmd = program.command("pipelines").description("Manage pipelines");
-pipelinesCmd
-  .command("list")
-  .alias("ls")
-  .description("List all pipelines")
-  .action(() => listPipelines(outputOptions()));
-pipelinesCmd
-  .command("get <id>")
-  .description("Get pipeline details")
-  .action((id: string) => getPipeline(id));
-pipelinesCmd
-  .command("create <jsonFile>")
-  .description("Create a pipeline from JSON file")
-  .action((f: string) => createPipeline(f));
-pipelinesCmd
-  .command("update <id> <jsonFile>")
-  .description("Update a pipeline")
-  .action((id: string, f: string) => updatePipeline(id, f));
-pipelinesCmd
-  .command("delete <id>")
-  .description("Delete a pipeline")
-  .action((id: string) => deletePipeline(id));
-
-program
-  .command("run <pipelineId>")
-  .description("Run a pipeline by ID")
-  .option("-i, --input <path>", "Input file or folder path")
-  .option("--no-follow", "Do not follow job progress (fire and forget)")
-  .action((pipelineId: string, opts: { input?: string; follow?: boolean }) =>
-    runPipeline(pipelineId, {
-      inputPath: opts.input,
-      follow: opts.follow,
-      json: outputOptions().json,
-    }),
-  );
-
 // ─── MCP / Runtime Compatibility ────────────────────────────────────
 
+registerExecutionCommands(program);
 registerMcpCommands(program, outputOptions);
 registerAgentSetupCommands(program);
 
@@ -141,53 +90,6 @@ skillsCmd
   .command("delete <id>")
   .description("Delete a skill")
   .action((id: string) => deleteSkill(id));
-
-// ─── Operations ──────────────────────────────────────────────────────
-
-const opsCmd = program.command("operations").alias("ops").description("Manage operations");
-opsCmd
-  .command("list")
-  .alias("ls")
-  .description("List all operations")
-  .action(() => listOperations());
-opsCmd
-  .command("get <id>")
-  .description("Get operation details")
-  .action((id: string) => getOperation(id));
-opsCmd
-  .command("create <jsonFile>")
-  .description("Create an operation from JSON file")
-  .action((f: string) => createOperation(f));
-opsCmd
-  .command("update <id> <jsonFile>")
-  .description("Update an operation")
-  .action((id: string, f: string) => updateOperation(id, f));
-opsCmd
-  .command("delete <id>")
-  .description("Delete an operation")
-  .action((id: string) => deleteOperation(id));
-
-// ─── Jobs ────────────────────────────────────────────────────────────
-
-const jobsCmd = program.command("jobs").description("Manage jobs");
-jobsCmd
-  .command("list")
-  .alias("ls")
-  .description("List all jobs")
-  .option("-s, --status <status>", "Filter by status")
-  .action((opts: { status?: string }) => listJobs({ ...opts, json: outputOptions().json }));
-jobsCmd
-  .command("get <id>")
-  .description("Get job details")
-  .action((id: string) => getJob(id));
-jobsCmd
-  .command("traces <id>")
-  .description("List job traces as JSON")
-  .action((id: string) => listJobTraces(id));
-jobsCmd
-  .command("delete <id>")
-  .description("Delete a job")
-  .action((id: string) => deleteJob(id));
 
 // ─── Best Practices ──────────────────────────────────────────────────
 

@@ -73,8 +73,7 @@ const isRecord = (value: unknown): value is UnknownRecord =>
 const parseJsonObject = (text: string | null, path: string): UnknownRecord => {
   if (text === null || text.trim() === "") return {};
   const parsed = parseJson(text);
-  if (parsed.isErr())
-    throw new Error(`Existing config at ${path} is invalid JSON: ${parsed.error.message}`);
+  if (parsed.isErr()) throw new Error(`Existing config at ${path} is invalid JSON.`);
   if (!isRecord(parsed.value)) throw new Error(`Existing config at ${path} is not a JSON object`);
 
   return parsed.value;
@@ -328,13 +327,13 @@ export const installMcpTarget = async ({
     const added = await commandRunner(plan.bin, plan.addArgs);
     if (added.exitCode !== 0) {
       throw new Error(
-        `Failed to install ${plan.displayName}: ${added.stderr.trim() || `exit ${added.exitCode}`}`,
+        `Failed to install ${plan.displayName}: exit ${added.exitCode}. Client output is withheld because it may contain credentials.`,
       );
     }
     const verified = await commandRunner(plan.bin, plan.getArgs);
     if (cliRegistrationState(plan, verified) !== "installed") {
       throw new Error(
-        `Installed ${plan.displayName}, but could not verify ${context.serverName}: ${verified.stderr.trim() || `exit ${verified.exitCode}`}`,
+        `Installed ${plan.displayName}, but could not verify ${context.serverName}: exit ${verified.exitCode}.`,
       );
     }
 
@@ -372,7 +371,7 @@ export const installMcpTarget = async ({
       status: "planned",
       message: "JSON config was not changed because --dry-run is active.",
       configPath: plan.configPath,
-      snippet: next,
+      snippet: applyJsonInstall(null, plan),
     };
   }
   const backupPath = await writeJsonConfig(plan.configPath, next, existing !== null);
@@ -440,7 +439,7 @@ export const uninstallMcpTarget = async ({
     const removed = await commandRunner(plan.bin, plan.removeArgs);
     if (removed.exitCode !== 0) {
       throw new Error(
-        `Failed to uninstall ${plan.displayName}: ${removed.stderr.trim() || `exit ${removed.exitCode}`}`,
+        `Failed to uninstall ${plan.displayName}: exit ${removed.exitCode}. Client output is withheld because it may contain credentials.`,
       );
     }
     const verified = await commandRunner(plan.bin, plan.getArgs);
@@ -480,7 +479,6 @@ export const uninstallMcpTarget = async ({
       status: "planned",
       message: "JSON config was not changed because --dry-run is active.",
       configPath: plan.configPath,
-      snippet: next,
     };
   }
   const backupPath = await writeJsonConfig(plan.configPath, next, true);
@@ -545,8 +543,7 @@ export const doctorMcpTarget = async ({
           ? `${context.serverName} is registered through ${plan.bin}.`
           : state === "drifted"
             ? `${context.serverName} exists in ${plan.displayName} but its launch command differs from ORDINE.`
-            : current.stderr.trim() ||
-              `${context.serverName} is not registered through ${plan.bin}.`,
+            : `${context.serverName} is not registered through ${plan.bin} (exit ${current.exitCode}).`,
     };
   })();
   const registrationState = registration.state;
@@ -590,7 +587,6 @@ export const doctorMcpTarget = async ({
     protocol.workspaceContext === true &&
     protocol.apiReachable === true &&
     protocol.dbReachable === true &&
-    protocol.runtimeCatalogInitialized === true &&
     protocol.failureLayer === undefined;
 
   return {
@@ -600,7 +596,7 @@ export const doctorMcpTarget = async ({
     operation: "doctor",
     status: healthy ? "healthy" : "drifted",
     message: healthy
-      ? `${registrationMessage} initialize, tools/list, workspace policy, API/DB preflight, runtime catalog, and ordine.search all succeeded.`
+      ? `${registrationMessage} initialize, tools/list, workspace policy, execution v2 readiness, and ordine.v2.jobs.list all succeeded. Runtime availability is reported separately.`
       : `${registrationMessage} MCP doctor failed at ${protocol.failureLayer ?? "unknown_layer"}: ${protocol.message ?? "unknown layer"}`,
     ...(configPath ? { configPath } : {}),
     evidence: {

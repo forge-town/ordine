@@ -41,16 +41,19 @@ import {
   AgentChangeSetSchema,
   AgentControlEventSchema,
   AgentControlToolResultSchema,
+  RunRequestReceiptSchema,
   type AgentControlEvent,
   type AgentControlToolResult,
   type AgentResourceRef,
   type AgentRuntime,
   type AgentRunStatus,
+  type ExecutionPortValues,
 } from "@repo/schemas";
 import { err, ok, ResultAsync, type Result } from "neverthrow";
 import { createCanvasControl, type CanvasReadValue } from "./canvasControl";
 import { canAppendControlRunEvent } from "./controlRunEvent";
 import { createExecutionPreflight, type ExecutionPreflightValue } from "./executionPreflight";
+import { notifyCommittedChangeSet } from "./notifyCommittedChangeSet";
 import {
   createResourceControl,
   type MutableAgentResourceType,
@@ -73,13 +76,54 @@ type DomainValue = ResourceControlValue | CanvasReadValue;
 type ExecutionResult = Result<Record<string, unknown>, Error>;
 
 export type AgentControlExecutionPorts = {
+  submissionMode?: "prepared-run";
   runPipeline: (input: {
     pipelineId: string;
-    inputs?: Record<string, string>;
+    inputs?: ExecutionPortValues;
+    requestId?: string;
   }) => Promise<ExecutionResult>;
-  runOperation: (input: { operationId: string; inputContent?: string }) => Promise<ExecutionResult>;
-  runRoutine: (routineId: string) => Promise<ExecutionResult>;
+  runOperation: (input: {
+    operationId: string;
+    inputs?: ExecutionPortValues;
+    requestId?: string;
+  }) => Promise<ExecutionResult>;
+  runRoutine: (routineId: string, requestId?: string) => Promise<ExecutionResult>;
   controlJob: (jobId: string, action: "pause" | "resume" | "cancel") => Promise<ExecutionResult>;
+  getJobTrace?: (jobId: string, afterSequence: number) => Promise<ExecutionResult>;
+};
+
+const preparedRunTools = new Set<string>([
+  "ordine.prepare_pipeline_run",
+  "ordine.prepare_operation_run",
+  "ordine.prepare_routine_run",
+]);
+
+const preparedSubmissionValue = (
+  target: AgentResourceRef,
+  value: Record<string, unknown>,
+): Result<DomainValue, DomainError> => {
+  const parsed = RunRequestReceiptSchema.safeParse(value);
+  if (!parsed.success)
+    return err({
+      code: "EXECUTION_RECEIPT_INVALID",
+      message: "The execution service did not return a valid request receipt.",
+      retryable: false,
+    });
+  const receipt = parsed.data;
+
+  return ok({
+    resources: [
+      target,
+      ...(receipt.state === "accepted" ? [{ type: "job" as const, id: receipt.jobId }] : []),
+    ],
+    summary:
+      receipt.state === "accepted"
+        ? `Execution request accepted as Job ${receipt.jobId}; execution is not yet complete.`
+        : receipt.state === "awaiting_approval"
+          ? "Execution request prepared. The user must review and approve it in ORDINE before a Job is created. Do not resubmit it."
+          : `Execution request is ${receipt.state}.`,
+    data: { executionReceipt: receipt },
+  });
 };
 
 export type AgentControlRunEventPort = {
@@ -300,9 +344,12 @@ const targetFrom = (name: AgentControlToolName, input: unknown): AgentResourceRe
   if (name.includes("canvas") || name.includes("node") || name.includes("edge")) {
     return typeof value.pipelineId === "string" ? { type: "pipeline", id: value.pipelineId } : null;
   }
-  if (name === "ordine.run_pipeline") return { type: "pipeline", id: String(value.pipelineId) };
-  if (name === "ordine.run_operation") return { type: "operation", id: String(value.operationId) };
-  if (name === "ordine.run_routine") return { type: "routine", id: String(value.routineId) };
+  if (name === "ordine.prepare_pipeline_run")
+    return { type: "pipeline", id: String(value.pipelineId) };
+  if (name === "ordine.prepare_operation_run")
+    return { type: "operation", id: String(value.operationId) };
+  if (name === "ordine.prepare_routine_run")
+    return { type: "routine", id: String(value.routineId) };
   if (name === "ordine.control_job" || name === "ordine.get_job_trace") {
     return { type: "job", id: String(value.jobId) };
   }
@@ -311,18 +358,13 @@ const targetFrom = (name: AgentControlToolName, input: unknown): AgentResourceRe
   return null;
 };
 
-const toStringInputs = (input?: Record<string, unknown>): Record<string, string> | undefined => {
-  if (!input) return undefined;
-
-  return Object.fromEntries(
-    Object.entries(input).map(([key, value]) => [
-      key,
-      typeof value === "string" ? value : JSON.stringify(value),
-    ]),
-  );
-};
-
 const navigationPath = (resource: AgentResourceRef): string => {
+  if (resource.type === "operation")
+    return `/pipelines/operations/${encodeURIComponent(resource.id)}`;
+  if (resource.type === "routine") return "/schedule";
+  if (resource.type === "job") return "/pipelines/jobs";
+  if (resource.type === "connector") return "/connectors";
+  if (resource.type === "skill") return "/skills";
   const plural = resource.type === "pipeline-asset" ? "pipeline-assets" : `${resource.type}s`;
 
   return `/${plural}/${encodeURIComponent(resource.id)}`;
@@ -429,17 +471,17 @@ export const createAgentControlService = (
     name: AgentControlToolName,
     input: unknown,
   ): Promise<Result<ExecutionPreflightValue | null, DomainError>> => {
-    if (name === "ordine.run_pipeline") {
+    if (name === "ordine.prepare_pipeline_run") {
       const parsed = RunPipelineInputSchema.parse(input);
 
       return (await preflight.pipeline(parsed.pipelineId)).map((value) => value);
     }
-    if (name === "ordine.run_operation") {
+    if (name === "ordine.prepare_operation_run") {
       const parsed = RunOperationInputSchema.parse(input);
 
       return (await preflight.operation(parsed.operationId)).map((value) => value);
     }
-    if (name === "ordine.run_routine") {
+    if (name === "ordine.prepare_routine_run") {
       const parsed = RunRoutineInputSchema.parse(input);
 
       return (await preflight.routine(parsed.routineId)).map((value) => value);
@@ -544,7 +586,7 @@ export const createAgentControlService = (
 
         return canvas.finish({ ...parsed, actionId });
       }
-      case "ordine.run_pipeline": {
+      case "ordine.prepare_pipeline_run": {
         if (!options.execution) {
           return err({
             code: "EXECUTION_UNAVAILABLE",
@@ -553,9 +595,18 @@ export const createAgentControlService = (
           });
         }
         const parsed = RunPipelineInputSchema.parse(input);
+        const pending = await changeSetsDao.findActive(threadId, "pipeline", parsed.pipelineId);
+        if (pending)
+          return err({
+            code: "CANVAS_NOT_APPLIED",
+            message:
+              "The Canvas Change Set has not been applied. Ask the user to click Apply and save, then wait for their confirmation before preparing the run.",
+            retryable: false,
+          });
         const result = await options.execution.runPipeline({
           pipelineId: parsed.pipelineId,
-          inputs: toStringInputs(parsed.input),
+          inputs: parsed.inputs,
+          ...(options.execution.submissionMode === "prepared-run" ? { requestId: actionId } : {}),
         });
         if (result.isErr())
           return err({
@@ -563,6 +614,9 @@ export const createAgentControlService = (
             message: result.error.message,
             retryable: true,
           });
+
+        if (options.execution.submissionMode === "prepared-run")
+          return preparedSubmissionValue({ type: "pipeline", id: parsed.pipelineId }, result.value);
 
         return ok({
           resources: [
@@ -573,7 +627,7 @@ export const createAgentControlService = (
           data: result.value,
         });
       }
-      case "ordine.run_operation": {
+      case "ordine.prepare_operation_run": {
         if (!options.execution) {
           return err({
             code: "EXECUTION_UNAVAILABLE",
@@ -584,7 +638,8 @@ export const createAgentControlService = (
         const parsed = RunOperationInputSchema.parse(input);
         const result = await options.execution.runOperation({
           operationId: parsed.operationId,
-          inputContent: parsed.input ? JSON.stringify(parsed.input) : undefined,
+          inputs: parsed.inputs,
+          ...(options.execution.submissionMode === "prepared-run" ? { requestId: actionId } : {}),
         });
         if (result.isErr())
           return err({
@@ -592,6 +647,12 @@ export const createAgentControlService = (
             message: result.error.message,
             retryable: true,
           });
+
+        if (options.execution.submissionMode === "prepared-run")
+          return preparedSubmissionValue(
+            { type: "operation", id: parsed.operationId },
+            result.value,
+          );
 
         return ok({
           resources: [
@@ -602,7 +663,7 @@ export const createAgentControlService = (
           data: result.value,
         });
       }
-      case "ordine.run_routine": {
+      case "ordine.prepare_routine_run": {
         if (!options.execution) {
           return err({
             code: "EXECUTION_UNAVAILABLE",
@@ -611,13 +672,19 @@ export const createAgentControlService = (
           });
         }
         const parsed = RunRoutineInputSchema.parse(input);
-        const result = await options.execution.runRoutine(parsed.routineId);
+        const result = await options.execution.runRoutine(
+          parsed.routineId,
+          options.execution.submissionMode === "prepared-run" ? actionId : undefined,
+        );
         if (result.isErr())
           return err({
             code: "ROUTINE_RUN_FAILED",
             message: result.error.message,
             retryable: true,
           });
+
+        if (options.execution.submissionMode === "prepared-run")
+          return preparedSubmissionValue({ type: "routine", id: parsed.routineId }, result.value);
 
         return ok({
           resources: [
@@ -653,6 +720,34 @@ export const createAgentControlService = (
       }
       case "ordine.get_job_trace": {
         const parsed = GetJobTraceInputSchema.parse(input);
+        if (options.execution?.submissionMode === "prepared-run") {
+          const afterSequence = parsed.cursor ? Number(parsed.cursor) : 0;
+          if (!Number.isSafeInteger(afterSequence) || afterSequence < 0)
+            return err({
+              code: "INVALID_CURSOR",
+              message: "cursor must be a non-negative event sequence",
+              retryable: true,
+            });
+          if (!options.execution.getJobTrace)
+            return err({
+              code: "EXECUTION_UNAVAILABLE",
+              message: "Execution trace reader is not configured.",
+              retryable: false,
+            });
+          const result = await options.execution.getJobTrace(parsed.jobId, afterSequence);
+          if (result.isErr())
+            return err({
+              code: "EXECUTION_TRACE_FAILED",
+              message: result.error.message,
+              retryable: true,
+            });
+
+          return ok({
+            resources: [{ type: "job", id: parsed.jobId }],
+            summary: `Read execution state, events and published artifact metadata for Job ${parsed.jobId}.`,
+            data: result.value,
+          });
+        }
         const job = await jobsDao.findById(parsed.jobId);
         if (!job)
           return err({
@@ -986,10 +1081,30 @@ export const createAgentControlService = (
     if (mismatch) return mismatch;
     if (existing && existing.status !== "approval_required") return replayResult(existing);
 
-    const preflightResult = await executionPreflight(
-      definition.name as AgentControlToolName,
-      input,
-    );
+    const preparedSubmission = preparedRunTools.has(definition.name);
+    if (preparedSubmission && options.execution?.submissionMode !== "prepared-run")
+      return failureResult({
+        actionId: fallbackActionId,
+        error: {
+          code: "EXECUTION_UNAVAILABLE",
+          message:
+            "The prepared execution service is not connected. This request cannot use the old runner.",
+          retryable: false,
+        },
+      });
+    if (preparedSubmission && existing?.status === "approval_required")
+      return failureResult({
+        actionId: existing.id,
+        error: {
+          code: "EXECUTION_REQUEST_REQUIRED",
+          message:
+            "This old approval cannot authorize a prepared run. Submit a new request for review.",
+          retryable: false,
+        },
+      });
+    const preflightResult = preparedSubmission
+      ? ok(null)
+      : await executionPreflight(definition.name as AgentControlToolName, input);
     if (preflightResult.isErr()) {
       const actionId = existing?.id ?? randomUUID();
       if (!existing) {
@@ -1036,10 +1151,12 @@ export const createAgentControlService = (
         resources: target ? [target] : [],
       });
     }
-    const approvalReasons = [
-      ...(definition.risk === "irreversible" ? [`${definition.title} is irreversible`] : []),
-      ...(preflightResult.value?.requiresApproval ? preflightResult.value.reasons : []),
-    ];
+    const approvalReasons = preparedSubmission
+      ? []
+      : [
+          ...(definition.risk === "irreversible" ? [`${definition.title} is irreversible`] : []),
+          ...(preflightResult.value?.requiresApproval ? preflightResult.value.reasons : []),
+        ];
     if (existing?.status === "approval_required") {
       const approval = await approvalsDao.findByActionId(existing.id);
       const requestedApprovalId = approvalRequestIdFrom(input);
@@ -1175,7 +1292,11 @@ export const createAgentControlService = (
       });
     }
     await emit(runId, { type: "action_succeeded", actionId: persistedActionId, result });
-    if ((definition.risk === "write" || definition.risk === "execute") && result.resources[0]) {
+    if (
+      !preparedSubmission &&
+      (definition.risk === "write" || definition.risk === "execute") &&
+      result.resources[0]
+    ) {
       const resource = result.resources.at(-1)!;
       await emit(runId, {
         type: "navigation_requested",
@@ -1276,7 +1397,7 @@ export const createAgentControlService = (
     async applyChangeSet(changeSetId: string, expectedVersion: number) {
       const applied = await repository.applyChangeSet(changeSetId, expectedVersion);
       if (applied.type === "applied") {
-        await emit(applied.changeSet.runId, {
+        const notification = {
           type: "change_set_committed",
           changeSetId,
           target: {
@@ -1285,7 +1406,13 @@ export const createAgentControlService = (
           },
           previousVersion: applied.previousVersion,
           newVersion: applied.newVersion,
-        });
+        } as const;
+        await notifyCommittedChangeSet(
+          options.runEvents,
+          applied.changeSet.runId,
+          notification,
+          () => emit(applied.changeSet.runId, notification),
+        );
       }
 
       return applied.type === "applied"

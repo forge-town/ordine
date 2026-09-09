@@ -1,30 +1,6 @@
 import { api } from "./api";
 import { readFileSync, writeFileSync } from "node:fs";
 
-interface Pipeline {
-  id: string;
-  name: string;
-  description: string;
-  tags: string[];
-  createdAt: number;
-  updatedAt: number;
-}
-
-interface Job {
-  id: string;
-  title: string;
-  status: "queued" | "running" | "paused" | "done" | "failed" | "cancelled" | "expired" | "skipped";
-  logs: string[];
-  result: { summary?: string; output?: string } | null;
-  error: string | null;
-  startedAt: number | null;
-  finishedAt: number | null;
-}
-
-interface RunResponse {
-  jobId: string;
-}
-
 interface IdRecord {
   id: string;
   name?: string;
@@ -38,14 +14,6 @@ interface DirEntry {
   type: string;
 }
 
-type OutputOptions = { json?: boolean };
-
-interface PollResult {
-  job: Job;
-  traces: unknown[];
-  tracesError?: string;
-}
-
 class CliError extends Error {
   constructor(
     message: string,
@@ -55,18 +23,6 @@ class CliError extends Error {
     this.name = "CliError";
   }
 }
-
-const POLL_INTERVAL_MS = 3000;
-
-const toSingleLine = (message: string): string => message.replaceAll(/\s+/g, " ").trim();
-
-const formatDuration = (ms: number): string => {
-  const seconds = Math.floor(ms / 1000);
-  const minutes = Math.floor(seconds / 60);
-  const remainingSeconds = seconds % 60;
-
-  return minutes > 0 ? `${minutes}m ${remainingSeconds}s` : `${remainingSeconds}s`;
-};
 
 const printRecord = (record: IdRecord): void => {
   const label = record.name ?? record.title ?? record.id;
@@ -80,78 +36,6 @@ const assertOk = <T>(result: { ok: boolean; data?: T; message?: string }, action
   }
 
   return (result as { ok: true; data: T }).data;
-};
-
-// ─── Pipelines ───────────────────────────────────────────────────────
-
-export const listPipelines = async (options: OutputOptions = {}): Promise<void> => {
-  const pipelines = assertOk(await api.get<Pipeline[]>("/api/pipelines"), "list pipelines");
-
-  if (options.json) {
-    console.log(JSON.stringify(pipelines));
-
-    return;
-  }
-
-  if (pipelines.length === 0) {
-    console.log("No pipelines found.");
-
-    return;
-  }
-
-  console.log(`\n  Pipelines (${pipelines.length}):\n`);
-  for (const p of pipelines) {
-    const tags = p.tags.length > 0 ? ` [${p.tags.join(", ")}]` : "";
-    console.log(`  ${p.id}  ${p.name}${tags}`);
-    if (p.description) console.log(`    ${p.description}`);
-  }
-  console.log();
-};
-
-export const getPipeline = async (id: string): Promise<void> => {
-  const pipeline = assertOk(await api.get<Pipeline>(`/api/pipelines/${id}`), "get pipeline");
-  console.log(JSON.stringify(pipeline, null, 2));
-};
-
-export const createPipeline = async (jsonPath: string): Promise<void> => {
-  const body = JSON.parse(readFileSync(jsonPath, "utf8")) as unknown;
-  const pipeline = assertOk(await api.post<Pipeline>("/api/pipelines", body), "create pipeline");
-  console.log(`Created pipeline: ${pipeline.id}`);
-};
-
-export const updatePipeline = async (id: string, jsonPath: string): Promise<void> => {
-  const body = JSON.parse(readFileSync(jsonPath, "utf8")) as unknown;
-  assertOk(await api.patch<Pipeline>(`/api/pipelines/${id}`, body), "update pipeline");
-  console.log(`Updated pipeline: ${id}`);
-};
-
-export const deletePipeline = async (id: string): Promise<void> => {
-  assertOk(await api.del(`/api/pipelines/${id}`), "delete pipeline");
-  console.log(`Deleted pipeline: ${id}`);
-};
-
-export const runPipeline = async (
-  pipelineId: string,
-  options: { inputPath?: string; follow?: boolean; json?: boolean },
-): Promise<void> => {
-  if (!options.json) console.log(`Triggering pipeline ${pipelineId}...`);
-
-  const { jobId } = assertOk(
-    await api.post<RunResponse>(`/api/pipelines/${pipelineId}/run`, {
-      inputPath: options.inputPath,
-    }),
-    "run pipeline",
-  );
-  if (!options.json) console.log(`Job created: ${jobId}`);
-
-  if (options.follow === false) {
-    if (options.json) console.log(JSON.stringify({ jobId }));
-
-    return;
-  }
-
-  const result = await pollJob(jobId, options);
-  if (options.json) console.log(JSON.stringify(result));
 };
 
 // ─── Rules ───────────────────────────────────────────────────────────
@@ -234,86 +118,6 @@ export const deleteSkill = async (id: string): Promise<void> => {
   console.log(`Deleted skill: ${id}`);
 };
 
-// ─── Operations ──────────────────────────────────────────────────────
-
-export const listOperations = async (): Promise<void> => {
-  const ops = assertOk(await api.get<IdRecord[]>("/api/operations"), "list operations");
-
-  if (ops.length === 0) {
-    console.log("No operations found.");
-
-    return;
-  }
-
-  console.log(`\n  Operations (${ops.length}):\n`);
-  for (const o of ops) {
-    printRecord(o);
-  }
-  console.log();
-};
-
-export const getOperation = async (id: string): Promise<void> => {
-  const op = assertOk(await api.get<IdRecord>(`/api/operations/${id}`), "get operation");
-  console.log(JSON.stringify(op, null, 2));
-};
-
-export const createOperation = async (jsonPath: string): Promise<void> => {
-  const body = JSON.parse(readFileSync(jsonPath, "utf8")) as unknown;
-  const op = assertOk(await api.post<IdRecord>("/api/operations", body), "create operation");
-  console.log(`Created operation: ${op.id}`);
-};
-
-export const updateOperation = async (id: string, jsonPath: string): Promise<void> => {
-  const body = JSON.parse(readFileSync(jsonPath, "utf8")) as unknown;
-  assertOk(await api.patch<IdRecord>(`/api/operations/${id}`, body), "update operation");
-  console.log(`Updated operation: ${id}`);
-};
-
-export const deleteOperation = async (id: string): Promise<void> => {
-  assertOk(await api.del(`/api/operations/${id}`), "delete operation");
-  console.log(`Deleted operation: ${id}`);
-};
-
-// ─── Jobs ────────────────────────────────────────────────────────────
-
-export const listJobs = async (options: { status?: string; json?: boolean }): Promise<void> => {
-  const query = options.status ? `?status=${options.status}` : "";
-  const jobs = assertOk(await api.get<Job[]>(`/api/jobs${query}`), "list jobs");
-
-  if (options.json) {
-    console.log(JSON.stringify(jobs));
-
-    return;
-  }
-
-  if (jobs.length === 0) {
-    console.log("No jobs found.");
-
-    return;
-  }
-
-  console.log(`\n  Jobs (${jobs.length}):\n`);
-  for (const j of jobs) {
-    console.log(`  ${j.id}  ${j.status}  ${j.title ?? ""}`);
-  }
-  console.log();
-};
-
-export const getJob = async (id: string): Promise<void> => {
-  const job = assertOk(await api.get<Job>(`/api/jobs/${id}`), "get job");
-  console.log(JSON.stringify(job, null, 2));
-};
-
-export const listJobTraces = async (id: string): Promise<void> => {
-  const traces = assertOk(await api.get<unknown[]>(`/api/jobs/${id}/traces`), "list job traces");
-  console.log(JSON.stringify(traces));
-};
-
-export const deleteJob = async (id: string): Promise<void> => {
-  assertOk(await api.del(`/api/jobs/${id}`), "delete job");
-  console.log(`Deleted job: ${id}`);
-};
-
 // ─── Best Practices ──────────────────────────────────────────────────
 
 export const listBestPractices = async (): Promise<void> => {
@@ -358,10 +162,7 @@ export const deleteBestPractice = async (id: string): Promise<void> => {
 };
 
 export const exportBestPractices = async (outPath: string): Promise<void> => {
-  const data = assertOk(
-    await api.getBytes("/api/best-practices/export"),
-    "export best practices",
-  );
+  const data = assertOk(await api.getBytes("/api/best-practices/export"), "export best practices");
   writeFileSync(outPath, data);
   console.log(`Exported best practices to: ${outPath}`);
 };
@@ -399,74 +200,4 @@ export const browseFilesystem = async (dirPath?: string): Promise<void> => {
     const suffix = e.type === "directory" ? "/" : "";
     console.log(`  ${e.name}${suffix}`);
   }
-};
-
-const pollJob = async (
-  jobId: string,
-  options: OutputOptions,
-): Promise<PollResult> => {
-  const startTime = Date.now();
-  const seenTraceCount = { value: 0 };
-  const allTraces: unknown[] = [];
-
-  const poll = async (): Promise<PollResult> => {
-    const result = await api.get<Job>(`/api/jobs/${jobId}`);
-
-    if (!result.ok) {
-      throw new CliError(`Failed to fetch job: ${result.message}`);
-    }
-
-    const job = result.data;
-
-    // Print new trace lines
-    const tracesResult = await api.get<unknown[]>(`/api/jobs/${jobId}/traces`);
-    const tracesError = tracesResult.ok ? undefined : toSingleLine(tracesResult.message);
-    if (tracesResult.ok) {
-      const newTraces = tracesResult.data.slice(seenTraceCount.value);
-      allTraces.splice(0, allTraces.length, ...tracesResult.data);
-      if (!options.json) {
-        for (const trace of newTraces) {
-          if (typeof trace !== "object" || trace === null || !("message" in trace)) continue;
-          console.log(String(trace.message));
-        }
-      }
-      seenTraceCount.value = tracesResult.data.length;
-    }
-
-    if (
-      job.status === "paused" ||
-      job.status === "done" ||
-      job.status === "failed" ||
-      job.status === "cancelled" ||
-      job.status === "expired" ||
-      job.status === "skipped"
-    ) {
-      const elapsed = formatDuration(Date.now() - startTime);
-      if (!options.json) console.log();
-      const output: PollResult = tracesError
-        ? { job, traces: allTraces, tracesError }
-        : { job, traces: allTraces };
-
-      if (tracesError) {
-        if (options.json) console.log(JSON.stringify(output));
-        throw new CliError(`Failed to fetch job traces: ${tracesError}`);
-      }
-
-      if (job.status === "done") {
-        if (!options.json) console.log(`Pipeline completed in ${elapsed}`);
-      } else {
-        if (options.json) console.log(JSON.stringify(output));
-        const detail = job.error ? `: ${toSingleLine(job.error)}` : "";
-        throw new CliError(`Pipeline ${job.status} after ${elapsed}${detail}`);
-      }
-
-      return output;
-    }
-
-    await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
-
-    return poll();
-  };
-
-  return poll();
 };

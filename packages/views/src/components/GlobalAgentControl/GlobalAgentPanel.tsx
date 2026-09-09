@@ -21,6 +21,7 @@ import { usePlatform } from "../../platform";
 import { AgentExecutionPicker, useAgentExecutionChoice } from "../AgentExecutionPicker";
 import { AgentActivitySurface } from "../AgentActivity";
 import { AgentApprovalCard } from "./AgentApprovalCard";
+import { AgentExecutionRequests } from "./AgentExecutionRequests";
 import { AgentContextChips } from "./AgentContextChips";
 import { useAgentControl } from "./GlobalAgentControlProvider";
 
@@ -48,6 +49,7 @@ export const GlobalAgentPanel = ({ className }: { className?: string }) => {
   const setDraft = useAgentControl((state) => state.setDraft);
   const setExecutionChoice = useAgentControl((state) => state.setExecutionChoice);
   const selectThread = useAgentControl((state) => state.selectThread);
+  const newThread = useAgentControl((state) => state.newThread);
   const submit = useAgentControl((state) => state.submit);
   const stop = useAgentControl((state) => state.stop);
   const applyChangeSet = useAgentControl((state) => state.applyChangeSet);
@@ -188,13 +190,13 @@ export const GlobalAgentPanel = ({ className }: { className?: string }) => {
               aria-label={t("agentControl.thread.label")}
               className="h-8 w-full rounded-lg border border-border bg-background px-2.5 text-xs outline-none focus:border-ring"
               value={activeThreadId ?? ""}
+              disabled={isRunning || isBootstrapping}
               onChange={(event) => {
                 if (event.target.value) void selectThread(event.target.value);
+                else newThread();
               }}
             >
-              <option disabled value="">
-                {t("agentControl.thread.new")}
-              </option>
+              <option value="">{t("agentControl.thread.new")}</option>
               {threads.map((thread) => (
                 <option key={thread.id} value={thread.id}>
                   {thread.title}
@@ -295,6 +297,7 @@ export const GlobalAgentPanel = ({ className }: { className?: string }) => {
           {pendingApprovals.map((approval) => (
             <AgentApprovalCard approval={approval} key={approval.id} />
           ))}
+          <AgentExecutionRequests />
 
           {visibleChangeSets.map((changeSet) => (
             <article
@@ -394,6 +397,15 @@ export const GlobalAgentPanel = ({ className }: { className?: string }) => {
                   )}
                   <span className="min-w-0 flex-1 truncate font-mono text-[11px]">
                     {action.toolName}
+                    {action.status === "failed" &&
+                      action.result?.retry != null &&
+                      typeof action.result.retry === "object" &&
+                      "message" in action.result.retry &&
+                      typeof action.result.retry.message === "string" && (
+                        <span className="block whitespace-normal break-words text-destructive">
+                          {action.result.retry.message}
+                        </span>
+                      )}
                   </span>
                   <span className="text-[10px] text-muted-foreground">
                     {t(`agentControl.actionStatus.${action.status}`)}

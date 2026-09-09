@@ -1,3 +1,4 @@
+import { legacyExecutionDisabled } from "./legacyExecutionDisabled";
 import { randomUUID } from "node:crypto";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod/v4";
@@ -59,9 +60,7 @@ export const routinesRouter = router({
       unwrapResult(await routinesService.update(input.id, input.patch)),
     ),
 
-  runNow: publicProcedure
-    .input(z.object({ id: z.string() }))
-    .mutation(async ({ input }) => unwrapResult(await routinesService.runNow(input.id))),
+  runNow: publicProcedure.input(z.unknown().optional()).mutation(legacyExecutionDisabled),
 
   delete: publicProcedure.input(z.object({ id: z.string() })).mutation(async ({ input }) => {
     await routinesService.delete(input.id);

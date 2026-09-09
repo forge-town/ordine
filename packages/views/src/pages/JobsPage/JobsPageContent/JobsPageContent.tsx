@@ -3,7 +3,7 @@ import { useStore } from "zustand";
 import { useNavigate } from "@tanstack/react-router";
 import { CalendarDays, Clock, ListChecks, Play, Rows3 } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import type { Job, PipelineData, Routine } from "@repo/schemas";
+import type { ExecutionJobSummary, PipelineData, Routine } from "@repo/schemas";
 import { useList } from "@refinedev/core";
 import { ResourceName } from "../../../constants";
 import { PageLoadingState } from "../../../components/PageLoadingState";
@@ -17,6 +17,7 @@ import { JOB_STATUS_FILTERS, useJobsPageStore, type JobStatusFilter } from "../_
 import { JobDetailDrawer } from "../JobDetailDrawer";
 import { JobsCalendar } from "../JobsCalendar";
 import { JobsTable } from "../JobsTable";
+import { jobStateFilter } from "../jobState";
 
 type JobsView = "calendar" | "list";
 type SchedulingState =
@@ -34,25 +35,16 @@ const FILTER_LABEL_KEYS: Record<JobStatusFilter, string> = {
   Failed: "jobs.filters.failed",
   Running: "jobs.filters.running",
   Waiting: "jobs.filters.waiting",
-};
-
-const hasWaitingNode = (job: Job) =>
-  Object.values(job.nodeStatuses ?? {}).some((status) => status === "waitingForUser");
-
-const getJobFilterValue = (job: Job): JobStatusFilter[] => {
-  const values: JobStatusFilter[] = ["All"];
-  if (job.status === "running" || job.status === "paused") values.push("Running");
-  if (job.status === "queued" || hasWaitingNode(job)) values.push("Waiting");
-  if (job.status === "done") values.push("Completed");
-  if (job.status === "failed" || job.status === "expired") values.push("Failed");
-
-  return values;
+  Cancelled: "jobs.filters.cancelled",
 };
 
 export const JobsPageContent = () => {
   const { t } = useTranslation();
-  const { result: jobsResult, query: jobsQuery } = useList<Job>({
-    resource: ResourceName.jobs,
+  const { result: jobsResult, query: jobsQuery } = useList<ExecutionJobSummary>({
+    dataProviderName: "execution",
+    resource: "job-summaries",
+    pagination: { mode: "off" },
+    queryOptions: { retry: false, refetchInterval: 1500 },
   });
   const { result: routinesResult, query: routinesQuery } = useList<Routine>({
     resource: ResourceName.routines,
@@ -71,32 +63,31 @@ export const JobsPageContent = () => {
   const handleSearchClearButtonClick = useStore(store, (s) => s.handleSearchClearButtonClick);
   const handleStatusFilterButtonClick = useStore(store, (s) => s.handleStatusFilterButtonClick);
   const [view, setView] = useState<JobsView>("list");
-  const [detailJob, setDetailJob] = useState<Job | null>(null);
+  const [detailJob, setDetailJob] = useState<ExecutionJobSummary | null>(null);
   const [scheduling, setScheduling] = useState<SchedulingState>(null);
 
-  const pipelineNameById = new Map(pipelines.map((pipeline) => [pipeline.id, pipeline.name]));
   const filterCounts: Record<JobStatusFilter, number> = {
     All: jobs.length,
-    Completed: jobs.filter((job) => job.status === "done").length,
-    Failed: jobs.filter((job) => job.status === "failed" || job.status === "expired").length,
-    Running: jobs.filter((job) => job.status === "running" || job.status === "paused").length,
-    Waiting: jobs.filter((job) => job.status === "queued" || hasWaitingNode(job)).length,
+    Completed: jobs.filter((job) => jobStateFilter[job.state] === "Completed").length,
+    Failed: jobs.filter((job) => jobStateFilter[job.state] === "Failed").length,
+    Running: jobs.filter((job) => jobStateFilter[job.state] === "Running").length,
+    Waiting: jobs.filter((job) => jobStateFilter[job.state] === "Waiting").length,
+    Cancelled: jobs.filter((job) => jobStateFilter[job.state] === "Cancelled").length,
   };
 
   const filtered = jobs.filter((job) => {
     const q = search.toLowerCase();
-    const pipelineName = job.pipelineId ? pipelineNameById.get(job.pipelineId) : undefined;
-    const matchStatus = getJobFilterValue(job).includes(statusFilter);
+    const matchStatus = statusFilter === "All" || jobStateFilter[job.state] === statusFilter;
     const matchSearch =
       !q ||
-      job.title.toLowerCase().includes(q) ||
       job.id.toLowerCase().includes(q) ||
-      (pipelineName ?? "").toLowerCase().includes(q);
+      job.pipelineName.toLowerCase().includes(q) ||
+      job.requestId.toLowerCase().includes(q);
 
     return matchStatus && matchSearch;
   });
 
-  const handleOpenJob = (job: Job) => {
+  const handleOpenJob = (job: ExecutionJobSummary) => {
     setDetailJob(job);
   };
   const handleJobsChanged = () => {
@@ -127,7 +118,7 @@ export const JobsPageContent = () => {
     void routinesQuery?.refetch?.();
   };
 
-  if (jobsQuery?.isLoading || routinesQuery?.isLoading) {
+  if (jobsQuery?.isLoading) {
     return (
       <div className="flex h-full flex-col overflow-hidden">
         <PageHeader
@@ -205,7 +196,9 @@ export const JobsPageContent = () => {
                   count={filterCounts[filter]}
                   onClick={() => handleStatusFilterButtonClick(filter)}
                 >
-                  {t(FILTER_LABEL_KEYS[filter])}
+                  {filter === "Cancelled"
+                    ? t("jobs.filters.cancelled", "已取消")
+                    : t(FILTER_LABEL_KEYS[filter])}
                 </Chip>
               ))}
             </div>
@@ -221,7 +214,17 @@ export const JobsPageContent = () => {
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-8 sm:px-7">
-        {view === "list" ? (
+        {jobsQuery.isError ? (
+          <div
+            className="space-y-3 rounded-lg border border-destructive/30 p-4 text-sm"
+            role="alert"
+          >
+            <p>{jobsQuery.error?.message ?? "无法读取执行任务"}</p>
+            <Button size="sm" variant="outline" onClick={handleJobsChanged}>
+              重新加载
+            </Button>
+          </div>
+        ) : view === "list" ? (
           filtered.length === 0 ? (
             <div className="grid place-items-center rounded-2xl bg-surface-2/50 py-16 text-center text-muted-foreground">
               <ListChecks className="h-8 w-8 text-muted-foreground/30" />
@@ -231,17 +234,11 @@ export const JobsPageContent = () => {
               <p className="mt-0.5 text-[11.5px] text-muted-foreground">{t("jobs.emptyBody")}</p>
             </div>
           ) : (
-            <JobsTable
-              jobs={filtered}
-              pipelineNameById={pipelineNameById}
-              onChanged={handleJobsChanged}
-              onOpen={handleOpenJob}
-            />
+            <JobsTable jobs={filtered} onChanged={handleJobsChanged} onOpen={handleOpenJob} />
           )
         ) : (
           <JobsCalendar
             jobs={jobs}
-            pipelineNameById={pipelineNameById}
             routines={routines}
             onEditRoutine={handleEditRoutine}
             onNewRoutine={handleNewRoutineClick}

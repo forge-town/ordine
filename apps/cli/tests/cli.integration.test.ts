@@ -1,10 +1,17 @@
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { spawn } from "node:child_process";
-import { existsSync, unlinkSync } from "node:fs";
+import { existsSync, unlinkSync, mkdtempSync, writeFileSync, readFileSync, rmSync } from "node:fs";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { fileURLToPath } from "node:url";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
+import { event } from "./fixtures/execution";
 import { envSchema } from "../src/integrations/env/envSchema";
 
-const requests: Array<{ method: string; url: string; desktopToken?: string }> = [];
+const requests: Array<{ method: string; url: string; desktopToken?: string; version?: string }> =
+  [];
 
 const sendJson = (response: ServerResponse, status: number, body: unknown): void => {
   response.writeHead(status, { "content-type": "application/json" });
@@ -16,66 +23,71 @@ const handleRequest = (request: IncomingMessage, response: ServerResponse): void
     method: request.method ?? "GET",
     url: request.url ?? "/",
     desktopToken: request.headers["x-desktop-token"] as string | undefined,
+    version: request.headers["x-ordine-api-version"] as string | undefined,
   });
 
-  if (request.method === "GET" && request.url === "/api/pipelines") {
-    sendJson(response, 200, [{ id: "pipe-1", name: "Agent Pipeline", description: "", tags: [] }]);
-
+  if (request.method === "GET" && request.url === "/api/v2/jobs") {
+    sendJson(response, 200, []);
     return;
   }
-  if (request.method === "POST" && request.url === "/api/pipelines/pipe-1/run") {
-    sendJson(response, 202, { jobId: "job-1" });
-
+  if (request.method === "GET" && request.url === "/api/v2/pipelines") {
+    sendJson(response, 200, []);
     return;
   }
-  if (request.method === "POST" && request.url === "/api/pipelines/pipe-fail/run") {
-    sendJson(response, 202, { jobId: "job-fail" });
-
-    return;
-  }
-  if (request.method === "POST" && request.url === "/api/pipelines/pipe-trace-fail/run") {
-    sendJson(response, 202, { jobId: "job-trace-fail" });
-
-    return;
-  }
-  if (request.method === "GET" && request.url === "/api/jobs/job-1") {
-    sendJson(response, 200, { id: "job-1", title: "Agent Pipeline", status: "done", error: null });
-
-    return;
-  }
-  if (request.method === "GET" && request.url === "/api/jobs/job-1/traces") {
-    sendJson(response, 200, [{ message: "completed" }]);
-
-    return;
-  }
-  if (request.method === "GET" && request.url === "/api/jobs/job-fail") {
-    sendJson(response, 200, {
-      id: "job-fail",
-      title: "Failed Pipeline",
-      status: "failed",
-      error: "Test failure\nwith details",
+  if (request.method === "POST" && request.url === "/api/v2/run-requests") {
+    let body = "";
+    request.on("data", (chunk) => {
+      body += String(chunk);
     });
-
-    return;
-  }
-  if (request.method === "GET" && request.url === "/api/jobs/job-fail/traces") {
-    sendJson(response, 200, [{ message: "failed" }]);
-
-    return;
-  }
-  if (request.method === "GET" && request.url === "/api/jobs/job-trace-fail") {
-    sendJson(response, 200, {
-      id: "job-trace-fail",
-      title: "Trace Failure",
-      status: "done",
-      error: null,
+    request.on("end", () => {
+      const input = JSON.parse(body);
+      sendJson(response, 202, {
+        apiVersion: 2,
+        requestId: input.requestId,
+        state: "awaiting_approval",
+        preparedRunId: "prepared-1",
+        approvalId: "approval-1",
+        expiresAt: "2026-09-08T12:00:00Z",
+      });
     });
-
     return;
   }
-  if (request.method === "GET" && request.url === "/api/jobs/job-trace-fail/traces") {
-    sendJson(response, 503, { error: "trace backend unavailable" });
-
+  if (request.method === "GET" && request.url?.startsWith("/api/v2/run-requests/")) {
+    sendJson(response, 200, {
+      apiVersion: 2,
+      requestId: request.url.split("/").at(-1),
+      state: "accepted",
+      preparedRunId: "prepared-1",
+      jobId: "job-1",
+      acceptedAt: "2026-09-08T12:00:00Z",
+    });
+    return;
+  }
+  if (
+    request.method === "GET" &&
+    request.url === "/api/v2/jobs/job-1/events?afterSequence=7&limit=25"
+  ) {
+    sendJson(response, 200, [event]);
+    return;
+  }
+  if (request.method === "GET" && request.url === "/api/v2/jobs/job-1/result") {
+    sendJson(response, 503, {
+      error: {
+        code: "RESULT_UNAVAILABLE",
+        message: "Result backend unavailable",
+        retryable: true,
+        stage: "execution",
+        jobId: "job-1",
+      },
+    });
+    return;
+  }
+  if (
+    request.method === "GET" &&
+    request.url === "/api/v2/artifacts/artifact-1/content?offset=0&length=3"
+  ) {
+    response.writeHead(200, { "content-type": "application/octet-stream" });
+    response.end(Buffer.from([0, 255, 128]));
     return;
   }
   if (request.method === "GET" && request.url === "/api/best-practices/export") {
@@ -90,7 +102,8 @@ const handleRequest = (request: IncomingMessage, response: ServerResponse): void
 
 const server = createServer(handleRequest);
 let apiUrl = "";
-const exportOutPath = `/tmp/ordine-cli-export-${process.pid}.bestpractice`;
+const tempDirectory = mkdtempSync(join(tmpdir(), "ordine-cli-v2-"));
+const exportOutPath = join(tempDirectory, "export.bestpractice");
 
 const runCli = (
   args: string[],
@@ -101,6 +114,8 @@ const runCli = (
       env: {
         ...process.env,
         ORDINE_API_URL: apiUrl,
+        ORDINE_AUTH_MODE: "desktop",
+        ORDINE_DESKTOP_AUTH_TOKEN_FILE: undefined,
         ORDINE_DESKTOP_AUTH_TOKEN: "test-desktop-token-that-is-long-enough",
       },
     });
@@ -127,81 +142,141 @@ afterAll(async () => {
     server.close((error) => (error ? reject(error) : resolve())),
   );
   if (existsSync(exportOutPath)) unlinkSync(exportOutPath);
+  rmSync(tempDirectory, { recursive: true, force: true });
 });
 
 describe("Codex-facing CLI", () => {
   it("defaults to the standalone REST API port", () => {
-    expect(envSchema.parse({}).ORDINE_API_URL).toBe("http://localhost:9433");
+    expect(envSchema.parse({}).ORDINE_API_URL).toBe("http://localhost:19433");
   });
 
-  it("lists pipelines as machine-readable JSON over the real HTTP client", async () => {
-    const result = await runCli(["--json", "pipelines", "list"]);
+  it("executes the real stdio MCP to HTTP v2 path with immediate approval receipts", async () => {
+    const transport = new StdioClientTransport({
+      command: "bun",
+      args: ["src/index.ts", "mcp", "serve", "--allow-write"],
+      cwd: fileURLToPath(new URL("../", import.meta.url)),
+      env: {
+        ...Object.fromEntries(
+          Object.entries(process.env).filter(
+            (entry): entry is [string, string] =>
+              typeof entry[1] === "string" && !entry[0].startsWith("ORDINE_"),
+          ),
+        ),
+        ORDINE_API_URL: apiUrl,
+        ORDINE_AUTH_MODE: "desktop",
+        ORDINE_DESKTOP_AUTH_TOKEN: "test-desktop-token-that-is-long-enough",
+      },
+      stderr: "pipe",
+    });
+    const client = new Client({ name: "v2-integration", version: "1" });
+    await client.connect(transport);
+    const tools = await client.listTools();
+    expect(tools.tools.every((tool) => tool.name.startsWith("ordine.v2."))).toBe(true);
+    const before = requests.length;
+    const requestId = "11111111-1111-4111-8111-111111111111";
+    const submitted = await client.callTool({
+      name: "ordine.v2.run_requests.submit",
+      arguments: { apiVersion: 2, requestId, pipelineId: "pipe-1", expectedRevision: 1 },
+    });
+    expect(submitted).toMatchObject({
+      structuredContent: {
+        requestId,
+        state: "awaiting_approval",
+        nextStep: expect.stringContaining("ORDINE App"),
+      },
+    });
+    expect(requests.slice(before)).toHaveLength(1);
+    expect(
+      await client.callTool({ name: "ordine.v2.run_requests.get", arguments: { requestId } }),
+    ).toMatchObject({ structuredContent: { state: "accepted", jobId: "job-1" } });
+    expect(
+      await client.callTool({ name: "ordine.v2.jobs.list", arguments: {} }),
+    ).not.toHaveProperty("isError", true);
+    await client.close();
+  });
 
+  it("lists v2 pipelines through real HTTP with auth and protocol header", async () => {
+    const result = await runCli(["execution", "pipelines", "list"]);
     expect(result.exitCode).toBe(0);
     expect(result.stderr).toBe("");
-    expect(JSON.parse(result.stdout)).toEqual([
-      { id: "pipe-1", name: "Agent Pipeline", description: "", tags: [] },
-    ]);
+    expect(JSON.parse(result.stdout)).toEqual([]);
     expect(requests.at(-1)).toEqual({
       method: "GET",
-      url: "/api/pipelines",
+      url: "/api/v2/pipelines",
       desktopToken: "test-desktop-token-that-is-long-enough",
+      version: "2",
     });
   });
-
-  it("runs a pipeline and returns the final job with traces as JSON", async () => {
-    const result = await runCli(["--json", "run", "pipe-1"]);
-
-    expect(result.exitCode).toBe(0);
-    expect(result.stderr).toBe("");
-    expect(JSON.parse(result.stdout)).toEqual({
-      job: { id: "job-1", title: "Agent Pipeline", status: "done", error: null },
-      traces: [{ message: "completed" }],
-    });
-  });
-
-  it("reads job traces directly as JSON", async () => {
-    const result = await runCli(["--json", "jobs", "traces", "job-1"]);
-
-    expect(result.exitCode).toBe(0);
-    expect(result.stderr).toBe("");
-    expect(JSON.parse(result.stdout)).toEqual([{ message: "completed" }]);
-  });
-
-  it("keeps failed follow output machine-readable and exits non-zero", async () => {
-    const result = await runCli(["--json", "run", "pipe-fail"]);
-
-    expect(result.exitCode).toBe(1);
-    expect(JSON.parse(result.stdout)).toEqual({
-      job: {
-        id: "job-fail",
-        title: "Failed Pipeline",
-        status: "failed",
-        error: "Test failure\nwith details",
-      },
-      traces: [{ message: "failed" }],
-    });
-    expect(result.stderr.trim()).toMatch(/^Pipeline failed after \d+s: Test failure with details$/);
-    expect(result.stderr.trim().split("\n")).toHaveLength(1);
-  });
-
-  it("reports trace fetch failures instead of silently returning an empty list", async () => {
-    const result = await runCli(["--json", "run", "pipe-trace-fail"]);
-
-    expect(result.exitCode).toBe(1);
-    expect(JSON.parse(result.stdout)).toEqual({
-      job: {
-        id: "job-trace-fail",
-        title: "Trace Failure",
-        status: "done",
-        error: null,
-      },
-      traces: [],
-      tracesError: '{"error":"trace backend unavailable"}',
-    });
-    expect(result.stderr.trim()).toBe(
-      'Failed to fetch job traces: {"error":"trace backend unavailable"}',
+  it("submits an explicit requestId once, returns immediately for App approval, and recovers", async () => {
+    const requestId = "11111111-1111-4111-8111-111111111111";
+    const file = join(tempDirectory, "request.json");
+    writeFileSync(
+      file,
+      JSON.stringify({ apiVersion: 2, requestId, pipelineId: "pipe-1", expectedRevision: 1 }),
+      "utf8",
     );
+    const before = requests.length;
+    const result = await runCli(["execution", "run-requests", "submit", file]);
+    expect(result.exitCode).toBe(0);
+    expect(JSON.parse(result.stdout)).toMatchObject({
+      requestId,
+      state: "awaiting_approval",
+      nextStep: expect.stringContaining("ORDINE App"),
+    });
+    expect(requests.slice(before)).toHaveLength(1);
+    const recovered = await runCli(["execution", "run-requests", "get", requestId]);
+    expect(recovered.exitCode).toBe(0);
+    expect(JSON.parse(recovered.stdout)).toMatchObject({
+      requestId,
+      state: "accepted",
+      jobId: "job-1",
+    });
+  });
+  it("reads persisted events by sequence cursor", async () => {
+    const result = await runCli([
+      "execution",
+      "jobs",
+      "events",
+      "job-1",
+      "--after-sequence",
+      "7",
+      "--limit",
+      "25",
+    ]);
+    expect(result.exitCode).toBe(0);
+    expect(JSON.parse(result.stdout)).toEqual([event]);
+  });
+  it("reports structured v2 errors with nonzero exit and no success output", async () => {
+    const result = await runCli(["execution", "jobs", "result", "job-1"]);
+    expect(result.exitCode).toBe(1);
+    expect(result.stdout).toBe("");
+    expect(result.stderr).toContain("RESULT_UNAVAILABLE");
+  });
+  it("writes exact artifact bytes to the explicit output path", async () => {
+    const file = join(tempDirectory, "artifact.bin");
+    const result = await runCli([
+      "execution",
+      "artifacts",
+      "content",
+      "artifact-1",
+      file,
+      "--length",
+      "3",
+    ]);
+    expect(result.exitCode).toBe(0);
+    expect(readFileSync(file)).toEqual(Buffer.from([0, 255, 128]));
+  });
+  it("rejects old execution commands before making requests", async () => {
+    for (const args of [
+      ["run", "pipe-1"],
+      ["pipelines", "list"],
+      ["operations", "list"],
+      ["jobs", "traces", "job-1"],
+    ]) {
+      const before = requests.length;
+      expect((await runCli(args)).exitCode).toBe(1);
+      expect(requests.length).toBe(before);
+    }
   });
 
   it("sends Desktop authentication when exporting best practices", async () => {
@@ -212,6 +287,7 @@ describe("Codex-facing CLI", () => {
     expect(requests.at(-1)).toEqual({
       method: "GET",
       url: "/api/best-practices/export",
+      version: undefined,
       desktopToken: "test-desktop-token-that-is-long-enough",
     });
   });
@@ -224,6 +300,23 @@ describe("Codex-facing CLI", () => {
     expect(planned.command).toContain("claude mcp add");
     expect(planned.command).toMatch(/src[\\/]index\.ts/);
     expect(planned.command).not.toMatch(/-- ordine mcp serve/);
-    expect(planned.command).toContain("ORDINE_DESKTOP_AUTH_TOKEN_FILE=");
+    expect(planned.command).toContain("ORDINE_AUTH_MODE=bearer");
+    expect(planned.command).not.toContain("ORDINE_DESKTOP_AUTH_TOKEN_FILE=");
+    expect(planned.command).not.toContain("test-desktop-token");
+  });
+
+  it("refuses to print raw authentication supplied through installer --env", async () => {
+    const secret = "s".repeat(32);
+    const result = await runCli([
+      "--json",
+      "mcp",
+      "print-config",
+      "codex",
+      "--env",
+      `ORDINE_AGENT_API_TOKEN=${secret}`,
+    ]);
+    expect(result.exitCode).toBe(1);
+    expect(result.stdout + result.stderr).not.toContain(secret);
+    expect(result.stderr).toMatch(/token file/i);
   });
 });

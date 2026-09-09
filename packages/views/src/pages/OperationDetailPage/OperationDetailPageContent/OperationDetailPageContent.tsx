@@ -116,7 +116,7 @@ export const OperationDetailPageContent = () => {
       </div>
 
       {/* Run panel */}
-      <OperationRunPanel operationId={operation.id} />
+      <OperationRunPanel key={operation.id} operationId={operation.id} />
     </div>
   );
 };

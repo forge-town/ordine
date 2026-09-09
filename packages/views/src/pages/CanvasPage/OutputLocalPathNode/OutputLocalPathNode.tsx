@@ -93,15 +93,26 @@ export const OutputLocalPathNode = ({ id, data, selected }: OutputLocalPathNodeP
   };
 
   const currentMode = data.outputMode ?? "overwrite";
+  const managed = data.storage === "artifact";
+  const handleStorageChange = (value: string | null) => {
+    if (value === "artifact")
+      store
+        .getState()
+        .updateNodeData(id, { storage: "artifact", localPath: "", outputMode: undefined });
+    else if (value === "local") store.getState().updateNodeData(id, { storage: undefined });
+  };
 
   return (
     <div className="group relative w-fit overflow-visible">
       <NodeCard
+        leftPortIds={["input"]}
         leftHandle
         actions={nodeCardActions}
         bodyClassName="space-y-2"
         compact={nodeCardMode === "compact"}
-        detail={data.outputMode ?? t("canvas.nodeTypes.output-local-path.label")}
+        detail={
+          managed ? "运行产物" : (data.outputMode ?? t("canvas.nodeTypes.output-local-path.label"))
+        }
         description={t("nodes.outputLocalPathNode.description")}
         dimmed={dimmed}
         icon={HardDrive}
@@ -116,30 +127,46 @@ export const OutputLocalPathNode = ({ id, data, selected }: OutputLocalPathNodeP
         theme="teal"
         onLabelChange={handleLabelChange}
       >
-        <div className="flex items-center gap-1 rounded-md bg-surface-2 px-1.5 py-1 ring-1 ring-border">
-          <span className="shrink-0 text-[10px] font-medium text-muted-foreground">
-            {t("nodes.outputLocalPathNode.pathLabel")}
-          </span>
-          <Input
-            className="nodrag nopan h-auto min-w-0 flex-1 truncate border-none bg-transparent p-0 font-mono text-[9.5px] text-muted-foreground shadow-none focus:outline-none focus:text-foreground"
-            placeholder="/Users/you/Desktop/output"
-            value={data.localPath}
-            onChange={handleLocalPathInputChange}
-            onClick={handleStopPropagation}
-            onKeyDown={handleStopPropagation}
-            onMouseDown={handleStopPropagation}
-          />
-          <Button
-            className="nodrag nopan h-auto shrink-0 rounded p-0.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-            title={t("nodes.outputLocalPathNode.browseFolder")}
-            type="button"
-            variant="ghost"
-            onClick={handleFolderButtonClick}
-            onMouseDown={handleStopPropagation}
-          >
-            <FolderOpen className="h-3.5 w-3.5" />
-          </Button>
-        </div>
+        <Select value={managed ? "artifact" : "local"} onValueChange={handleStorageChange}>
+          <SelectTrigger className="nodrag nopan h-7 text-xs" aria-label="文件保存方式">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="artifact">保存为运行产物</SelectItem>
+            <SelectItem value="local">原目录配置</SelectItem>
+          </SelectContent>
+        </Select>
+        {managed && (
+          <p className="text-[10px] text-muted-foreground">运行成功后从结果面板下载文件。</p>
+        )}
+        {!managed && (
+          <>
+            <div className="flex items-center gap-1 rounded-md bg-surface-2 px-1.5 py-1 ring-1 ring-border">
+              <span className="shrink-0 text-[10px] font-medium text-muted-foreground">
+                {t("nodes.outputLocalPathNode.pathLabel")}
+              </span>
+              <Input
+                className="nodrag nopan h-auto min-w-0 flex-1 truncate border-none bg-transparent p-0 font-mono text-[9.5px] text-muted-foreground shadow-none focus:outline-none focus:text-foreground"
+                placeholder="/Users/you/Desktop/output"
+                value={data.localPath}
+                onChange={handleLocalPathInputChange}
+                onClick={handleStopPropagation}
+                onKeyDown={handleStopPropagation}
+                onMouseDown={handleStopPropagation}
+              />
+              <Button
+                className="nodrag nopan h-auto shrink-0 rounded p-0.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                title={t("nodes.outputLocalPathNode.browseFolder")}
+                type="button"
+                variant="ghost"
+                onClick={handleFolderButtonClick}
+                onMouseDown={handleStopPropagation}
+              >
+                <FolderOpen className="h-3.5 w-3.5" />
+              </Button>
+            </div>
+          </>
+        )}
 
         <div className="flex items-center gap-1 rounded-md bg-surface-2 px-1.5 py-1 ring-1 ring-border">
           <span className="shrink-0 text-[10px] font-medium text-muted-foreground">
@@ -156,29 +183,31 @@ export const OutputLocalPathNode = ({ id, data, selected }: OutputLocalPathNodeP
           />
         </div>
 
-        <div className="flex items-center gap-1 rounded-md bg-surface-2 px-1.5 py-1 ring-1 ring-border">
-          <span className="shrink-0 text-[10px] font-medium text-muted-foreground">
-            {t("nodes.outputLocalPathNode.writeModeLabel")}
-          </span>
-          <Select value={currentMode} onValueChange={handleOutputModeChange}>
-            <SelectTrigger
-              className="nodrag nopan h-6 min-w-0 flex-1 border-none bg-transparent px-0 py-0 font-mono text-[9.5px] text-muted-foreground shadow-none focus:text-foreground focus:ring-0"
-              onClick={handleStopPropagation}
-              onMouseDown={handleStopPropagation}
-            >
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {Object.values(OUTPUT_MODE_ENUM).map((mode) => (
-                <SelectItem key={mode} value={mode}>
-                  {t(MODE_LABEL_KEYS[mode])}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        {!managed && (
+          <div className="flex items-center gap-1 rounded-md bg-surface-2 px-1.5 py-1 ring-1 ring-border">
+            <span className="shrink-0 text-[10px] font-medium text-muted-foreground">
+              {t("nodes.outputLocalPathNode.writeModeLabel")}
+            </span>
+            <Select value={currentMode} onValueChange={handleOutputModeChange}>
+              <SelectTrigger
+                className="nodrag nopan h-6 min-w-0 flex-1 border-none bg-transparent px-0 py-0 font-mono text-[9.5px] text-muted-foreground shadow-none focus:text-foreground focus:ring-0"
+                onClick={handleStopPropagation}
+                onMouseDown={handleStopPropagation}
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.values(OUTPUT_MODE_ENUM).map((mode) => (
+                  <SelectItem key={mode} value={mode}>
+                    {t(MODE_LABEL_KEYS[mode])}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
 
-        {currentMode === "error_if_exists" && (
+        {!managed && currentMode === "error_if_exists" && (
           <div className="flex items-center gap-1 rounded-md border border-amber-500/20 bg-amber-500/10 px-2 py-1 text-[10px] text-amber-700 dark:text-amber-300">
             <AlertTriangle className="h-3 w-3 shrink-0" />
             <span>{t("nodes.outputLocalPathNode.errorIfExistsWarning")}</span>

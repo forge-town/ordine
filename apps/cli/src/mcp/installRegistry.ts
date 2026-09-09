@@ -1,5 +1,6 @@
 import { join } from "node:path";
 import { z } from "zod";
+import { envSchema } from "../integrations/env";
 
 export const McpTargetIdSchema = z.enum([
   "claude",
@@ -195,6 +196,19 @@ export const planMcpInstall = (
   spec: McpLaunchSpec,
   context: InstallContext,
 ): McpInstallPlan => {
+  if (
+    Object.keys(spec.env).some((key) =>
+      ["ORDINE_AGENT_API_TOKEN", "ORDINE_DESKTOP_AUTH_TOKEN", "DESKTOP_AUTH_TOKEN"].includes(
+        key.toUpperCase(),
+      ),
+    )
+  ) {
+    throw new Error(
+      "MCP registration requires a token file reference; raw authentication tokens cannot be persisted or printed.",
+    );
+  }
+  if (!envSchema.safeParse(spec.env).success)
+    throw new Error("MCP API endpoint or authentication mode is invalid.");
   const { serverName } = context;
   switch (target) {
     case "claude": {

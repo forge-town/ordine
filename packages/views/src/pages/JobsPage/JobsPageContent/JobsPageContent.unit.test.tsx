@@ -1,5 +1,13 @@
 import type * as RefineCore from "@refinedev/core";
-import type { Job, PipelineData, Routine, RoutineOccurrence } from "@repo/schemas";
+import type * as Router from "@tanstack/react-router";
+import {
+  ExecutionJobSummarySchema,
+  ExecutionJobSchema,
+  type ExecutionJobSummary,
+  type PipelineData,
+  type Routine,
+  type RoutineOccurrence,
+} from "@repo/schemas";
 import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -7,26 +15,32 @@ import { render } from "../../../test/test-wrapper";
 import { JobsPageStoreProvider } from "../_store";
 import { JobsPageContent } from "./JobsPageContent";
 
-const { mockData, mockMutateAsync, mockNavigate, mockRefetchJobs } = vi.hoisted(() => ({
+const { mockData, mockMutateAsync, mockNavigate, mockRefetchJobs, mockList } = vi.hoisted(() => ({
   mockData: {
-    jobs: [] as Job[],
+    jobs: [] as ExecutionJobSummary[],
     pipelines: [] as PipelineData[],
     routines: [] as Routine[],
     occurrences: [] as RoutineOccurrence[],
+    error: null as Error | null,
   },
   mockMutateAsync: vi.fn(),
   mockNavigate: vi.fn(),
   mockRefetchJobs: vi.fn(),
+  mockList: vi.fn(),
 }));
 
 vi.mock("@tanstack/react-router", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@tanstack/react-router")>()),
+  ...(await importOriginal<typeof Router>()),
   useNavigate: () => mockNavigate,
 }));
 
 vi.mock("@refinedev/core", async (importOriginal) => ({
   ...(await importOriginal<typeof RefineCore>()),
-  useCustomMutation: () => ({ mutateAsync: mockMutateAsync }),
+  useCreate: () => ({ mutateAsync: mockMutateAsync, mutation: { isPending: false } }),
+  useOne: ({ id }: { id: string }) => ({
+    result: mockData.jobs.find((job) => job.id === id),
+    query: { isError: false, refetch: mockRefetchJobs },
+  }),
   useCustom: () => ({
     query: { isLoading: false },
     result: {
@@ -37,9 +51,11 @@ vi.mock("@refinedev/core", async (importOriginal) => ({
       },
     },
   }),
-  useList: ({ resource }: { resource: string }) => {
+  useList: (params: { resource: string; dataProviderName?: string }) => {
+    mockList(params);
+    const { resource } = params;
     const data =
-      resource === "jobs"
+      resource === "job-summaries"
         ? mockData.jobs
         : resource === "routines"
           ? mockData.routines
@@ -50,11 +66,18 @@ vi.mock("@refinedev/core", async (importOriginal) => ({
     return {
       query: {
         isLoading: false,
-        refetch: resource === "jobs" ? mockRefetchJobs : vi.fn(),
+        isError: resource === "job-summaries" && Boolean(mockData.error),
+        error: mockData.error,
+        refetch: resource === "job-summaries" ? mockRefetchJobs : vi.fn(),
       },
       result: { data, total: data.length },
     };
   },
+}));
+vi.mock("../../../components/ExecutionRequest/ExecutionJobCard", () => ({
+  ExecutionJobCard: ({ jobId }: { jobId: string }) => (
+    <div data-testid="execution-job-card">{jobId}</div>
+  ),
 }));
 
 const now = new Date();
@@ -69,7 +92,7 @@ const renderContent = () =>
 
 beforeEach(() => {
   vi.clearAllMocks();
-  mockMutateAsync.mockResolvedValue({ data: { id: "job-1", status: "paused" } });
+  mockData.error = null;
   mockData.pipelines = [
     {
       id: "pipeline-1",
@@ -84,32 +107,30 @@ beforeEach(() => {
       updatedAt: now,
     },
   ];
-  mockData.jobs = [
-    {
-      id: "job-1",
-      title: "Pipeline run",
-      status: "running",
-      type: "pipeline_run",
-      parentJobId: null,
+  mockData.jobs = ["running", "waiting_for_input"].map((state, index) =>
+    ExecutionJobSummarySchema.parse({
+      apiVersion: 2,
+      id: `job-${index + 1}`,
+      preparedRunId: `prepared-${index + 1}`,
+      revision: 1,
+      state,
       pipelineId: "pipeline-1",
-      error: null,
-      startedAt: now,
+      pipelineName: "Approved Release Snapshot",
+      pipelineRevision: 3,
+      requestId: `11111111-1111-4111-8111-11111111111${index + 1}`,
+      createdAt: now.toISOString(),
+      startedAt: now.toISOString(),
       finishedAt: null,
-      totalTokens: 1_200,
-    },
-    {
-      id: "job-2",
-      title: "Approval run",
-      status: "running",
-      type: "pipeline_run",
-      parentJobId: null,
-      pipelineId: "pipeline-1",
+      deadlineAt: null,
+      waitingDeadlineAt: null,
+      stopReason: null,
       error: null,
-      startedAt: now,
-      finishedAt: null,
-      nodeStatuses: { approval: "waitingForUser" },
-    },
-  ];
+      warnings: [],
+    }),
+  );
+  mockMutateAsync.mockResolvedValue({
+    data: ExecutionJobSchema.strip().parse({ ...mockData.jobs[0], state: "pausing" }),
+  });
   mockData.routines = [
     {
       id: "routine-1",
@@ -153,6 +174,55 @@ beforeEach(() => {
 });
 
 describe("JobsPageContent", () => {
+  it("restores a failed control action so the user can explicitly retry", async () => {
+    const user = userEvent.setup();
+    mockMutateAsync.mockRejectedValueOnce(new Error("Control denied"));
+    renderContent();
+    const button = screen.getByTestId("jobs-action-pause-job-1");
+    await user.click(button);
+    await waitFor(() => expect(button).not.toBeDisabled());
+    expect(mockMutateAsync).toHaveBeenCalledTimes(1);
+    expect(mockRefetchJobs).not.toHaveBeenCalled();
+    await user.click(button);
+    await waitFor(() => expect(mockRefetchJobs).toHaveBeenCalledOnce());
+    expect(mockMutateAsync).toHaveBeenCalledTimes(2);
+  });
+  it("loads the named v2 projection and shows frozen names instead of current author names", () => {
+    renderContent();
+    expect(mockList).toHaveBeenCalledWith(
+      expect.objectContaining({ dataProviderName: "execution", resource: "job-summaries" }),
+    );
+    expect(mockList).not.toHaveBeenCalledWith(expect.objectContaining({ resource: "jobs" }));
+    expect(screen.getAllByText("Approved Release Snapshot")).toHaveLength(2);
+    expect(screen.queryByText("Release Review")).not.toBeInTheDocument();
+    expect(screen.queryByText("1.2k")).not.toBeInTheDocument();
+  });
+
+  it("opens the original drawer with the v2 Job card", async () => {
+    const user = userEvent.setup();
+    renderContent();
+    await user.click(screen.getByTestId("jobs-action-review-job-2"));
+    expect(screen.getByTestId("job-detail-drawer")).toBeInTheDocument();
+    expect(screen.getByTestId("execution-job-card")).toHaveTextContent("job-2");
+  });
+
+  it("opens Canvas for a new request instead of submitting a rerun", async () => {
+    mockData.jobs[0]!.state = "succeeded";
+    const user = userEvent.setup();
+    renderContent();
+    await user.click(screen.getByTestId("jobs-action-rerun-job-1"));
+    expect(mockNavigate).toHaveBeenCalledWith({ to: "/canvas", search: { id: "pipeline-1" } });
+    expect(mockMutateAsync).not.toHaveBeenCalled();
+  });
+
+  it("displays read errors and provides a retry instead of an empty success state", async () => {
+    mockData.error = new Error("execution permission denied");
+    const user = userEvent.setup();
+    renderContent();
+    expect(screen.getByRole("alert")).toHaveTextContent("execution permission denied");
+    await user.click(screen.getByRole("button", { name: "重新加载" }));
+    expect(mockRefetchJobs).toHaveBeenCalledOnce();
+  });
   it("renders current jobs and flags work waiting for review", () => {
     renderContent();
 
@@ -172,9 +242,9 @@ describe("JobsPageContent", () => {
 
     await waitFor(() => {
       expect(mockMutateAsync).toHaveBeenCalledWith({
-        method: "post",
-        url: "jobs/pause",
-        values: { jobId: "job-1" },
+        dataProviderName: "execution",
+        resource: "job-control",
+        values: { jobId: "job-1", action: "pause" },
       });
       expect(mockRefetchJobs).toHaveBeenCalledOnce();
     });

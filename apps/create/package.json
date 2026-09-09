@@ -14,7 +14,8 @@
   "files": [
     "dist",
     "app",
-    "migrations"
+    "migrations",
+    "migrations-v2"
   ],
   "type": "module",
   "exports": {
@@ -34,6 +35,9 @@
     "prepublishOnly": "bun run build"
   },
   "dependencies": {
+    "@repo/db": "workspace:*",
+    "@repo/models": "workspace:*",
+    "@repo/services": "workspace:*",
     "commander": "^14.0.0",
     "neverthrow": "^8.2.0",
     "postgres": "^3.4.8",

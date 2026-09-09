@@ -1,14 +1,14 @@
-import { AGENT_CONTROL_TOOLS } from "@repo/agent-control";
+import { ExecutionJobSchema, ExecutionReadinessSchema } from "@repo/schemas";
+import { ORDINE_MCP_TOOLS } from "./toolCatalog";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
-import { readFile } from "node:fs/promises";
 import { Result, ResultAsync } from "neverthrow";
 import { z } from "zod";
 import type { McpLaunchSpec } from "./installRegistry";
+import { createApiClient } from "../api";
+import { resolveApiAuthentication } from "../auth";
 
-export const REQUIRED_SESSION_READY_TOOLS = AGENT_CONTROL_TOOLS.filter((tool) =>
-  tool.audiences.includes("stdio"),
-).map((tool) => tool.name);
+export const REQUIRED_SESSION_READY_TOOLS = ORDINE_MCP_TOOLS.map((tool) => tool.name);
 
 export type McpReadinessFailureLayer =
   | "command_not_launchable"
@@ -16,8 +16,10 @@ export type McpReadinessFailureLayer =
   | "required_tool_missing"
   | "workspace_context_unreadable"
   | "api_unreachable"
+  | "authentication_configuration"
+  | "authentication_failed"
+  | "capability_check_failed"
   | "db_unreachable"
-  | "runtime_catalog_empty"
   | "safe_tool_call_failed";
 
 export type McpProtocolEvidence = {
@@ -58,10 +60,6 @@ const WorkspaceContextSchema = z
   })
   .passthrough();
 
-type HttpProbeResult =
-  | { ok: true; status: number; data: unknown }
-  | { ok: false; status?: number; message: string };
-
 const redact = (value: string): string =>
   value
     .replaceAll(/\bBearer\s+[^\s"']+/gi, "Bearer [REDACTED]")
@@ -70,6 +68,14 @@ const redact = (value: string): string =>
 
 const errorMessage = (error: unknown): string =>
   redact(error instanceof Error ? error.message : String(error));
+
+const toolFailureLayer = (
+  result: unknown,
+  fallback: McpReadinessFailureLayer,
+): McpReadinessFailureLayer =>
+  /\b(?:401|403|API_UNAUTHORIZED)\b/.test(JSON.stringify(result))
+    ? "authentication_failed"
+    : fallback;
 
 const stringEnv = (): Record<string, string> =>
   Object.fromEntries(
@@ -85,49 +91,8 @@ const mergedEnv = (spec: McpLaunchSpec): Record<string, string> => ({
 
 const parseJson = Result.fromThrowable(JSON.parse, (error) => errorMessage(error));
 
-const headersFromEnv = async (env: Record<string, string>): Promise<Record<string, string>> => {
-  const tokenFromFile = env.ORDINE_DESKTOP_AUTH_TOKEN_FILE
-    ? await ResultAsync.fromPromise(
-        readFile(env.ORDINE_DESKTOP_AUTH_TOKEN_FILE, "utf8"),
-        () => undefined,
-      )
-    : null;
-  const token = tokenFromFile?.isOk() ? tokenFromFile.value.trim() : env.ORDINE_DESKTOP_AUTH_TOKEN;
-
-  return token ? { "X-Desktop-Token": token } : {};
-};
-
-const requestJson = async (
-  env: Record<string, string>,
-  path: string,
-  timeoutMs: number,
-): Promise<HttpProbeResult> => {
-  const baseUrl = env.ORDINE_API_URL ?? "http://localhost:9433";
-  const requested = await ResultAsync.fromPromise(
-    fetch(`${baseUrl}${path}`, {
-      method: "GET",
-      headers: await headersFromEnv(env),
-      signal: AbortSignal.timeout(timeoutMs),
-    }).then(async (response) => ({
-      response,
-      text: await response.text(),
-    })),
-    errorMessage,
-  );
-  if (requested.isErr()) return { ok: false, message: requested.error };
-  if (!requested.value.response.ok) {
-    return {
-      ok: false,
-      status: requested.value.response.status,
-      message: redact(requested.value.text || requested.value.response.statusText),
-    };
-  }
-  const parsed = parseJson(requested.value.text);
-  if (parsed.isErr())
-    return { ok: false, status: requested.value.response.status, message: parsed.error };
-
-  return { ok: true, status: requested.value.response.status, data: parsed.value };
-};
+const requestJson = async (env: Record<string, string>, path: string, timeoutMs: number) =>
+  createApiClient({ environment: () => env, timeoutMs }).get<unknown>(path);
 
 const objectFromResource = (value: unknown): JsonObject | null => {
   if (value === null || typeof value !== "object" || Array.isArray(value)) return null;
@@ -139,22 +104,6 @@ const objectFromResource = (value: unknown): JsonObject | null => {
     return null;
 
   return parsed.value as JsonObject;
-};
-
-const runtimeCatalogReady = (value: unknown): { initialized: boolean; count: number } => {
-  if (!Array.isArray(value)) return { initialized: false, count: 0 };
-  const configured = value.filter((entry) => {
-    if (entry === null || typeof entry !== "object" || Array.isArray(entry)) return false;
-    const record = entry as JsonObject;
-
-    return (
-      typeof record.runtimeConfigId === "string" &&
-      record.runtimeConfigId.length > 0 &&
-      record.availability === "launchable"
-    );
-  });
-
-  return { initialized: configured.length > 0, count: configured.length };
 };
 
 export const probeMcpProtocol = async (
@@ -177,6 +126,15 @@ export const probeMcpProtocol = async (
     safeToolCall: false,
     toolCount: 0,
   };
+  if (options.environmentChecks !== false) {
+    const authentication = await resolveApiAuthentication(env);
+    if (authentication.isErr())
+      return {
+        ...state,
+        failureLayer: "authentication_configuration",
+        message: authentication.error.message,
+      };
+  }
   const timeout = AbortSignal.timeout(timeoutMs);
   const connect = await ResultAsync.fromPromise(
     client.connect(transport, { signal: timeout }),
@@ -249,34 +207,51 @@ export const probeMcpProtocol = async (
     state.allowIrreversible = policy.allowIrreversible;
     state.writePolicy = policy.mode === "yolo" || policy.allowWrite ? "enabled" : "disabled";
 
-    const health = await requestJson(env, "/health", timeoutMs);
-    state.apiReachable = health.ok;
-    if (!health.ok) {
+    const readiness = await requestJson(env, "/api/v2/readiness", timeoutMs);
+    state.apiReachable = readiness.ok || (readiness.status ?? 0) > 0;
+    if (!readiness.ok) {
       await client.close();
 
       return {
         ...state,
-        failureLayer: "api_unreachable",
-        message: `Ordine API /health failed: ${health.status ?? "network"} ${health.message}`,
+        failureLayer:
+          readiness.code === "API_UNAUTHORIZED"
+            ? "authentication_failed"
+            : readiness.code.startsWith("AUTH_") || readiness.code === "API_CONFIG_INVALID"
+              ? "authentication_configuration"
+              : "api_unreachable",
+        message: readiness.message,
       };
     }
+    const parsed = ExecutionReadinessSchema.safeParse(readiness.data);
+    if (!parsed.success) {
+      await client.close();
 
-    const runtimeCatalog = await requestJson(env, "/api/agent-runtimes/catalog", timeoutMs);
-    if (runtimeCatalog.ok) {
-      const runtime = runtimeCatalogReady(runtimeCatalog.data);
-      state.runtimeCatalogInitialized = runtime.initialized;
-      state.runtimeCount = runtime.count;
-    } else {
-      state.runtimeCatalogInitialized = false;
-      state.runtimeCount = 0;
+      return {
+        ...state,
+        failureLayer: "capability_check_failed",
+        message: "Execution v2 readiness response is invalid or incompatible.",
+      };
+    }
+    state.dbReachable = parsed.data.database.reachable;
+    state.runtimeCount = parsed.data.capabilities.localAgentRuntimeIds.length;
+    state.runtimeCatalogInitialized = state.runtimeCount > 0;
+    if (parsed.data.status !== "ready") {
+      await client.close();
+
+      return {
+        ...state,
+        failureLayer: "db_unreachable",
+        message: "Execution v2 requires a reachable database with schema version 2.",
+      };
     }
   }
 
   const called = await ResultAsync.fromPromise(
     client.callTool(
       {
-        name: "ordine.search",
-        arguments: { query: "job", resourceTypes: ["job"], limit: 1 },
+        name: "ordine.v2.jobs.list",
+        arguments: {},
       },
       undefined,
       { signal: timeout },
@@ -289,37 +264,23 @@ export const probeMcpProtocol = async (
     return { ...state, failureLayer: "safe_tool_call_failed", message: called.error };
   }
   state.safeToolCall = called.value.isError !== true;
-  if (!state.safeToolCall) {
-    state.failureLayer = state.apiReachable === false ? "api_unreachable" : "safe_tool_call_failed";
-    state.message = "ordine.search for jobs returned an MCP tool error";
+  if (state.safeToolCall) {
+    const payload = z
+      .object({ content: z.array(z.object({ type: z.string(), text: z.string().optional() })) })
+      .safeParse(called.value);
+    const text = payload.success
+      ? payload.data.content.find((entry) => entry.type === "text")?.text
+      : undefined;
+    const decoded = typeof text === "string" ? parseJson(text) : null;
+    state.safeToolCall =
+      decoded?.isOk() === true && z.array(ExecutionJobSchema).safeParse(decoded.value).success;
   }
+  if (!state.safeToolCall) {
+    state.failureLayer = toolFailureLayer(called.value, "safe_tool_call_failed");
+    state.message = "ordine.v2.jobs.list returned an MCP tool error";
+    await client.close();
 
-  if (options.environmentChecks !== false) {
-    const pipelines = await ResultAsync.fromPromise(
-      client.callTool(
-        {
-          name: "ordine.search",
-          arguments: { query: "pipeline", resourceTypes: ["pipeline"], limit: 1 },
-        },
-        undefined,
-        { signal: timeout },
-      ),
-      errorMessage,
-    );
-    if (pipelines.isErr()) {
-      await client.close();
-
-      return { ...state, failureLayer: "db_unreachable", message: pipelines.error };
-    }
-    state.dbReachable = pipelines.value.isError !== true;
-    if (!state.dbReachable) {
-      state.failureLayer = "db_unreachable";
-      state.message = "ordine.search for pipelines returned an MCP tool error";
-    }
-    if (state.runtimeCatalogInitialized === false && !state.message) {
-      state.failureLayer = "runtime_catalog_empty";
-      state.message = "runtime catalog has no configured launchable runtime";
-    }
+    return state;
   }
 
   await client.close();

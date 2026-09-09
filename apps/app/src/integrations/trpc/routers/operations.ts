@@ -1,14 +1,23 @@
+import { legacyExecutionDisabled } from "./legacyExecutionDisabled";
 import { z } from "zod/v4";
-import { publicProcedure, router } from "../init";
-import { operationsService, operationRunnerService } from "../services";
-import {
-  AgentRuntimeSchema,
-  ObjectNodeTypeSchema,
-  StrictOperationConfigSchema,
-} from "@repo/schemas";
+import { authedProcedure, publicProcedure, router } from "../init";
+import { operationsService, operationExecutionPublisher } from "../services";
+import { TRPCError } from "@trpc/server";
+import { getServerEnv } from "@/integrations/server-env";
+import { ObjectNodeTypeSchema, StrictOperationConfigSchema } from "@repo/schemas";
 import { unwrapResult } from "./result";
 
 export const operationsRouter = router({
+  publishExecution: authedProcedure
+    .input(z.strictObject({ operationId: z.string().min(1) }))
+    .mutation(async ({ input, ctx }) => {
+      const owner = getServerEnv().ORDINE_EXECUTION_OWNER_USER_ID;
+      const session = z.object({ user: z.object({ id: z.string() }) }).safeParse(ctx.session);
+      if (!owner || !session.success || session.data.user.id !== owner)
+        throw new TRPCError({ code: "FORBIDDEN", message: "此会话未绑定当前执行工作区。" });
+
+      return unwrapResult(await operationExecutionPublisher.publish(input));
+    }),
   getMany: publicProcedure.query(() => operationsService.getAll()),
 
   getById: publicProcedure
@@ -51,21 +60,5 @@ export const operationsRouter = router({
     .input(z.object({ id: z.string() }))
     .mutation(async ({ input }) => unwrapResult(await operationsService.delete(input.id))),
 
-  run: publicProcedure
-    .input(
-      z.object({
-        operationId: z.string(),
-        inputPath: z.string().optional(),
-        inputContent: z.string().optional(),
-        agentOverride: AgentRuntimeSchema.optional(),
-      }),
-    )
-    .mutation(async ({ input }) => {
-      const result = await operationRunnerService.startRun(input);
-      if (result.isErr()) {
-        throw result.error;
-      }
-
-      return result.value;
-    }),
+  run: publicProcedure.input(z.unknown().optional()).mutation(legacyExecutionDisabled),
 });

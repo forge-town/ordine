@@ -98,7 +98,7 @@ describe("canvas connection actions", () => {
 
     store.getState().handleConnectStart({
       nodeId: source.id,
-      handleId: "right-port-2",
+      handleId: "output:result",
       handleType: "source",
     });
 
@@ -107,7 +107,7 @@ describe("canvas connection actions", () => {
     expect(store.getState().edges).toEqual([
       expect.objectContaining({
         source: source.id,
-        sourceHandle: "right-port-2",
+        sourceHandle: "output:result",
         target: target.id,
       }),
     ]);
@@ -219,56 +219,7 @@ describe("canvas connection actions", () => {
   });
 });
 
-describe("canvas run actions", () => {
-  it("passes the selected runtime and model to the pipeline run request", async () => {
-    canvasDataProviderMocks.update.mockClear();
-    canvasDataProviderMocks.custom.mockClear();
-    const store = createCanvasPageStore([], [], "pipeline-1", "Selected runtime pipeline");
-
-    await store.getState().handleRunTest({
-      runtimeConfigId: "local-codex",
-      model: "gpt-5.6-luna",
-      reasoningEffort: "xhigh",
-      speed: "priority",
-    });
-
-    expect(canvasDataProviderMocks.custom).toHaveBeenCalledWith({
-      url: "pipelines/run",
-      method: "post",
-      payload: {
-        id: "pipeline-1",
-        runtimeConfigId: "local-codex",
-        model: "gpt-5.6-luna",
-        reasoningEffort: "xhigh",
-        speed: "priority",
-      },
-    });
-    expect(store.getState()).toEqual(
-      expect.objectContaining({ activeJobId: "job-1", isConsoleOpen: true, isRunning: false }),
-    );
-  });
-
-  it("cancels the active job and leaves its console available", async () => {
-    canvasDataProviderMocks.custom.mockClear();
-    const store = createCanvasPageStore([], [], "pipeline-1", "Cancelable pipeline");
-    store.setState({ activeJobId: "job-1", isConsoleOpen: true, isTestRunning: true });
-
-    await expect(store.getState().handleCancelRun()).resolves.toBe(true);
-
-    expect(canvasDataProviderMocks.custom).toHaveBeenCalledWith({
-      url: "jobs/cancel",
-      method: "post",
-      payload: { jobId: "job-1" },
-    });
-    expect(store.getState()).toEqual(
-      expect.objectContaining({
-        activeJobId: "job-1",
-        isConsoleOpen: true,
-        isTestRunning: false,
-      }),
-    );
-  });
-});
+// v2 submission and cancellation coverage lives in executionSlice.unit.test.ts.
 
 describe("semantic node field actions", () => {
   it("updates file, folder, and local output fields from plain values", () => {

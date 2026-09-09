@@ -1,8 +1,18 @@
-import { Bot, Loader2, Play, Save, Settings2, Square, Workflow } from "lucide-react";
+import {
+  Bot,
+  Loader2,
+  Play,
+  Save,
+  Settings2,
+  Square,
+  SquareTerminal,
+  Workflow,
+} from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useState, type CSSProperties } from "react";
 import { useStore } from "zustand";
 import { cn } from "@repo/ui/lib/utils";
+import { Button } from "@repo/ui/button";
 import {
   AgentExecutionPicker,
   useAgentExecutionChoice,
@@ -25,30 +35,51 @@ export const CanvasTopChrome = () => {
   const handleRunTest = useStore(store, (state) => state.handleRunTest);
   const handleCancelRun = useStore(store, (state) => state.handleCancelRun);
   const activeJobId = useStore(store, (state) => state.activeJobId);
+  const executionSubmission = useStore(store, (state) => state.executionSubmission);
+  const executionJob = useStore(store, (state) => state.executionJob);
+  const executionError = useStore(store, (state) => state.executionError);
+  const handleToggleConsole = useStore(store, (state) => state.toggleConsole);
   const [isCancelling, setIsCancelling] = useState(false);
-  const toggleAgentPanel = useStore(store, (state) => state.toggleAgentPanel);
+  const handleToggleAgentPanel = useStore(store, (state) => state.toggleAgentPanel);
   const {
     catalog,
     choice: executionChoice,
+    explicitOverrides,
     isLoading: isExecutionChoiceLoading,
-    persistChoice,
-    selectRuntime,
-  } = useAgentExecutionChoice();
+    persistChoice: handlePersistChoice,
+    selectRuntime: handleSelectRuntime,
+  } = useAgentExecutionChoice({ scope: "run", runScopeId: pipelineId });
   const { handleSave: handleSaveCanvas, isPending: isSavePending } =
     useCanvasWorkspacePersistence();
 
-  const hasAvailableRuntime = executionChoice !== null;
-  const isRunPending = isRunning || isTestRunning;
-  const canRun = Boolean(pipelineId && hasAvailableRuntime && !isRunPending);
+  const requestPending =
+    ["submitting", "uncertain", "awaiting_approval"].includes(executionSubmission.phase) ||
+    (executionSubmission.phase === "accepted" && !executionJob);
+  const isRunPending = isRunning || isTestRunning || requestPending;
+  const canRun = Boolean(pipelineId && !isRunPending);
   const canStop = Boolean(activeJobId && isTestRunning && !isCancelling);
   const pipelineTitleLabel = t("canvas.pipelineTitle", { defaultValue: "Pipeline name" });
   const saveLabel = t("canvas.floatingMenu.save", { defaultValue: "Save" });
   const settingsLabel = t("canvas.settingsDrawer.menuLabel", { defaultValue: "Settings" });
   const runLabel = t("canvas.run", { defaultValue: "Run" });
-  const runningLabel = t("canvas.running", { defaultValue: "Running" });
+  const runningLabel =
+    executionSubmission.phase === "awaiting_approval"
+      ? "等待确认"
+      : executionSubmission.phase === "uncertain"
+        ? "确认提交结果…"
+        : t("canvas.running", { defaultValue: "Running" });
   const stopLabel = t("canvas.stopRun", { defaultValue: "Stop run" });
   const stoppingLabel = t("canvas.stoppingRun", { defaultValue: "Stopping" });
   const agentLabel = t("canvas.agent", { defaultValue: "Agent" });
+  const handleRunClick = () => {
+    if (!isTestRunning) {
+      void handleRunTest(explicitOverrides);
+
+      return;
+    }
+    setIsCancelling(true);
+    void handleCancelRun().then(() => setIsCancelling(false));
+  };
 
   return (
     <div
@@ -105,6 +136,19 @@ export const CanvasTopChrome = () => {
       </div>
 
       <div className="pointer-events-auto flex shrink-0 items-center gap-2 max-[480px]:gap-1">
+        {(executionSubmission.request || executionError) && (
+          <Button
+            aria-label="运行详情"
+            className="size-8 rounded-full bg-surface shadow-pill ring-1 ring-border"
+            data-testid="canvas-execution-console-toggle"
+            size="icon"
+            title="运行详情"
+            variant="ghost"
+            onClick={handleToggleConsole}
+          >
+            <SquareTerminal className="size-3.5" />
+          </Button>
+        )}
         <CanvasStatusBar />
         <div data-testid="canvas-v2-execution-picker">
           <AgentExecutionPicker
@@ -113,8 +157,8 @@ export const CanvasTopChrome = () => {
             disabled={isRunPending}
             isLoading={isExecutionChoiceLoading}
             triggerVariant="button"
-            onChange={persistChoice}
-            onRuntimeChange={selectRuntime}
+            onChange={handlePersistChoice}
+            onRuntimeChange={handleSelectRuntime}
           />
         </div>
         <button
@@ -138,15 +182,7 @@ export const CanvasTopChrome = () => {
           data-testid="canvas-v2-run"
           disabled={isTestRunning ? !canStop : !canRun}
           type="button"
-          onClick={() => {
-            if (!isTestRunning) {
-              void handleRunTest(executionChoice);
-
-              return;
-            }
-            setIsCancelling(true);
-            void handleCancelRun().then(() => setIsCancelling(false));
-          }}
+          onClick={handleRunClick}
         >
           {isCancelling || (isRunPending && !isTestRunning) ? (
             <Loader2 className="size-3.5 animate-spin" />
@@ -171,7 +207,7 @@ export const CanvasTopChrome = () => {
             className="flex items-center gap-1.5 rounded-full bg-surface px-3 py-1.5 text-xs text-foreground shadow-pill ring-1 ring-border transition-colors hover:ring-border-strong max-[480px]:px-2"
             data-testid="canvas-v2-agent-reopen"
             type="button"
-            onClick={toggleAgentPanel}
+            onClick={handleToggleAgentPanel}
           >
             <Bot className="size-3.5" />
             {agentLabel}

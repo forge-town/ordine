@@ -1,5 +1,5 @@
 import { homedir } from "node:os";
-import { isAbsolute, join, resolve } from "node:path";
+import { isAbsolute, resolve } from "node:path";
 import type { Command } from "commander";
 import {
   doctorMcpTarget,
@@ -45,7 +45,7 @@ const parseEnvironment = (entries: readonly string[]): Record<string, string> =>
   Object.fromEntries(
     entries.map((entry) => {
       const separator = entry.indexOf("=");
-      if (separator < 1) throw new Error(`Invalid --env value "${entry}"; expected KEY=VALUE`);
+      if (separator < 1) throw new Error("Invalid --env value; expected KEY=VALUE");
 
       return [entry.slice(0, separator), entry.slice(separator + 1)];
     }),
@@ -59,15 +59,12 @@ const launchSpec = (options: InstallOptions): McpLaunchSpec => {
     ...(options.allowWrite ? ["--allow-write"] : []),
     ...(options.allowIrreversible ? ["--allow-irreversible"] : []),
   ];
-  const tokenFile = join(homedir(), ".ordine", ".desktop-token");
+  const launchEnvironment = { ORDINE_AUTH_MODE: "bearer", ...parseEnvironment(options.env) };
   if (options.sidecar) {
     return {
       command: resolve(options.sidecar),
       args: serverArgs,
-      env: {
-        ORDINE_DESKTOP_AUTH_TOKEN_FILE: tokenFile,
-        ...parseEnvironment(options.env),
-      },
+      env: launchEnvironment,
     };
   }
   const command = options.command ?? process.execPath;
@@ -77,10 +74,7 @@ const launchSpec = (options: InstallOptions): McpLaunchSpec => {
   return {
     command: isAbsolute(command) ? command : resolve(command),
     args: [resolve(cliFile), "mcp", "serve", ...serverArgs],
-    env: {
-      ORDINE_DESKTOP_AUTH_TOKEN_FILE: tokenFile,
-      ...parseEnvironment(options.env),
-    },
+    env: launchEnvironment,
   };
 };
 

@@ -118,7 +118,7 @@ export const CanvasInner = ({
 
             <LlmContentCard />
 
-            {isConsoleOpen && <RunConsole />}
+            <RunConsole visible={isConsoleOpen} />
           </main>
         </div>
       </div>

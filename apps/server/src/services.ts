@@ -2,6 +2,10 @@ import { db } from "@repo/db";
 import {
   configureAgentRunController,
   createAgentControlService,
+  createCanvasExecutionPublisher,
+  createOperationExecutionPublisher,
+  createExecutionConfigurationPublisher,
+  createSettingsService,
   createAgentThreadsService,
   createAgentsService,
   createAgentRunsService,
@@ -12,54 +16,54 @@ import {
   createDistillationsService,
   createJobsService,
   createOperationsService,
-  createOperationRunnerService,
   createPipelineAgentSessionsService,
   createPipelineAssetsService,
-  createPipelineRunnerService,
   createPipelinesService,
   createProjectsService,
   createRoutinesService,
   createSkillsService,
   createUsageService,
-  DEFAULT_JOB_HEARTBEAT_INTERVAL_MS,
-  DEFAULT_JOB_LEASE_DURATION_MS,
   agentRunCapabilityStore,
   listDirectory,
 } from "@repo/services";
-import { getEnv } from "./integrations/env";
-
-const env = getEnv();
-const jobLease = {
-  leaseDurationMs: env.JOB_LEASE_DURATION_MS ?? DEFAULT_JOB_LEASE_DURATION_MS,
-  heartbeatIntervalMs: env.JOB_HEARTBEAT_INTERVAL_MS ?? DEFAULT_JOB_HEARTBEAT_INTERVAL_MS,
-};
-if (jobLease.heartbeatIntervalMs >= jobLease.leaseDurationMs) {
-  throw new Error("JOB_HEARTBEAT_INTERVAL_MS must be less than JOB_LEASE_DURATION_MS");
-}
+import { err, ok } from "neverthrow";
+import { executionGateway } from "./integrations/executionGateway";
 
 export const agentsService = createAgentsService(db);
 export const agentRunsService = createAgentRunsService(db);
 const agentRunController = createAgentRunController(agentRunsService);
 configureAgentRunController(agentRunController);
 export const agentRuntimesService = createAgentRuntimesService(db);
+export const settingsService = createSettingsService(db);
+const executionConfigurationPublisher = createExecutionConfigurationPublisher({
+  gateway: executionGateway,
+  readRuntimes: () => agentRuntimesService.getAll(),
+  readSettings: () => settingsService.get(),
+});
 export const connectorsService = createConnectorsService(db);
 export const conversationMessagesService = createConversationMessagesService(db);
 export const distillationsService = createDistillationsService(db);
 export const jobsService = createJobsService(db);
 export const operationsService = createOperationsService(db);
-export const operationRunnerService = createOperationRunnerService(db, jobLease);
 export const pipelineAgentSessionsService = createPipelineAgentSessionsService(db, {
   agentRunsService,
 });
 export const pipelineAssetsService = createPipelineAssetsService(db);
 export const pipelinesService = createPipelinesService(db);
-export const pipelineRunnerService = createPipelineRunnerService(db, {
-  agentRunController,
-  jobLease,
+export const canvasExecutionPublisher = createCanvasExecutionPublisher({
+  gateway: executionGateway,
+  readPipeline: (id) => pipelinesService.getById(id),
+  readOperations: () => operationsService.getAll(),
+  publishConfiguration: executionConfigurationPublisher.publish,
+});
+export const operationExecutionPublisher = createOperationExecutionPublisher({
+  gateway: executionGateway,
+  readOperations: () => operationsService.getAll(),
+  publishConfiguration: executionConfigurationPublisher.publish,
 });
 export const projectsService = createProjectsService(db);
 export const routinesService = createRoutinesService(db, {
-  startRun: (opts) => pipelineRunnerService.startRun(opts),
+  startRun: async () => err(new Error("旧定时执行入口已停用，请提交 v2 运行请求并确认。")),
 });
 export const skillsService = createSkillsService(db);
 export const usageService = createUsageService(db);
@@ -71,14 +75,37 @@ export const agentControlService = createAgentControlService(db, {
     append: (runId, event) => agentRunsService.appendControlEvent(runId, event),
   },
   execution: {
-    runPipeline: (input) => pipelineRunnerService.startRun(input),
-    runOperation: (input) => operationRunnerService.startRun(input),
-    runRoutine: (routineId) => routinesService.runNow(routineId),
-    controlJob: (jobId, action) => {
-      if (action === "pause") return pipelineRunnerService.pauseRun(jobId);
-      if (action === "resume") return pipelineRunnerService.resumeRun(jobId);
+    submissionMode: "prepared-run",
+    runPipeline: async (input) =>
+      canvasExecutionPublisher.prepare({ ...input, requestId: input.requestId! }),
+    runOperation: async (input) =>
+      operationExecutionPublisher.prepare({ ...input, requestId: input.requestId! }),
+    runRoutine: async (routineId, requestId) => {
+      const routine = await routinesService.getById(routineId);
+      if (!routine) return err(new Error("定时任务不存在。"));
 
-      return pipelineRunnerService.cancelRun(jobId);
+      return canvasExecutionPublisher.prepare({
+        pipelineId: routine.pipelineId,
+        requestId: requestId!,
+      });
+    },
+    controlJob: async (jobId, action) => executionGateway.controlJob(jobId, action),
+    getJobTrace: async (jobId, afterSequence) => {
+      const [job, events, result] = await Promise.all([
+        executionGateway.getJob(jobId),
+        executionGateway.getEvents(jobId, afterSequence),
+        executionGateway.getJobResult(jobId),
+      ]);
+      if (job.isErr()) return err(job.error);
+      if (events.isErr()) return err(events.error);
+      if (result.isErr()) return err(result.error);
+
+      return ok({
+        job: job.value,
+        events: events.value,
+        result: result.value,
+        nextCursor: events.value.length === 1000 ? String(events.value.at(-1)!.sequence) : null,
+      });
     },
   },
 });
