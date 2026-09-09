@@ -1,7 +1,8 @@
-import { cpSync, mkdirSync, rmSync } from "node:fs";
+import { cpSync, mkdirSync, readdirSync } from "node:fs";
 import { resolve, dirname } from "node:path";
 import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
+import { nativeRustTarget } from "./nativeTarget";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -27,19 +28,33 @@ execFileSync(
 );
 
 // 2. Copy PostgreSQL migrations next to the bundled server.
-const migrationsTarget = resolve(RESOURCES_DIR, "migrations");
-rmSync(migrationsTarget, { force: true, recursive: true });
-cpSync(resolve(ROOT, "../create/migrations"), migrationsTarget, { recursive: true });
+const migrationsTarget = resolve(RESOURCES_DIR, "migrations-v2");
+mkdirSync(migrationsTarget, { recursive: true });
+cpSync(
+  resolve(ROOT, "../create/migrations-v2/0001_execution.sql"),
+  resolve(migrationsTarget, "0001_execution.sql"),
+);
+// Product metadata uses a separate private schema and its own unchanged migration chain.
+const authoringMigrationsSource = resolve(ROOT, "../create/migrations");
+const authoringMigrationsTarget = resolve(RESOURCES_DIR, "migrations-authoring");
+mkdirSync(authoringMigrationsTarget, { recursive: true });
+for (const migration of readdirSync(authoringMigrationsSource)
+  .filter((name) => name.endsWith(".sql"))
+  .sort()) {
+  cpSync(
+    resolve(authoringMigrationsSource, migration),
+    resolve(authoringMigrationsTarget, migration),
+  );
+}
+// Bun flattens import.meta.url into this bundle's directory. Keep native launchers adjacent.
+const actorsSource = resolve(ROOT, "../../packages/services/src/executionActors");
+for (const helper of readdirSync(actorsSource).filter((name) => name.endsWith(".ps1"))) {
+  cpSync(resolve(actorsSource, helper), resolve(RESOURCES_DIR, helper));
+}
 
 // 3. Copy bun binary as the server sidecar for the current Tauri target.
 console.log("Copying bun runtime as sidecar...");
-const arch = process.arch === "arm64" ? "aarch64" : "x86_64";
-const targetTriple =
-  process.platform === "win32"
-    ? `${arch}-pc-windows-msvc`
-    : process.platform === "darwin"
-      ? `${arch}-apple-darwin`
-      : `${arch}-unknown-linux-gnu`;
+const targetTriple = nativeRustTarget();
 const executableSuffix = process.platform === "win32" ? ".exe" : "";
 cpSync(process.execPath, resolve(BINARIES_DIR, `ordine-server-${targetTriple}${executableSuffix}`));
 
@@ -50,7 +65,7 @@ const mcpSidecar = resolve(BINARIES_DIR, `ordine-mcp-${targetTriple}${executable
 execFileSync(
   process.execPath,
   ["build", "../cli/src/mcp-sidecar.ts", "--compile", "--outfile", mcpSidecar],
-  { cwd: ROOT, stdio: "inherit" },
+  { cwd: ROOT, stdio: "inherit", windowsHide: true },
 );
 
 console.log("Done! Server bundle ready.");

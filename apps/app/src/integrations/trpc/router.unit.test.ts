@@ -131,8 +131,8 @@ describe("domain tRPC routers", () => {
     await expect(caller.pipelineAssets.getMany()).resolves.toEqual([]);
     await expect(caller.projects.getMany()).resolves.toEqual([]);
     await expect(caller.routines.getMany()).resolves.toEqual([]);
-    await expect(caller.routines.runNow({ id: "routine-1" })).resolves.toEqual({
-      jobId: "job-1",
+    await expect(caller.routines.runNow({ id: "routine-1" })).rejects.toMatchObject({
+      code: "PRECONDITION_FAILED",
     });
     await expect(authedCaller.connectors.connect({ id: "connector-1" })).resolves.toEqual({
       id: "connector-1",
@@ -217,101 +217,27 @@ describe("domain tRPC routers", () => {
     expect(mocks.projectsCreate).toHaveBeenCalledWith(project);
   });
 
-  it("requires a session to cancel pipeline runs", async () => {
-    const caller = domainRouter.createCaller({ session: null });
-    const authedCaller = domainRouter.createCaller({ session: { user: { id: "user-1" } } });
-
-    await expect(caller.pipelines.cancel({ jobId: "job-1" })).rejects.toMatchObject({
-      code: "UNAUTHORIZED",
-    });
-    await expect(authedCaller.pipelines.cancel({ jobId: "job-1" })).resolves.toEqual({
-      cancelled: true,
-      jobId: "job-1",
-    });
-  });
-
-  it("does not start a pipeline run when the pipeline is missing", async () => {
-    const caller = domainRouter.createCaller({ session: null });
-
-    await expect(caller.pipelines.run({ id: "missing-pipeline" })).rejects.toMatchObject({
-      code: "NOT_FOUND",
-    });
+  it("rejects registered legacy execution procedures without invoking services", async () => {
+    const caller = domainRouter.createCaller({ session: { user: { id: "user-1" } } });
+    const calls = [
+      () => caller.pipelines.run({ id: "pipeline-1" }),
+      () => caller.pipelines.cancel({ jobId: "job-1" }),
+      () => caller.operations.run({ operationId: "op-1" }),
+      () => caller.routines.runNow({ id: "routine-1" }),
+      () => caller.jobs.create({ id: "job-1" }),
+      () => caller.jobs.updateStatus({ id: "job-1", status: "running" }),
+      () => caller.jobs.pause({ jobId: "job-1" }),
+      () => caller.jobs.resume({ jobId: "job-1" }),
+      () => caller.jobs.cancel({ jobId: "job-1" }),
+    ];
+    for (const call of calls) {
+      await expect(call()).rejects.toMatchObject({ code: "PRECONDITION_FAILED" });
+    }
     expect(mocks.pipelineStartRun).not.toHaveBeenCalled();
-  });
-
-  it("forwards the selected runtime profile to the pipeline runner", async () => {
-    mocks.pipelinesGetById.mockResolvedValueOnce({ id: "pipeline-1" });
-    mocks.pipelineStartRun.mockResolvedValueOnce(ok({ jobId: "job-1" }));
-    const caller = domainRouter.createCaller({ session: null });
-
-    await expect(
-      caller.pipelines.run({
-        id: "pipeline-1",
-        runtimeConfigId: "local-codex",
-        model: "gpt-5.6-luna",
-        reasoningEffort: "xhigh",
-        speed: "priority",
-        firstOutputTimeoutSeconds: 600,
-      }),
-    ).resolves.toEqual({ jobId: "job-1" });
-    expect(mocks.pipelineStartRun).toHaveBeenCalledWith(
-      expect.objectContaining({
-        pipelineId: "pipeline-1",
-        runtimeConfigId: "local-codex",
-        model: "gpt-5.6-luna",
-        reasoningEffort: "xhigh",
-        speed: "priority",
-        firstOutputTimeoutMs: 600_000,
-      }),
-    );
-  });
-
-  it("maps missing Operation references during a run to CONFLICT", async () => {
-    const missingOperation = new Error("Pipeline references a missing Operation");
-    Object.assign(missingOperation, {
-      name: "PipelineOperationReferencesError",
-      code: "PIPELINE_OPERATION_MISSING",
-    });
-    mocks.pipelinesGetById.mockResolvedValueOnce({ id: "pipeline-1" });
-    mocks.pipelineStartRun.mockResolvedValueOnce(err(missingOperation));
-    const caller = domainRouter.createCaller({ session: null });
-
-    await expect(caller.pipelines.run({ id: "pipeline-1" })).rejects.toMatchObject({
-      code: "CONFLICT",
-    });
-  });
-
-  it("maps Operation registry lookup failures during a run to INTERNAL_SERVER_ERROR", async () => {
-    const serviceError = new Error("Check Pipeline pipeline-1 Operation references failed");
-    serviceError.name = "ServiceError";
-    mocks.pipelinesGetById.mockResolvedValueOnce({ id: "pipeline-1" });
-    mocks.pipelineStartRun.mockResolvedValueOnce(err(serviceError));
-    const caller = domainRouter.createCaller({ session: null });
-
-    await expect(caller.pipelines.run({ id: "pipeline-1" })).rejects.toMatchObject({
-      code: "INTERNAL_SERVER_ERROR",
-    });
-  });
-
-  it("exposes authenticated job controls for checkpoint handling", async () => {
-    const caller = domainRouter.createCaller({ session: null });
-    const authedCaller = domainRouter.createCaller({ session: { user: { id: "user-1" } } });
-
-    await expect(caller.jobs.resume({ jobId: "job-1" })).rejects.toMatchObject({
-      code: "UNAUTHORIZED",
-    });
-    await expect(authedCaller.jobs.pause({ jobId: "job-1" })).resolves.toEqual({
-      jobId: "job-1",
-      paused: true,
-    });
-    await expect(authedCaller.jobs.resume({ jobId: "job-1" })).resolves.toEqual({
-      jobId: "job-1",
-      resumed: true,
-    });
-    await expect(authedCaller.jobs.cancel({ jobId: "job-1" })).resolves.toEqual({
-      cancelled: true,
-      jobId: "job-1",
-    });
+    expect(mocks.jobCancelRun).not.toHaveBeenCalled();
+    expect(mocks.jobPauseRun).not.toHaveBeenCalled();
+    expect(mocks.jobResumeRun).not.toHaveBeenCalled();
+    expect(mocks.routinesRunNow).not.toHaveBeenCalled();
   });
 
   it("filters pipeline routines by enabled status", async () => {
@@ -324,17 +250,6 @@ describe("domain tRPC routers", () => {
     await expect(caller.routines.getMany({ pipelineId: "p1", enabled: true })).resolves.toEqual([
       { id: "enabled", enabled: true },
     ]);
-  });
-
-  it("maps missing routine runs to NOT_FOUND", async () => {
-    const notFound = new Error("Routine:missing not found");
-    notFound.name = "NotFoundError";
-    mocks.routinesRunNow.mockResolvedValue(err(notFound));
-    const caller = domainRouter.createCaller({ session: null });
-
-    await expect(caller.routines.runNow({ id: "missing" })).rejects.toMatchObject({
-      code: "NOT_FOUND",
-    });
   });
 
   it("rejects conversation limit without a pipelineId", async () => {

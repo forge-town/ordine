@@ -25,6 +25,8 @@ export interface NodeCardProps extends NodeCardFrameProps {
   rightConnectedPortMask?: number;
   leftHandleCount?: number;
   rightHandleCount?: number;
+  leftPortIds?: string[];
+  rightPortIds?: string[];
   compact?: boolean;
 }
 
@@ -96,6 +98,8 @@ export const NodeCard = memo(
     rightConnectedPortMask,
     leftHandleCount = 1,
     rightHandleCount = 1,
+    leftPortIds,
+    rightPortIds,
     compact = false,
     selected,
     theme,
@@ -244,6 +248,8 @@ export const NodeCard = memo(
         </NodeCardFrame>
         {hasPorts && (
           <NodeCardPorts
+            leftPortIds={leftPortIds}
+            rightPortIds={rightPortIds}
             cardMaxPortSpread={cardMaxPortSpread}
             leftActivePortCount={leftActivePortCount}
             leftActivePortMask={leftActivePortMask}

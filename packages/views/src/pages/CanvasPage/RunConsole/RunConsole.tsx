@@ -1,163 +1,27 @@
-import { useRef } from "react";
+import { ChevronDown, ChevronUp, SquareTerminal, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { ChevronDown, ChevronUp, FileText, Loader2, SquareTerminal, X } from "lucide-react";
-import { cn } from "@repo/ui/lib/utils";
-import { useCustom, useDataProvider, useOne } from "@refinedev/core";
 import { useStore } from "zustand";
+import { cn } from "@repo/ui/lib/utils";
 import { useCanvasPageStore } from "../_store";
-import { StatusIcon } from "./StatusIcon";
-import { AgentActivitySurface } from "../../../components/AgentActivity";
-import {
-  buildRunTimeline,
-  summarizeMultiInputNodes,
-  type RunTimelineStatus,
-} from "./runTraceParser";
-import { ResourceName } from "../../../constants";
-import type { Job, JobStatus } from "@repo/schemas";
-import { usePlatform } from "../../../platform";
-
-const POLL_INTERVAL = 1500;
-
-type RunTrace = {
-  createdAt?: Date | string;
-  id?: number;
-  message: string;
-};
-
-const statusLabelKeys: Record<JobStatus, string> = {
-  queued: "canvas.runConsole.statusQueued",
-  running: "canvas.runConsole.statusRunning",
-  paused: "canvas.runConsole.statusPaused",
-  done: "canvas.runConsole.statusDone",
-  failed: "canvas.runConsole.statusFailed",
-  cancelled: "canvas.runConsole.statusCancelled",
-  expired: "canvas.runConsole.statusExpired",
-  skipped: "canvas.runConsole.statusSkipped",
-};
-
-const parseTimestamp = (log: string): string => {
-  const match = /^\[([^\]]+)\]/.exec(log);
-  if (!match) return "";
-  const d = new Date(match[1]);
-  if (Number.isNaN(d.getTime())) return "";
-
-  return d.toLocaleTimeString("en-US", {
-    hour12: false,
-    fractionalSecondDigits: 3,
-  });
-};
-
-const parseMessage = (log: string): string => {
-  const match = /^\[([^\]]+)\]\s*/.exec(log);
-  if (!match || Number.isNaN(new Date(match[1]).getTime())) return log;
-
-  return log.slice(match[0].length);
-};
-
-const STRUCTURED_LOG_PREFIX = "@@";
-
-const isStructuredLog = (log: string): boolean => {
-  const msg = log.replace(/^\[[^\]]+\]\s*/, "");
-
-  return msg.startsWith(STRUCTURED_LOG_PREFIX);
-};
-
-const isTerminalStatus = (s: JobStatus) =>
-  s === "done" || s === "failed" || s === "cancelled" || s === "expired" || s === "skipped";
-
-const timelineStatusLabelKeys: Record<RunTimelineStatus, string> = {
-  running: "canvas.runConsole.nodeStatusRunning",
-  done: "canvas.runConsole.nodeStatusDone",
-  failed: "canvas.runConsole.nodeStatusFailed",
-};
+import { ExecutionRequestCard } from "../../../components/ExecutionRequest/ExecutionRequestCard";
 
 export const RunConsole = ({ visible = true }: { visible?: boolean }) => {
   const { t } = useTranslation();
   const store = useCanvasPageStore();
-  const jobId = useStore(store, (s) => s.activeJobId);
-  const nodes = useStore(store, (s) => s.nodes);
-  const edges = useStore(store, (s) => s.edges);
-  const handleCloseConsole = useStore(store, (s) => s.handleCloseConsole);
-  const isConsoleCollapsed = useStore(store, (s) => s.isConsoleCollapsed);
-  const handleToggleConsoleCollapse = useStore(store, (s) => s.handleToggleConsoleCollapse);
-  const getDataProvider = useDataProvider();
-  const dataProvider = getDataProvider();
-  const platform = usePlatform();
-
-  const scrollRef = useRef<HTMLDivElement>(null);
-
-  const { query: jobQuery } = useOne<Job>({
-    resource: ResourceName.jobs,
-    id: jobId ?? "",
-    queryOptions: {
-      enabled: !!jobId,
-      queryFn: async () => {
-        const currentJobId = jobId ?? "";
-        const response = await dataProvider.getOne!<Job>({
-          resource: ResourceName.jobs,
-          id: currentJobId,
-        });
-
-        return response;
-      },
-      refetchInterval: (query) => {
-        const status = (query.state.data?.data as Job | undefined)?.status;
-        if (status && isTerminalStatus(status)) return false;
-
-        return POLL_INTERVAL;
-      },
-    },
-  });
-
-  const job = (jobQuery.data?.data as Job | undefined) ?? null;
-  const jobRef = useRef(job);
-  jobRef.current = job;
-
-  const { result: tracesResult } = useCustom<{ traces: RunTrace[] }>({
-    url: "jobs/traces",
-    method: "get",
-    config: { payload: { jobId: jobId ?? "" } },
-    queryOptions: {
-      enabled: !!jobId,
-      queryFn: async () => {
-        const currentJobId = jobId ?? "";
-        const response = await dataProvider.custom!<{ traces: RunTrace[] }>({
-          url: "jobs/traces",
-          method: "get",
-          payload: { jobId: currentJobId },
-        });
-        return response;
-      },
-      refetchInterval: () => {
-        if (jobRef.current && isTerminalStatus(jobRef.current.status)) return false;
-
-        return POLL_INTERVAL;
-      },
-    },
-  });
-  const traces = tracesResult.data?.traces ?? [];
-  const traceLogs = traces.map((trace) => trace.message);
-  const runTimeline = buildRunTimeline(traces);
-  const multiInputSummary = summarizeMultiInputNodes(edges);
-  const nodeLabelById = new Map(
-    nodes.map((node) => [node.id, node.data.label ?? node.id] as const),
-  );
-  const currentNodeLabel =
-    runTimeline.currentNodeId === null
-      ? t("canvas.runConsole.currentStepIdle")
-      : (nodeLabelById.get(runTimeline.currentNodeId) ?? runTimeline.currentNodeId);
-  const nodeAgentRunIds = useStore(store, (s) => s.nodeAgentRunIds);
-  const currentRunId =
-    (runTimeline.currentNodeId ? nodeAgentRunIds[runTimeline.currentNodeId]?.at(-1) : undefined) ??
-    Object.values(nodeAgentRunIds).flat().at(-1) ??
-    null;
-
-  if (!visible) return null;
+  const submission = useStore(store, (state) => state.executionSubmission);
+  const error = useStore(store, (state) => state.executionError);
+  const collapsed = useStore(store, (state) => state.isConsoleCollapsed);
+  const handleClose = useStore(store, (state) => state.handleCloseConsole);
+  const handleToggle = useStore(store, (state) => state.handleToggleConsoleCollapse);
+  const handleReceipt = useStore(store, (state) => state.receiveExecutionReceipt);
+  const handleJob = useStore(store, (state) => state.receiveExecutionJob);
+  const handleEvents = useStore(store, (state) => state.receiveExecutionEvents);
 
   return (
     <div
-      className="pointer-events-auto absolute inset-x-3 bottom-16 z-30"
+      className={cn("pointer-events-auto absolute inset-x-3 bottom-16 z-30", !visible && "hidden")}
       data-testid="canvas-run-console"
+      hidden={!visible}
     >
       <div className="overflow-hidden rounded-2xl bg-surface shadow-float ring-1 ring-border-strong">
         <div className="flex w-full items-center gap-2 border-b border-border/70 px-3.5 py-2">
@@ -165,25 +29,14 @@ export const RunConsole = ({ visible = true }: { visible?: boolean }) => {
             className="flex min-w-0 flex-1 items-center gap-2 text-left"
             data-testid="run-console-toggle"
             type="button"
-            onClick={handleToggleConsoleCollapse}
+            onClick={handleToggle}
           >
             <span className="flex size-5 items-center justify-center rounded-md bg-surface-2">
               <SquareTerminal className="size-3 text-foreground/75" />
             </span>
             <span className="text-xs font-semibold">{t("canvas.runConsole.title")}</span>
-            <span className="rounded-full bg-surface-2 px-1.5 py-0.5 font-mono text-[9.5px] text-muted-foreground">
-              {t("canvas.runConsole.logs", { count: traceLogs.length })}
-            </span>
-            {job ? (
-              <span className="flex min-w-0 items-center gap-1.5 truncate font-mono text-[10px] text-muted-foreground">
-                <StatusIcon status={job.status} />
-                <span className="truncate">
-                  {jobId} · {t(statusLabelKeys[job.status])}
-                </span>
-              </span>
-            ) : null}
-            <span className="ml-auto flex items-center gap-1 text-[10px] text-muted-foreground">
-              {isConsoleCollapsed ? (
+            <span className="ml-auto text-muted-foreground">
+              {collapsed ? (
                 <ChevronUp className="size-3.5" />
               ) : (
                 <ChevronDown className="size-3.5" />
@@ -191,137 +44,41 @@ export const RunConsole = ({ visible = true }: { visible?: boolean }) => {
             </span>
           </button>
           <button
-            className="rounded-lg p-1 text-muted-foreground hover:bg-accent/60 hover:text-foreground"
             aria-label={t("common.close")}
+            className="rounded-lg p-1 text-muted-foreground hover:bg-accent/60 hover:text-foreground"
             data-testid="run-console-close"
             type="button"
-            onClick={handleCloseConsole}
+            onClick={handleClose}
           >
             <X className="size-3.5" />
           </button>
         </div>
-        {!isConsoleCollapsed && (
-          <div
-            ref={scrollRef}
-            className="h-44 overflow-y-auto px-3.5 py-2.5 font-mono text-[10.5px] leading-relaxed"
-          >
-            {currentRunId && (
-              <AgentActivitySurface
-                className="mb-2 font-sans"
-                platform={platform}
-                runId={currentRunId}
-                variant="console"
-              />
-            )}
-            {!job && (
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <Loader2 className="size-3.5 animate-spin" />
-                {t("canvas.runConsole.loading")}
-              </div>
-            )}
-            {job && (
-              <div className="mb-2 space-y-1.5 font-sans text-[10px] leading-normal">
-                <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-                  <span className="font-semibold uppercase tracking-wide text-muted-foreground">
-                    {t("canvas.runConsole.currentStep")}
-                  </span>
-                  <span className="truncate font-semibold text-foreground">{currentNodeLabel}</span>
-                  {runTimeline.latestProgressMessage ? (
-                    <span className="min-w-0 truncate text-muted-foreground">
-                      {runTimeline.latestProgressMessage}
-                    </span>
-                  ) : null}
-                </div>
-
-                <div className="flex flex-wrap items-center gap-1.5">
-                  <span className="font-semibold uppercase tracking-wide text-muted-foreground">
-                    {t("canvas.runConsole.timeline")}
-                  </span>
-                  <span className="text-muted-foreground">
-                    {t("canvas.runConsole.timelineCount", {
-                      count: runTimeline.timeline.length,
-                    })}
-                  </span>
-                  {runTimeline.timeline.length === 0 ? (
-                    <span className="text-muted-foreground">
-                      {t("canvas.runConsole.timelineEmpty")}
-                    </span>
-                  ) : (
-                    runTimeline.timeline.map((item) => (
-                      <span
-                        key={item.nodeId}
-                        className={cn(
-                          "inline-flex max-w-[220px] items-center gap-1 rounded-full border px-1.5 py-0.5",
-                          ["running", "queued", "waitingForUser", "retrying"].includes(
-                            item.status,
-                          ) && "status-wash-muted",
-                          item.status === "done" && "status-wash-success",
-                          item.status === "failed" && "status-wash-error",
-                        )}
-                      >
-                        <span className="truncate">
-                          {nodeLabelById.get(item.nodeId) ?? item.nodeId}
-                        </span>
-                        <span className="shrink-0 font-semibold uppercase">
-                          {t(timelineStatusLabelKeys[item.status])}
-                        </span>
-                      </span>
-                    ))
-                  )}
-                </div>
-
-                <div className="rounded-lg bg-surface-2/60 px-2 py-1 text-muted-foreground ring-1 ring-border">
-                  {multiInputSummary.count > 0
-                    ? t("canvas.runConsole.multiInputRuleWithCount", {
-                        count: multiInputSummary.count,
-                      })
-                    : t("canvas.runConsole.multiInputRule")}
-                </div>
-
-                {runTimeline.artifacts.length > 0 && (
-                  <div className="flex flex-wrap items-center gap-1.5 text-muted-foreground">
-                    <span className="inline-flex items-center gap-1 font-semibold uppercase tracking-wide">
-                      <FileText className="size-3" />
-                      {t("canvas.runConsole.artifacts")}
-                    </span>
-                    {runTimeline.artifacts.map((artifact) => (
-                      <code
-                        key={artifact.path}
-                        className="rounded bg-surface-2 px-1.5 py-0.5 font-mono text-[10px] text-foreground"
-                      >
-                        {artifact.path}
-                      </code>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-            {traceLogs
-              .filter((l) => !isStructuredLog(l))
-              .map((log, i) => (
-                <div key={i} className="flex gap-2">
-                  <span className="shrink-0 tabular-nums text-muted-foreground">
-                    {parseTimestamp(log)}
-                  </span>
-                  <span
-                    className={cn(
-                      "break-all",
-                      log.includes("ERROR") && "font-medium text-red-600 dark:text-red-400",
-                      log.includes("Pipeline complete") &&
-                        "font-medium text-emerald-600 dark:text-emerald-400",
-                      log.includes("Cloned to") && "text-blue-600 dark:text-blue-400",
-                      log.includes("Skill output") && "text-violet-600 dark:text-violet-400",
-                    )}
-                  >
-                    {parseMessage(log)}
-                  </span>
-                </div>
-              ))}
-            {job?.status === "failed" && job.error ? (
-              <div className="mt-2 rounded-lg px-2 py-1.5 status-wash-error">{job.error}</div>
-            ) : null}
-          </div>
-        )}
+        <div
+          className={cn(
+            "max-h-72 overflow-y-auto px-3.5 py-2.5 text-xs leading-relaxed",
+            collapsed && "hidden",
+          )}
+          hidden={collapsed}
+        >
+          {error && (
+            <p className="mb-2 break-words text-destructive" role="alert">
+              {error}
+            </p>
+          )}
+          {!submission.request && (
+            <p role="status">{error ? "请修正定义后重新运行。" : "正在保存并检查 Pipeline…"}</p>
+          )}
+          {submission.phase === "submitting" && <p role="status">正在提交运行请求…</p>}
+          {submission.request && submission.phase !== "submitting" && (
+            <ExecutionRequestCard
+              key={submission.request.requestId}
+              requestId={submission.request.requestId}
+              onEvents={handleEvents}
+              onJob={handleJob}
+              onReceipt={handleReceipt}
+            />
+          )}
+        </div>
       </div>
     </div>
   );

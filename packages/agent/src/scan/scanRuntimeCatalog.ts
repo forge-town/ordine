@@ -1,7 +1,9 @@
 import {
+  AgentRuntimeCatalogEntrySchema,
   getLocalAgentRuntimeId,
   type AgentRuntime,
   type AgentRuntimeCatalogEntry,
+  type AgentRuntimeConfig,
   type RuntimeAuthenticationStatus,
   type RuntimeModel,
 } from "@repo/schemas";
@@ -9,7 +11,7 @@ import { tmpdir } from "node:os";
 import { Result } from "neverthrow";
 import { spawnCommand } from "../spawn/spawnCommand";
 import { RUNTIME_MANIFESTS } from "../runtime/runtimeManifestRegistry";
-import { getRuntimeBinaries, scanRuntimes } from "./scanRuntimes";
+import { getRuntimeBinaries, probeRuntimePath, scanRuntimes } from "./scanRuntimes";
 
 const AUTH_PROBES: Partial<Record<AgentRuntime, readonly string[]>> = {
   "claude-code": ["auth", "status"],
@@ -194,4 +196,66 @@ export const scanRuntimeCatalog = async (): Promise<AgentRuntimeCatalogEntry[]> 
       };
     }),
   );
+};
+
+/** Saved configurations are identities, not aliases for the first discovered family binary. */
+export const resolveRuntimeCatalogFromConfigs = async (
+  catalog: readonly AgentRuntimeCatalogEntry[],
+  configs: readonly AgentRuntimeConfig[],
+): Promise<AgentRuntimeCatalogEntry[]> => {
+  const local = configs.filter((config) => config.connection.mode === "local");
+  const saved = await Promise.all(
+    local.map(async (config): Promise<AgentRuntimeCatalogEntry> => {
+      const manifest = RUNTIME_MANIFESTS.find((entry) => entry.runtime === config.type)!;
+      const connection = config.connection;
+      if (connection.mode !== "local") throw new Error("Expected local runtime configuration");
+      const detected = connection.path ? await probeRuntimePath(connection.path) : undefined;
+      const authentication = detected
+        ? await probeAuthentication(config.type, detected.path)
+        : { status: "unknown" as const, message: null };
+      const models = connection.models ?? [];
+      const diagnostics: AgentRuntimeCatalogEntry["diagnostics"] = [];
+      if (!detected)
+        diagnostics.push({
+          code: "RUNTIME_CONFIGURED_PATH_UNAVAILABLE",
+          level: "error",
+          message:
+            "The saved executable path is missing, inaccessible, or not an absolute file path. Edit this runtime configuration to select an executable.",
+        });
+      else if (!detected.version)
+        diagnostics.push({
+          code: "RUNTIME_VERSION_PROBE_FAILED",
+          level: "warning",
+          message: "The saved executable exists, but its version command did not complete.",
+        });
+      if (authentication.status === "unauthenticated" || authentication.status === "error")
+        diagnostics.push({
+          code: "RUNTIME_AUTHENTICATION_REQUIRED",
+          level: "warning",
+          message: authentication.message ?? "Authentication could not be verified",
+        });
+
+      return AgentRuntimeCatalogEntrySchema.parse({
+        runtime: config.type,
+        displayName: config.name,
+        runtimeConfigId: config.id,
+        availability: detected ? (detected.version ? "launchable" : "detected") : "unavailable",
+        binaryName: connection.binaryName ?? manifest.binaries[0]!,
+        path: connection.path ?? null,
+        version: detected?.version ?? null,
+        authenticationStatus: authentication.status,
+        authenticationMessage: authentication.message,
+        diagnostics,
+        models,
+        modelsSource: connection.modelsSource ?? (models.length > 0 ? "fallback" : "none"),
+        supportsCustomModel: manifest.supportsCustomModel ?? false,
+        compatibility: config.compatibility ?? manifest,
+      });
+    }),
+  );
+
+  return [
+    ...saved,
+    ...catalog.filter((entry) => !local.some((config) => config.type === entry.runtime)),
+  ];
 };

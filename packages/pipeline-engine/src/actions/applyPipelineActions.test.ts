@@ -52,6 +52,31 @@ describe("validatePipelineActions", () => {
 });
 
 describe("applyPipelineActions", () => {
+  it("reconnects semantic port bindings and restores the previous bindings on undo", () => {
+    const previous = {
+      label: "",
+      handoff: { kind: "handoff" as const, sourcePortId: "old", targetPortId: "input" },
+    };
+    const next = {
+      label: "",
+      handoff: { kind: "handoff" as const, sourcePortId: "new", targetPortId: "source" },
+    };
+    const snapshot = makeSnapshot(
+      [makeNode("source", "operation"), makeNode("target", "operation")],
+      [{ ...makeEdge("source", "target"), id: "edge", data: previous }],
+    );
+    const changed = applyPipelineActions(snapshot, [
+      { type: "reconnectEdge", edgeId: "edge", source: "source", target: "target", data: next },
+    ]);
+    expect(changed.isOk()).toBe(true);
+    const graph = changed._unsafeUnwrap();
+    expect(graph.edges[0]!.data).toEqual(next);
+    expect(snapshot.edges[0]!.data).toEqual(previous);
+    const undone = applyPipelineActions(graph, [
+      { type: "reconnectEdge", edgeId: "edge", source: "source", target: "target", data: previous },
+    ]);
+    expect(undone._unsafeUnwrap().edges[0]!.data).toEqual(previous);
+  });
   it("applies sequential addNode then addEdge actions", () => {
     const folderNode = makeNode("folder-1", "folder");
     const actionNode = makeNode("action-1", "operation", {

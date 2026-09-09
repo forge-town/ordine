@@ -171,6 +171,44 @@ describe("createAgentRuntimesService", () => {
   });
 
   // COD-336 regression guards
+  it("rescan preserves explicit executable and models while adding new discoveries", async () => {
+    const saved = {
+      id: "local-codex",
+      name: "My Native Codex",
+      type: "codex",
+      connection: {
+        mode: "local",
+        path: "C:/native/codex.exe",
+        models: [{ id: "custom", displayName: "Custom" }],
+        modelsSource: "live",
+      },
+    };
+    mockDao.findMany.mockResolvedValueOnce([saved]).mockResolvedValueOnce([saved]);
+    await createAgentRuntimesService({} as never).syncAll([
+      {
+        id: "local-codex",
+        name: "Detected Codex",
+        type: "codex",
+        connection: {
+          mode: "local",
+          path: "C:/other/codex.cmd",
+          models: [{ id: "fallback", displayName: "Fallback" }],
+        },
+      },
+      {
+        id: "new-runtime",
+        name: "New",
+        type: "opencode",
+        connection: { mode: "local", path: "C:/new/opencode.exe" },
+      },
+    ]);
+    expect(mockDao.update).not.toHaveBeenCalled();
+    expect(mockDao.create).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({ id: "new-runtime" }),
+    );
+    expect(mockDao.delete).not.toHaveBeenCalled();
+  });
+
   const runtimeRecord = (id: string) => ({
     id,
     name: id,

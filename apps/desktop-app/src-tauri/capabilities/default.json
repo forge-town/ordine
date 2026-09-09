@@ -3,24 +3,5 @@
   "identifier": "default",
   "description": "Capability for the main window",
   "windows": ["main"],
-  "permissions": [
-    "core:default",
-    "opener:default",
-    "shell:allow-kill",
-    {
-      "identifier": "shell:allow-spawn",
-      "allow": [
-        {
-          "args": [
-            {
-              "validator": "regex",
-              "value": "^.*/resources/server/server-bundle\\.mjs$"
-            }
-          ],
-          "name": "binaries/ordine-server",
-          "sidecar": true
-        }
-      ]
-    }
-  ]
+  "permissions": ["core:default", "opener:default"]
 }

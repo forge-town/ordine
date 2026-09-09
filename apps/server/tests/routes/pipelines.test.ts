@@ -211,105 +211,11 @@ describe("pipelinesRoutes", () => {
     });
   });
 
-  it("forwards the selected runtime and model to a Pipeline run", async () => {
-    mocks.getById.mockResolvedValue({ id: "p1" });
-    mocks.startRun.mockResolvedValue({
-      isErr: () => false,
-      value: { jobId: "job-1" },
-    });
-
-    const response = await makeApp().request("/pipelines/p1/run", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        runtimeConfigId: "local-codex",
-        model: "gpt-5.6-luna",
-        reasoningEffort: "high",
-        speed: "priority",
-      }),
-    });
-
-    expect(response.status).toBe(202);
-    expect(mocks.startRun).toHaveBeenCalledWith({
-      pipelineId: "p1",
-      inputPath: undefined,
-      githubToken: undefined,
-      inputs: undefined,
-      runtimeConfigId: "local-codex",
-      model: "gpt-5.6-luna",
-      reasoningEffort: "high",
-      speed: "priority",
-    });
-  });
-
-  it("returns a stable conflict when a Pipeline run has no configured runtime", async () => {
-    const runtimeError = Object.assign(
-      new Error("No configured Agent runtime is available for this Pipeline run"),
-      { code: "AGENT_RUNTIME_NOT_FOUND" },
-    );
-    mocks.getById.mockResolvedValue({ id: "p1" });
-    mocks.startRun.mockResolvedValue(err(runtimeError));
-
-    const response = await makeApp().request("/pipelines/p1/run", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({}),
-    });
-
-    expect(response.status).toBe(409);
-    expect(await response.json()).toEqual({
-      code: "AGENT_RUNTIME_NOT_FOUND",
-      error: "No configured Agent runtime is available for this Pipeline run",
-    });
-  });
-
-  it("returns missing Operation details before starting a Pipeline run", async () => {
-    const missingOperationError = Object.assign(
-      new Error(
-        'Pipeline p1 references missing Operation "op_new_search_hackathons" at node "search-node"',
-      ),
-      {
-        code: "PIPELINE_OPERATION_MISSING",
-        pipelineId: "p1",
-        missingOperations: [{ nodeId: "search-node", operationId: "op_new_search_hackathons" }],
-      },
-    );
-    mocks.getById.mockResolvedValue({ id: "p1" });
-    mocks.startRun.mockResolvedValue(err(missingOperationError));
-
-    const response = await makeApp().request("/pipelines/p1/run", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({}),
-    });
-
-    expect(response.status).toBe(409);
-    expect(await response.json()).toEqual({
-      code: "PIPELINE_OPERATION_MISSING",
-      error:
-        'Pipeline p1 references missing Operation "op_new_search_hackathons" at node "search-node"',
-      pipelineId: "p1",
-      missingOperations: [{ nodeId: "search-node", operationId: "op_new_search_hackathons" }],
-    });
-  });
-
-  it("returns an internal error when the Operation registry lookup fails", async () => {
-    const serviceError = Object.assign(new Error("Check Pipeline p1 Operation references failed"), {
-      name: "ServiceError",
-    });
-    mocks.getById.mockResolvedValue({ id: "p1" });
-    mocks.startRun.mockResolvedValue(err(serviceError));
-
-    const response = await makeApp().request("/pipelines/p1/run", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({}),
-    });
-
-    expect(response.status).toBe(500);
-    expect(await response.json()).toEqual({
-      code: "PIPELINE_RUN_FAILED",
-      error: "Check Pipeline p1 Operation references failed",
-    });
+  it.each(["{}", "not-json"])("disables legacy runs before parsing %s", async (body) => {
+    const response = await makeApp().request("/pipelines/p1/run", { method: "POST", body });
+    expect(response.status).toBe(410);
+    expect(await response.json()).toMatchObject({ code: "NOT_SUPPORTED" });
+    expect(mocks.getById).not.toHaveBeenCalled();
+    expect(mocks.startRun).not.toHaveBeenCalled();
   });
 });

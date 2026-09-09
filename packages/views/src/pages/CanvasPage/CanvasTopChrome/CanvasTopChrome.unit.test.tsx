@@ -37,6 +37,7 @@ vi.mock("../../../components/AgentExecutionPicker", () => ({
   useAgentExecutionChoice: () => ({
     catalog: [],
     choice: executionPickerMocks.choice,
+    explicitOverrides: null,
     isLoading: false,
     persistChoice: executionPickerMocks.persistChoice,
     selectRuntime: executionPickerMocks.selectRuntime,
@@ -149,7 +150,7 @@ describe("CanvasTopChrome", () => {
     const runButton = screen.getByRole("button", { name: /Run|运行/i });
     expect(runButton).toBeEnabled();
     await user.click(runButton);
-    expect(handleRunTest).toHaveBeenCalledWith(executionPickerMocks.choice);
+    expect(handleRunTest).toHaveBeenCalledWith(null);
 
     act(() => {
       store.setState({ isRunning: true });

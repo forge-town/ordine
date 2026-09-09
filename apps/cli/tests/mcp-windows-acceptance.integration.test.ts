@@ -90,6 +90,8 @@ const installerArgs = (operation: string, target: string): string[] => [
   "--cli-file",
   cliFile,
   "--env",
+  "ORDINE_AUTH_MODE=desktop",
+  "--env",
   `ORDINE_API_URL=${apiUrl}`,
   "--env",
   `ORDINE_DESKTOP_AUTH_TOKEN_FILE=${tokenFile}`,

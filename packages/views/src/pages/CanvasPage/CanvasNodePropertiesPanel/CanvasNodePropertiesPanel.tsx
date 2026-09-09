@@ -7,7 +7,7 @@ import {
   DISCLOSURE_MODE_ENUM,
   SOURCE_TYPE_ENUM,
   type OutputMode,
-  type Agent,
+  type AgentRuntimeConfig,
   type Operation,
   type DisclosureMode,
   type SourceType,
@@ -47,7 +47,10 @@ export const CanvasNodePropertiesPanel = () => {
   const selectedNode = useStore(store, selectSelectedNode);
   const updateNodeData = useStore(store, (state) => state.updateNodeData);
   const handleOperationLabelChange = useStore(store, (state) => state.handleOperationLabelChange);
-  const handleOperationAgentChange = useStore(store, (state) => state.handleOperationAgentChange);
+  const handleOperationRuntimeChange = useStore(
+    store,
+    (state) => state.handleOperationRuntimeChange,
+  );
   const handleOperationMaxLoopChange = useStore(
     store,
     (state) => state.handleOperationMaxLoopChange,
@@ -59,10 +62,11 @@ export const CanvasNodePropertiesPanel = () => {
   );
   const clearSelection = useStore(store, (state) => state.clearSelection);
   const handleClearSelection = () => clearSelection();
-  const { result: agentsResult } = useList<Agent>({
-    resource: ResourceName.agents,
+  const handlePanelClick = (event: React.MouseEvent<HTMLDivElement>) => event.stopPropagation();
+  const { result: runtimesResult } = useList<AgentRuntimeConfig>({
+    resource: ResourceName.agentRuntimes,
   });
-  const agents = agentsResult.data;
+  const runtimes = runtimesResult.data;
 
   if (!selectedNode) {
     return null;
@@ -210,7 +214,7 @@ export const CanvasNodePropertiesPanel = () => {
       <div
         className="relative flex max-h-full w-[440px] max-w-[calc(100vw-3rem)] flex-col overflow-hidden rounded-2xl bg-surface shadow-float ring-1 ring-border-strong"
         data-testid="canvas-properties-panel"
-        onClick={(event) => event.stopPropagation()}
+        onClick={handlePanelClick}
       >
         <div className="flex items-center gap-2.5 border-b border-border/70 px-4 py-3">
           <div className="flex size-8 items-center justify-center rounded-lg bg-surface-2">
@@ -435,26 +439,36 @@ export const CanvasNodePropertiesPanel = () => {
           {data.nodeType === "operation" && (
             <>
               <div className="space-y-1.5">
-                <Label htmlFor={fieldId(selectedNode.id, "agentId")}>
-                  {t("canvas.propertiesPanel.fields.agentId")}
-                </Label>
+                <Label htmlFor={fieldId(selectedNode.id, "runtimeConfigId")}>运行时</Label>
                 <Select
-                  value={data.agentId ?? "__default__"}
-                  onValueChange={(value) =>
-                    handleOperationAgentChange(
-                      selectedNode.id,
-                      value === "__default__" ? null : value,
-                    )
+                  value={
+                    data.agentId || data.agentRuntime
+                      ? "__legacy__"
+                      : (data.executionOverrides?.runtimeConfigId ?? "__default__")
                   }
+                  onValueChange={(value) => handleOperationRuntimeChange(selectedNode.id, value)}
                 >
-                  <SelectTrigger id={fieldId(selectedNode.id, "agentId")}>
+                  <SelectTrigger id={fieldId(selectedNode.id, "runtimeConfigId")}>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="__default__">{t("nodes.operation.defaultAgent")}</SelectItem>
-                    {agents.map((agent) => (
-                      <SelectItem key={agent.id} value={agent.id}>
-                        {agent.name}
+                    <SelectItem value="__default__">继承运行配置</SelectItem>
+                    {(data.agentId || data.agentRuntime) && (
+                      <SelectItem disabled value="__legacy__">
+                        旧 Agent 配置，请重新选择运行时
+                      </SelectItem>
+                    )}
+                    {data.executionOverrides?.runtimeConfigId &&
+                      !runtimes.some(
+                        (runtime) => runtime.id === data.executionOverrides?.runtimeConfigId,
+                      ) && (
+                        <SelectItem disabled value={data.executionOverrides.runtimeConfigId}>
+                          {data.executionOverrides.runtimeConfigId}（未找到）
+                        </SelectItem>
+                      )}
+                    {runtimes.map((runtime) => (
+                      <SelectItem key={runtime.id} value={runtime.id}>
+                        {runtime.name}
                       </SelectItem>
                     ))}
                   </SelectContent>

@@ -8,6 +8,23 @@ import type { DataProvider } from "@refinedev/core";
  * free of any client-specific data layer.
  */
 const canvasDataProviderRegistry: { current: DataProvider | null } = { current: null };
+const canvasExecutionDataProviderRegistry: { current: DataProvider | (() => DataProvider) | null } =
+  { current: null };
+
+export const setCanvasExecutionDataProvider = (
+  dataProvider: DataProvider | (() => DataProvider),
+): void => {
+  canvasExecutionDataProviderRegistry.current = dataProvider;
+};
+
+export const getCanvasExecutionDataProvider = (): DataProvider => {
+  if (!canvasExecutionDataProviderRegistry.current)
+    throw new Error("Canvas execution provider is unavailable.");
+
+  return typeof canvasExecutionDataProviderRegistry.current === "function"
+    ? canvasExecutionDataProviderRegistry.current()
+    : canvasExecutionDataProviderRegistry.current;
+};
 
 export const setCanvasDataProvider = (dataProvider: DataProvider): void => {
   canvasDataProviderRegistry.current = dataProvider;

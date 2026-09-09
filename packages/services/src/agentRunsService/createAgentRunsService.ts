@@ -44,7 +44,7 @@ import {
   type RuntimeCapabilities,
   type RuntimeEvent,
 } from "@repo/schemas";
-import { ResultAsync } from "neverthrow";
+import { err, ResultAsync } from "neverthrow";
 import { redactSensitiveText, sanitizeAgentRunEvent } from "./sanitizeAgentRunData";
 
 const SUPPORTED_RUNTIMES = new Set<AgentRuntime>(["claude-code", "codex", "opencode"]);
@@ -384,6 +384,13 @@ export const createAgentRunsService = (
   const executorHeartbeatMs = dependencies.executorHeartbeatMs ?? EXECUTOR_HEARTBEAT_MS;
   const executorId = crypto.randomUUID();
   const activeRuns = new Map<string, ActiveRun>();
+  const admission = { open: true };
+  const startingRuns = new Set<Promise<{ runId: string }>>();
+  class AdmissionClosedError extends Error {
+    constructor() {
+      super("Authoring Agent service is shutting down.");
+    }
+  }
   const executions = new Map<string, Promise<AgentRun>>();
   const listeners = new Map<string, Set<EventListener>>();
   const eventPersistenceQueues = new Map<string, Promise<unknown>>();
@@ -879,8 +886,10 @@ export const createAgentRunsService = (
       );
     }
 
-    const runAttempt = async (resumeId: string | null, prompt: string) =>
-      ResultAsync.fromPromise(
+    const runAttempt = async (resumeId: string | null, prompt: string) => {
+      if (active.controller.signal.aborted) return err(new AdmissionClosedError());
+
+      return ResultAsync.fromPromise(
         runAgent({
           agent: runtime,
           mode: "direct",
@@ -908,6 +917,7 @@ export const createAgentRunsService = (
         }),
         toError,
       );
+    };
 
     const firstAttempt = await runAttempt(
       resumeSessionId,
@@ -1025,12 +1035,13 @@ export const createAgentRunsService = (
     });
   };
 
-  const startInternal = async (
+  const initializeRun = async (
     input: AgentRunRequest,
     transientSource: AgentRunTransientOptions | AgentRunTransientFactory = {},
   ): Promise<{ runId: string }> => {
     const request = AgentRunRequestSchema.parse(input);
     const runtimeConfig = await resolveRuntimeConfig(request.runtimeConfigId);
+    if (!admission.open) throw new AdmissionClosedError();
     if (!SUPPORTED_RUNTIMES.has(runtimeConfig.type)) {
       throw new Error(`Agent Run control does not support ${runtimeConfig.type}`);
     }
@@ -1069,11 +1080,34 @@ export const createAgentRunsService = (
       updatedAt: now,
       expiresAt: new Date(now.getTime() + EVENT_RETENTION_MS),
     });
-    const transientPromise: Promise<AgentRunTransientLease> = Promise.resolve(
-      typeof transientSource === "function" ? transientSource(id) : transientSource,
-    );
+    const cancelInitialization = async (dispose?: AgentRunTransientLease["dispose"]) => {
+      const released = await ResultAsync.fromPromise(
+        Promise.resolve().then(() => dispose?.()),
+        toError,
+      );
+      await finishRun({
+        runId: id,
+        runtime: runtimeConfig.type,
+        status: "cancelled",
+        resultText: "",
+        nativeSessionId: null,
+        usage: null,
+        errorCode: null,
+        errorMessage: null,
+      });
+      if (released.isErr()) throw released.error;
+
+      return { runId: id };
+    };
+    if (!admission.open) return cancelInitialization();
+    const transientPromise: Promise<AgentRunTransientLease> = Promise.resolve().then(() => {
+      if (!admission.open) throw new AdmissionClosedError();
+
+      return typeof transientSource === "function" ? transientSource(id) : transientSource;
+    });
     const transientResult = await ResultAsync.fromPromise(transientPromise, toError);
     if (transientResult.isErr()) {
+      if (!admission.open) return cancelInitialization();
       await finishRun({
         runId: id,
         runtime: runtimeConfig.type,
@@ -1088,17 +1122,40 @@ export const createAgentRunsService = (
       return { runId: id };
     }
     const { dispose, ...transient } = transientResult.value;
+    if (!admission.open) return cancelInitialization(dispose);
     const claimedAt = new Date();
-    const claimed = await runsDao.claimExecutor(
-      id,
-      executorId,
-      claimedAt,
-      new Date(claimedAt.getTime() + executorLeaseMs),
+    const claim = await ResultAsync.fromPromise(
+      runsDao.claimExecutor(
+        id,
+        executorId,
+        claimedAt,
+        new Date(claimedAt.getTime() + executorLeaseMs),
+      ),
+      toError,
     );
-    if (!claimed) {
-      await Promise.resolve(dispose?.());
+    if (claim.isErr()) {
+      const released = await ResultAsync.fromPromise(
+        Promise.resolve().then(() => dispose?.()),
+        toError,
+      );
+      await finishRun({
+        runId: id,
+        runtime: runtimeConfig.type,
+        status: admission.open ? "failed" : "cancelled",
+        resultText: "",
+        nativeSessionId: null,
+        usage: null,
+        errorCode: "AGENT_RUN_CONTROL_FAILED",
+        errorMessage: claim.error.message,
+      });
+      if (released.isErr()) throw released.error;
+      throw claim.error;
+    }
+    if (!claim.value) {
+      await Promise.resolve().then(() => dispose?.());
       throw new Error(`Agent run ${id} could not claim its executor lease`);
     }
+    if (!admission.open) return cancelInitialization(dispose);
     const active: ActiveRun = {
       controller: new AbortController(),
       abortReason: null,
@@ -1138,25 +1195,23 @@ export const createAgentRunsService = (
       if (active.heartbeatTimer) clearInterval(active.heartbeatTimer);
       const release = active.dispose;
       active.dispose = undefined;
-      await Promise.resolve(release?.());
+      const released = await ResultAsync.fromPromise(
+        Promise.resolve().then(() => release?.()),
+        toError,
+      );
       activeRuns.delete(id);
-      executions.delete(id);
+      if (released.isErr()) throw released.error;
     };
-    const tracked = execution.then(
-      async (result) => {
-        await cleanup();
-
-        return result;
-      },
+    const settled = execution.then(
+      (result) => result,
       async (error: unknown) => {
-        await cleanup();
         const failure = toError(error);
         const existing = await runsDao.findById(id);
         if (existing && !TERMINAL_AGENT_RUN_STATUSES.has(existing.status)) {
           return finishRun({
             runId: id,
             runtime: runtimeConfig.type,
-            status: "failed",
+            status: active.controller.signal.aborted ? "cancelled" : "failed",
             resultText: "",
             nativeSessionId: existing.nativeSessionId,
             usage: existing.usage,
@@ -1168,22 +1223,84 @@ export const createAgentRunsService = (
         throw failure;
       },
     );
+    const tracked = settled.then(
+      async (result) => {
+        await cleanup();
+
+        return result;
+      },
+      async (error: unknown) => {
+        await cleanup();
+        throw error;
+      },
+    );
     executions.set(id, tracked);
     void tracked.then(
-      () => undefined,
-      () => undefined,
+      () => {
+        executions.delete(id);
+      },
+      () => {
+        executions.delete(id);
+      },
     );
 
     return { runId: id };
   };
 
+  const startInternal = (
+    input: AgentRunRequest,
+    transientSource: AgentRunTransientOptions | AgentRunTransientFactory = {},
+  ): Promise<{ runId: string }> => {
+    if (!admission.open) return Promise.reject(new AdmissionClosedError());
+    const pending = initializeRun(input, transientSource);
+    startingRuns.add(pending);
+    void pending.then(
+      () => {
+        startingRuns.delete(pending);
+      },
+      () => {
+        startingRuns.delete(pending);
+      },
+    );
+
+    return pending;
+  };
+  const closeAdmission = () => {
+    admission.open = false;
+    for (const active of activeRuns.values()) {
+      if (active.controller.signal.aborted) continue;
+      active.abortReason = "user_cancel";
+      active.controller.abort();
+    }
+  };
+
   return {
     start: startInternal,
+    closeAdmission,
+    async stopOwnedRuns() {
+      closeAdmission();
+      const draining = [...executions.values()];
+      const initialized = await Promise.allSettled([...startingRuns]);
+      const pending = [...new Set([...draining, ...executions.values()])];
+      const completed = await Promise.allSettled(pending);
+      if (
+        initialized.some(
+          (result) =>
+            result.status === "rejected" && !(result.reason instanceof AdmissionClosedError),
+        ) ||
+        completed.some((result) => result.status === "rejected")
+      )
+        throw new Error("An authoring Agent did not settle cleanly.");
+    },
 
     async execute(request: AgentRunRequest): Promise<AgentRun> {
       const { runId } = await startInternal(request);
       const execution = executions.get(runId);
-      if (!execution) throw new Error(`Agent run execution was not registered: ${runId}`);
+      if (!execution) {
+        const run = await getRunRecord(runId);
+        if (TERMINAL_STATUSES.has(run.status)) return getPublicRun(run);
+        throw new Error(`Agent run execution was not registered: ${runId}`);
+      }
 
       return execution;
     },

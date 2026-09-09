@@ -1,5 +1,12 @@
 import type { StateCreator } from "zustand";
-export const JOB_STATUS_FILTERS = ["All", "Running", "Waiting", "Completed", "Failed"] as const;
+export const JOB_STATUS_FILTERS = [
+  "All",
+  "Running",
+  "Waiting",
+  "Completed",
+  "Failed",
+  "Cancelled",
+] as const;
 export type JobStatusFilter = (typeof JOB_STATUS_FILTERS)[number];
 
 export interface JobsPageSlice {

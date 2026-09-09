@@ -792,6 +792,8 @@
     "runStopped": "Pipeline 已停止",
     "stopRun": "停止运行",
     "stoppingRun": "正在停止",
+    "runSubmitted": "Pipeline 已提交",
+    "runSubmittedDescription": "Job {{jobId}} 已创建，可在运行面板查看进度和结果",
     "runCompleted": "Pipeline 运行完成提醒",
     "runSuccessDescription": "Job {{jobId}} 已完成 Pipeline 验证",
     "runTest": "运行测试",

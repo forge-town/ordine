@@ -1,11 +1,11 @@
 import { sortParentBeforeChildren, type PipelineEdge, type PipelineNode } from "./canvasSlice";
 import type { CanvasPageStoreSlice } from "./canvasPageStore";
-import type {
-  AgentExecutionChoice,
-  Operation,
-  BuiltinNodeType,
-  Skill,
-  OutputMode,
+import {
+  NodeExecutionOverridesSchema,
+  type Operation,
+  type BuiltinNodeType,
+  type Skill,
+  type OutputMode,
 } from "@repo/schemas";
 import type { PickedProject } from "../GitHubProjectNode/PickProjectDialog";
 import type { ConnectedRepoInfo } from "../GitHubProjectNode/GitHubConnectDialog";
@@ -120,8 +120,7 @@ export interface ActionsSlice {
   dropNodeOntoCompound: (nodeId: string) => void;
   handleDragOverCompound: (draggedNodeId: string, position: { x: number; y: number }) => void;
   handleDragEndOnCompound: (draggedNodeId: string, isCompound: boolean) => void;
-  handleRunTest: (executionChoice?: AgentExecutionChoice | null) => Promise<void>;
-  handleCancelRun: () => Promise<boolean>;
+
   addNodeAndAutoConnect: (node: PipelineNode) => void;
   createObjectNode: (type: BuiltinNodeType) => void;
   createOperationNode: (operation: Operation) => void;
@@ -154,7 +153,7 @@ export interface ActionsSlice {
 
   // Operation node actions
   handleOperationLabelChange: (nodeId: string, label: string) => void;
-  handleOperationAgentChange: (nodeId: string, agentId: string | null) => void;
+  handleOperationRuntimeChange: (nodeId: string, runtimeConfigId: string | null) => void;
   handleOperationLoopToggle: (nodeId: string) => void;
   handleOperationMaxLoopChange: (nodeId: string, value: number) => void;
   handleOperationConditionChange: (nodeId: string, prompt: string) => void;
@@ -465,143 +464,6 @@ export const createActionsSlice = (
       set({ _nodeDragStartPositions: new Map() });
     }
     get().handleDragEndOnCompound(node.id, node.type === "compound");
-  },
-
-  handleRunTest: async (executionChoice) => {
-    const {
-      isRunning,
-      isTestRunning,
-      pipelineId,
-      pipelineName,
-      pipelineSharedContext,
-      nodes,
-      edges,
-      startTestRun,
-    } = get();
-    const t = i18n.t.bind(i18n);
-
-    if (isRunning || isTestRunning) return;
-
-    if (!pipelineId) {
-      toastStore.getState().addToast({
-        type: "error",
-        title: t("canvas.runFailed"),
-        description: t("canvas.noPipelineId"),
-      });
-
-      return;
-    }
-
-    set({ isRunning: true });
-    startTestRun();
-
-    const saveResult = await ResultAsync.fromPromise(
-      getCanvasDataProvider().update!({
-        resource: ResourceName.pipelines,
-        id: pipelineId,
-        variables: {
-          name: pipelineName || t("canvas.unsavedPipeline"),
-          sharedContext: pipelineSharedContext,
-          nodes,
-          edges,
-        },
-      }),
-      () => "save-failed" as const,
-    );
-
-    if (saveResult.isErr()) {
-      toastStore.getState().addToast({
-        type: "error",
-        title: t("canvas.runFailed"),
-        description: t("canvas.saveFailed"),
-      });
-      set({ isRunning: false });
-
-      return;
-    }
-
-    const runResult = await ResultAsync.fromPromise(
-      getCanvasDataProvider().custom!({
-        url: "pipelines/run",
-        method: "post",
-        payload: {
-          id: pipelineId,
-          ...(executionChoice
-            ? {
-                runtimeConfigId: executionChoice.runtimeConfigId,
-                ...(executionChoice.model ? { model: executionChoice.model } : {}),
-                ...(executionChoice.reasoningEffort
-                  ? { reasoningEffort: executionChoice.reasoningEffort }
-                  : {}),
-                ...(executionChoice.speed ? { speed: executionChoice.speed } : {}),
-                ...(executionChoice.firstOutputTimeoutSeconds === undefined
-                  ? {}
-                  : {
-                      firstOutputTimeoutSeconds: executionChoice.firstOutputTimeoutSeconds,
-                    }),
-              }
-            : {}),
-        },
-      }),
-      () => t("canvas.runStartFailed"),
-    );
-
-    runResult.match(
-      (data) => {
-        const result = data.data as { jobId: string };
-        set({ activeJobId: result.jobId, runSyncJobId: result.jobId, isConsoleOpen: true });
-        toastStore.getState().addToast({
-          type: "success",
-          title: t("canvas.runCompleted"),
-          description: t("canvas.runSuccessDescription", { jobId: result.jobId }),
-        });
-      },
-      (error) => {
-        toastStore.getState().addToast({
-          type: "error",
-          title: t("canvas.runFailed"),
-          description: error,
-        });
-      },
-    );
-
-    set({ isRunning: false });
-  },
-
-  handleCancelRun: async () => {
-    const { activeJobId, isTestRunning, stopTestRun } = get();
-    const t = i18n.t.bind(i18n);
-    if (!activeJobId || !isTestRunning) return false;
-
-    const cancelResult = await ResultAsync.fromPromise(
-      getCanvasDataProvider().custom!({
-        url: "jobs/cancel",
-        method: "post",
-        payload: { jobId: activeJobId },
-      }),
-      () => t("canvas.runStopFailed"),
-    );
-
-    return cancelResult.match(
-      () => {
-        stopTestRun();
-        toastStore.getState().addToast({
-          type: "success",
-          title: t("canvas.runStopped"),
-        });
-
-        return true;
-      },
-      (error) => {
-        toastStore.getState().addToast({
-          type: "error",
-          title: t("canvas.runStopFailed"),
-          description: error,
-        });
-
-        return false;
-      },
-    );
   },
 
   addNodeAndAutoConnect: (node) => {
@@ -935,12 +797,22 @@ export const createActionsSlice = (
     get().updateNodeData(nodeId, { label, operationName: label });
   },
 
-  handleOperationAgentChange: (nodeId, agentId) => {
-    if (!agentId || agentId === "__default__") {
-      get().updateNodeData(nodeId, { agentId: undefined, agentRuntime: undefined });
-    } else {
-      get().updateNodeData(nodeId, { agentId, agentRuntime: undefined });
-    }
+  handleOperationRuntimeChange: (nodeId, runtimeConfigId) => {
+    if (!runtimeConfigId) return;
+    const node = get().nodes.find((item) => item.id === nodeId);
+    if (!node || node.data.nodeType !== "operation") return;
+    const { runtimeConfigId: _previousRuntime, ...otherOverrides } =
+      node.data.executionOverrides ?? {};
+    const parsed = NodeExecutionOverridesSchema.safeParse({
+      ...otherOverrides,
+      ...(runtimeConfigId === "__default__" ? {} : { runtimeConfigId }),
+    });
+    if (!parsed.success) return;
+    get().updateNodeData(nodeId, {
+      agentId: undefined,
+      agentRuntime: undefined,
+      executionOverrides: Object.keys(parsed.data).length > 0 ? parsed.data : undefined,
+    });
     set({ operationAgentDropdownNodeId: null });
   },
 

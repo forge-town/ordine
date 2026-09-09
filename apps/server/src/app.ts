@@ -21,15 +21,39 @@ import { routinesRoutes } from "./routes/routines";
 import { skillsRoutes } from "./routes/skills";
 import { usageRoutes } from "./routes/usage";
 import { getEnv } from "./integrations/env";
+import { executionAuthoringRoutes } from "./routes/executionAuthoring";
+import { productMetadataRoutes } from "./routes/productMetadataRoutes";
 
 const env = getEnv();
 
 export const app = new Hono();
 
 app.use("*", logger());
+// Authoring/history remain available; only the v2 service may execute Pipelines.
+app.use("/api/*", async (c, next) => {
+  if (
+    (c.req.method === "POST" &&
+      /^\/api\/(?:(?:pipelines|operations)\/[^/]+\/run|routines\/[^/]+\/run-now|jobs(?:\/[^/]+\/(?:pause|resume|cancel))?)\/?$/u.test(
+        c.req.path,
+      )) ||
+    (c.req.method === "PATCH" && /^\/api\/jobs\/[^/]+\/?$/u.test(c.req.path))
+  )
+    return c.json({ error: "旧运行接口已停用，请使用 v2 运行请求。" }, 410);
+
+  return next();
+});
 
 if (env.DESKTOP_MODE) {
-  app.use("*", cors({ origin: "http://localhost" }));
+  app.use(
+    "*",
+    cors({
+      origin: env.ORDINE_DESKTOP_ALLOWED_ORIGINS ?? [
+        "http://tauri.localhost",
+        "tauri://localhost",
+        "http://localhost:9431",
+      ],
+    }),
+  );
   app.use("*", async (c, next) => {
     // Health endpoint doesn't require auth (used for startup probe)
     const internalMcpPath = /^\/api\/internal\/agent-runs\/[0-9a-f-]{36}\/mcp$/iu;
@@ -44,12 +68,27 @@ if (env.DESKTOP_MODE) {
     return next();
   });
 } else {
-  app.use("*", cors());
+  app.use("*", async (c, next) => {
+    if (
+      c.req.path === "/health" ||
+      /^\/api\/internal\/agent-runs\/[0-9a-f-]{36}\/mcp$/iu.test(c.req.path)
+    )
+      return next();
+    if (
+      !env.ORDINE_AGENT_API_TOKEN ||
+      c.req.header("Authorization") !== `Bearer ${env.ORDINE_AGENT_API_TOKEN}`
+    )
+      return c.json({ error: "Unauthorized" }, 401);
+
+    return next();
+  });
 }
 
 app.route("/api/agents", agentsRoutes);
+app.route("/api/execution", executionAuthoringRoutes);
 app.route("/api/agent-runs", agentRunsRoutes);
 app.route("/api/agent-runtimes", agentRuntimesRoutes);
+app.route("/api", productMetadataRoutes);
 app.route("/api/agent-threads", agentThreadsRoutes);
 app.route("/api/agent-control", agentControlApiRoutes);
 app.route("/api/internal/agent-runs", internalAgentControlMcpRoutes);

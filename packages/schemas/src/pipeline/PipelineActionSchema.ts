@@ -30,6 +30,7 @@ export const ReconnectEdgePipelineActionSchema = z.object({
   target: z.string(),
   sourceHandle: z.string().nullable().optional(),
   targetHandle: z.string().nullable().optional(),
+  data: PipelineGraphEdgeSchema.shape.data,
 });
 
 export const ReplaceNodeDataPipelineActionSchema = z.object({

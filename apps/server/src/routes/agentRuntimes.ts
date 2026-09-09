@@ -6,6 +6,7 @@ import { z } from "zod/v4";
 import {
   createRuntimeCatalogCache,
   projectRuntimeCatalogFromConfigs,
+  resolveRuntimeCatalogFromConfigs,
   scanRuntimeCatalog,
 } from "@repo/agent";
 import { getLocalAgentRuntimeId, type AgentRuntimeConfig } from "@repo/schemas";
@@ -44,23 +45,11 @@ const runtimeCatalogCache = createRuntimeCatalogCache({
 });
 runtimeCatalogCache.warm();
 
-const mergeRuntimeConfigIds = (
-  catalog: Awaited<ReturnType<typeof scanRuntimeCatalog>>,
-  runtimes: AgentRuntimeConfig[],
-) =>
-  catalog.map((entry) => ({
-    ...entry,
-    runtimeConfigId:
-      runtimes.find(
-        (runtime) => runtime.type === entry.runtime && runtime.connection.mode === "local",
-      )?.id ?? entry.runtimeConfigId,
-  }));
-
 const getCatalog = async () => {
   const runtimes = await agentRuntimesService.getAll();
   const catalog = await runtimeCatalogCache.get(projectRuntimeCatalogFromConfigs(runtimes));
 
-  return mergeRuntimeConfigIds(catalog, runtimes);
+  return resolveRuntimeCatalogFromConfigs(catalog, runtimes);
 };
 
 const rescanCatalog = async () => {
@@ -88,7 +77,7 @@ const rescanCatalog = async () => {
   });
   const runtimes = await agentRuntimesService.syncAll(configs);
 
-  return mergeRuntimeConfigIds(catalog, runtimes);
+  return resolveRuntimeCatalogFromConfigs(catalog, runtimes);
 };
 
 agentRuntimesRoutes.get("/catalog", async (context) => context.json(await getCatalog()));
@@ -191,6 +180,7 @@ agentRuntimesRoutes.post("/:id/mcp", async (context) => {
     command: sidecarPath,
     args: ["--policy", "safe"],
     env: {
+      ORDINE_AUTH_MODE: "desktop",
       ORDINE_API_URL: `http://127.0.0.1:${env.PORT ?? 9433}`,
       ORDINE_DESKTOP_AUTH_TOKEN_FILE: join(dataDir, ".desktop-token"),
     },

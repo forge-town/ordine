@@ -1,311 +1,143 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Play, Terminal, Loader2, FolderOpen, FileText } from "lucide-react";
+import { Play, Loader2 } from "lucide-react";
 import { Button } from "@repo/ui/button";
-import { Input } from "@repo/ui/input";
 import { Textarea } from "@repo/ui/textarea";
 import { Card } from "@repo/ui/card";
-import { ScrollArea } from "@repo/ui/scroll-area";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@repo/ui/sheet";
-import { cn } from "@repo/ui/lib/utils";
-import { useCustom, useCustomMutation, useOne } from "@refinedev/core";
+import { useCustomMutation, useOne } from "@refinedev/core";
 import { useStore } from "zustand";
-import { useShallow } from "zustand/shallow";
-import { TRACE_MARKER, type JobStatus } from "@repo/schemas";
+import {
+  PipelineDefinitionSchema,
+  OperationRevisionSchema,
+  type Operation,
+  type OperationRevision,
+} from "@repo/schemas";
 import { ResourceName } from "../../../constants";
-import { FolderBrowserDialog } from "../../../components/FolderBrowserDialog/FolderBrowserDialog";
-import { AgentActivitySurface } from "../../../components/AgentActivity";
-import { usePlatform } from "../../../platform";
+import { usePublishedRun } from "../../../components/ExecutionRequest/usePublishedRun";
+import { PublishedRunStatus } from "../../../components/ExecutionRequest/PublishedRunStatus";
 import { useOperationDetailPageStore } from "../_store";
+import { operationRunPorts, parseOperationRunInputs } from "./operationRunInputs";
 
-interface JobData {
-  id: string;
-  status: JobStatus;
-  error: string | null;
-}
-
-interface OperationDataForName {
-  id: string;
-  name: string;
-}
-
-const POLL_INTERVAL = 1500;
-
-const isTerminalStatus = (s: JobStatus) =>
-  s === "done" || s === "failed" || s === "cancelled" || s === "expired";
-
-const parseTimestamp = (log: string): string => {
-  const match = /^\[([^\]]+)\]/.exec(log);
-  if (!match) return "";
-  const d = new Date(match[1]);
-
-  return d.toLocaleTimeString("en-US", { hour12: false, fractionalSecondDigits: 3 });
-};
-
-const parseMessage = (log: string): string => log.replace(/^\[[^\]]+\]\s*/, "");
-
-const isStructuredLog = (log: string): boolean => {
-  const msg = log.replace(/^\[[^\]]+\]\s*/, "");
-
-  return msg.startsWith("@@");
-};
-
-const extractAgentRunIds = (logs: readonly string[]): string[] => [
-  ...new Set(
-    logs.flatMap((log) => {
-      const markerIndex = log.indexOf(TRACE_MARKER.agentRun);
-      if (markerIndex < 0) return [];
-      const payload = log.slice(markerIndex + TRACE_MARKER.agentRun.length);
-      const separator = payload.indexOf("::");
-      const runId = separator >= 0 ? payload.slice(separator + 2).trim() : "";
-
-      return runId ? [runId] : [];
-    }),
-  ),
-];
-
-const STATUS_STYLES: Partial<Record<JobStatus, string>> = {
-  queued: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300",
-  running: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
-  done: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300",
-  failed: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300",
-};
-
-interface OperationRunPanelProps {
-  operationId: string;
-}
-
-export const OperationRunPanel = ({ operationId }: OperationRunPanelProps) => {
+export const OperationRunPanel = ({ operationId }: { operationId: string }) => {
   const { t } = useTranslation();
-  const platform = usePlatform();
-  const { result: operation } = useOne<OperationDataForName>({
+  const { result: operation } = useOne<Operation>({
     resource: ResourceName.operations,
     id: operationId,
   });
-  const { mutateAsync: runOperation } = useCustomMutation();
-  const operationName = operation?.name ?? "";
+  const { mutateAsync: publish } = useCustomMutation({ mutationOptions: { retry: false } });
   const store = useOperationDetailPageStore();
-  const {
-    runJobId,
-    runStatus,
-    runInputPath,
-    runInputContent,
-    isRunPanelOpen,
-    handleRunInputPathInputChange,
-    handleRunInputPathBrowserSelect,
-    handleRunInputContentTextareaChange,
-    handleStartRunButtonClick,
-    handleCloseRunPanelButtonClick,
-  } = useStore(
-    store,
-    useShallow((s) => ({
-      runJobId: s.runJobId,
-      runStatus: s.runStatus,
-      runInputPath: s.runInputPath,
-      runInputContent: s.runInputContent,
-      isRunPanelOpen: s.isRunPanelOpen,
-      handleRunInputPathInputChange: s.handleRunInputPathInputChange,
-      handleRunInputPathBrowserSelect: s.handleRunInputPathBrowserSelect,
-      handleRunInputContentTextareaChange: s.handleRunInputContentTextareaChange,
-      handleStartRunButtonClick: s.handleStartRunButtonClick,
-      handleCloseRunPanelButtonClick: s.handleCloseRunPanelButtonClick,
-    })),
-  );
-
-  const { result: job } = useOne<JobData>({
-    resource: ResourceName.jobs,
-    id: runJobId ?? "",
-    queryOptions: {
-      enabled: !!runJobId,
-      refetchInterval: (query) => {
-        const status = (query.state.data?.data as JobData | undefined)?.status;
-        if (status && isTerminalStatus(status)) return false;
-
-        return POLL_INTERVAL;
-      },
-    },
-  });
-
-  const { result: tracesResult } = useCustom<{ traces: Array<{ message: string }> }>({
-    url: "jobs/traces",
-    method: "get",
-    config: { payload: { jobId: runJobId ?? "" } },
-    queryOptions: {
-      enabled: !!runJobId,
-      refetchInterval: () => {
-        if (job && isTerminalStatus(job.status)) return false;
-
-        return POLL_INTERVAL;
-      },
-    },
-  });
-
-  const [isBrowserOpen, setIsBrowserOpen] = useState(false);
-  const handleBrowserOpenChange = (open: boolean) => setIsBrowserOpen(open);
-  const handleOpenBrowser = () => setIsBrowserOpen(true);
+  const isOpen = useStore(store, (s) => s.isRunPanelOpen);
+  const [drafts, setDrafts] = useState<Record<string, string>>({});
+  const [publishedOperation, setPublishedOperation] = useState<OperationRevision | null>(null);
+  const { state, submit, handleReset, handleReceipt } = usePublishedRun(`operation:${operationId}`);
+  const sourcePorts = operation ? operationRunPorts(operation) : null;
+  const ports = publishedOperation?.inputPorts ?? (sourcePorts?.isOk() ? sourcePorts.value : []);
+  const portError = sourcePorts?.isErr() ? sourcePorts.error.message : null;
+  const busy = Boolean(state.pendingAction);
+  const locked = busy || state.submission.phase !== "idle";
   const handleSheetOpenChange = (open: boolean) => {
-    if (!open) handleCloseRunPanelButtonClick();
+    if (!open) store.getState().handleCloseRunPanelButtonClick();
   };
-  const handleRunButtonClick = () => {
-    handleStartRunButtonClick(operationId, async (input) => {
-      const result = await runOperation({
-        url: "operations/run",
+  const handleRun = () =>
+    void submit(async () => {
+      if (!operation || portError) throw new Error(portError ?? "Operation 尚未加载");
+      await parseOperationRunInputs(ports, drafts);
+      const response = await publish({
+        url: "execution/publish-operation",
         method: "post",
-        values: input,
+        values: { operationId },
       });
+      const pipeline = PipelineDefinitionSchema.parse(response.data.pipeline);
+      const actual = OperationRevisionSchema.parse(response.data.operation);
+      setPublishedOperation(actual);
+      if (JSON.stringify(ports) !== JSON.stringify(actual.inputPorts))
+        throw new Error("发布后的输入端口已更新，已保留填写内容；请检查端口后再次运行。");
+      const inputs = await parseOperationRunInputs(actual.inputPorts, drafts);
 
-      return (result.data as { jobId: string }).jobId;
+      return {
+        pipelineId: pipeline.id,
+        expectedRevision: pipeline.revision,
+        inputs,
+        executionOverrides: {},
+        deliveryRequirements: [],
+      };
     });
-  };
-
-  const traceLogs = (tracesResult.data?.traces ?? []).map((trace) => trace.message);
-  const activityRunIds = extractAgentRunIds(traceLogs);
-  const displayStatus = job ? job.status : runStatus;
-  const isRunning = displayStatus === "running" || runStatus === "running";
-  const hasResults = !!runJobId;
 
   return (
-    <Sheet open={isRunPanelOpen} onOpenChange={handleSheetOpenChange}>
-      <SheetContent className="flex w-full flex-col sm:max-w-md" side="right">
+    <Sheet open={isOpen} onOpenChange={handleSheetOpenChange}>
+      <SheetContent className="flex w-full flex-col overflow-y-auto sm:max-w-md" side="right">
         <SheetHeader>
           <SheetTitle>{t("operations.run.title", "Run Operation")}</SheetTitle>
-          <SheetDescription>{operationName}</SheetDescription>
+          <SheetDescription>{operation?.name ?? ""}</SheetDescription>
         </SheetHeader>
-
-        {/* Input form */}
         <Card className="mx-4 p-4" variant="surface">
           <div className="space-y-3">
-            <div className="space-y-1.5">
-              <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-                <FolderOpen className="h-3.5 w-3.5" />
-                {t("operations.run.inputPath", "File Path")}
-              </div>
-              <div className="flex gap-1.5">
-                <Input
-                  className="h-8 flex-1 text-sm"
-                  disabled={isRunning}
-                  placeholder={t("operations.run.inputPathPlaceholder", "/path/to/file-or-folder")}
-                  value={runInputPath}
-                  onChange={handleRunInputPathInputChange}
-                />
-                <Button
-                  className="h-8 shrink-0"
-                  disabled={isRunning}
-                  size="icon"
-                  variant="outline"
-                  onClick={handleOpenBrowser}
-                >
-                  <FolderOpen className="h-3.5 w-3.5" />
-                </Button>
-              </div>
-              <FolderBrowserDialog
-                mode="file"
-                open={isBrowserOpen}
-                onOpenChange={handleBrowserOpenChange}
-                onSelect={handleRunInputPathBrowserSelect}
-              />
-            </div>
+            {ports.length === 0 && !portError && (
+              <p className="text-sm text-muted-foreground">此 Operation 无需外部输入。</p>
+            )}
+            {portError && (
+              <p className="text-sm text-destructive" role="alert">
+                {portError}
+              </p>
+            )}
+            {ports.map((port) => {
+              const handleChange = (event: React.ChangeEvent<HTMLTextAreaElement>) =>
+                setDrafts((current) => ({ ...current, [port.id]: event.target.value }));
 
-            <div className="space-y-1.5">
-              <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-                <FileText className="h-3.5 w-3.5" />
-                {t("operations.run.inputContent", "Content")}
-              </div>
-              <Textarea
-                className="resize-y text-sm font-mono"
-                disabled={isRunning}
-                placeholder={t(
-                  "operations.run.inputContentPlaceholder",
-                  "Or paste content directly...",
-                )}
-                rows={4}
-                value={runInputContent}
-                onChange={handleRunInputContentTextareaChange}
-              />
-            </div>
-
+              return (
+                <label key={port.id} className="block space-y-1.5 text-xs font-medium">
+                  <span>
+                    {port.id} · {port.valueType} · {port.cardinality} ·{" "}
+                    {port.required ? "必填" : "可选"}
+                  </span>
+                  <Textarea
+                    aria-label={`输入 ${port.id}`}
+                    className="resize-y font-mono text-sm"
+                    disabled={locked}
+                    placeholder={
+                      port.cardinality === "many"
+                        ? port.valueType === "text"
+                          ? '["第一项", "第二项"]'
+                          : '[{"key":"value"}]'
+                        : port.valueType === "json"
+                          ? '{"key":"value"}'
+                          : "输入文本"
+                    }
+                    rows={4}
+                    value={drafts[port.id] ?? ""}
+                    onChange={handleChange}
+                  />
+                  {port.cardinality === "many" && (
+                    <span className="text-muted-foreground">用 JSON 数组按顺序填写多项值。</span>
+                  )}
+                </label>
+              );
+            })}
             <Button
               className="w-full"
-              disabled={isRunning || (!runInputPath && !runInputContent)}
+              disabled={locked || !operation || Boolean(portError)}
               size="sm"
-              onClick={handleRunButtonClick}
+              onClick={handleRun}
             >
-              {isRunning ? (
+              {busy ? (
                 <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
               ) : (
                 <Play className="mr-1.5 h-4 w-4" />
               )}
-              {isRunning
-                ? t("operations.run.running", "Running...")
-                : t("operations.run.run", "Run")}
+              {state.pendingAction ?? t("operations.run.run", "Run")}
             </Button>
           </div>
         </Card>
-
-        {/* Console output */}
-        {hasResults && (
-          <div className="mx-4 flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border border-border bg-muted/30">
-            <div className="flex h-9 shrink-0 items-center gap-2 border-b border-border/60 px-3">
-              <Terminal className="h-3.5 w-3.5 text-muted-foreground" />
-              <span className="text-xs font-medium">{t("operations.run.console")}</span>
-              {job && (
-                <span
-                  className={cn(
-                    "ml-auto rounded-full px-2 py-0.5 text-[10px] font-medium",
-                    STATUS_STYLES[job.status],
-                  )}
-                >
-                  {job.status}
-                </span>
-              )}
-            </div>
-
-            <ScrollArea className="flex-1">
-              <div className="p-3 font-mono text-xs leading-relaxed">
-                {!job && runStatus === "running" && (
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                    {t("operations.run.starting")}
-                  </div>
-                )}
-                {activityRunIds.map((runId) => (
-                  <AgentActivitySurface
-                    key={runId}
-                    className="mb-2 font-sans"
-                    platform={platform}
-                    runId={runId}
-                    variant="panel"
-                  />
-                ))}
-                {traceLogs
-                  .filter((l) => !isStructuredLog(l))
-                  .map((log, i) => (
-                    <div key={i} className="flex gap-2 py-0.5 hover:bg-muted/30">
-                      <span className="shrink-0 text-muted-foreground/70 tabular-nums">
-                        {parseTimestamp(log)}
-                      </span>
-                      <span
-                        className={cn(
-                          "break-all",
-                          log.includes("ERROR") && "font-medium text-red-600 dark:text-red-400",
-                          log.includes("completed successfully") &&
-                            "font-medium text-emerald-600 dark:text-emerald-400",
-                          log.includes("Skill output") && "text-violet-600 dark:text-violet-400",
-                        )}
-                      >
-                        {parseMessage(log)}
-                      </span>
-                    </div>
-                  ))}
-                {job?.status === "failed" && job.error && (
-                  <div className="mt-2 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-300">
-                    {job.error}
-                  </div>
-                )}
-              </div>
-            </ScrollArea>
-          </div>
-        )}
+        <div className="mx-4 pb-4">
+          <PublishedRunStatus
+            busy={busy}
+            error={state.error}
+            submission={state.submission}
+            onReceipt={handleReceipt}
+            onReset={handleReset}
+          />
+        </div>
       </SheetContent>
     </Sheet>
   );

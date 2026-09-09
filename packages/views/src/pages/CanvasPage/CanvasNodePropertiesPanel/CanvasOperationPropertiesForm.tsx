@@ -27,8 +27,16 @@ import type {
   OperationConfigInput,
   OperationExecutorConfig,
   OperationExecutorType,
+  ScriptOutputMode,
+  InputPort,
+  OutputItem,
   Skill,
 } from "@repo/schemas";
+import {
+  OperationPortsEditor,
+  OperationPortFieldsSchema,
+  cloneOperationPorts,
+} from "../../../components/OperationPortsEditor";
 
 const EXECUTOR_ICONS = {
   agent: Wand2,
@@ -56,6 +64,7 @@ const parseExecutorDefaults = (
   promptText: string;
   scriptCommand: string;
   scriptLanguage: "bash" | "python" | "javascript";
+  scriptOutputMode: ScriptOutputMode | undefined;
 } => {
   const defaults = {
     executorType: "script" as OperationExecutorType,
@@ -64,6 +73,7 @@ const parseExecutorDefaults = (
     promptText: "",
     scriptCommand: "",
     scriptLanguage: "bash" as "bash" | "python" | "javascript",
+    scriptOutputMode: undefined,
   };
 
   const ex = config.executor;
@@ -88,6 +98,7 @@ const parseExecutorDefaults = (
     skillId: ex.skillId ?? "",
     promptText: ex.prompt ?? "",
     scriptCommand: ex.command ?? "",
+    scriptOutputMode: ex.outputMode,
     scriptLanguage: (["bash", "python", "javascript"].includes(ex.language ?? "")
       ? ex.language
       : "bash") as "bash" | "python" | "javascript",
@@ -101,6 +112,7 @@ const buildConfig = (
   promptText: string,
   scriptCommand: string,
   scriptLanguage: "bash" | "python" | "javascript",
+  scriptOutputMode: ScriptOutputMode | undefined,
   existingExecutor?: OperationExecutorConfig,
 ): OperationConfigInput => {
   const assignedAgentFields =
@@ -144,6 +156,7 @@ const buildConfig = (
       type: "script",
       command: scriptCommand,
       language: scriptLanguage,
+      outputMode: scriptOutputMode,
     },
   };
 };
@@ -195,6 +208,13 @@ export const CanvasOperationPropertiesForm = ({
   const [promptText, setPromptText] = useState("");
   const [scriptCommand, setScriptCommand] = useState("");
   const [scriptLanguage, setScriptLanguage] = useState<"bash" | "python" | "javascript">("bash");
+  const [scriptOutputMode, setScriptOutputMode] = useState<ScriptOutputMode>();
+  const [inputPorts, setInputPorts] = useState<InputPort[]>([]);
+  const [outputPorts, setOutputPorts] = useState<OutputItem[]>([]);
+  const portsValid = OperationPortFieldsSchema.safeParse({
+    inputs: inputPorts,
+    outputs: outputPorts,
+  }).success;
   const [hasChanges, setHasChanges] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -215,6 +235,10 @@ export const CanvasOperationPropertiesForm = ({
       setPromptText(defaults.promptText);
       setScriptCommand(defaults.scriptCommand);
       setScriptLanguage(defaults.scriptLanguage);
+      setScriptOutputMode(defaults.scriptOutputMode);
+      const ports = cloneOperationPorts(operation.config);
+      setInputPorts(ports.inputs);
+      setOutputPorts(ports.outputs);
       setHasChanges(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -298,8 +322,16 @@ export const CanvasOperationPropertiesForm = ({
     [markChanged],
   );
 
+  const handleOutputModeChange = (value: string | null) => {
+    if (value === "text" || value === "json" || value === "manifest") {
+      setScriptOutputMode(value);
+      markChanged();
+    }
+  };
+
   const handleSave = useCallback(async () => {
-    if (!operation || isSaving) return;
+    if (!operation || isSaving || !portsValid || (executorType === "script" && !scriptOutputMode))
+      return;
     setIsSaving(true);
     const config = buildConfig(
       executorType,
@@ -308,6 +340,7 @@ export const CanvasOperationPropertiesForm = ({
       promptText,
       scriptCommand,
       scriptLanguage,
+      scriptOutputMode,
       operation.config.executor,
     );
     const result = await ResultAsync.fromPromise(
@@ -320,6 +353,8 @@ export const CanvasOperationPropertiesForm = ({
           config: {
             ...operation.config,
             ...config,
+            inputs: inputPorts,
+            outputs: outputPorts,
           },
           acceptedObjectTypes,
         },
@@ -353,6 +388,10 @@ export const CanvasOperationPropertiesForm = ({
       setPromptText(defaults.promptText);
       setScriptCommand(defaults.scriptCommand);
       setScriptLanguage(defaults.scriptLanguage);
+      setScriptOutputMode(defaults.scriptOutputMode);
+      const ports = cloneOperationPorts(updated.config);
+      setInputPorts(ports.inputs);
+      setOutputPorts(ports.outputs);
       if (onOperationUpdated) {
         onOperationUpdated(updated);
       }
@@ -368,12 +407,25 @@ export const CanvasOperationPropertiesForm = ({
     promptText,
     scriptCommand,
     scriptLanguage,
+    scriptOutputMode,
+    inputPorts,
+    outputPorts,
+    portsValid,
     acceptedObjectTypes,
     updateOpMutate,
     onOperationUpdated,
     isSaving,
     t,
   ]);
+
+  const handleInputsChange = (ports: InputPort[]) => {
+    setInputPorts(ports);
+    markChanged();
+  };
+  const handleOutputsChange = (ports: OutputItem[]) => {
+    setOutputPorts(ports);
+    markChanged();
+  };
 
   const OBJECT_TYPE_OPTIONS: { value: ObjectType; label: string; icon: React.ElementType }[] = [
     { value: "file", label: t("operations.objectTypeFile"), icon: OBJECT_TYPE_ICONS.file },
@@ -618,16 +670,43 @@ export const CanvasOperationPropertiesForm = ({
                   </SelectContent>
                 </Select>
               </div>
+              <div className="col-span-2 space-y-1.5">
+                <Label className="text-xs font-medium text-muted-foreground">Script 输出模式</Label>
+                <Select value={scriptOutputMode ?? null} onValueChange={handleOutputModeChange}>
+                  <SelectTrigger className="h-8 bg-background text-xs">
+                    <SelectValue placeholder="请选择输出模式" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="text">Text · 纯文本</SelectItem>
+                    <SelectItem value="json">JSON · 结构化值</SelectItem>
+                    <SelectItem value="manifest">Manifest · 端口清单</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
         )}
       </div>
 
       {/* Save Button */}
+      <div className="space-y-5 border-t border-border pt-4">
+        <OperationPortsEditor direction="input" ports={inputPorts} onChange={handleInputsChange} />
+        <OperationPortsEditor
+          direction="output"
+          ports={outputPorts}
+          onChange={handleOutputsChange}
+        />
+      </div>
+
       {hasChanges && (
         <Button
           className="w-full transition-all duration-200"
-          disabled={isSaving || !name.trim()}
+          disabled={
+            isSaving ||
+            !name.trim() ||
+            !portsValid ||
+            (executorType === "script" && !scriptOutputMode)
+          }
           size="sm"
           type="button"
           onClick={handleSave}

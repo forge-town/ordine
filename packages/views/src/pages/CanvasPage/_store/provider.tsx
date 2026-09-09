@@ -1,6 +1,9 @@
 import { type ReactNode, useRef } from "react";
 import { useDataProvider } from "@refinedev/core";
-import { setCanvasDataProvider } from "../../../lib/canvasDataProvider";
+import {
+  setCanvasDataProvider,
+  setCanvasExecutionDataProvider,
+} from "../../../lib/canvasDataProvider";
 import { CanvasPageStoreContext, createCanvasPageStore } from "./canvasPageStore";
 import type { PipelineNode, PipelineEdge } from "./canvasSlice";
 import { AgentBarStoreProvider } from "../AgentPanel/_store";
@@ -25,6 +28,7 @@ export const CanvasPageStoreProvider = ({ children, pipeline }: Props) => {
   // (keeps @repo/views free of any client-specific data layer).
   const getDataProvider = useDataProvider();
   setCanvasDataProvider(getDataProvider());
+  setCanvasExecutionDataProvider(() => getDataProvider("execution"));
 
   const storeRef = useRef<ReturnType<typeof createCanvasPageStore> | null>(null);
   const pipelineIdRef = useRef<string | null | undefined>(undefined);
@@ -39,6 +43,8 @@ export const CanvasPageStoreProvider = ({ children, pipeline }: Props) => {
       pipeline?.sharedContext ?? "",
       pipeline?.version ?? 1,
     );
+    if (storeRef.current.getState().executionSubmission.request)
+      storeRef.current.setState({ isConsoleOpen: true });
   }
 
   return (

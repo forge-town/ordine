@@ -271,6 +271,7 @@ const applyAction = (
       edge.target = action.target;
       edge.sourceHandle = action.sourceHandle ?? null;
       edge.targetHandle = action.targetHandle ?? null;
+      edge.data = action.data;
 
       return [];
     }

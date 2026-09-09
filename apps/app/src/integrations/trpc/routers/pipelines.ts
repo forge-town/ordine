@@ -1,7 +1,9 @@
+import { legacyExecutionDisabled } from "./legacyExecutionDisabled";
 import { z } from "zod/v4";
 import { TRPCError } from "@trpc/server";
 import { authedProcedure, publicProcedure, router } from "../init";
-import { pipelinesService, pipelineRunnerService } from "../services";
+import { pipelinesService, canvasExecutionPublisher } from "../services";
+import { getServerEnv } from "@/integrations/server-env";
 import { getProposeProgress, setProposeProgress } from "@repo/services";
 import { unwrapResult } from "./result";
 import {
@@ -10,14 +12,31 @@ import {
   PipelineSchema,
   ProposeAttachmentSchema,
   ProposePendingOperationSchema,
+  ExecutionOverridesSchema,
 } from "@repo/schemas";
 
 export const pipelinesRouter = router({
+  publishExecution: authedProcedure
+    .input(
+      z.strictObject({
+        pipelineId: z.string().min(1),
+        executionOverrides: ExecutionOverridesSchema.optional(),
+        expectedRevision: z.number().int().nonnegative().optional(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      const owner = getServerEnv().ORDINE_EXECUTION_OWNER_USER_ID;
+      const session = z.object({ user: z.object({ id: z.string() }) }).safeParse(ctx.session);
+      if (!owner || !session.success || session.data.user.id !== owner)
+        throw new TRPCError({ code: "FORBIDDEN", message: "此会话未绑定当前执行工作区。" });
+
+      return unwrapResult(await canvasExecutionPublisher.publish(input));
+    }),
   getMany: publicProcedure.query(() => pipelinesService.getAll()),
 
   getById: publicProcedure
     .input(z.object({ id: z.string() }))
-    .query(({ input }) => pipelinesService.getById(input.id)),
+    .query(async ({ input }) => (await pipelinesService.getById(input.id)) ?? null),
 
   create: publicProcedure
     .input(
@@ -51,6 +70,8 @@ export const pipelinesRouter = router({
       z.object({
         id: z.string(),
         patch: PipelineSchema.omit({ createdAt: true, updatedAt: true }).partial().extend({
+          description: z.string().optional(),
+          sharedContext: z.string().optional(),
           edges: PipelineGraphSnapshotSchema.shape.edges.optional(),
           nodes: PipelineGraphSnapshotSchema.shape.nodes.optional(),
         }),
@@ -70,66 +91,9 @@ export const pipelinesRouter = router({
     .input(z.object({ id: z.string() }))
     .mutation(({ input }) => pipelinesService.delete(input.id)),
 
-  run: publicProcedure
-    .input(
-      z.object({
-        id: z.string(),
-        inputPath: z.string().optional(),
-        githubToken: z.string().optional(),
-        selfHealRetries: z.number().int().min(0).max(5).optional(),
-        runtimeConfigId: z.string().min(1).optional(),
-        model: z.string().min(1).optional(),
-        reasoningEffort: z.string().min(1).optional(),
-        speed: z.string().min(1).optional(),
-        firstOutputTimeoutSeconds: z.number().int().min(0).max(3600).optional(),
-      }),
-    )
-    .mutation(async ({ input }) => {
-      const pipeline = await pipelinesService.getById(input.id);
-      if (!pipeline) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Pipeline not found" });
-      }
+  run: publicProcedure.input(z.unknown().optional()).mutation(legacyExecutionDisabled),
 
-      const result = await pipelineRunnerService.startRun({
-        pipelineId: input.id,
-        inputPath: input.inputPath,
-        githubToken: input.githubToken,
-        selfHealRetries: input.selfHealRetries,
-        runtimeConfigId: input.runtimeConfigId,
-        model: input.model,
-        reasoningEffort: input.reasoningEffort,
-        speed: input.speed,
-        firstOutputTimeoutMs:
-          input.firstOutputTimeoutSeconds === undefined
-            ? undefined
-            : input.firstOutputTimeoutSeconds * 1000,
-      });
-
-      if (result.isErr()) {
-        const errorCode = (result.error as Error & { code?: string }).code;
-        const pipelineMissing = result.error.name === "PipelineNotFoundError";
-        throw new TRPCError({
-          code:
-            errorCode === "AGENT_RUNTIME_NOT_FOUND" || errorCode === "PIPELINE_OPERATION_MISSING"
-              ? "CONFLICT"
-              : pipelineMissing
-                ? "NOT_FOUND"
-                : "INTERNAL_SERVER_ERROR",
-          message: result.error.message,
-        });
-      }
-
-      return result.value;
-    }),
-
-  cancel: authedProcedure.input(z.object({ jobId: z.string() })).mutation(async ({ input }) => {
-    const result = await pipelineRunnerService.cancelRun(input.jobId);
-    if (result.isErr()) {
-      throw new TRPCError({ code: "BAD_REQUEST", message: result.error.message });
-    }
-
-    return result.value;
-  }),
+  cancel: authedProcedure.input(z.unknown().optional()).mutation(legacyExecutionDisabled),
 
   optimizeFromDistillation: publicProcedure
     .input(

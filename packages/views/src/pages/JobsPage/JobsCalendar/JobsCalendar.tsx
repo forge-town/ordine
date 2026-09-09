@@ -3,25 +3,24 @@ import { useCustom } from "@refinedev/core";
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { surfaceCardVariants } from "@repo/ui/card";
-import type { Job, Routine, RoutineOccurrencesResponse } from "@repo/schemas";
+import type { ExecutionJobSummary, Routine, RoutineOccurrencesResponse } from "@repo/schemas";
 import { cn } from "@repo/ui/lib/utils";
 
 export type JobsCalendarProps = {
-  jobs: Job[];
-  pipelineNameById: Map<string, string>;
+  jobs: ExecutionJobSummary[];
   routines: Routine[];
   onEditRoutine: (routine: Routine) => void;
   onNewRoutine: () => void;
-  onOpenJob: (job: Job) => void;
+  onOpenJob: (job: ExecutionJobSummary) => void;
 };
 
 type CalendarEvent = {
   at: Date;
   id: string;
-  job?: Job;
+  job?: ExecutionJobSummary;
   label: string;
   routine?: Routine;
-  status: Job["status"] | "scheduled";
+  status: ExecutionJobSummary["state"] | "scheduled";
   aggregated?: boolean;
 };
 
@@ -50,7 +49,7 @@ const eventStyle = (status: CalendarEvent["status"]): string => {
   if (status === "running") {
     return "bg-foreground text-background";
   }
-  if (status === "failed" || status === "expired") {
+  if (status === "failed" || status === "timed_out" || status === "interrupted") {
     return "bg-destructive/[0.08] text-foreground ring-1 ring-destructive/30";
   }
   if (status === "paused" || status === "queued") {
@@ -72,13 +71,13 @@ const placeDayEvents = (events: CalendarEvent[]) => {
     .sort((left, right) => left.top - right.top);
   const placed: Array<(typeof sorted)[number] & { col: number; cols: number }> = [];
 
-  for (let index = 0; index < sorted.length; ) {
-    const cluster: typeof sorted = [];
-    const clusterTop = sorted[index]!.top;
-    while (index < sorted.length && sorted[index]!.top - clusterTop < 22) {
-      cluster.push(sorted[index]!);
-      index += 1;
-    }
+  const clusters: (typeof sorted)[] = [];
+  for (const item of sorted) {
+    const cluster = clusters.at(-1);
+    if (!cluster || item.top - cluster[0]!.top >= 22) clusters.push([item]);
+    else cluster.push(item);
+  }
+  for (const cluster of clusters) {
     cluster.forEach((item, col) => placed.push({ ...item, col, cols: cluster.length }));
   }
 
@@ -90,11 +89,14 @@ export const JobsCalendar = ({
   onEditRoutine,
   onNewRoutine,
   onOpenJob,
-  pipelineNameById,
   routines,
 }: JobsCalendarProps) => {
   const { t } = useTranslation();
   const [weekOffset, setWeekOffset] = useState(0);
+  const handlePreviousWeek = () => setWeekOffset((value) => value - 1);
+  const handleCurrentWeek = () => setWeekOffset(0);
+  const handleNextWeek = () => setWeekOffset((value) => value + 1);
+  const handleNewRoutine = onNewRoutine;
   const now = new Date();
   const weekStart = useMemo(
     () => new Date(mondayOf(now).getTime() + weekOffset * 7 * DAY_MS),
@@ -124,10 +126,7 @@ export const JobsCalendar = ({
   const events = useMemo(() => {
     const collected: CalendarEvent[] = [];
     for (const job of jobs) {
-      if (!job.startedAt) {
-        continue;
-      }
-      const at = new Date(job.startedAt);
+      const at = new Date(job.startedAt ?? job.createdAt);
       if (at < weekStart || at.getTime() >= weekStart.getTime() + 7 * DAY_MS) {
         continue;
       }
@@ -135,8 +134,8 @@ export const JobsCalendar = ({
         at,
         id: job.id,
         job,
-        label: job.pipelineId ? (pipelineNameById.get(job.pipelineId) ?? job.title) : job.title,
-        status: job.status,
+        label: job.pipelineName,
+        status: job.state,
       });
     }
     for (const occurrence of occurrencesResult.data?.occurrences ?? []) {
@@ -160,14 +159,7 @@ export const JobsCalendar = ({
     }
 
     return collected;
-  }, [
-    jobs,
-    occurrencesResult.data?.occurrences,
-    pipelineNameById,
-    routineById,
-    weekEnd,
-    weekStart,
-  ]);
+  }, [jobs, occurrencesResult.data?.occurrences, routineById, weekStart]);
 
   const gridHeight = (CAL_END - CAL_START) * HOUR_HEIGHT;
   const nowTop = (now.getHours() + now.getMinutes() / 60 - CAL_START) * HOUR_HEIGHT;
@@ -201,7 +193,7 @@ export const JobsCalendar = ({
               className="rounded-lg p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"
               data-testid="jobs-calendar-prev"
               type="button"
-              onClick={() => setWeekOffset((value) => value - 1)}
+              onClick={handlePreviousWeek}
             >
               <ChevronLeft className="size-3.5" />
             </button>
@@ -209,7 +201,7 @@ export const JobsCalendar = ({
               className="rounded-lg px-2 py-1 text-[11px] font-medium text-muted-foreground hover:bg-accent hover:text-foreground"
               data-testid="jobs-calendar-today"
               type="button"
-              onClick={() => setWeekOffset(0)}
+              onClick={handleCurrentWeek}
             >
               {t("jobs.calendar.today")}
             </button>
@@ -218,7 +210,7 @@ export const JobsCalendar = ({
               className="rounded-lg p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"
               data-testid="jobs-calendar-next"
               type="button"
-              onClick={() => setWeekOffset((value) => value + 1)}
+              onClick={handleNextWeek}
             >
               <ChevronRight className="size-3.5" />
             </button>
@@ -227,7 +219,7 @@ export const JobsCalendar = ({
               className="inline-flex items-center gap-1 rounded-lg bg-foreground px-2.5 py-1.5 text-[11px] font-medium text-background hover:opacity-90"
               data-testid="jobs-calendar-schedule"
               type="button"
-              onClick={onNewRoutine}
+              onClick={handleNewRoutine}
             >
               <Plus className="size-3" />
               {t("jobs.calendar.schedule")}
@@ -314,6 +306,14 @@ export const JobsCalendar = ({
                 ))}
                 {dayEvents.map(({ col, cols, event, top }) => {
                   const width = 100 / cols;
+                  const handleEventClick = () => {
+                    if (event.routine) {
+                      onEditRoutine(event.routine);
+
+                      return;
+                    }
+                    if (event.job) onOpenJob(event.job);
+                  };
 
                   return (
                     <button
@@ -329,22 +329,14 @@ export const JobsCalendar = ({
                         top: top + 1,
                         width: `calc(${width}% - 8px)`,
                       }}
-                      title={`${event.label} · ${hhmm(event.at)}${event.aggregated ? " · +" : ""}`}
+                      title={`${event.label} · ${event.status} · ${event.job && !event.job.startedAt ? "创建于 " : ""}${hhmm(event.at)}${event.aggregated ? " · +" : ""}`}
                       type="button"
-                      onClick={() => {
-                        if (event.routine) {
-                          onEditRoutine(event.routine);
-                          return;
-                        }
-                        if (event.job) {
-                          onOpenJob(event.job);
-                        }
-                      }}
+                      onClick={handleEventClick}
                     >
                       {event.status === "running" ? (
                         <span className="size-1 shrink-0 animate-pulse rounded-full bg-background" />
                       ) : null}
-                      {event.status === "done" ? (
+                      {event.status === "succeeded" ? (
                         <span className="size-1 shrink-0 rounded-full bg-success" />
                       ) : null}
                       {event.status === "failed" ? (

@@ -1,6 +1,7 @@
 import { z } from "zod/v4";
 import { LenientNodeRunStatusSchema } from "./NodeRunStatusSchema";
 import { AgentRuntimeSchema } from "../../agent-runtime/AgentRuntimeSchema";
+import { NodeExecutionOverridesSchema } from "../../execution/ExecutionOptionsSchema";
 
 export const OperationNodeDataSchema = z.object({
   label: z.string(),
@@ -12,6 +13,7 @@ export const OperationNodeDataSchema = z.object({
   notes: z.string().optional(),
   agentId: z.string().optional(),
   agentRuntime: AgentRuntimeSchema.optional(),
+  executionOverrides: NodeExecutionOverridesSchema.optional(),
   checkpoint: z.boolean().optional(),
   loopEnabled: z.boolean().optional(),
   maxLoopCount: z.number().int().min(1).max(20).optional(),

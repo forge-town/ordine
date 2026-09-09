@@ -11,6 +11,10 @@ export const OperationAssignmentReasonSchema = z
   .max(240)
   .refine((reason) => !/[\r\n]/u.test(reason), "assignmentReason must be one line");
 
+/** Omitted legacy values remain unresolved until the author explicitly chooses a mode. */
+export const ScriptOutputModeSchema = z.enum(["text", "json", "manifest"]);
+export type ScriptOutputMode = z.infer<typeof ScriptOutputModeSchema>;
+
 export const OperationExecutorConfigSchema = z.object({
   type: OperationExecutorTypeSchema,
   agentMode: AgentModeSchema.optional(),
@@ -21,6 +25,7 @@ export const OperationExecutorConfigSchema = z.object({
   prompt: z.string().optional(),
   command: z.string().optional(),
   language: ScriptLanguageSchema.optional(),
+  outputMode: ScriptOutputModeSchema.optional(),
   allowedTools: z.array(z.string()).optional(),
   assignmentReason: OperationAssignmentReasonSchema.optional(),
 });
@@ -40,6 +45,7 @@ export const AssignedOperationExecutorConfigSchema = z.union([
     .object({
       type: z.literal("script"),
       language: ScriptLanguageSchema,
+      outputMode: ScriptOutputModeSchema.optional(),
       command: z.string().trim().min(1).max(8000),
       assignmentReason: OperationAssignmentReasonSchema,
     })

@@ -13,25 +13,20 @@ import {
   FolderOutput,
   GitMerge,
   Play,
-  Loader2,
-  CheckCircle2,
-  XCircle,
-  FolderOpen,
 } from "lucide-react";
-import { useState, useEffect } from "react";
 import { ReactFlow, Background, ReactFlowProvider } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { cn } from "@repo/ui/lib/utils";
 import { surfaceCardVariants } from "@repo/ui/card";
 import { Button } from "@repo/ui/button";
-import { Input } from "@repo/ui/input";
-import { useOne, useCustomMutation, useList } from "@refinedev/core";
+import { useOne, useList } from "@refinedev/core";
 import { useTranslation } from "react-i18next";
 import type { Operation, PipelineData, PipelineNode } from "@repo/schemas";
 import { ResourceName } from "../../../constants";
 import { PageHeader } from "../../../components/PageHeader";
 import { PageLoadingState } from "../../../components/PageLoadingState";
 import { Stat } from "../Stat";
+import { PipelineRunPanel } from "../PipelineRunPanel";
 
 // ─── Node type metadata ───────────────────────────────────────────────────────
 
@@ -94,8 +89,6 @@ const getNodeLabel = (node: PipelineNode, operations: Operation[]): string => {
 
 // ─── Main Component ────────────────────────────────────────────────────────────
 
-type RunState = "idle" | "running" | "done" | "failed";
-
 interface PipelineDetailPageContentProps {
   pipelineId: string;
 }
@@ -113,78 +106,6 @@ export const PipelineDetailPageContent = ({ pipelineId }: PipelineDetailPageCont
   });
   const pipeline = pipelineResult ?? null;
   const operations = operationsResult.data;
-
-  // ── Run panel state ─────────────────────────────────────────────────────────
-  const [inputPath, setInputPath] = useState("");
-  const [runState, setRunState] = useState<RunState>("idle");
-  const [jobId, setJobId] = useState<string | null>(null);
-  const [runError, setRunError] = useState<string | null>(null);
-
-  const { mutate: runMutate } = useCustomMutation();
-
-  interface JobPollingData {
-    status: string;
-    logs: string[];
-    error: string | null;
-  }
-
-  const { query: jobQuery } = useOne<JobPollingData>({
-    resource: ResourceName.jobs,
-    id: jobId ?? "",
-    queryOptions: {
-      enabled: !!jobId && runState === "running",
-      refetchInterval: (query) => {
-        const status = (query.state.data?.data as JobPollingData | undefined)?.status;
-        if (status === "done" || status === "failed") return false;
-
-        return 1000;
-      },
-    },
-  });
-
-  const job = jobQuery.data?.data ?? null;
-  const logs: string[] = (job?.logs as string[] | undefined) ?? [];
-
-  useEffect(() => {
-    if (!job) return;
-    if (job.status === "done") {
-      setRunState("done");
-    } else if (job.status === "failed") {
-      setRunState("failed");
-      setRunError(job.error ?? "Unknown error");
-    }
-  }, [job]);
-
-  const handleRun = () => {
-    setRunState("running");
-    setRunError(null);
-    setJobId(null);
-    runMutate(
-      {
-        url: "pipelines/run",
-        method: "post",
-        values: { id: pipeline!.id, inputPath: inputPath || undefined },
-      },
-      {
-        onSuccess: (data) => {
-          const result = data?.data as { jobId: string } | undefined;
-          if (result?.jobId) {
-            setJobId(result.jobId);
-          }
-        },
-        onError: (error) => {
-          setRunState("failed");
-          setRunError(error.message ?? "Failed to start pipeline");
-        },
-      },
-    );
-  };
-
-  const handleInputPathChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setInputPath(e.target.value);
-  };
-
-  const handleClickRun = () => handleRun();
 
   if (pipelineQuery?.isLoading || operationsQuery?.isLoading) {
     return (
@@ -401,77 +322,7 @@ export const PipelineDetailPageContent = ({ pipelineId }: PipelineDetailPageCont
               {t("pipelines.runPipeline")}
             </span>
           </div>
-          <div className="space-y-4 p-4 sm:p-5">
-            {/* Input path */}
-            <div className="flex items-center gap-2">
-              <FolderOpen className="h-4 w-4 shrink-0 text-muted-foreground" />
-              <Input
-                className="flex-1 font-mono text-xs"
-                disabled={runState === "running"}
-                placeholder={t("pipelines.inputPathOptional")}
-                value={inputPath}
-                onChange={handleInputPathChange}
-              />
-              <Button
-                className="shrink-0 gap-1.5"
-                disabled={runState === "running"}
-                size="sm"
-                onClick={handleClickRun}
-              >
-                {runState === "running" ? (
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                ) : (
-                  <Play className="h-3.5 w-3.5" />
-                )}
-                {runState === "running" ? t("pipelines.running") : t("pipelines.run")}
-              </Button>
-            </div>
-
-            {/* Status */}
-            {runState !== "idle" && (
-              <div className="space-y-2">
-                <div className="flex items-center gap-1.5">
-                  {runState === "running" && (
-                    <Loader2 className="h-3.5 w-3.5 animate-spin text-blue-500 dark:text-blue-400" />
-                  )}
-                  {runState === "done" && (
-                    <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 dark:text-emerald-400" />
-                  )}
-                  {runState === "failed" && (
-                    <XCircle className="h-3.5 w-3.5 text-red-500 dark:text-red-400" />
-                  )}
-                  <span
-                    className={cn(
-                      "text-xs font-medium",
-                      runState === "running" && "text-blue-700 dark:text-blue-300",
-                      runState === "done" && "text-emerald-700 dark:text-emerald-300",
-                      runState === "failed" && "text-red-700 dark:text-red-300",
-                    )}
-                  >
-                    {runState === "running" && t("pipelines.runningStatus")}
-                    {runState === "done" && t("pipelines.doneStatus")}
-                    {runState === "failed" && `${t("pipelines.failedStatus")}: ${runError ?? ""}`}
-                  </span>
-                  {jobId && (
-                    <span className="ml-auto font-mono text-[10px] text-muted-foreground">
-                      Job: {jobId.slice(0, 8)}
-                    </span>
-                  )}
-                </div>
-
-                {/* Log viewer */}
-                {logs.length > 0 && (
-                  <div className="max-h-48 space-y-0.5 overflow-y-auto rounded-lg bg-neutral-950 p-3 font-mono text-[11px] leading-relaxed text-neutral-300 ring-1 ring-white/10">
-                    {logs.map((line, i) => (
-                      <div key={i} className="whitespace-pre-wrap break-all">
-                        {line}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
+          <PipelineRunPanel key={pipeline.id} pipelineId={pipeline.id} />
         </div>
 
         {/* Node list ──────────────────────────────────────────────────── */}

@@ -1,15 +1,9 @@
+import { legacyExecutionDisabled } from "./legacyExecutionDisabled.js";
 import { Hono } from "hono";
 import type { JobStatus, JobType } from "@repo/schemas";
-import { jobsService, pipelineRunnerService } from "../services.js";
+import { jobsService } from "../services.js";
 
 export const jobsRoutes = new Hono();
-
-const jobControlErrorStatus = (error: Error): 404 | 409 | 500 => {
-  if (error.name === "JobNotFoundError") return 404;
-  if (error.name === "InvalidJobStatusError") return 409;
-
-  return 500;
-};
 
 jobsRoutes.get("/", async (c) => {
   const status = c.req.query("status") as JobStatus | undefined;
@@ -26,39 +20,13 @@ jobsRoutes.get("/", async (c) => {
   return c.json(jobs);
 });
 
-jobsRoutes.post("/", async (c) => {
-  const body = await c.req.json();
-  const job = await jobsService.create(body);
+jobsRoutes.post("/", legacyExecutionDisabled);
 
-  return c.json(job, 201);
-});
+jobsRoutes.post("/:id/pause", legacyExecutionDisabled);
 
-jobsRoutes.post("/:id/pause", async (c) => {
-  const result = await pipelineRunnerService.pauseRun(c.req.param("id"));
-  if (result.isErr()) {
-    return c.json({ error: result.error.message }, jobControlErrorStatus(result.error));
-  }
+jobsRoutes.post("/:id/resume", legacyExecutionDisabled);
 
-  return c.json(result.value);
-});
-
-jobsRoutes.post("/:id/resume", async (c) => {
-  const result = await pipelineRunnerService.resumeRun(c.req.param("id"));
-  if (result.isErr()) {
-    return c.json({ error: result.error.message }, jobControlErrorStatus(result.error));
-  }
-
-  return c.json(result.value);
-});
-
-jobsRoutes.post("/:id/cancel", async (c) => {
-  const result = await pipelineRunnerService.cancelRun(c.req.param("id"));
-  if (result.isErr()) {
-    return c.json({ error: result.error.message }, jobControlErrorStatus(result.error));
-  }
-
-  return c.json(result.value);
-});
+jobsRoutes.post("/:id/cancel", legacyExecutionDisabled);
 
 jobsRoutes.get("/:id", async (c) => {
   const id = c.req.param("id");
@@ -90,15 +58,7 @@ jobsRoutes.get("/:id/agent-runs/:runId/spans", async (c) => {
   return c.json(spans);
 });
 
-jobsRoutes.patch("/:id", async (c) => {
-  const id = c.req.param("id");
-  const body = await c.req.json();
-  const { status: jobStatus, ...extra } = body;
-  const job = await jobsService.updateStatus(id, jobStatus, extra);
-  if (!job) return c.json({ error: "Job not found" }, 404);
-
-  return c.json(job);
-});
+jobsRoutes.patch("/:id", legacyExecutionDisabled);
 
 jobsRoutes.delete("/:id", async (c) => {
   const id = c.req.param("id");

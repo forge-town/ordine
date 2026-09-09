@@ -1,25 +1,19 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
-import { ResultAsync } from "neverthrow";
-import { auth } from "@/integrations/better-auth";
+import { getProductSession } from "@/lib/productSession";
 import { appRouter } from "@/integrations/trpc/router";
 
-const getSession = (request: Request) =>
-  ResultAsync.fromPromise(auth.api.getSession({ headers: request.headers }), () => undefined);
+const handleRequest = async (request: Request) => {
+  const checked = await getProductSession(request);
+  if (checked.response) return checked.response;
 
-const handleRequest = (request: Request) =>
-  fetchRequestHandler({
+  return fetchRequestHandler({
     endpoint: "/api/trpc",
     req: request,
     router: appRouter,
-    createContext: async () => {
-      const sessionResult = await getSession(request);
-
-      return {
-        session: sessionResult.unwrapOr(null),
-      };
-    },
+    createContext: () => ({ session: checked.session }),
   });
+};
 
 export const Route = createFileRoute("/api/trpc/$")({
   server: {

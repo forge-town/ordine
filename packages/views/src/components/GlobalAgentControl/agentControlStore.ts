@@ -19,6 +19,7 @@ import type {
   ChangeSetOperation,
 } from "./agentControlClient";
 import { adaptAgentControlEventToAgUi, type AgentControlAgUiEvent } from "./agUiEventAdapter";
+import { takePendingPipelinePrompt } from "../../lib/pendingPipelinePrompt";
 
 const MAX_VISIBLE_EVENTS = 240;
 const FOLLOW_UP_POLL_ATTEMPTS = 20;
@@ -108,6 +109,8 @@ export type AgentControlState = {
   isCanvasSurfaceOpen: boolean;
   bootstrap: () => Promise<void>;
   selectThread: (threadId: string) => Promise<void>;
+  newThread: () => void;
+  consumePipelinePrompt: () => void;
   setDraft: (draft: string) => void;
   setDrawerOpen: (open: boolean) => void;
   setExecutionChoice: (choice: AgentExecutionChoice) => void;
@@ -254,7 +257,8 @@ export const createAgentControlStore = (client: AgentControlClient): AgentContro
         newVersion: event.newVersion,
       });
     } else if (event.type === "navigation_requested") {
-      await integration.navigator?.(event.pathname);
+      // Resource creation inside a canvas must not tear down the active editor.
+      if (!store.getState().canvasSurface) await integration.navigator?.(event.pathname);
     } else if (event.type === "action_succeeded") {
       await integration.invalidator?.(event.result.resources);
     }
@@ -416,15 +420,50 @@ export const createAgentControlStore = (client: AgentControlClient): AgentContro
             executionChoice,
             threads,
             selectedRuntimeId,
-            isBootstrapping: false,
           });
           if (activeThread) await loadThread(activeThread.id);
+          set({ isBootstrapping: false });
         },
         (error) => set({ error: error.message, isBootstrapping: false }),
       );
     },
 
     selectThread: async (threadId) => loadThread(threadId),
+    newThread: () => {
+      if (get().isRunning) return;
+      for (const release of activitySubscriptions.values()) release();
+      activitySubscriptions.clear();
+      set({
+        activeThreadId: null,
+        messages: [],
+        events: [],
+        agUiEvents: [],
+        actions: [],
+        changeSets: [],
+        approvals: [],
+        currentRunId: null,
+        streamingText: "",
+        draft: "",
+        error: null,
+        removedContextChips: [],
+        context: { ...get().context, activeRun: null },
+      });
+    },
+    consumePipelinePrompt: () => {
+      const state = get();
+      if (!state.canvasSurface || !state.capabilities || state.isBootstrapping || state.isRunning)
+        return;
+      const pending = takePendingPipelinePrompt();
+      if (!pending) return;
+      state.newThread();
+      if (pending.runtimeId) {
+        const { prompt: _, runtimeId, ...choice } = pending;
+        get().setExecutionChoice({ runtimeConfigId: runtimeId, ...choice });
+      }
+      get().setDraft(pending.prompt);
+      get().openPreferredSurface();
+      void get().submit();
+    },
     setDraft: (draft) => set({ draft }),
     setDrawerOpen: (isDrawerOpen) => set({ isDrawerOpen }),
     setExecutionChoice: (executionChoice) =>

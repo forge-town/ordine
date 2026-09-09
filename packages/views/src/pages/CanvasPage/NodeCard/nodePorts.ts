@@ -211,6 +211,12 @@ export const decorateEdgesWithPortHandles = (
   const targetHandleByEdgeId = makePortAssignments(nodes, edges, "left", pendingConnection);
 
   return edges.map((edge) => {
+    if (edge.data?.handoff)
+      return {
+        ...edge,
+        sourceHandle: `output:${edge.data.handoff.sourcePortId}`,
+        targetHandle: `input:${edge.data.handoff.targetPortId}`,
+      };
     const sourceHandle =
       sourceHandleByEdgeId.get(edge.id) ?? edge.sourceHandle ?? makeNodePortId("right", 0);
     const targetHandle =

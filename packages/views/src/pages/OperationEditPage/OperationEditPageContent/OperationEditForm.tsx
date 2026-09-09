@@ -1,5 +1,5 @@
 import { useNavigate } from "@tanstack/react-router";
-import { useForm, Controller, useFieldArray } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod/v4";
 import {
@@ -13,12 +13,10 @@ import {
   Info,
   ListChecks,
   MessageSquareText,
-  Plus,
   Puzzle,
   Save,
   Settings2,
   Terminal,
-  Trash2,
   Wand2,
   X,
 } from "lucide-react";
@@ -41,9 +39,8 @@ import {
   OperationExecutorTypeSchema,
   AgentModeSchema,
   ScriptLanguageSchema,
-  OutputItemSchema,
-  TemplateContentTypeSchema,
-  type TemplateContentType,
+  ScriptOutputModeSchema,
+  type ScriptOutputMode,
   type OperationExecutorType,
   type AgentMode,
   type OperationConfigInput,
@@ -52,6 +49,12 @@ import {
 import { useStore } from "zustand";
 import { useOperationEditPageStore } from "../_store";
 import { PageHeader } from "../../../components/PageHeader";
+import {
+  OperationPortsEditor,
+  EditableInputPortsSchema,
+  EditableOutputPortsSchema,
+  cloneOperationPorts,
+} from "../../../components/OperationPortsEditor";
 
 const EXECUTOR_ICONS = {
   agent: Wand2,
@@ -70,30 +73,25 @@ const OBJECT_TYPE_ICONS: Record<ObjectType, React.ElementType> = {
   prompt: MessageSquareText,
 };
 
-const editableOutputItemSchema = OutputItemSchema.extend({
-  templateIds: z.array(z.string()),
-});
-
-const OUTPUT_CONTENT_TYPE_OPTIONS: {
-  value: TemplateContentType;
-  label: string;
-}[] = TemplateContentTypeSchema.options.map((value) => ({
-  value,
-  label: value.toUpperCase(),
-}));
-
-const editFormSchema = z.object({
-  name: z.string().min(1, "名称不能为空"),
-  description: z.string(),
-  acceptedObjectTypes: z.array(ObjectNodeTypeSchema).min(1),
-  executorType: OperationExecutorTypeSchema,
-  agentMode: AgentModeSchema,
-  skillId: z.string(),
-  promptText: z.string(),
-  scriptCommand: z.string(),
-  scriptLanguage: ScriptLanguageSchema,
-  outputs: z.array(editableOutputItemSchema),
-});
+const editFormSchema = z
+  .object({
+    name: z.string().min(1, "名称不能为空"),
+    description: z.string(),
+    acceptedObjectTypes: z.array(ObjectNodeTypeSchema).min(1),
+    executorType: OperationExecutorTypeSchema,
+    agentMode: AgentModeSchema,
+    skillId: z.string(),
+    promptText: z.string(),
+    scriptCommand: z.string(),
+    scriptLanguage: ScriptLanguageSchema,
+    scriptOutputMode: z.union([ScriptOutputModeSchema, z.literal("")]),
+    inputs: EditableInputPortsSchema,
+    outputs: EditableOutputPortsSchema,
+  })
+  .refine((values) => values.executorType !== "script" || values.scriptOutputMode !== "", {
+    message: "请选择 Script 输出模式",
+    path: ["scriptOutputMode"],
+  });
 
 type EditFormValues = z.infer<typeof editFormSchema>;
 
@@ -142,6 +140,7 @@ const buildConfig = (
       type: "script",
       command: values.scriptCommand,
       language: values.scriptLanguage,
+      outputMode: values.scriptOutputMode || undefined,
     },
   };
 };
@@ -155,6 +154,7 @@ const parseExecutorDefaults = (
   promptText: string;
   scriptCommand: string;
   scriptLanguage: "bash" | "python" | "javascript";
+  scriptOutputMode: ScriptOutputMode | "";
 } => {
   const defaults = {
     executorType: "script" as OperationExecutorType,
@@ -163,6 +163,7 @@ const parseExecutorDefaults = (
     promptText: "",
     scriptCommand: "",
     scriptLanguage: "bash" as "bash" | "python" | "javascript",
+    scriptOutputMode: "" as const,
   };
 
   const ex = config.executor;
@@ -187,6 +188,7 @@ const parseExecutorDefaults = (
     skillId: ex.skillId ?? "",
     promptText: ex.prompt ?? "",
     scriptCommand: ex.command ?? "",
+    scriptOutputMode: ex.outputMode ?? "",
     scriptLanguage: (["bash", "python", "javascript"].includes(ex.language ?? "")
       ? ex.language
       : "bash") as "bash" | "python" | "javascript",
@@ -279,23 +281,9 @@ export const OperationEditForm = ({ operation, skills }: OperationEditFormProps)
       acceptedObjectTypes: Array.isArray(operation.acceptedObjectTypes)
         ? [...operation.acceptedObjectTypes]
         : ["file", "folder", "github-project"],
-      outputs: (operation.config.outputs ?? []).map((output) => ({
-        name: output.name,
-        contentType: output.contentType,
-        description: output.description ?? "",
-        templateIds: [...(output.templateIds ?? [])],
-      })),
+      ...cloneOperationPorts(operation.config),
       ...parseExecutorDefaults(operation.config),
     },
-  });
-
-  const {
-    fields: outputFields,
-    append: appendOutput,
-    remove: removeOutput,
-  } = useFieldArray({
-    control: form.control,
-    name: "outputs",
   });
 
   const executorType = form.watch("executorType");
@@ -305,7 +293,7 @@ export const OperationEditForm = ({ operation, skills }: OperationEditFormProps)
   const scriptLanguage = form.watch("scriptLanguage");
   const editableOutputs = form.watch("outputs");
   const selectedSkill = skills.find((skill) => skill.id === selectedSkillId);
-  const inputs = operation.config.inputs ?? [];
+  const inputs = form.watch("inputs");
 
   const store = useOperationEditPageStore();
   const skillOpen = useStore(store, (s) => s.skillOpen);
@@ -332,19 +320,6 @@ export const OperationEditForm = ({ operation, skills }: OperationEditFormProps)
     });
   };
 
-  const handleAppendOutput = () => {
-    appendOutput({
-      name: "",
-      contentType: "markdown",
-      description: "",
-      templateIds: [],
-    });
-  };
-
-  const handleRemoveOutput = (index: number) => {
-    removeOutput(index);
-  };
-
   const onSubmit = async (values: EditFormValues) => {
     await updateOpMutate({
       resource: ResourceName.operations,
@@ -355,11 +330,8 @@ export const OperationEditForm = ({ operation, skills }: OperationEditFormProps)
         config: {
           ...operation.config,
           ...buildConfig(values, operation.config.executor),
-          outputs: values.outputs.map((output) => ({
-            ...output,
-            description: output.description || undefined,
-            templateIds: output.templateIds ?? [],
-          })),
+          inputs: values.inputs,
+          outputs: values.outputs,
         },
         acceptedObjectTypes: values.acceptedObjectTypes,
       },
@@ -739,6 +711,39 @@ export const OperationEditForm = ({ operation, skills }: OperationEditFormProps)
                             );
                           }}
                         />
+                        <FormField
+                          control={form.control}
+                          name="scriptOutputMode"
+                          render={({ field }) => {
+                            const handleOutputModeChange = (value: string | null) => {
+                              if (value) field.onChange(value);
+                            };
+
+                            return (
+                              <FormItem>
+                                <FormLabel className="text-xs font-medium text-muted-foreground">
+                                  Script 输出模式
+                                </FormLabel>
+                                <FormControl>
+                                  <Select
+                                    value={field.value || null}
+                                    onValueChange={handleOutputModeChange}
+                                  >
+                                    <SelectTrigger className="h-10 w-full">
+                                      <SelectValue placeholder="请选择输出模式" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="text">Text · 纯文本</SelectItem>
+                                      <SelectItem value="json">JSON · 结构化值</SelectItem>
+                                      <SelectItem value="manifest">Manifest · 端口清单</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </FormControl>
+                                <FormMessage className="text-xs" />
+                              </FormItem>
+                            );
+                          }}
+                        />
                       </div>
                     )}
                   </div>
@@ -758,185 +763,42 @@ export const OperationEditForm = ({ operation, skills }: OperationEditFormProps)
                   </div>
 
                   <div className="grid gap-5 p-5 lg:grid-cols-2">
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <h3 className="text-xs font-semibold uppercase text-muted-foreground">
-                          {t("operations.inputPorts")}
-                        </h3>
-                        <Badge variant="outline">{inputs.length}</Badge>
-                      </div>
-                      {inputs.length === 0 ? (
-                        <div className="rounded-md border border-dashed border-border px-3 py-6 text-center text-sm text-muted-foreground">
-                          {t("operations.noConfiguredInputs")}
-                        </div>
-                      ) : (
-                        <div className="space-y-2">
-                          {inputs.map((input, index) => (
-                            <div
-                              key={`${input.name}-${input.kind}-${index}`}
-                              className="rounded-md border border-border px-3 py-2"
-                            >
-                              <div className="flex items-center justify-between gap-3">
-                                <span className="truncate text-sm font-medium">{input.name}</span>
-                                <Badge variant={input.required ? "default" : "secondary"}>
-                                  {input.kind}
-                                </Badge>
-                              </div>
-                              {input.description && (
-                                <p className="mt-1 text-xs text-muted-foreground">
-                                  {input.description}
-                                </p>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
+                    <FormField
+                      control={form.control}
+                      name="inputs"
+                      render={({ field }) => {
+                        const handleInputsChange = field.onChange;
 
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <h3 className="text-xs font-semibold uppercase text-muted-foreground">
-                          {t("operations.outputItems")}
-                        </h3>
-                        <div className="flex items-center gap-2">
-                          <Badge variant="outline">{editableOutputs.length}</Badge>
-                          <Button
-                            size="sm"
-                            type="button"
-                            variant="outline"
-                            onClick={handleAppendOutput}
-                          >
-                            <Plus className="h-3.5 w-3.5" />
-                            {t("operations.addOutputItem")}
-                          </Button>
-                        </div>
-                      </div>
-                      {outputFields.length === 0 ? (
-                        <div className="space-y-3 rounded-md border border-dashed border-border px-3 py-6 text-center">
-                          <p className="text-sm text-muted-foreground">
-                            {t("operations.noConfiguredOutputs")}
-                          </p>
-                          <Button
-                            size="sm"
-                            type="button"
-                            variant="outline"
-                            onClick={handleAppendOutput}
-                          >
-                            <Plus className="h-3.5 w-3.5" />
-                            {t("operations.addOutputItem")}
-                          </Button>
-                        </div>
-                      ) : (
-                        <div className="space-y-3">
-                          {outputFields.map((output, index) => (
-                            <div key={output.id} className="rounded-md border border-border p-3">
-                              <div className="mb-3 flex items-center justify-between gap-3">
-                                <div className="min-w-0">
-                                  <p className="truncate text-sm font-medium">
-                                    {editableOutputs[index]?.name ||
-                                      t("operations.unnamedOutputItem")}
-                                  </p>
-                                  {(editableOutputs[index]?.templateIds.length ?? 0) > 0 && (
-                                    <p className="mt-0.5 text-xs text-muted-foreground">
-                                      {t("operations.templates")}:{" "}
-                                      {editableOutputs[index]?.templateIds.length ?? 0}
-                                    </p>
-                                  )}
-                                  <Badge className="mt-1" variant="secondary">
-                                    {editableOutputs[index]!.contentType.toUpperCase()}
-                                  </Badge>
-                                </div>
-                                <Button
-                                  aria-label={t("operations.removeOutputItem")}
-                                  size="icon"
-                                  type="button"
-                                  variant="ghost"
-                                  onClick={() => handleRemoveOutput(index)}
-                                >
-                                  <Trash2 className="h-4 w-4 text-destructive" />
-                                </Button>
-                              </div>
+                        return (
+                          <FormItem>
+                            <OperationPortsEditor
+                              direction="input"
+                              ports={field.value}
+                              onChange={handleInputsChange}
+                            />
+                            <FormMessage />
+                          </FormItem>
+                        );
+                      }}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="outputs"
+                      render={({ field }) => {
+                        const handleOutputsChange = field.onChange;
 
-                              <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_160px]">
-                                <FormField
-                                  control={form.control}
-                                  name={`outputs.${index}.name`}
-                                  render={({ field }) => (
-                                    <FormItem>
-                                      <FormLabel className="text-xs font-medium text-muted-foreground">
-                                        {t("operations.outputName")}
-                                      </FormLabel>
-                                      <FormControl>
-                                        <Input
-                                          className="h-9 text-sm"
-                                          placeholder={t("operations.outputNamePlaceholder")}
-                                          {...field}
-                                        />
-                                      </FormControl>
-                                      <FormMessage className="text-xs" />
-                                    </FormItem>
-                                  )}
-                                />
-
-                                <FormField
-                                  control={form.control}
-                                  name={`outputs.${index}.contentType`}
-                                  render={({ field }) => {
-                                    const handleContentTypeChange = field.onChange;
-
-                                    return (
-                                      <FormItem>
-                                        <FormLabel className="text-xs font-medium text-muted-foreground">
-                                          {t("operations.outputContentType")}
-                                        </FormLabel>
-                                        <FormControl>
-                                          <Select
-                                            value={field.value}
-                                            onValueChange={handleContentTypeChange}
-                                          >
-                                            <SelectTrigger className="h-9 w-full">
-                                              <SelectValue />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                              {OUTPUT_CONTENT_TYPE_OPTIONS.map((option) => (
-                                                <SelectItem key={option.value} value={option.value}>
-                                                  {option.label}
-                                                </SelectItem>
-                                              ))}
-                                            </SelectContent>
-                                          </Select>
-                                        </FormControl>
-                                        <FormMessage className="text-xs" />
-                                      </FormItem>
-                                    );
-                                  }}
-                                />
-                              </div>
-
-                              <FormField
-                                control={form.control}
-                                name={`outputs.${index}.description`}
-                                render={({ field }) => (
-                                  <FormItem className="mt-3">
-                                    <FormLabel className="text-xs font-medium text-muted-foreground">
-                                      {t("operations.outputDescription")}
-                                    </FormLabel>
-                                    <FormControl>
-                                      <Textarea
-                                        className="min-h-20 resize-none text-sm"
-                                        placeholder={t("operations.outputDescriptionPlaceholder")}
-                                        {...field}
-                                      />
-                                    </FormControl>
-                                    <FormMessage className="text-xs" />
-                                  </FormItem>
-                                )}
-                              />
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
+                        return (
+                          <FormItem>
+                            <OperationPortsEditor
+                              direction="output"
+                              ports={field.value}
+                              onChange={handleOutputsChange}
+                            />
+                            <FormMessage />
+                          </FormItem>
+                        );
+                      }}
+                    />
                   </div>
                 </section>
               </div>

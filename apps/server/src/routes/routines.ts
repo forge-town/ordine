@@ -1,3 +1,4 @@
+import { legacyExecutionDisabled } from "./legacyExecutionDisabled.js";
 import { randomUUID } from "node:crypto";
 import { Hono } from "hono";
 import { z } from "zod/v4";
@@ -80,12 +81,7 @@ routinesRoutes.patch("/:id", async (c) => {
   return resultJson(c, result);
 });
 
-routinesRoutes.post("/:id/run-now", async (c) => {
-  const id = c.req.param("id");
-  const result = await routinesService.runNow(id);
-
-  return resultJson(c, result, 202);
-});
+routinesRoutes.post("/:id/run-now", legacyExecutionDisabled);
 
 routinesRoutes.delete("/:id", async (c) => {
   const id = c.req.param("id");

@@ -22,7 +22,10 @@ interface AgentExecutionPickerProps {
   disabled?: boolean;
   isolationDescription?: string;
   isLoading?: boolean;
-  onChange: (choice: AgentExecutionChoice) => void;
+  onChange: (
+    choice: AgentExecutionChoice,
+    changedFields?: Array<keyof AgentExecutionChoice>,
+  ) => void;
   onRuntimeChange: (runtimeConfigId: string) => void;
   onOpenSettings?: () => void;
   runtimeDisabledReasons?: Readonly<Record<string, string>>;
@@ -69,23 +72,31 @@ export const AgentExecutionPicker = ({
   };
   const handleModelChange = (model: string) => {
     if (currentEntry && choice) {
-      handleChange(changeExecutionModel(currentEntry, choice, model));
+      handleChange(changeExecutionModel(currentEntry, choice, model), ["model"]);
     }
   };
   const handleReasoningChange = (reasoningEffort: string | null) => {
-    if (choice && reasoningEffort) handleChange({ ...choice, reasoningEffort });
+    if (choice && reasoningEffort)
+      handleChange({ ...choice, reasoningEffort }, ["reasoningEffort"]);
   };
   const handleSpeedChange = (speed: string | null) => {
-    if (choice && speed) handleChange({ ...choice, speed });
+    if (choice && speed) handleChange({ ...choice, speed }, ["speed"]);
   };
-  const commitTimeout = () => {
+  const handleCommitTimeout = () => {
     if (!choice) return;
     const parsed = Number(timeoutDraft);
     const seconds = Number.isFinite(parsed) ? Math.min(3600, Math.max(0, Math.round(parsed))) : 45;
     setTimeoutDraft(String(seconds));
     if (seconds !== choice.firstOutputTimeoutSeconds) {
-      handleChange({ ...choice, firstOutputTimeoutSeconds: seconds });
+      handleChange({ ...choice, firstOutputTimeoutSeconds: seconds }, [
+        "firstOutputTimeoutSeconds",
+      ]);
     }
+  };
+  const handleTimeoutChange = (event: React.ChangeEvent<HTMLInputElement>) =>
+    setTimeoutDraft(event.target.value);
+  const handleTimeoutKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "Enter") event.currentTarget.blur();
   };
 
   return (
@@ -156,7 +167,7 @@ export const AgentExecutionPicker = ({
 
               return (
                 <Button
-                  key={entry.runtime}
+                  key={entry.runtimeConfigId ?? entry.runtime}
                   aria-checked={active}
                   className={cn(
                     "h-auto min-w-0 justify-start gap-2 px-2.5 py-2 text-left",
@@ -267,11 +278,9 @@ export const AgentExecutionPicker = ({
                   min={0}
                   type="number"
                   value={timeoutDraft}
-                  onBlur={commitTimeout}
-                  onChange={(event) => setTimeoutDraft(event.target.value)}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter") event.currentTarget.blur();
-                  }}
+                  onBlur={handleCommitTimeout}
+                  onChange={handleTimeoutChange}
+                  onKeyDown={handleTimeoutKeyDown}
                 />
                 <span className="shrink-0 text-[10.5px] text-muted-foreground">
                   {t("agentExecutionPicker.seconds")}

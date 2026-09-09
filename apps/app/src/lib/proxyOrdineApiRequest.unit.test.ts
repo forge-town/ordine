@@ -9,6 +9,9 @@ vi.mock("@/integrations/server-env", () => ({
   getServerEnv: () => ({
     ORDINE_AGENT_API_TOKEN: "test-agent-api-token-that-is-long-enough",
     ORDINE_API_PROXY_TARGET: "http://localhost:9433",
+    VITE_APP_URL: "http://localhost:9430",
+    ORDINE_EXECUTION_API_TARGET: "http://localhost:61943",
+    ORDINE_EXECUTION_OWNER_USER_ID: "user-1",
   }),
 }));
 
@@ -26,7 +29,7 @@ describe("proxyOrdineApiRequest", () => {
       .mockResolvedValue(Response.json({ id: "session-1" }, { status: 201 }));
     const request = new Request("http://localhost:9430/api/pipeline-agent-sessions?source=home", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", Origin: "http://localhost:9430" },
       body: JSON.stringify({ mode: "generate" }),
     });
 
@@ -43,7 +46,10 @@ describe("proxyOrdineApiRequest", () => {
     vi.spyOn(globalThis, "fetch").mockRejectedValue(new TypeError("fetch failed"));
 
     const response = await proxyOrdineApiRequest(
-      new Request("http://localhost:9430/api/pipeline-agent-sessions", { method: "POST" }),
+      new Request("http://localhost:9430/api/pipeline-agent-sessions", {
+        method: "POST",
+        headers: { Origin: "http://localhost:9430" },
+      }),
     );
 
     expect(response.status).toBe(503);
@@ -95,5 +101,54 @@ describe("proxyOrdineApiRequest", () => {
     expect(forwarded.headers.get("authorization")).toBe(
       "Bearer test-agent-api-token-that-is-long-enough",
     );
+  });
+  it("rejects a different workspace user and cross-origin mutation before forwarding", async () => {
+    const fetchMock = vi.spyOn(globalThis, "fetch");
+    mocks.getSession.mockResolvedValueOnce({ user: { id: "other-user" } });
+    expect(
+      (await proxyOrdineApiRequest(new Request("http://localhost:9430/api/agent-threads"))).status,
+    ).toBe(403);
+    expect(
+      (
+        await proxyOrdineApiRequest(
+          new Request("http://localhost:9430/api/agent-threads", {
+            method: "POST",
+            headers: { Origin: "https://elsewhere.test" },
+          }),
+        )
+      ).status,
+    ).toBe(403);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+  it("follows only the same-server Agent event redirect without forwarding browser credentials", async () => {
+    const fetchMock = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValueOnce(
+        new Response(null, {
+          status: 302,
+          headers: { location: "/api/agent-runs/run-1/events?after=2" },
+        }),
+      )
+      .mockResolvedValueOnce(
+        new Response("data: connected\n\n", { headers: { "content-type": "text/event-stream" } }),
+      );
+    const response = await proxyOrdineApiRequest(
+      new Request("http://localhost:9430/api/agent-threads/thread-1/runs/run-1/events", {
+        headers: { Cookie: "private-session" },
+      }),
+    );
+    expect(response.status).toBe(200);
+    expect(await response.text()).toContain("connected");
+    expect(String(fetchMock.mock.calls[1]![0])).toBe(
+      "http://localhost:9433/api/agent-runs/run-1/events?after=2",
+    );
+    expect(new Headers(fetchMock.mock.calls[1]![1]!.headers).has("cookie")).toBe(false);
+    fetchMock.mockResolvedValueOnce(
+      new Response(null, { status: 302, headers: { location: "https://elsewhere.test/steal" } }),
+    );
+    expect(
+      (await proxyOrdineApiRequest(new Request("http://localhost:9430/api/agent-threads"))).status,
+    ).toBe(502);
+    expect(fetchMock).toHaveBeenCalledTimes(3);
   });
 });

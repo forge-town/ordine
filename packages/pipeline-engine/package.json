@@ -7,7 +7,8 @@
   "exports": {
     ".": "./src/index.ts",
     "./schemas": "./src/schemas/index.ts",
-    "./actions": "./src/actions/index.ts"
+    "./actions": "./src/actions/index.ts",
+    "./execution-validation": "./src/execution-validation/index.ts"
   },
   "scripts": {
     "check-types": "tsc --noEmit",

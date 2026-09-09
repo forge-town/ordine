@@ -798,6 +798,8 @@
     "runStopped": "Pipeline stopped",
     "stopRun": "Stop run",
     "stoppingRun": "Stopping",
+    "runSubmitted": "Pipeline submitted",
+    "runSubmittedDescription": "Job {{jobId}} was created. Check the run panel for progress and results.",
     "runCompleted": "Pipeline run completed",
     "runSuccessDescription": "Job {{jobId}} completed pipeline validation",
     "runTest": "Run Test",

@@ -31,8 +31,18 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
   })),
 }));
 server.setRequestHandler(CallToolRequestSchema, async (request) => ({
-  content: [{ type: "text", text: request.params.name === "ordine.search" ? "[]" : "bad" }],
-  isError: request.params.name !== "ordine.search",
+  content: [
+    {
+      type: "text",
+      text:
+        process.env.ORDINE_DOCTOR_FIXTURE_CALL_ERROR ??
+        process.env.ORDINE_DOCTOR_FIXTURE_CALL_BODY ??
+        (request.params.name === "ordine.v2.jobs.list" ? "[]" : "bad"),
+    },
+  ],
+  isError:
+    Boolean(process.env.ORDINE_DOCTOR_FIXTURE_CALL_ERROR) ||
+    request.params.name !== "ordine.v2.jobs.list",
 }));
 server.setRequestHandler(ListResourcesRequestSchema, async () => ({
   resources: [

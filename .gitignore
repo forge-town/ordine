@@ -29,6 +29,7 @@ coverage
 out/
 build
 dist
+dist-execution/
 
 
 # Debug

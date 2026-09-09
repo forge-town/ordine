@@ -7,6 +7,7 @@ export * from "./capability";
 export * from "./connector";
 export * from "./conversation";
 export * from "./distillation";
+export * from "./execution";
 export * from "./filesystem";
 export * from "./github-project";
 export * from "./job";

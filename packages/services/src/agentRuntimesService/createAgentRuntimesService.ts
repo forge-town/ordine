@@ -24,12 +24,20 @@ export const createAgentRuntimesService = (db: DbConnection) => {
         ...toCreate.map((r) => dao.create(r)),
         ...toUpdate.map((r) => {
           const existingRuntime = existing.find((runtime) => runtime.id === r.id);
+          // Discovery never changes an explicitly saved executable or its model selection.
+          if (existingRuntime?.connection.mode === "local" && existingRuntime.connection.path)
+            return;
           const connection =
             r.connection.mode === "local" &&
             existingRuntime?.connection.mode === "local" &&
-            r.connection.models === undefined &&
             existingRuntime.connection.models !== undefined
-              ? { ...r.connection, models: existingRuntime.connection.models }
+              ? {
+                  ...r.connection,
+                  models: existingRuntime.connection.models,
+                  ...(existingRuntime.connection.modelsSource
+                    ? { modelsSource: existingRuntime.connection.modelsSource }
+                    : {}),
+                }
               : r.connection;
 
           return dao.update(r.id, { name: r.name, type: r.type, connection });

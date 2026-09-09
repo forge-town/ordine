@@ -1,6 +1,6 @@
 import { execFile } from "node:child_process";
 import { constants } from "node:fs";
-import { access } from "node:fs/promises";
+import { access, stat } from "node:fs/promises";
 import { homedir, tmpdir } from "node:os";
 import { isAbsolute, join } from "node:path";
 import { logger } from "@repo/logger";
@@ -139,6 +139,27 @@ const isExecutable = (path: string): Promise<boolean> =>
     () => true,
     () => false,
   );
+
+/** Probe only the user's explicit executable; never resolve a replacement through PATH. */
+export const probeRuntimePath = async (
+  path: string,
+): Promise<{ path: string; version?: string } | undefined> => {
+  if (!isAbsolute(path) || !(await isExecutable(path))) return undefined;
+  const file = await ResultAsync.fromPromise(stat(path), () => null);
+  if (file.isErr() || !file.value.isFile()) return undefined;
+  const command = versionCommand(path);
+  const version = await ResultAsync.fromPromise(
+    execFileAsync(command.bin, command.args),
+    () => null,
+  );
+
+  return {
+    path,
+    ...(version.isOk() && version.value.stdout.trim()
+      ? { version: version.value.stdout.trim() }
+      : {}),
+  };
+};
 
 const probeFallbackDirs = async (binaryName: string): Promise<string | undefined> => {
   const candidates = FALLBACK_BINARY_DIRS.map((dir) =>

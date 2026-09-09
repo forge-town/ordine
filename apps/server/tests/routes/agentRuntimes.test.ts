@@ -6,6 +6,7 @@ const mocks = vi.hoisted(() => ({
   getAllRuntimes: vi.fn(),
   getRuntimeById: vi.fn(),
   scanRuntimeCatalog: vi.fn(),
+  resolveCatalog: vi.fn(async (catalog: unknown[], _configs: unknown[]) => catalog),
   syncRuntimes: vi.fn(),
 }));
 const env = vi.hoisted(() => ({
@@ -45,6 +46,7 @@ vi.mock("@repo/agent", () => ({
       compatibility: { runtime: runtime.type },
     })),
   scanRuntimeCatalog: mocks.scanRuntimeCatalog,
+  resolveRuntimeCatalogFromConfigs: mocks.resolveCatalog,
 }));
 
 import { agentRuntimesRoutes, resolveDesktopMcpSidecarPath } from "../../src/routes/agentRuntimes";
@@ -106,6 +108,12 @@ describe("agentRuntimesRoutes", () => {
       }),
     ]);
     expect(mocks.scanRuntimeCatalog).not.toHaveBeenCalled();
+    expect(mocks.resolveCatalog).toHaveBeenCalledWith(expect.any(Array), [
+      expect.objectContaining({
+        id: "saved-codex",
+        connection: { mode: "local", path: "C:/tools/codex.exe" },
+      }),
+    ]);
   });
 
   it("starts a real read-only model probe and returns 202", async () => {

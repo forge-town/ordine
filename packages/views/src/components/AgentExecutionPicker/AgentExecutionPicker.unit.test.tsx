@@ -5,6 +5,8 @@ import type { AgentRuntimeCatalogEntry } from "@repo/schemas";
 import { render } from "../../test/test-wrapper";
 import { AgentExecutionPicker } from "./AgentExecutionPicker";
 
+const handleIgnore = () => undefined;
+
 const catalogEntry = (
   overrides: Partial<AgentRuntimeCatalogEntry> = {},
 ): AgentRuntimeCatalogEntry => ({
@@ -57,8 +59,8 @@ describe("AgentExecutionPicker", () => {
         catalog={[catalogEntry()]}
         choice={{ runtimeConfigId: "local-codex", model: "gpt-5.6" }}
         triggerVariant="button"
-        onChange={vi.fn()}
-        onRuntimeChange={vi.fn()}
+        onChange={handleIgnore}
+        onRuntimeChange={handleIgnore}
       />,
     );
 
@@ -108,8 +110,8 @@ describe("AgentExecutionPicker", () => {
         catalog={[catalogEntry()]}
         choice={{ runtimeConfigId: "local-codex", model: "gpt-5.6" }}
         runtimeDisabledReasons={{ "local-codex": "Control probe failed" }}
-        onChange={vi.fn()}
-        onRuntimeChange={vi.fn()}
+        onChange={handleIgnore}
+        onRuntimeChange={handleIgnore}
       />,
     );
 
@@ -141,10 +143,13 @@ describe("AgentExecutionPicker", () => {
     await user.type(screen.getByTestId("agent-execution-model-search"), "gpt-custom-local");
     await user.click(screen.getByTestId("agent-execution-custom-model"));
 
-    expect(handleChange).toHaveBeenCalledWith({
-      runtimeConfigId: "local-codex",
-      model: "gpt-custom-local",
-    });
+    expect(handleChange).toHaveBeenCalledWith(
+      {
+        runtimeConfigId: "local-codex",
+        model: "gpt-custom-local",
+      },
+      ["model"],
+    );
     await waitFor(() =>
       expect(screen.queryByTestId("agent-execution-model-search")).not.toBeInTheDocument(),
     );
@@ -165,7 +170,7 @@ describe("AgentExecutionPicker", () => {
           firstOutputTimeoutSeconds: 45,
         }}
         onChange={handleChange}
-        onRuntimeChange={vi.fn()}
+        onRuntimeChange={handleIgnore}
       />,
     );
 
@@ -177,6 +182,7 @@ describe("AgentExecutionPicker", () => {
 
     expect(handleChange).toHaveBeenLastCalledWith(
       expect.objectContaining({ firstOutputTimeoutSeconds: 180 }),
+      ["firstOutputTimeoutSeconds"],
     );
 
     if (!screen.queryByTestId("agent-execution-picker-popover")) {
@@ -188,6 +194,7 @@ describe("AgentExecutionPicker", () => {
     await user.tab();
     expect(handleChange).toHaveBeenLastCalledWith(
       expect.objectContaining({ firstOutputTimeoutSeconds: 0 }),
+      ["firstOutputTimeoutSeconds"],
     );
   });
 });

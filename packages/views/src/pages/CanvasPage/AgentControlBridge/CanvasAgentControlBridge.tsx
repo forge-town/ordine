@@ -58,8 +58,11 @@ export const CanvasAgentControlBridge = () => {
         agentStore.getState().redoChangeSet(changeSetId, expectedVersion),
       reportError: (message) => agentStore.setState({ error: message }),
     });
+    const unsubscribe = agentStore.subscribe(() => agentStore.getState().consumePipelinePrompt());
+    agentStore.getState().consumePipelinePrompt();
 
     return () => {
+      unsubscribe();
       agentStore.getState().registerCanvasSurface(null);
       setAgentHistoryGateway(null);
       agentStore.getState().updateContext({

@@ -1,11 +1,10 @@
-import { useState } from "react";
-import { useCustomMutation } from "@refinedev/core";
+import { useRef, useState } from "react";
+import { useCreate } from "@refinedev/core";
+import type { ExecutionJob } from "@repo/schemas";
 import { ResultAsync } from "neverthrow";
 import { toastStore } from "../../store/toastStore";
 
-export type JobControlRequest =
-  | { action: "cancel" | "pause" | "resume"; jobId: string }
-  | { action: "run"; pipelineId: string };
+export type JobControlRequest = { action: "cancel" | "pause" | "resume"; jobId: string };
 
 export type JobControlHandlers<T> = {
   errorTitle: string;
@@ -15,25 +14,27 @@ export type JobControlHandlers<T> = {
 
 export const useJobControls = () => {
   const [pendingKey, setPendingKey] = useState<string | null>(null);
-  const { mutateAsync } = useCustomMutation();
+  const busy = useRef(false);
+  const { mutateAsync } = useCreate<ExecutionJob>({ mutationOptions: { retry: false } });
 
   const control = <T = unknown>(request: JobControlRequest, handlers: JobControlHandlers<T>) => {
-    const key =
-      handlers.pendingKey ?? (request.action === "run" ? request.pipelineId : request.jobId);
-    const url = request.action === "run" ? "pipelines/run" : `jobs/${request.action}`;
-    const values = request.action === "run" ? { id: request.pipelineId } : { jobId: request.jobId };
+    if (busy.current) return;
+    busy.current = true;
+    const key = handlers.pendingKey ?? request.jobId;
     setPendingKey(key);
 
     void ResultAsync.fromPromise(
-      mutateAsync({ method: "post", url, values }),
-      () => handlers.errorTitle,
+      mutateAsync({ dataProviderName: "execution", resource: "job-control", values: request }),
+      (error) => (error instanceof Error ? error.message : handlers.errorTitle),
     ).match(
       (response) => {
         setPendingKey(null);
+        busy.current = false;
         handlers.onSuccess?.(response.data as T);
       },
       (error) => {
         setPendingKey(null);
+        busy.current = false;
         toastStore.getState().addToast({ title: error, type: "error" });
       },
     );

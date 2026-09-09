@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { err, ok } from "neverthrow";
+import { ok } from "neverthrow";
 
 vi.hoisted(() => {
   process.env.ORDINE_AGENT_API_TOKEN = "test-agent-api-token-that-is-long-enough";
@@ -64,7 +64,19 @@ vi.mock("../src/services.js", () => ({
   },
 }));
 
+vi.mock("../src/routes/productMetadataRoutes", async () => {
+  const { Hono } = await import("hono");
+
+  return { productMetadataRoutes: new Hono() };
+});
+
 import { app } from "../src/app.js";
+const request = (path: string, init?: RequestInit) => {
+  const headers = new Headers(init?.headers);
+  headers.set("Authorization", "Bearer test-agent-api-token-that-is-long-enough");
+
+  return app.request(path, { ...init, headers });
+};
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -98,7 +110,7 @@ describe("domain REST routes", () => {
     ["/api/projects", mocks.projectsGetAll],
     ["/api/routines", mocks.routinesGetAll],
   ])("registers GET %s", async (path, serviceCall) => {
-    const response = await app.request(path, {
+    const response = await request(path, {
       headers: path === "/api/connectors" ? authorizedHeaders : undefined,
     });
 
@@ -107,18 +119,14 @@ describe("domain REST routes", () => {
     expect(serviceCall).toHaveBeenCalledOnce();
   });
 
-  it("starts a routine immediately", async () => {
-    const response = await app.request("/api/routines/routine-1/run-now", {
-      method: "POST",
-    });
-
-    expect(response.status).toBe(202);
-    expect(await response.json()).toEqual({ jobId: "job-1" });
-    expect(mocks.routinesRunNow).toHaveBeenCalledWith("routine-1");
+  it("disables immediate legacy routine execution", async () => {
+    const response = await request("/api/routines/routine-1/run-now", { method: "POST" });
+    expect(response.status).toBe(410);
+    expect(mocks.routinesRunNow).not.toHaveBeenCalled();
   });
 
   it("returns routine occurrences expanded in the server timezone", async () => {
-    const response = await app.request(
+    const response = await request(
       "/api/routines/occurrences?from=2026-08-03T00%3A00%3A00.000Z&to=2026-08-10T00%3A00%3A00.000Z",
     );
 
@@ -135,39 +143,13 @@ describe("domain REST routes", () => {
   });
 
   it.each([
-    ["pause", mocks.jobsPause, { jobId: "job-1", paused: true }],
-    ["resume", mocks.jobsResume, { jobId: "job-1", resumed: true }],
-    ["cancel", mocks.jobsCancel, { cancelled: true, jobId: "job-1" }],
-  ])("%ss a job", async (action, serviceCall, body) => {
-    const response = await app.request(`/api/jobs/job-1/${action}`, { method: "POST" });
-
-    expect(response.status).toBe(200);
-    expect(await response.json()).toEqual(body);
-    expect(serviceCall).toHaveBeenCalledWith("job-1");
-  });
-
-  it.each([
-    ["JobNotFoundError", 404],
-    ["InvalidJobStatusError", 409],
-  ])("maps %s from a job action to %i", async (name, status) => {
-    const error = new Error("Job action failed");
-    error.name = name;
-    mocks.jobsPause.mockResolvedValueOnce(err(error));
-
-    const response = await app.request("/api/jobs/job-1/pause", { method: "POST" });
-
-    expect(response.status).toBe(status);
-  });
-
-  it("maps a missing routine run to 404", async () => {
-    const notFound = new Error("Routine:missing not found");
-    notFound.name = "NotFoundError";
-    mocks.routinesRunNow.mockResolvedValue(err(notFound));
-
-    const response = await app.request("/api/routines/missing/run-now", { method: "POST" });
-
-    expect(response.status).toBe(404);
-    expect(mocks.routinesRunNow).toHaveBeenCalledWith("missing");
+    ["pause", mocks.jobsPause],
+    ["resume", mocks.jobsResume],
+    ["cancel", mocks.jobsCancel],
+  ])("disables legacy job %s", async (action, serviceCall) => {
+    const response = await request(`/api/jobs/job-1/${action}`, { method: "POST" });
+    expect(response.status).toBe(410);
+    expect(serviceCall).not.toHaveBeenCalled();
   });
 
   it("filters pipeline routines by enabled status", async () => {
@@ -176,18 +158,18 @@ describe("domain REST routes", () => {
       { id: "disabled", enabled: false },
     ]);
 
-    const response = await app.request("/api/routines?pipelineId=p1&enabled=true");
+    const response = await request("/api/routines?pipelineId=p1&enabled=true");
 
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual([{ id: "enabled", enabled: true }]);
   });
 
   it("exposes current connector and conversation actions", async () => {
-    const connectResponse = await app.request("/api/connectors/connector-1/connect", {
+    const connectResponse = await request("/api/connectors/connector-1/connect", {
       method: "POST",
       headers: authorizedHeaders,
     });
-    const clearResponse = await app.request("/api/conversations", { method: "DELETE" });
+    const clearResponse = await request("/api/conversations", { method: "DELETE" });
 
     expect(connectResponse.status).toBe(200);
     expect(await connectResponse.json()).toEqual({ id: "connector-1" });
@@ -206,14 +188,14 @@ describe("domain REST routes", () => {
   });
 
   it("rejects limit without pipelineId instead of silently ignoring it", async () => {
-    const response = await app.request("/api/conversations?limit=1");
+    const response = await request("/api/conversations?limit=1");
 
     expect(response.status).toBe(400);
     expect(mocks.conversationsGetAll).not.toHaveBeenCalled();
   });
 
   it("returns pipeline asset usage counts", async () => {
-    const response = await app.request("/api/pipeline-assets/asset-1/usage-count");
+    const response = await request("/api/pipeline-assets/asset-1/usage-count");
 
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({ assetId: "asset-1", count: 1 });
@@ -222,8 +204,8 @@ describe("domain REST routes", () => {
 
   it("exposes token-only usage endpoints", async () => {
     const query = "from=2026-07-01T00:00:00.000Z&to=2026-07-31T00:00:00.000Z";
-    const summaryResponse = await app.request(`/api/usage/summary?${query}`);
-    const dailyResponse = await app.request(`/api/usage/daily-token-series?${query}`);
+    const summaryResponse = await request(`/api/usage/summary?${query}`);
+    const dailyResponse = await request(`/api/usage/daily-token-series?${query}`);
 
     expect(summaryResponse.status).toBe(200);
     expect(await summaryResponse.json()).toEqual({ runCount: 0, totalTokens: 0 });

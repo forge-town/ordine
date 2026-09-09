@@ -28,6 +28,7 @@ export const PromptNode = ({ id, data, selected }: PromptNodeProps) => {
 
   return (
     <NodeCard
+      rightPortIds={["output"]}
       rightHandle
       actions={nodeCardActions}
       bodyClassName="space-y-2"

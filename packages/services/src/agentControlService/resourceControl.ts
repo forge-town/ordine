@@ -488,8 +488,14 @@ export const createResourceControl = (db: DbConnection) => {
     ): Promise<Result<ResourceControlValue, ResourceControlError>> {
       const parsed = updateSchemas[resourceType].safeParse(patch);
       if (!parsed.success) return err(validationError(parsed.error));
+      // Zod defaults also run inside partial schemas. Omitted fields are not writes.
+      const supplied = Object.fromEntries(
+        Object.entries(parsed.data).filter(
+          ([key]) => Object.hasOwn(patch, key) && patch[key] !== undefined,
+        ),
+      );
       if (resourceType === "pipeline") {
-        const pipelinePatch = parsed.data as z.infer<typeof PipelineMetadataUpdateSchema>;
+        const pipelinePatch = supplied as z.infer<typeof PipelineMetadataUpdateSchema>;
         if (!expectedVersion) {
           return err(
             domainError(
@@ -527,7 +533,7 @@ export const createResourceControl = (db: DbConnection) => {
           data: { resource: compact },
         });
       }
-      const result = await services[resourceType].update(id, parsed.data as never);
+      const result = await services[resourceType].update(id, supplied as never);
       if (result && typeof result === "object" && "isErr" in result) {
         const typed = result as Result<unknown, Error>;
         if (typed.isErr()) return err(toError(typed.error, `Update ${resourceType}`));

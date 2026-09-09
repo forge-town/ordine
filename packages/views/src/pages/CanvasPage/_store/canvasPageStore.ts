@@ -10,9 +10,16 @@ import { createUISlice, type UISlice } from "./uiSlice";
 import { createHistorySlice, type HistorySlice } from "./historySlice";
 import { createActionsSlice, type ActionsSlice } from "./actionsSlice";
 import { createAgentControlSlice, type AgentControlSlice } from "./agentControlSlice";
+import { createCanvasExecutionSlice, type CanvasExecutionSlice } from "./executionSlice";
 
 export interface CanvasPageState
-  extends CanvasSlice, UISlice, HistorySlice, ActionsSlice, AgentControlSlice {}
+  extends
+    CanvasSlice,
+    UISlice,
+    HistorySlice,
+    ActionsSlice,
+    AgentControlSlice,
+    CanvasExecutionSlice {}
 
 export type CanvasPageStoreSlice<T = CanvasPageState> = StateCreator<CanvasPageState, [], [], T>;
 
@@ -54,6 +61,7 @@ export const createCanvasPageStore = (
       get as Parameters<CanvasPageStoreSlice>[1],
       pipelineVersion ?? 1,
     ),
+    ...createCanvasExecutionSlice(set, get, pipelineId ?? null),
   }));
 };
 

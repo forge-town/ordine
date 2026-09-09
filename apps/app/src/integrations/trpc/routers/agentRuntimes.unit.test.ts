@@ -13,6 +13,7 @@ const mocks = vi.hoisted(() => ({
   harvest: vi.fn(),
   harvestOnce: vi.fn(),
   scanRuntimeCatalog: vi.fn(),
+  resolveCatalog: vi.fn(async (catalog: unknown[], _configs: unknown[]) => catalog),
   scanRuntimes: vi.fn(),
   syncAll: vi.fn(),
 }));
@@ -45,6 +46,7 @@ vi.mock("@repo/agent", () => ({
       availability: "launchable",
     })),
   scanRuntimeCatalog: mocks.scanRuntimeCatalog,
+  resolveRuntimeCatalogFromConfigs: mocks.resolveCatalog,
   scanRuntimes: mocks.scanRuntimes,
 }));
 
@@ -127,6 +129,7 @@ describe("agentRuntimesRouter", () => {
       expect.objectContaining({ runtime: "opencode", runtimeConfigId: "saved-opencode" }),
     ]);
     expect(mocks.scanRuntimeCatalog).toHaveBeenCalledOnce();
+    expect(mocks.resolveCatalog).toHaveBeenCalledWith(expect.any(Array), existing);
     expect(mocks.syncAll).not.toHaveBeenCalled();
   });
 

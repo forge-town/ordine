@@ -39,6 +39,7 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0",
+    "@repo/schemas": "workspace:*",
     "commander": "^14.0.0",
     "neverthrow": "^8.2.0",
     "zod": "^4.3.6"

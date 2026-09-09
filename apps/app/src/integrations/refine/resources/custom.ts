@@ -41,6 +41,14 @@ type CustomHandler = (payload: unknown) => Promise<unknown>;
 type Input<T extends (...args: never[]) => unknown> = Parameters<T>[0];
 
 export const customEndpoints: Record<string, CustomHandler> = {
+  "execution/publish-operation": (payload) =>
+    trpcClient.operations.publishExecution.mutate(
+      payload as Input<typeof trpcClient.operations.publishExecution.mutate>,
+    ),
+  "execution/publish-canvas": (payload) =>
+    trpcClient.pipelines.publishExecution.mutate(
+      payload as Input<typeof trpcClient.pipelines.publishExecution.mutate>,
+    ),
   [CustomEndpoint.pipelinesRun]: (payload) =>
     trpcClient.pipelines.run.mutate(payload as Input<typeof trpcClient.pipelines.run.mutate>),
   [CustomEndpoint.pipelinesCancel]: (payload) =>

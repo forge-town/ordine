@@ -6,6 +6,7 @@ import {
   AgentResourceTypeSchema,
   JobStatusSchema,
   PipelineGraphNodeSchema,
+  ExecutionPortValuesSchema,
 } from "@repo/schemas";
 
 const MAX_PATCH_BYTES = 32 * 1024;
@@ -131,6 +132,14 @@ export const ConnectNodesInputSchema = ChangeSetMetadataSchema.extend({
   target: z.string().min(1),
   sourceHandle: z.string().nullable().optional(),
   targetHandle: z.string().nullable().optional(),
+  data: z.strictObject({
+    label: z.string().default(""),
+    handoff: z.strictObject({
+      kind: z.literal("handoff"),
+      sourcePortId: z.string().min(1),
+      targetPortId: z.string().min(1),
+    }),
+  }),
 }).strict();
 
 export const DisconnectEdgeInputSchema = ChangeSetMetadataSchema.extend({
@@ -159,12 +168,12 @@ export const FinishCanvasEditInputSchema = ChangeSetMetadataSchema.extend({
 
 export const RunPipelineInputSchema = CallMetadataSchema.extend({
   pipelineId: z.string().min(1),
-  input: CompactPatchSchema.optional(),
+  inputs: ExecutionPortValuesSchema.optional(),
 }).strict();
 
 export const RunOperationInputSchema = CallMetadataSchema.extend({
   operationId: z.string().min(1),
-  input: CompactPatchSchema.optional(),
+  inputs: ExecutionPortValuesSchema.optional(),
 }).strict();
 
 export const RunRoutineInputSchema = CallMetadataSchema.extend({

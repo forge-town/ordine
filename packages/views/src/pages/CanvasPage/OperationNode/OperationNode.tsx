@@ -24,12 +24,18 @@ import {
 import { useStore } from "zustand";
 import { useShallow } from "zustand/shallow";
 import { useCanvasPageStore, selectNodeRunState, selectNodePortCounts } from "../_store";
-import type { OperationNodeData, NodeRunStatus, Operation, Agent } from "@repo/schemas";
+import type {
+  OperationNodeData,
+  NodeRunStatus,
+  Operation,
+  AgentRuntimeConfig,
+} from "@repo/schemas";
 import { useList } from "@refinedev/core";
 import { ResourceName } from "../../../constants";
 import { AgentActivitySurface } from "../../../components/AgentActivity";
 import { usePlatform } from "../../../platform";
 import { NodeCard, useNodeCardActions } from "../NodeCard";
+import { semanticConnectedMask } from "../NodeCard/semanticPorts";
 
 export interface OperationNodeProps {
   id: string;
@@ -98,18 +104,18 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
   const { result: operationsResult } = useList<Operation>({
     resource: ResourceName.operations,
   });
-  const { result: agentsResult } = useList<Agent>({
-    resource: ResourceName.agents,
+  const { result: runtimesResult } = useList<AgentRuntimeConfig>({
+    resource: ResourceName.agentRuntimes,
   });
   const operations = operationsResult.data;
-  const agents = agentsResult.data;
+  const runtimes = runtimesResult.data;
   const {
     isTestRunning,
     nodeAgentRunIds,
     nodeLlmContent,
     operationAgentDropdownNodeId,
     handleOperationLabelChange,
-    handleOperationAgentChange,
+    handleOperationRuntimeChange,
     handleOperationLoopToggle,
     handleOperationMaxLoopChange,
     handleOperationConditionChange,
@@ -123,7 +129,7 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
       nodeLlmContent: s.nodeLlmContent,
       operationAgentDropdownNodeId: s.operationAgentDropdownNodeId,
       handleOperationLabelChange: s.handleOperationLabelChange,
-      handleOperationAgentChange: s.handleOperationAgentChange,
+      handleOperationRuntimeChange: s.handleOperationRuntimeChange,
       handleOperationLoopToggle: s.handleOperationLoopToggle,
       handleOperationMaxLoopChange: s.handleOperationMaxLoopChange,
       handleOperationConditionChange: s.handleOperationConditionChange,
@@ -135,12 +141,10 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
     leftActivePortCount,
     leftActivePortMask,
     leftConnectedPortCount,
-    leftConnectedPortMask,
     leftPortCount,
     rightActivePortCount,
     rightActivePortMask,
     rightConnectedPortCount,
-    rightConnectedPortMask,
     rightPortCount,
   } = useStore(store, useShallow(selectNodePortCounts(id)));
   const agentOpen = operationAgentDropdownNodeId === id;
@@ -150,23 +154,19 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
   const statusLabel = t(labelKey);
 
   const operation = operations.find((op: Operation) => op.id === data.operationId);
-  const executor = operation?.config.executor;
-  const effectiveAgentMode =
-    executor?.type === "agent" ? (executor.agentMode ?? "prompt") : undefined;
-  const isSkillOperation = effectiveAgentMode === "skill";
-  const selectableAgents = isSkillOperation
-    ? agents.filter((agent) => agent.defaultRuntime !== "hermes")
-    : agents;
-
-  const selectedAgentId = data.agentId ?? "";
-  const selectedAgent = agents.find((agent) => agent.id === selectedAgentId);
-  const isAgentIncompatible =
-    isSkillOperation && !!selectedAgent && selectedAgent.defaultRuntime === "hermes";
-  const selectedAgentLabel = isAgentIncompatible
-    ? `${selectedAgent.name} (${t("nodes.operation.agentIncompatible")})`
-    : selectedAgentId
-      ? (selectedAgent?.name ?? selectedAgentId)
-      : t("nodes.operation.defaultAgent");
+  const semanticEdges = useStore(store, (state) => state.edges);
+  const inputPortIds =
+    operation?.config.inputs?.flatMap((port) => (port.id ? [port.id] : [])) ?? [];
+  const outputPortIds =
+    operation?.config.outputs?.flatMap((port) => (port.id ? [port.id] : [])) ?? [];
+  const hasLegacyRuntime = Boolean(data.agentId || data.agentRuntime);
+  const selectedRuntimeId = data.executionOverrides?.runtimeConfigId ?? "";
+  const selectedRuntime = runtimes.find((runtime) => runtime.id === selectedRuntimeId);
+  const selectedRuntimeLabel = hasLegacyRuntime
+    ? "旧 Agent 配置，请重新选择运行时"
+    : selectedRuntimeId
+      ? (selectedRuntime?.name ?? `${selectedRuntimeId}（未找到）`)
+      : "继承运行配置";
 
   const hasLlmContent = !!nodeLlmContent[id];
   const activeRunId = nodeAgentRunIds[id]?.at(-1) ?? null;
@@ -192,7 +192,7 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
     handleOperationAgentDropdownOpenChange(id, open);
   };
   const handleAgentValueChange = (value: string | null) => {
-    handleOperationAgentChange(id, value);
+    handleOperationRuntimeChange(id, value);
   };
   const handleLoopButtonClick = (event: SyntheticEvent) => {
     stopCanvasInteraction(event);
@@ -210,8 +210,8 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
         actions={nodeCardActions}
         bodyClassName="space-y-2"
         compact={nodeCardMode === "compact"}
-        detail={data.agentRuntime ?? data.agentId ?? data.operationName}
         description={operation?.description || t("nodes.operation.customDescription")}
+        detail={selectedRuntimeLabel}
         dimmed={dimmed}
         headerRight={
           <div
@@ -239,13 +239,15 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
         leftActivePortCount={leftActivePortCount}
         leftActivePortMask={leftActivePortMask}
         leftConnectedPortCount={leftConnectedPortCount}
-        leftConnectedPortMask={leftConnectedPortMask}
+        leftConnectedPortMask={semanticConnectedMask(semanticEdges, id, inputPortIds, "input")}
         leftHandleCount={leftPortCount}
+        leftPortIds={inputPortIds}
         rightActivePortCount={rightActivePortCount}
         rightActivePortMask={rightActivePortMask}
         rightConnectedPortCount={rightConnectedPortCount}
-        rightConnectedPortMask={rightConnectedPortMask}
+        rightConnectedPortMask={semanticConnectedMask(semanticEdges, id, outputPortIds, "output")}
         rightHandleCount={rightPortCount}
+        rightPortIds={outputPortIds}
         runStatus={nodeRunStatus}
         selected={selected}
         theme="violet"
@@ -286,19 +288,19 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
         <div className="nodrag nopan space-y-1.5" {...canvasInteractionHandlers}>
           <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
             <Brain className="mr-1 inline-block h-3 w-3" />
-            {t("nodes.operation.agent")}
+            运行时
           </p>
           <Select
             open={agentOpen}
-            value={selectedAgentId || "__default__"}
+            value={hasLegacyRuntime ? "__legacy__" : selectedRuntimeId || "__default__"}
             onOpenChange={handleAgentDropdownChange}
             onValueChange={handleAgentValueChange}
           >
             <SelectTrigger
-              aria-label={t("nodes.operation.agent")}
+              aria-label="运行时"
               className="nodrag nopan h-8 w-full min-w-0 px-2.5 text-xs"
             >
-              <span className="truncate">{selectedAgentLabel}</span>
+              <span className="truncate">{selectedRuntimeLabel}</span>
             </SelectTrigger>
             <SelectContent
               align="start"
@@ -307,16 +309,21 @@ export const OperationNode = ({ id, data, selected }: OperationNodeProps) => {
               sideOffset={6}
             >
               <SelectGroup>
-                <SelectLabel>{t("nodes.operation.agent")}</SelectLabel>
-                <SelectItem value="__default__">{t("nodes.operation.defaultAgent")}</SelectItem>
-                {isAgentIncompatible && (
-                  <SelectItem disabled value={selectedAgentId}>
-                    {selectedAgent.name} ({t("nodes.operation.agentIncompatible")})
+                <SelectLabel>运行时</SelectLabel>
+                <SelectItem value="__default__">继承运行配置</SelectItem>
+                {hasLegacyRuntime && (
+                  <SelectItem disabled value="__legacy__">
+                    旧 Agent 配置，请重新选择运行时
                   </SelectItem>
                 )}
-                {selectableAgents.map((agent) => (
-                  <SelectItem key={agent.id} value={agent.id}>
-                    {agent.name}
+                {!hasLegacyRuntime && selectedRuntimeId && !selectedRuntime && (
+                  <SelectItem disabled value={selectedRuntimeId}>
+                    {selectedRuntimeId}（未找到）
+                  </SelectItem>
+                )}
+                {runtimes.map((runtime) => (
+                  <SelectItem key={runtime.id} value={runtime.id}>
+                    {runtime.name}
                   </SelectItem>
                 ))}
               </SelectGroup>

@@ -19,12 +19,17 @@ vi.mock("@xyflow/react", () => ({
 vi.mock("@refinedev/core", async (importOriginal) => ({
   ...(await importOriginal<typeof RefineCore>()),
   useList: ({ resource }: { resource: string }) => {
-    if (resource === "agents") {
+    if (resource === "agentRuntimes") {
       return {
         result: {
           data: [
-            { id: "agent-claude", name: "Claude", defaultRuntime: "claude-code" },
-            { id: "agent-hermes", name: "Hermes", defaultRuntime: "hermes" },
+            {
+              id: "runtime-claude",
+              name: "Claude",
+              type: "claude-code",
+              connection: { mode: "local" },
+            },
+            { id: "runtime-codex", name: "Codex", type: "codex", connection: { mode: "local" } },
           ],
         },
       };
@@ -102,9 +107,9 @@ describe("OperationNode", () => {
   it("renders localized embedded-control labels and accessible names", () => {
     renderOperationNode();
 
-    expect(screen.getByText("Agent")).toBeInTheDocument();
+    expect(screen.getByText("运行时")).toBeInTheDocument();
     expect(screen.getByText("最大轮次")).toBeInTheDocument();
-    expect(screen.getByRole("combobox", { name: "Agent" })).toHaveClass(
+    expect(screen.getByRole("combobox", { name: "运行时" })).toHaveClass(
       "h-8",
       "w-full",
       "nodrag",
@@ -138,7 +143,7 @@ describe("OperationNode", () => {
     ]);
     store.setState({ nodeCardMode: "compact" });
 
-    render(<OperationNode data={baseData} id={nodeId} selected />, {
+    render(<OperationNode selected data={baseData} id={nodeId} />, {
       wrapper: ({ children }) => (
         <CanvasPageStoreContext.Provider value={store}>{children}</CanvasPageStoreContext.Provider>
       ),
@@ -148,7 +153,7 @@ describe("OperationNode", () => {
       "data-card-mode",
       "compact",
     );
-    expect(screen.queryByText("Agent")).not.toBeInTheDocument();
+    expect(screen.queryByText("运行时")).not.toBeInTheDocument();
   });
 
   it("updates runtime selection without bubbling canvas interactions", async () => {
@@ -160,7 +165,7 @@ describe("OperationNode", () => {
       handleParentMouseDown: parentMouseDown,
     });
 
-    await user.click(screen.getByRole("combobox", { name: "Agent" }));
+    await user.click(screen.getByRole("combobox", { name: "运行时" }));
 
     expect(parentClick).not.toHaveBeenCalled();
     expect(parentMouseDown).not.toHaveBeenCalled();
@@ -169,40 +174,43 @@ describe("OperationNode", () => {
 
     await waitFor(() => {
       expect(store.getState().nodes[0]?.data).toMatchObject({
-        agentId: "agent-claude",
+        agentId: undefined,
+        agentRuntime: undefined,
+        executionOverrides: { runtimeConfigId: "runtime-claude" },
       });
     });
     expect(parentClick).not.toHaveBeenCalled();
   });
 
-  it("shows stale Hermes selection as incompatible rather than hiding it", async () => {
+  it("shows legacy persona selection as requiring explicit runtime reselection", async () => {
     const user = userEvent.setup();
     const staleData: OperationNodeData = { ...baseData, agentId: "agent-hermes" };
     const store = renderOperationNode(staleData);
 
-    const trigger = screen.getByRole("combobox", { name: "Agent" });
-    expect(trigger).toHaveTextContent(/Hermes/);
+    const trigger = screen.getByRole("combobox", { name: "运行时" });
+    expect(trigger).toHaveTextContent("请重新选择运行时");
+    expect(store.getState().nodes[0]?.data).toMatchObject({ agentId: "agent-hermes" });
 
     await user.click(trigger);
 
-    const hermesOption = await screen.findByRole("option", { name: /Hermes/ });
+    const hermesOption = await screen.findByRole("option", { name: /请重新选择运行时/ });
     expect(hermesOption).toHaveAttribute("aria-disabled", "true");
 
-    await user.click(await screen.findByRole("option", { name: "默认" }));
+    await user.click(await screen.findByRole("option", { name: "继承运行配置" }));
 
     await waitFor(() => {
       expect(store.getState().nodes[0]?.data).toMatchObject({ agentId: undefined });
     });
   });
 
-  it("hides Hermes-backed agents for skill operations", async () => {
+  it("lists saved runtime configurations rather than Agent personas", async () => {
     const user = userEvent.setup();
     renderOperationNode();
 
-    await user.click(screen.getByRole("combobox", { name: "Agent" }));
+    await user.click(screen.getByRole("combobox", { name: "运行时" }));
 
     expect(await screen.findByRole("option", { name: "Claude" })).toBeInTheDocument();
-    expect(screen.queryByRole("option", { name: "Hermes" })).not.toBeInTheDocument();
+    expect(await screen.findByRole("option", { name: "Codex" })).toBeInTheDocument();
   });
 
   it("updates loop settings without bubbling canvas interactions", async () => {

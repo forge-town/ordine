@@ -21,7 +21,8 @@ const JsonRpcRequestSchema = z.object({
 
 type JsonRpcId = z.infer<typeof JsonRpcRequestSchema>["id"];
 type JsonRpcResponse = Record<string, unknown> | null;
-const STDIO_AGENT_THREAD_ID = "agent-control-stdio-local-owner";
+const EXECUTION_INSTRUCTIONS =
+  "Execution API v2 only. Persist requestId before submitting. Awaiting approval requires the user in the ORDINE App; never approve your own request. On timeout query the original receipt. Verify outputs and artifact content, provenance and SHA-256 before claiming delivery.";
 
 const success = (id: JsonRpcId, result: unknown): JsonRpcResponse => ({
   jsonrpc: "2.0",
@@ -85,7 +86,7 @@ export const createOrdineMcpServer = ({
         tools: { listChanged: false },
         resources: { listChanged: false, subscribe: false },
       },
-      instructions: `ORDINE MCP policy=${policy.mode}; write=${policy.allowWrite}; irreversible=${policy.allowIrreversible}; threadId=${STDIO_AGENT_THREAD_ID}. Canvas tools must use that threadId.`,
+      instructions: `ORDINE MCP policy=${policy.mode}; write=${policy.allowWrite}; irreversible=${policy.allowIrreversible}; ${EXECUTION_INSTRUCTIONS}`,
     },
   );
 
@@ -136,7 +137,7 @@ export const handleMcpRequest = async ({
         resources: { listChanged: false, subscribe: false },
       },
       serverInfo: { name: "ordine", version: "0.0.2" },
-      instructions: `ORDINE MCP policy=${policy.mode}; write=${policy.allowWrite}; irreversible=${policy.allowIrreversible}; threadId=${STDIO_AGENT_THREAD_ID}. Canvas tools must use that threadId.`,
+      instructions: `ORDINE MCP policy=${policy.mode}; write=${policy.allowWrite}; irreversible=${policy.allowIrreversible}; ${EXECUTION_INSTRUCTIONS}`,
     });
   }
   if (method === "tools/list") return success(id, { tools: publicMcpTools() });

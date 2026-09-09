@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "bun --watch src/index.ts",
     "start": "bun src/index.ts",
+    "authoring:dev": "bun --watch src/authoring-entry.ts",
+    "authoring:start": "bun src/authoring-entry.ts",
     "check-types": "tsc --noEmit",
     "lint": "oxlint --config ./.oxlintrc.json src/",
     "quality": "bun run check-types && bun run lint && bun run test",
@@ -19,6 +21,7 @@
     "@repo/agent-control": "workspace:*",
     "@repo/agent-engine": "workspace:*",
     "@repo/db": "workspace:*",
+    "@repo/models": "workspace:*",
     "@repo/schemas": "workspace:*",
     "@repo/services": "workspace:*",
     "@trpc/server": "^11.16.0",

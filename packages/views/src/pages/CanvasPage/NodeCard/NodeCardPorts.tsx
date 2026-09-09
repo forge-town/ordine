@@ -23,6 +23,8 @@ export interface NodeCardPortsProps {
   rightConnectedPortMask?: number;
   rightHandle?: boolean;
   rightHandleCount: number;
+  leftPortIds?: string[];
+  rightPortIds?: string[];
 }
 
 const nodePortClassName =
@@ -104,12 +106,21 @@ export const NodeCardPorts = ({
   rightConnectedPortMask,
   rightHandle,
   rightHandleCount,
+  leftPortIds,
+  rightPortIds,
 }: NodeCardPortsProps) => {
   const { t } = useTranslation();
   const nodeId = useNodeId();
   const updateNodeInternals = useUpdateNodeInternals();
-  const leftPortOffsets = getNodePortOffsets(leftHandleCount, cardMaxPortSpread);
-  const rightPortOffsets = getNodePortOffsets(rightHandleCount, cardMaxPortSpread);
+  const leftPortOffsets =
+    leftPortIds?.length === 0
+      ? []
+      : getNodePortOffsets(leftPortIds?.length ?? leftHandleCount, cardMaxPortSpread);
+  const rightPortOffsets =
+    rightPortIds?.length === 0
+      ? []
+      : getNodePortOffsets(rightPortIds?.length ?? rightHandleCount, cardMaxPortSpread);
+  const portKey = JSON.stringify([leftPortIds, rightPortIds]);
   const leftPortClassName = cn(nodePortClassName, "!left-0");
   const rightPortClassName = cn(nodePortClassName, "!right-0");
 
@@ -138,6 +149,7 @@ export const NodeCardPorts = ({
     nodeId,
     rightHandle,
     rightHandleCount,
+    portKey,
     updateNodeInternals,
   ]);
 
@@ -160,17 +172,24 @@ export const NodeCardPorts = ({
 
           return (
             <ReactFlowPort
-              aria-label={t("workspace.canvas.nodes.ports.left", {
-                defaultValue: `Input port ${index + 1}`,
-                index: index + 1,
-              })}
+              aria-label={
+                leftPortIds?.[index]
+                  ? `Input: ${leftPortIds[index]}`
+                  : t("workspace.canvas.nodes.ports.left", {
+                      defaultValue: `Input port ${index + 1}`,
+                      index: index + 1,
+                    })
+              }
               key={makeNodePortId("left", index)}
               className={leftPortClassName}
               data-active={visualState.active ? "true" : "false"}
               data-connected={visualState.connected ? "true" : "false"}
               data-testid="canvas-v2-node-left-port"
               data-port-state={visualState.state}
-              id={makeNodePortId("left", index)}
+              id={
+                leftPortIds?.[index] ? `input:${leftPortIds[index]}` : makeNodePortId("left", index)
+              }
+              title={leftPortIds?.[index]}
               position={getNodePortPosition("left")}
               style={getNodePortStyle(offset)}
               type="target"
@@ -194,17 +213,26 @@ export const NodeCardPorts = ({
 
           return (
             <ReactFlowPort
-              aria-label={t("workspace.canvas.nodes.ports.right", {
-                defaultValue: `Output port ${index + 1}`,
-                index: index + 1,
-              })}
+              aria-label={
+                rightPortIds?.[index]
+                  ? `Output: ${rightPortIds[index]}`
+                  : t("workspace.canvas.nodes.ports.right", {
+                      defaultValue: `Output port ${index + 1}`,
+                      index: index + 1,
+                    })
+              }
               key={makeNodePortId("right", index)}
               className={rightPortClassName}
               data-active={visualState.active ? "true" : "false"}
               data-connected={visualState.connected ? "true" : "false"}
               data-testid="canvas-v2-node-right-port"
               data-port-state={visualState.state}
-              id={makeNodePortId("right", index)}
+              id={
+                rightPortIds?.[index]
+                  ? `output:${rightPortIds[index]}`
+                  : makeNodePortId("right", index)
+              }
+              title={rightPortIds?.[index]}
               position={getNodePortPosition("right")}
               style={getNodePortStyle(offset)}
               type="source"
