@@ -28,3 +28,9 @@ Root quality completed 21/21 tasks before integration with newer develop commits
 ## Remaining acceptance boundary
 
 Standalone Web bootstrap could not be reaccepted because local execution-service startup was blocked by automatic approval. Native acceptance does not establish standalone Web acceptance. No production migration or deployment was performed. Nested/compound execution remains outside this delivery.
+
+## Integration with current develop
+
+The branch includes #199, #200 and #201. Job lease columns and historical migration fixes are retained, terminal Agent event protection is shared with the upstream helper, and removed ownership/DSH tests remain removed. Retired execution endpoints stay disabled; selected runtime configuration is published through the v2 boundary instead of re-enabling the old runner.
+
+Native authoring initialization now requires the 14-file migration chain through `0013_job_execution_leases.sql`. Its existing fingerprint checks intentionally reject an older preview schema; use a fresh dedicated target for this breaking preview. Automatic adoption or migration of previous preview data is not included.

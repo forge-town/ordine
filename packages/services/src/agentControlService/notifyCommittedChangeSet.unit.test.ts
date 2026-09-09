@@ -7,7 +7,7 @@ describe("committed Change Set notification", () => {
   it("does not append to a completed Agent stream after the user applies its proposal", async () => {
     const emit = vi.fn(async () => undefined);
     const events = {
-      getRun: vi.fn(async () => ({ status: "completed" })),
+      getRun: vi.fn(async () => ({ status: "completed", controlMode: true })),
     } as unknown as AgentControlRunEventPort;
     await notifyCommittedChangeSet(events, "run", notification, emit);
     expect(emit).not.toHaveBeenCalled();

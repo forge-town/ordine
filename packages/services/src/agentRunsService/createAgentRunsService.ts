@@ -1298,7 +1298,7 @@ export const createAgentRunsService = (
       const execution = executions.get(runId);
       if (!execution) {
         const run = await getRunRecord(runId);
-        if (TERMINAL_STATUSES.has(run.status)) return getPublicRun(run);
+        if (TERMINAL_AGENT_RUN_STATUSES.has(run.status)) return getPublicRun(run);
         throw new Error(`Agent run execution was not registered: ${runId}`);
       }
 

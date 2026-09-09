@@ -45,7 +45,7 @@ use Tauri's platform bundle types.
 MinGW cannot reliably link files whose build-output path contains non-ASCII
 characters. On such a checkout, set `CARGO_TARGET_DIR` to an ASCII-only directory
 for this command. The build script also stages the icon under that output directory.
-The bundle includes the frozen v2 SQL migration, the 13 authoring metadata SQL migrations
+The bundle includes the frozen v2 SQL migration, the 14 authoring metadata SQL migrations
 in `migrations-authoring`, and native PowerShell launchers next to the server bundle.
 The original navigation uses the authoring API as the default Refine provider and the
 named `execution` provider for v2 requests on the same native-owned API origin.

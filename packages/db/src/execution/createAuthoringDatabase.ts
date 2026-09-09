@@ -41,7 +41,7 @@ export const initializeAuthoringDatabase = (options: {
       const names = (await readdir(options.migrationsDirectory))
         .filter((name) => /^\d{4}_[a-z0-9_]+\.sql$/u.test(name))
         .sort();
-      if (names.length !== 13 || !names[0]!.startsWith("0000_") || !names[12]!.startsWith("0012_"))
+      if (names.length !== 14 || !names[0]!.startsWith("0000_") || !names[13]!.startsWith("0013_"))
         throw safeError();
       const sources = await Promise.all(
         names.map(

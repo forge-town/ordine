@@ -31,6 +31,9 @@ describe.skipIf(!databaseUrl)("isolated authoring metadata", () => {
     expect(absent.isErr()).toBe(true);
     const created = await initializeAuthoringDatabase({ ...options, initialize: true });
     expect(created.isOk(), JSON.stringify(created)).toBe(true);
+    const leaseColumns =
+      await client`SELECT column_name FROM information_schema.columns WHERE table_schema=${schema} AND table_name='jobs' AND column_name IN ('last_progress_at','heartbeat_at','lease_owner_id','lease_expires_at','expiry_context')`;
+    expect(leaseColumns).toHaveLength(5);
     const repeated = await Promise.all([
       initializeAuthoringDatabase(options),
       initializeAuthoringDatabase({ ...options, initialize: true }),
