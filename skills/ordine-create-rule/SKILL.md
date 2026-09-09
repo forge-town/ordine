@@ -1,6 +1,6 @@
 ---
 name: ordine-create-rule
-description: Use when 需要在 Ordine 系统中创建 Rule（自定义检查规则），定义检查脚本、严重级别和适用对象类型。触发词：创建规则、新建rule、添加检查规则、自定义lint规则。
+description: 创建或修改 Ordine Rule 实体的检查脚本与适用范围。
 ---
 
 # 创建 Rule
@@ -13,7 +13,7 @@ Rule 是 Ordine 中的自定义检查规则，包含可执行的检查脚本（c
 
 ### CLI
 
-> CLI 当前不直接支持 Rule CRUD。使用 REST API 操作。
+CLI 有 `ordine rules` 命令，但当前源码独立 Server 未挂载 `/api/rules`。只有目标实例实际提供该接口时使用下面的历史 API 示例；404 不应引发重复重试或擅自启用服务。
 
 ### REST API
 
@@ -62,18 +62,18 @@ curl -X DELETE http://localhost:9433/api/rules/rule_no_template_classname
 
 ## 数据结构
 
-| 字段 | 类型 | 说明 |
-|---|---|---|
-| `id` | `string` | 唯一标识，格式：`rule_<描述>` |
-| `name` | `string` | 规则名称 |
-| `description` | `string \| null` | 规则描述 |
-| `category` | `RuleCategory` | 分类：`naming`, `structure`, `testing`, `style`, `performance`, `security` |
-| `severity` | `string \| null` | 严重级别：`error`, `warning`, `info` |
-| `checkScript` | `string \| null` | 检查脚本内容 |
-| `scriptLanguage` | `string \| null` | 脚本语言：`bash`, `javascript`, `python` |
-| `acceptedObjectTypes` | `string[] \| null` | 接受的对象类型 |
-| `enabled` | `boolean` | 是否启用 |
-| `tags` | `string[] \| null` | 标签 |
+| 字段                  | 类型               | 说明                                                                       |
+| --------------------- | ------------------ | -------------------------------------------------------------------------- |
+| `id`                  | `string`           | 唯一标识，格式：`rule_<描述>`                                              |
+| `name`                | `string`           | 规则名称                                                                   |
+| `description`         | `string \| null`   | 规则描述                                                                   |
+| `category`            | `RuleCategory`     | 分类：`naming`, `structure`, `testing`, `style`, `performance`, `security` |
+| `severity`            | `string \| null`   | 严重级别：`error`, `warning`, `info`                                       |
+| `checkScript`         | `string \| null`   | 检查脚本内容                                                               |
+| `scriptLanguage`      | `string \| null`   | 脚本语言：`bash`, `javascript`, `python`                                   |
+| `acceptedObjectTypes` | `string[] \| null` | 接受的对象类型                                                             |
+| `enabled`             | `boolean`          | 是否启用                                                                   |
+| `tags`                | `string[] \| null` | 标签                                                                       |
 
 ## 命名规范
 
