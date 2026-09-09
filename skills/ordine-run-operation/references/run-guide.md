@@ -2,7 +2,7 @@
 
 ## 运行前确认
 
-在真正触发 Operation 前，先向用户确认以下信息：
+运行前从请求、当前配置和已知上下文核实以下信息；仅在关键项缺失或执行授权不足时询问：
 
 - Operation ID：例如 `op_scan_schema`
 - API 地址：默认 `http://localhost:9433`
@@ -10,7 +10,7 @@
 - Agent runtime 覆盖：是否传 `agentOverride`
 - 预期输出：Job ID、Job 终态、traces、生成的文件或结果目录
 
-如果用户已经明确授权运行，仍然先说明将执行的命令和预期输出，再执行命令。
+沿用用户已有执行授权；常规参数不逐项重复确认。目标环境、输入或执行副作用有实质变化时再澄清。
 
 ## 确认 Operation 存在
 
@@ -80,20 +80,7 @@ curl -s http://localhost:9433/api/jobs/<job-id> | python3 -m json.tool
 curl -s http://localhost:9433/api/jobs/<job-id>/traces | python3 -m json.tool
 ```
 
-轮询直到终态：
-
-```bash
-JOB_ID="<job-id>"
-while true; do
-  STATUS=$(curl -s "http://localhost:9433/api/jobs/$JOB_ID" | python3 -c "import sys,json; print(json.load(sys.stdin)['status'])")
-  echo "Status: $STATUS"
-  if [ "$STATUS" = "done" ] || [ "$STATUS" = "failed" ] || [ "$STATUS" = "cancelled" ] || [ "$STATUS" = "expired" ]; then
-    break
-  fi
-  sleep 3
-done
-curl -s "http://localhost:9433/api/jobs/$JOB_ID" | python3 -m json.tool
-```
+轮询只查询返回的 Job ID，不重复提交运行。按预计时长选择查询间隔；到 `done`、`failed`、`cancelled`、`expired`、`skipped` 停止，到 `paused` 检查暂停原因。连续查询失败时先诊断连接或鉴权，避免无限循环。
 
 ## Job 状态
 
@@ -105,37 +92,9 @@ curl -s "http://localhost:9433/api/jobs/$JOB_ID" | python3 -m json.tool
 - `failed`：执行失败，查看 `error` 和 traces
 - `cancelled` 或 `expired`：运行被取消或超时
 
-## 运行 `op_scan_schema`
+## 输入与产物
 
-`op_scan_schema` 是数据库中的 Operation，不来自 `skills/` 静态目录。运行前先确认：
-
-```bash
-curl -s http://localhost:9433/api/operations/op_scan_schema | python3 -m json.tool
-```
-
-它接受 `folder` 输入。扫描当前项目 schema 时，推荐输入：
-
-```bash
-/Users/amin/projects/ordine/packages/db-schema/src
-```
-
-触发命令：
-
-```bash
-curl -s -X POST http://localhost:9433/api/operations/op_scan_schema/run \
-  -H "Content-Type: application/json" \
-  -d '{
-    "inputPath": "/Users/amin/projects/ordine/packages/db-schema/src"
-  }' | python3 -m json.tool
-```
-
-预期输出：
-
-- 返回一个 `jobId`
-- Job title 类似 `Run operation: 扫描 Schema 报告`
-- Job 最终状态应为 `done` 或 `failed`
-- Operation 期望生成 `report.md`、`dashboard`、`data` 三类输出
-- 结果通常可通过 Job 详情、traces 或 `.ordine/results` 下的新文件定位
+Operation 的 ID 和输入输出约定取自目标实例；本地路径使用当前任务核实的绝对路径，不沿用他人机器的路径。成功后读取实际输出，核对内容与本次运行的来源；只返回 Job ID 或声明生成文件不等于交付。
 
 ## 失败排查
 

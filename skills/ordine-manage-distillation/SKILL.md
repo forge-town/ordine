@@ -1,6 +1,6 @@
 ---
 name: ordine-manage-distillation
-description: Use when 需要在 Ordine 中创建、运行、查看或删除 Distillation，把 Job、Pipeline 或人工输入提炼成洞察、资产和后续行动。触发词：蒸馏、distillation、提炼运行结果、总结pipeline。
+description: 管理 Ordine Distillation，提炼运行结果或人工输入。
 ---
 
 # 管理 Distillation
@@ -9,7 +9,8 @@ description: Use when 需要在 Ordine 中创建、运行、查看或删除 Dist
 
 Distillation 将 Job、Pipeline 或人工上下文提炼为结构化洞察、可复用资产和下一步行动。
 
-## 工作流程
+## 按需参考
 
-1. 操作前读取 [workflow.md](references/workflow.md)，确认数据模型、API、运行和排查流程
-2. 完成后读取 [checklist.md](references/checklist.md)，逐项验证结果
+- 操作和参数见 [workflow.md](references/workflow.md)，只读取当前任务对应部分。
+- 核对改动或运行结果时使用 [checklist.md](references/checklist.md) 的相关项；单纯查询不触发运行。
+- 运行沿用用户授权的目标与范围；查询或创建记录不自动启动蒸馏或后续 Refinement。

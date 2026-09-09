@@ -1,6 +1,6 @@
 ---
 name: ordine-export-import
-description: Use when 需要导出或导入 Ordine 的 Best Practice 数据（含 checklistItems 和 codeSnippets），用于备份、迁移或共享。触发词：导出最佳实践、导入规范、迁移数据、备份bestpractice、export import。
+description: 导出或导入 Ordine Best Practice 及其检查项、代码片段。
 ---
 
 # 导出与导入
@@ -11,7 +11,7 @@ Ordine 支持将 Best Practice（连同关联的 Checklist Items 和 Code Snippe
 
 ## 通过 CLI
 
-> CLI 当前不直接支持导出导入。使用 REST API 操作。
+CLI 提供 `ordine best-practices export <outFile>` / `import <jsonFile>`，但当前源码独立 Server 未挂载该资源；先确认目标实例支持。导入会写入目标环境，示例中的生产地址不构成授权。
 
 ## 通过 REST API
 
@@ -42,7 +42,13 @@ curl -s http://localhost:9433/api/best-practices/export | python3 -m json.tool
       { "id": "cli_cn_1", "content": "所有动态 className 使用 cn()", "sortOrder": 0 }
     ],
     "codeSnippets": [
-      { "id": "cs_cn_good", "title": "✅ 正确用法", "code": "...", "language": "tsx", "sortOrder": 0 }
+      {
+        "id": "cs_cn_good",
+        "title": "✅ 正确用法",
+        "code": "...",
+        "language": "tsx",
+        "sortOrder": 0
+      }
     ]
   }
 ]

@@ -1,6 +1,6 @@
 ---
 name: ordine-browse-traces
-description: Use when Pipeline 运行失败或结果异常，需要读取 Job 的 Trace 日志、分析错误原因并给出修复建议。触发词：browse traces、job失败、排查运行失败、trace日志、pipeline报错、job error。
+description: 读取 Ordine Job traces，排查执行失败或产物异常。
 ---
 
 # 浏览 Trace 日志
@@ -9,7 +9,7 @@ description: Use when Pipeline 运行失败或结果异常，需要读取 Job �
 
 当 Pipeline 运行后 Job 状态变为 `failed` 或结果不符合预期时，需要通过 Trace 日志定位根因并给出修复方案。
 
-## 诊断流程
+## 按问题选用的诊断入口
 
 ### 第一步：获取 Job 状态
 
@@ -74,7 +74,7 @@ curl -s http://localhost:9433/api/jobs/<JOB_ID>/traces | \
 
 ### 第五步：确认修复
 
-修复问题后重新运行 Pipeline：
+任务包含修复与验证、且允许该 Pipeline 的执行副作用时，重新运行受影响路径：
 
 ```bash
 # 通过 CLI
@@ -86,4 +86,4 @@ curl -X POST http://localhost:9433/api/pipelines/<PIPELINE_ID>/run \
   -d '{ "inputPath": "<INPUT_PATH>" }'
 ```
 
-验证新 Job 状态为 `done` 且无 `error` 级别 Trace。
+核实新 Job 的状态和相关 Trace，并检查任务要求的实际产物、内容及来源。状态或无错误日志不能单独证明交付；纯诊断请求不自动触发重跑。

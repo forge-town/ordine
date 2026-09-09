@@ -1,13 +1,15 @@
 ---
 name: ordine-list-entities
-description: Use when 需要在 Ordine 系统中列出或发现已有的 Operation、Pipeline、Best Practice 等实体以复用，避免重复创建。触发词：list entities、列出operation、查找pipeline、有没有已有的、复用检查、发现实体。
+description: 在 Ordine 中按名称或用途查找已有实体，评估能否复用。
 ---
 
 # 列出与发现实体
 
+当前源码独立 Server 未挂载 Best Practice、Rule、Checklist Item、Code Snippet 接口；涉及这些资源时，先确认目标版本支持。历史示例不证明接口可用，404 后不要重复试探。
+
 ## 概述
 
-在创建新的 Operation、Pipeline 或 Best Practice 之前，应先搜索系统中是否已存在可复用的实体。Ordine 的 REST API 提供全量列表接口，通过客户端过滤实现搜索。
+用户要求查找或复用、或创建时有实际重名风险，才检索对应资源。目标 ID 已明确时直接读取详情；不要依次扫描所有实体类型。只输出匹配候选的必要字段。
 
 ## 搜索方法
 
@@ -71,23 +73,7 @@ curl -s http://localhost:9433/api/skills | python3 -m json.tool
 
 ## 复用策略
 
-### 决策树
-
-```
-需要一个新的检查功能
-  ├── 搜索 Operation：已有类似的？
-  │     ├── 完全匹配 → 直接使用
-  │     ├── 部分匹配 → 考虑修改现有 Operation 的配置
-  │     └── 无匹配 → 创建新 Operation（参考 ordine-create-operation）
-  │
-  ├── 搜索 Best Practice：已有对应规范？
-  │     ├── 完全匹配 → 作为 Operation/Pipeline 的规范参考
-  │     └── 无匹配 → 创建新 Best Practice（参考 ordine-create-bestpractice）
-  │
-  └── 搜索 Pipeline：已有包含此检查的？
-        ├── 匹配 → 直接运行
-        └── 无匹配 → 创建或扩展 Pipeline（参考 ordine-create-pipeline）
-```
+找到满足输入输出约束的候选后复用；部分匹配时比较修改对现有使用方的影响。发现结果不自动授权修改或运行。
 
 ### 查看实体详情
 
@@ -112,6 +98,6 @@ curl -s "http://localhost:9433/api/code-snippets?bestPracticeId=<BP_ID>" | pytho
 
 ## 注意事项
 
-- 搜索在客户端执行，所有 `GET /api/<resource>` 返回全量数据
+- 对不支持服务端过滤的接口，在客户端过滤；注意目标版本的分页，避免把完整列表反复输出到上下文
 - 搜索时建议同时匹配 `name` 和 `description` 字段
 - Pipeline 的 `config` 字段包含完整 DAG 定义（JSON），可进一步解析查看包含的 Operation 节点

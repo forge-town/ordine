@@ -1,6 +1,6 @@
 - [ ] 已确认用户目标是创建、运行、查看、更新或删除 Distillation
 - [ ] 已确认 sourceType、sourceId、mode、objective 与用户目标一致
-- [ ] 已在创建或更新前说明将提交的关键字段和 API 地址
+- [ ] 创建或更新的关键字段、目标实例与用户授权一致
 - [ ] 已在运行前确认 Distillation 存在且状态允许运行
 - [ ] 已执行对应 REST API，并记录返回的 Distillation ID 和状态
 - [ ] 已在完成时检查 `result.type`、`summary`、`insights`、`reusableAssets` 和 `nextActions`

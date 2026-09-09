@@ -134,5 +134,5 @@ curl -X POST http://localhost:9433/api/best-practices/import \
 1. **一条规范只管一件事** — 不要在一个 BP 里混合多个不相关的规则
 2. **condition 要具体** — 明确触发情况，避免"编写代码时"这种泛泛描述
 3. **content 要可操作** — 告诉读者具体怎么做，而不只是"应该注意"
-4. **代码片段必须 Good/Bad 对比** — 让人一目了然
+4. **示例按需提供** — 只有对比能澄清误用时才补充 Bad 示例
 5. **checklist 项必须可判定** — 能够回答 yes 或 no

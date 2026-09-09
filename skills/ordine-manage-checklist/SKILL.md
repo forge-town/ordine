@@ -1,9 +1,11 @@
 ---
 name: ordine-manage-checklist
-description: Use when 需要为 Best Practice 添加、更新或删除 Checklist Items（检查清单条目），逐条定义可验证的检查项。触发词：管理检查清单、添加checklist、创建检查项、编辑清单条目。
+description: 管理 Ordine Best Practice 下的 Checklist Item 实体。
 ---
 
 # 管理 Checklist Items
+
+当前源码独立 Server 未挂载 Best Practice、Rule、Checklist Item、Code Snippet 接口；涉及这些资源时，先确认目标版本支持。历史示例不证明接口可用，404 后不要重复试探。
 
 ## 概述
 
@@ -57,12 +59,12 @@ done
 
 ## 数据结构
 
-| 字段 | 类型 | 说明 |
-|---|---|---|
-| `id` | `string` | 唯一标识 |
-| `bestPracticeId` | `string` | 所属 Best Practice ID（必填） |
-| `content` | `string` | 检查项描述（必须 yes/no 可判定） |
-| `sortOrder` | `number` | 排序序号（0 开始） |
+| 字段             | 类型     | 说明                             |
+| ---------------- | -------- | -------------------------------- |
+| `id`             | `string` | 唯一标识                         |
+| `bestPracticeId` | `string` | 所属 Best Practice ID（必填）    |
+| `content`        | `string` | 检查项描述（必须 yes/no 可判定） |
+| `sortOrder`      | `number` | 排序序号（0 开始）               |
 
 ## 编写原则
 
@@ -70,4 +72,4 @@ done
 - ✅ "所有 className 使用 cn() 函数" — 可判定
 - ❌ "代码风格良好" — 不可判定
 - 排序从 0 开始，连续递增
-- 建议每个 Best Practice 至少 2-3 个检查项
+- 检查项数量由实际约束决定，避免重复或为凑数添加条目

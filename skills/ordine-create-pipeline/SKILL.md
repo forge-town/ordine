@@ -1,6 +1,6 @@
 ---
 name: ordine-create-pipeline
-description: Use when 需要在 Ordine 系统中创建或编辑自动化 Pipeline，包括定义输入、Operation、输出和它们之间的 DAG 依赖关系，通过 Agent、REST API 或 UI 完成。触发词：创建流水线、新建pipeline、设计工作流、编辑画布、构建自动化流程。
+description: 创建或编辑 Ordine Pipeline 的节点、数据依赖和产物输出。
 ---
 
 # 创建 Pipeline
@@ -9,12 +9,11 @@ description: Use when 需要在 Ordine 系统中创建或编辑自动化 Pipelin
 
 Pipeline 是 Ordine 的核心概念——一个有向无环图 (DAG)，将输入源、Operation 和输出连接成自动化流程。Pipeline 可以是串行、并行或分支汇合结构；不要把所有 Operation 默认串成一条直线。
 
-## 工作流程
+## 按需参考
 
-1. 阅读 [pipeline-anatomy.md](references/pipeline-anatomy.md) 了解 Pipeline 的组成结构
-2. 阅读 [node-types.md](references/node-types.md) 了解所有节点类型和配置
-3. 按照 [creation-guide.md](references/creation-guide.md) 创建 Pipeline
-4. 使用 [checklist.md](references/checklist.md) 验证
+- 创建或编辑方法见 [creation-guide.md](references/creation-guide.md)。
+- 结构不明确时查阅 [pipeline-anatomy.md](references/pipeline-anatomy.md)；新增节点类型时只查阅 [node-types.md](references/node-types.md) 的对应部分。
+- [checklist.md](references/checklist.md) 用于核对受影响的配置约束。创建图不自动授权运行。
 
 ## 拓扑选择原则
 

@@ -1,6 +1,6 @@
 ---
 name: ordine-run-operation
-description: Use when 需要在 Ordine 中运行单个 Operation、确认数据库中的 operation 配置、传入文件夹或文本输入并监控生成的 Job 状态。触发词：运行operation、执行操作、op_run、operation调试。
+description: 运行单个 Ordine Operation，并跟踪其 Job 与产物。
 ---
 
 # 运行 Operation
@@ -9,7 +9,10 @@ description: Use when 需要在 Ordine 中运行单个 Operation、确认数据�
 
 Operation 通过 REST API 触发运行，返回 Job ID；Job 状态和 traces 用于跟踪执行过程。
 
-## 工作流程
+## 执行与验收
 
-1. 运行前读取 [run-guide.md](references/run-guide.md)，确认 Operation、输入、命令和预期输出
-2. 执行后读取 [checklist.md](references/checklist.md)，逐项确认运行结果
+核实目标 ID、输入及执行授权；用户已要求运行或验证时直接推进。命令和参数不明确时查阅 [run-guide.md](references/run-guide.md) 的相关部分。
+
+记录返回的 Job ID，跟踪执行状态并核实本次要求的产物、内容和来源；状态成功不等于交付完成。遇到失败或暂停，检查相关错误，不盲目重跑或重复创建 Job。
+
+- 验收参考 [checklist.md](references/checklist.md) 的相关项。
