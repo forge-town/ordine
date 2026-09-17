@@ -1,6 +1,6 @@
 ---
 name: ordine-manage-refinement
-description: Use when 需要在 Ordine 中基于 Distillation 启动、查看或排查 Refinement 循环，自动优化 Pipeline、运行轮次并继续蒸馏反馈。触发词：refinement、精炼、优化pipeline、迭代改进。
+description: 管理 Ordine Refinement，基于 Distillation 迭代 Pipeline。
 ---
 
 # 管理 Refinement
@@ -9,7 +9,8 @@ description: Use when 需要在 Ordine 中基于 Distillation 启动、查看或
 
 Refinement 以 Distillation 为输入，按轮次优化 Pipeline、运行 Pipeline、再蒸馏运行结果。
 
-## 工作流程
+## 按需参考
 
-1. 操作前读取 [workflow.md](references/workflow.md)，确认前置 Distillation、轮次数和监控方式
-2. 完成后读取 [checklist.md](references/checklist.md)，逐项验证每一轮状态
+- 操作和参数见 [workflow.md](references/workflow.md)，只读取当前任务对应部分。
+- 核对改动或运行结果时使用 [checklist.md](references/checklist.md) 的相关项；单纯查询不触发运行。
+- 运行沿用用户授权的目标与范围；Refinement 的轮数和停止条件应在运行前确定，不能无限扩展优化。

@@ -1,21 +1,20 @@
 ---
 name: ordine-control
-description: Operate a running local Ordine instance from Codex through the checked-in CLI. Use to list or inspect pipelines, run a pipeline, inspect jobs, or read job traces. Do not use for Canvas or other UI-only behavior.
+description: Use the local Ordine CLI to inspect pipelines, execute authorized runs, and read jobs or traces.
 ---
 
 # Ordine Control
 
-Use the repository CLI as the supported Codex-facing interface. This skill does not turn Ordine into an MCP server; it provides the local Skill + CLI path while the MCP surface is developed separately.
+Use the installed `ordine` CLI or, from the repository root, `bun apps/cli/src/index.ts`. This skill covers CLI control; MCP and UI behavior have separate interfaces.
 
-## Preconditions
+## Target and authorization
 
-1. Work from the Ordine repository root.
-2. Confirm the target server with `ORDINE_API_URL`. The CLI and standalone API server default to `http://localhost:9433`.
-3. Confirm the server is reachable with `curl -fsS "$ORDINE_API_URL/health"` before any write or run command.
-4. If Desktop mode requires authentication, read `ORDINE_DESKTOP_AUTH_TOKEN` from the environment. Never print, persist, or copy the token into a command argument, file, log, or response.
-5. Prefer an installed `ordine` executable. In a source checkout, use `bun apps/cli/src/index.ts`.
+- Confirm the intended `ORDINE_API_URL` (default `http://localhost:9433`) before a write or run. Check `/health` when establishing or diagnosing the connection, not before every command.
+- The CLI reads `ORDINE_DESKTOP_AUTH_TOKEN` or `ORDINE_DESKTOP_AUTH_TOKEN_FILE` from the environment. Reuse configured authentication; never print or copy token values into arguments, files, logs or responses.
+- Use the supplied verified ID directly; list candidates only when the target is unknown. Inspect a pipeline's configuration and input before running it unless already established in this task.
+- Execute when the user asked to run it or execution is part of the authorized validation. Delete only explicitly requested, verified resources. Local startup/configuration follows the task scope; do not change authentication to bypass a failure.
 
-## Machine-readable commands
+## Commands
 
 Place the global `--json` option before the command:
 
@@ -24,27 +23,12 @@ bun apps/cli/src/index.ts --json pipelines list
 bun apps/cli/src/index.ts --json pipelines get <pipeline-id>
 bun apps/cli/src/index.ts --json run <pipeline-id> --no-follow
 bun apps/cli/src/index.ts --json run <pipeline-id>
-bun apps/cli/src/index.ts --json jobs list
 bun apps/cli/src/index.ts --json jobs get <job-id>
 bun apps/cli/src/index.ts --json jobs traces <job-id>
 ```
 
-- `run --no-follow` returns `{ "jobId": "..." }`.
-- A following `run` returns `{ "job": {...}, "traces": [...] }` after the job reaches a terminal state or pauses.
-- Only `done` exits zero. `paused`, `failed`, `cancelled`, `expired`, and `skipped` stop following and exit non-zero. Inspect the JSON written to stdout and the concise error written to stderr.
-- If job traces cannot be fetched, the CLI exits non-zero and adds `tracesError` to the JSON instead of silently reporting an empty trace list.
+`--no-follow` returns `{ "jobId": "..." }`; otherwise `run` follows and returns `{ "job": {...}, "traces": [...] }`. Choose based on whether other work can proceed. A successful read does not require a second health probe or a pipeline run.
 
-## Workflow
+Only a `done` run exits zero. `paused`, `failed`, `cancelled`, `expired`, and `skipped` stop following and exit nonzero. A trace-fetch failure also exits nonzero and adds `tracesError`; inspect stdout JSON and stderr. Diagnose a repeated failure before retrying; do not create another run just to poll.
 
-1. List pipelines as JSON and select an existing pipeline ID; do not guess IDs.
-2. Inspect the pipeline before running it.
-3. Treat running a pipeline as a state-changing action. Run only when the user asked to execute or when execution is an explicit validation step within the task.
-4. Prefer `--no-follow` for asynchronous work. Use the returned job ID with `jobs get` and `jobs traces`.
-5. Report the pipeline ID, job ID, terminal status, relevant trace evidence, and whether the path was live or mocked.
-
-## Safety boundaries
-
-- Do not use CLI/REST checks as evidence for Canvas rendering, drag-and-drop, browser authentication, or Desktop IPC behavior.
-- Do not delete pipelines or jobs unless the user explicitly requests deletion and the exact ID has been verified.
-- Do not start a persistent server, change authentication, or modify environment files unless the task includes local startup or configuration.
-- If health, authentication, or a command fails repeatedly, stop and report the exact failing layer instead of retrying blindly.
+Report the pipeline/job IDs, actual status, relevant traces, and live versus mocked path. For an artifact-producing task, verify the requested file/content and provenance; `done` alone is insufficient. CLI/REST evidence does not establish Canvas rendering, browser authentication, drag-and-drop or Desktop IPC behavior.

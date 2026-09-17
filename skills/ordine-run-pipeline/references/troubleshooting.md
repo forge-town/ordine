@@ -2,15 +2,17 @@
 
 ## 常见问题
 
-### 1. Job 状态卡在 pending
+### 1. Job 状态卡在 queued
 
-**症状**：Job 创建后状态一直是 `pending`，不变为 `running`。
+**症状**：Job 创建后状态一直是 `queued`，不变为 `running`。
 
 **可能原因**：
+
 - Pipeline Runner 服务未启动
 - Job 队列阻塞
 
 **排查步骤**：
+
 ```bash
 # 检查 server 是否正常运行
 curl -s http://localhost:9433/health
@@ -24,6 +26,7 @@ curl -s http://localhost:9433/api/jobs/<job-id> | python3 -m json.tool
 **症状**：Job 的 `status` 为 `failed`。
 
 **排查步骤**：
+
 ```bash
 # 查看 Job 详情，关注 result 字段
 curl -s http://localhost:9433/api/jobs/<job-id> | python3 -m json.tool
@@ -32,6 +35,7 @@ curl -s http://localhost:9433/api/jobs/<job-id> | python3 -m json.tool
 ```
 
 **常见原因**：
+
 - Pipeline 中引用的 Operation 不存在
 - Operation 的 executor skill 不存在
 - Operation 使用 prompt 模式但 prompt 内容为空
@@ -77,7 +81,7 @@ curl -s http://localhost:9433/api/skills/<skill-id> | python3 -m json.tool
 
 ### 简化测试
 
-如果复杂 Pipeline 失败，先创建只有一个 Operation 的简单 Pipeline 测试：
+仅当现有错误和 traces 不能定位问题，且任务授权隔离试运行时，才创建最小复现 Pipeline。使用独立测试资源和不会覆盖现有文件的路径；下例 ID 需替换：
 
 ```bash
 # 创建最简 Pipeline

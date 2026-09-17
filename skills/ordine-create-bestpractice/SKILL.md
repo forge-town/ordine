@@ -1,16 +1,18 @@
 ---
 name: ordine-create-bestpractice
-description: Use when 需要在 Ordine 系统中创建新的 Best Practice（最佳实践），包含条件、内容、代码片段和检查清单条目。触发词：创建最佳实践、新建bestpractice、添加编码规范、添加实践规范。
+description: 在 Ordine 中创建 Best Practice 编码规范及关联示例、检查项。
 ---
 
 # 创建 Best Practice
+
+当前源码独立 Server 未挂载 Best Practice、Rule、Checklist Item、Code Snippet 接口；涉及这些资源时，先确认目标版本支持。历史示例不证明接口可用，404 后不要重复试探。
 
 ## 概述
 
 Best Practice 是 Ordine 中的编码规范单元，描述了「什么情况下」（condition）应该「怎么做」（content），并附带代码片段（codeSnippets）和检查清单条目（checklistItems）。
 
-## 工作流程
+## 按需参考
 
-1. 阅读 [bestpractice-anatomy.md](references/bestpractice-anatomy.md) 了解数据结构
-2. 按照 [creation-guide.md](references/creation-guide.md) 创建
-3. 使用 [checklist.md](references/checklist.md) 验证
+- 创建或修改时查阅 [creation-guide.md](references/creation-guide.md) 的相关操作。
+- 数据结构不明确时查阅 [bestpractice-anatomy.md](references/bestpractice-anatomy.md)。
+- [checklist.md](references/checklist.md) 提供 Best Practice 配置核对项，仅验证本次涉及的约束，不自动触发试运行。

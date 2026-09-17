@@ -1,6 +1,6 @@
 - [ ] 已确认用户目标是启动、查看、删除或排查 Refinement
 - [ ] 已确认源 Distillation 存在、已完成，并包含可用于优化的结果
-- [ ] 已确认 maxRounds 为正整数，并向用户说明每轮会自动创建 Pipeline、运行 Job、再生成 Distillation
+- [ ] 启动时 maxRounds 为正整数，停止条件明确，已有授权涵盖每轮创建 Pipeline、运行 Job 和生成 Distillation
 - [ ] 已使用当前可用的 tRPC 或前端路径启动 Refinement，并记录返回的 Refinement ID
 - [ ] 已监控 Refinement 的 `status`、`currentRound` 和每个 `rounds[*].status`
 - [ ] 已在轮次失败时检查对应 `jobId` traces、`distillationId` result 或 `rounds[*].error`

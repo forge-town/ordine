@@ -9,7 +9,7 @@
 
 ## 代码示例
 
-- [ ] `codeSnippet` 包含 Good/Bad 对比
+- [ ] 需要代码示例时，示例清楚解释规则；有必要时补充 Good/Bad 对比
 - [ ] 代码片段语法正确，可直接使用
 - [ ] `language` 字段与代码语言匹配
 
@@ -20,14 +20,14 @@
 
 ## Checklist Items
 
-- [ ] 至少有 2 个 checklist items
+- [ ] 检查项覆盖实际约束，没有重复或凑数条目
 - [ ] 每个 item 的 `content` 可判定（yes/no）
 - [ ] `sortOrder` 从 0 开始连续递增
 - [ ] 覆盖了规范的主要检查点
 
 ## Code Snippets（可选但推荐）
 
-- [ ] 至少一个 Good 示例 + 一个 Bad 示例
+- [ ] 示例数量由解释规则的需要决定
 - [ ] 每个 snippet 有 `title` 标识正确/错误
 - [ ] 代码完整可运行
 

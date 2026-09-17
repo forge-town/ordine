@@ -1,6 +1,6 @@
 ---
 name: ordine-list-pipelines
-description: Use when 需要列出 Ordine 中所有 Pipeline，查看可用的流水线及其概要信息。触发词：列出pipeline、查看所有流水线、显示pipeline列表、有哪些pipeline。
+description: 列出或查看已有 Ordine Pipeline；不触发执行。
 ---
 
 # 列出 Pipeline

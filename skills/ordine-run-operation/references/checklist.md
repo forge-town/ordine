@@ -1,7 +1,7 @@
 - [ ] 已确认 Operation ID 存在，且数据库返回的 `id` 与用户指定一致
 - [ ] 已确认输入方式与 `acceptedObjectTypes` 匹配，文件夹输入使用绝对路径
-- [ ] 已在运行前向用户说明即将执行的命令、输入路径、API 地址和预期输出
+- [ ] 本次运行的目标、输入、API 地址与已有授权一致；关键歧义已解决
 - [ ] 已触发 `POST /api/operations/:id/run` 并记录返回的 `jobId`
-- [ ] 已轮询 Job 到 `done`、`failed`、`cancelled` 或 `expired` 终态
+- [ ] 已跟踪到 `done`、`failed`、`cancelled`、`expired`、`skipped`，或记录 `paused` 原因
 - [ ] 已在失败时查看 Job traces，并向用户说明 `error` 或关键 trace
-- [ ] 已在成功时说明生成结果的位置、输出项名称或 Job 详情中的结果内容
+- [ ] 成功时已核实实际输出的位置、内容及与本次运行的关联，并说明未验证部分
