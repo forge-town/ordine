@@ -1,0 +1,1211 @@
+{
+  "target": "/Users/amin/projects/daedalus/packages/services",
+  "baseline": {
+    "conforms": false,
+    "summary": {
+      "block": 166,
+      "warn": 0,
+      "allow": 0
+    }
+  },
+  "current": {
+    "issues": [
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/AccountAccessService/_helpers",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_helpers\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/AccountAccessService/_methods",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_methods\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/AccountAdministrationService/_methods",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_methods\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/AdminUsageService/_helpers",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_helpers\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/AdminUsageService/_methods",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_methods\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/AdminUsersService/_helpers",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_helpers\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/AdminUsersService/_methods",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_methods\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/AgentPullRequestService/_helpers",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_helpers\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/AgentPullRequestService/_methods",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_methods\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/AgentPullRequestService/_schemas",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_schemas\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/AnatomiesService/_helpers",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_helpers\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/AnatomiesService/_methods",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_methods\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/AnatomiesService/_schemas",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_schemas\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/ArchetypeChecksService/_helpers",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_helpers\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/ArchetypeChecksService/_methods",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_methods\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/ArchetypeChecksService/_schemas",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_schemas\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/ArchetypesService/_helpers",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_helpers\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/ArchetypesService/_methods",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_methods\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/ArchetypesService/_schemas",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_schemas\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/AskDaedalusService/_helpers",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_helpers\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/AskDaedalusService/_methods",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_methods\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/AskDaedalusService/_schemas",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_schemas\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/CrateCodeSnippetsService/_helpers",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_helpers\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/CrateCodeSnippetsService/_methods",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_methods\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/CrateCodeSnippetsService/_schemas",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_schemas\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/CrateConformanceService/_helpers",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_helpers\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/CrateConformanceService/_methods",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_methods\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/CrateConformanceService/_schemas",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_schemas\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/CratesService/_helpers",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_helpers\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/CratesService/_methods",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_methods\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/CratesService/_schemas",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_schemas\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/DictionaryEntriesService/_helpers",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_helpers\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/DictionaryEntriesService/_methods",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_methods\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/DictionaryEntriesService/_schemas",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_schemas\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/ExclusionsService/_methods",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_methods\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/FindingDeliveryService/_helpers",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_helpers\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/FindingDeliveryService/_methods",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_methods\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/FindingDeliveryService/_schemas",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_schemas\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/FindingRemediationService/_helpers",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_helpers\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/FindingRemediationService/_methods",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_methods\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/FindingRemediationService/_schemas",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_schemas\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/FindingRemediationWorkerService/_helpers",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_helpers\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/FindingRemediationWorkerService/_methods",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_methods\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/FindingRemediationWorkerService/_schemas",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_schemas\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/FindingsService/_helpers",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_helpers\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/FindingsService/_methods",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_methods\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/FindingsService/_schemas",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_schemas\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/FormalSpecService/_helpers",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_helpers\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/FormalSpecService/_methods",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_methods\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/FormalSpecService/_schemas",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_schemas\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/GitHubCredentialsService/_helpers",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_helpers\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/GitHubCredentialsService/_methods",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_methods\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/GitHubCredentialsService/_schemas",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_schemas\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/GithubAppIntegrationService/_helpers",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_helpers\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/GithubAppIntegrationService/_methods",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_methods\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/GithubAppIntegrationService/_schemas",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_schemas\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/GithubProjectService/_methods",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_methods\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/GithubProjectService/_schemas",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_schemas\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/GithubReviewDeliveryService/_helpers",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_helpers\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/GithubReviewDeliveryService/_methods",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_methods\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/GithubReviewDeliveryService/_schemas",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_schemas\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/GithubReviewRequestService/_methods",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_methods\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/GithubReviewRequestService/_schemas",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_schemas\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/GithubReviewRequestWorkerService/_helpers",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_helpers\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/GithubReviewRequestWorkerService/_methods",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_methods\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/GithubService/_helpers",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_helpers\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/GithubService/_methods",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_methods\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/GithubService/_schemas",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_schemas\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/InboxNotificationsService/_helpers",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_helpers\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/InboxNotificationsService/_methods",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_methods\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/InboxNotificationsService/_schemas",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_schemas\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/LanguageDetectionService/_methods",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_methods\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/LanguageDetectionService/_schemas",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_schemas\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/LocalizationService/_methods",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_methods\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/LocalizationService/_schemas",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_schemas\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/McpConnectionsService/_helpers",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_helpers\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/McpConnectionsService/_methods",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_methods\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/McpConnectionsService/_schemas",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_schemas\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/McpSetupService/_helpers",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_helpers\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/McpSetupService/_methods",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_methods\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/McpSetupService/_schemas",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_schemas\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/PlatformAccessService/_helpers",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_helpers\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/PlatformAccessService/_methods",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_methods\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/RepositoryArchitectureService/_helpers",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_helpers\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/RepositoryArchitectureService/_methods",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_methods\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/RepositoryArchitectureService/_schemas",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_schemas\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/ReviewSettingsService/_helpers",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_helpers\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/ReviewSettingsService/_methods",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_methods\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/ReviewSettingsService/_schemas",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_schemas\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/RuleChecklistService/_methods",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_methods\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/RuleChecklistService/_schemas",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_schemas\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/RuleExamplesService/_methods",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_methods\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/RuleExamplesService/_schemas",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_schemas\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/RulesService/_methods",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_methods\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/RulesService/_schemas",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_schemas\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/RunsService/_helpers",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_helpers\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/RunsService/_methods",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_methods\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/RunsService/_schemas",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_schemas\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/ScanOrchestratorService/_helpers",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_helpers\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/ScanOrchestratorService/_methods",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_methods\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/ScanOrchestratorService/_schemas",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_schemas\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/ScanProfilesService/_methods",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_methods\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/ScanProfilesService/_schemas",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_schemas\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/StatsService/_helpers",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_helpers\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/StatsService/_methods",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_methods\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/StatsService/_schemas",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_schemas\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/TraceCleanupService/_methods",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_methods\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/TraceService/_helpers",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_helpers\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/TraceService/_methods",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_methods\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/TraceService/_schemas",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_schemas\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/UserPreferencesService/_methods",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_methods\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/UserPreferencesService/_schemas",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_schemas\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/UsersService/_methods",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_methods\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/UsersService/_schemas",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_schemas\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/WorkspacesService/_helpers",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_helpers\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/WorkspacesService/_methods",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_methods\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/WorkspacesService/_schemas",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"_schemas\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      }
+    ],
+    "summary": {
+      "block": 117,
+      "warn": 0,
+      "allow": 0
+    },
+    "conforms": false
+  },
+  "impact": {
+    "before": {
+      "block": 118,
+      "warn": 0,
+      "allow": 0
+    },
+    "after": {
+      "block": 117,
+      "warn": 0,
+      "allow": 0
+    },
+    "newBlocks": []
+  },
+  "invariants": {
+    "globalPoliciesRemainBlock": true,
+    "unknownRootBlocked": true,
+    "missingLeafSpecBlocked": false,
+    "scenarioAccepted": false,
+    "unknownLeafBlocked": false
+  }
+}

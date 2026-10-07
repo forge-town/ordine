@@ -1,0 +1,1 @@
+export * from "./getOccurrences.method";

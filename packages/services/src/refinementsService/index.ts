@@ -1,1 +1,1 @@
-export * from "./createRefinementsService";
+export * from "./refinements.service";

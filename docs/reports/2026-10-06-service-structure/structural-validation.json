@@ -1,0 +1,611 @@
+{
+  "target": "/Users/amin/projects/ordine-service-structure/packages/services",
+  "serviceScope": {
+    "expected": [
+      "agentControlService",
+      "agentRunsService",
+      "agentRuntimesService",
+      "agentsService",
+      "capabilityCatalogService",
+      "capabilityHarvestService",
+      "connectorsService",
+      "conversationMessagesService",
+      "distillationsService",
+      "executionService",
+      "filesystemService",
+      "githubProjectsService",
+      "jobsService",
+      "operationOutputItemTemplatesService",
+      "operationRunnerService",
+      "operationsService",
+      "pipelineAgentSessionsService",
+      "pipelineAssetsService",
+      "pipelineRunnerService",
+      "pipelinesService",
+      "projectsService",
+      "refinementsService",
+      "routineSchedulerService",
+      "routinesService",
+      "settingsService",
+      "skillsService",
+      "usageService"
+    ],
+    "actual": [
+      "agentControlService",
+      "agentRunsService",
+      "agentRuntimesService",
+      "agentsService",
+      "capabilityCatalogService",
+      "capabilityHarvestService",
+      "connectorsService",
+      "conversationMessagesService",
+      "distillationsService",
+      "executionService",
+      "filesystemService",
+      "githubProjectsService",
+      "jobsService",
+      "operationOutputItemTemplatesService",
+      "operationRunnerService",
+      "operationsService",
+      "pipelineAgentSessionsService",
+      "pipelineAssetsService",
+      "pipelineRunnerService",
+      "pipelinesService",
+      "projectsService",
+      "refinementsService",
+      "routineSchedulerService",
+      "routinesService",
+      "settingsService",
+      "skillsService",
+      "usageService"
+    ],
+    "preserved": true
+  },
+  "baseline": {
+    "conforms": false,
+    "summary": {
+      "block": 166,
+      "warn": 0,
+      "allow": 0
+    }
+  },
+  "current": {
+    "issues": [
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/canvasExecution/canvasAuthoringSchema.ts",
+        "constraintId": "b7201fe9-2323-4e8b-a998-002e1b389a54",
+        "message": "Unexpected file \"canvasAuthoringSchema.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/canvasExecution/compileCanvasExecution.ts",
+        "constraintId": "b7201fe9-2323-4e8b-a998-002e1b389a54",
+        "message": "Unexpected file \"compileCanvasExecution.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/canvasExecution/compileCanvasExecution.unit.test.ts",
+        "constraintId": "b7201fe9-2323-4e8b-a998-002e1b389a54",
+        "message": "Unexpected file \"compileCanvasExecution.unit.test.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/canvasExecution/convertCanvasDraftToExecution.ts",
+        "constraintId": "b7201fe9-2323-4e8b-a998-002e1b389a54",
+        "message": "Unexpected file \"convertCanvasDraftToExecution.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/canvasExecution/convertCanvasDraftToExecution.unit.test.ts",
+        "constraintId": "b7201fe9-2323-4e8b-a998-002e1b389a54",
+        "message": "Unexpected file \"convertCanvasDraftToExecution.unit.test.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/canvasExecution/index.ts",
+        "constraintId": "b7201fe9-2323-4e8b-a998-002e1b389a54",
+        "message": "Unexpected file \"index.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/execution/index.ts",
+        "constraintId": "a66adead-1025-4ba2-bf8e-fd72421a18ba",
+        "message": "Unexpected file \"index.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionActors/createExecutionActors.ts",
+        "constraintId": "a636e84c-ce21-4589-989b-70311ab68d5d",
+        "message": "Unexpected file \"createExecutionActors.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionActors/errors.ts",
+        "constraintId": "a636e84c-ce21-4589-989b-70311ab68d5d",
+        "message": "Unexpected file \"errors.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionActors/executionActors.unit.test.ts",
+        "constraintId": "a636e84c-ce21-4589-989b-70311ab68d5d",
+        "message": "Unexpected file \"executionActors.unit.test.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionActors/index.ts",
+        "constraintId": "a636e84c-ce21-4589-989b-70311ab68d5d",
+        "message": "Unexpected file \"index.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionActors/runNativeProcess.ts",
+        "constraintId": "a636e84c-ce21-4589-989b-70311ab68d5d",
+        "message": "Unexpected file \"runNativeProcess.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionActors/runScriptProcess.ts",
+        "constraintId": "a636e84c-ce21-4589-989b-70311ab68d5d",
+        "message": "Unexpected file \"runScriptProcess.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionActors/runWindowsScript.ps1",
+        "constraintId": "a636e84c-ce21-4589-989b-70311ab68d5d",
+        "message": "Unexpected file \"runWindowsScript.ps1\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionActors/types.ts",
+        "constraintId": "a636e84c-ce21-4589-989b-70311ab68d5d",
+        "message": "Unexpected file \"types.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionActors/verifyPreparedExecutable.ts",
+        "constraintId": "a636e84c-ce21-4589-989b-70311ab68d5d",
+        "message": "Unexpected file \"verifyPreparedExecutable.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionArtifacts/content.ts",
+        "constraintId": "2fedbfef-f5ea-4a54-923c-53c321026dd0",
+        "message": "Unexpected file \"content.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionArtifacts/createExecutionArtifactStore.ts",
+        "constraintId": "2fedbfef-f5ea-4a54-923c-53c321026dd0",
+        "message": "Unexpected file \"createExecutionArtifactStore.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionArtifacts/createExecutionArtifactStore.unit.test.ts",
+        "constraintId": "2fedbfef-f5ea-4a54-923c-53c321026dd0",
+        "message": "Unexpected file \"createExecutionArtifactStore.unit.test.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionArtifacts/errors.ts",
+        "constraintId": "2fedbfef-f5ea-4a54-923c-53c321026dd0",
+        "message": "Unexpected file \"errors.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionArtifacts/fileSystem.ts",
+        "constraintId": "2fedbfef-f5ea-4a54-923c-53c321026dd0",
+        "message": "Unexpected file \"fileSystem.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionArtifacts/fileSystem.unit.test.ts",
+        "constraintId": "2fedbfef-f5ea-4a54-923c-53c321026dd0",
+        "message": "Unexpected file \"fileSystem.unit.test.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionArtifacts/index.ts",
+        "constraintId": "2fedbfef-f5ea-4a54-923c-53c321026dd0",
+        "message": "Unexpected file \"index.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionArtifacts/types.ts",
+        "constraintId": "2fedbfef-f5ea-4a54-923c-53c321026dd0",
+        "message": "Unexpected file \"types.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionGateway/createCanvasExecutionPublisher.ts",
+        "constraintId": "e2f72379-f2fc-481e-8e1b-e9100de29ae4",
+        "message": "Unexpected file \"createCanvasExecutionPublisher.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionGateway/createCanvasExecutionPublisher.unit.test.ts",
+        "constraintId": "e2f72379-f2fc-481e-8e1b-e9100de29ae4",
+        "message": "Unexpected file \"createCanvasExecutionPublisher.unit.test.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionGateway/createExecutionConfigurationPublisher.ts",
+        "constraintId": "e2f72379-f2fc-481e-8e1b-e9100de29ae4",
+        "message": "Unexpected file \"createExecutionConfigurationPublisher.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionGateway/createExecutionConfigurationPublisher.unit.test.ts",
+        "constraintId": "e2f72379-f2fc-481e-8e1b-e9100de29ae4",
+        "message": "Unexpected file \"createExecutionConfigurationPublisher.unit.test.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionGateway/createExecutionGateway.ts",
+        "constraintId": "e2f72379-f2fc-481e-8e1b-e9100de29ae4",
+        "message": "Unexpected file \"createExecutionGateway.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionGateway/createExecutionGateway.unit.test.ts",
+        "constraintId": "e2f72379-f2fc-481e-8e1b-e9100de29ae4",
+        "message": "Unexpected file \"createExecutionGateway.unit.test.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionGateway/createOperationExecutionPublisher.ts",
+        "constraintId": "e2f72379-f2fc-481e-8e1b-e9100de29ae4",
+        "message": "Unexpected file \"createOperationExecutionPublisher.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionGateway/createOperationExecutionPublisher.unit.test.ts",
+        "constraintId": "e2f72379-f2fc-481e-8e1b-e9100de29ae4",
+        "message": "Unexpected file \"createOperationExecutionPublisher.unit.test.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionGateway/gatewayTestFixture.ts",
+        "constraintId": "e2f72379-f2fc-481e-8e1b-e9100de29ae4",
+        "message": "Unexpected file \"gatewayTestFixture.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionGateway/index.ts",
+        "constraintId": "e2f72379-f2fc-481e-8e1b-e9100de29ae4",
+        "message": "Unexpected file \"index.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionGateway/submissionRecovery.ts",
+        "constraintId": "e2f72379-f2fc-481e-8e1b-e9100de29ae4",
+        "message": "Unexpected file \"submissionRecovery.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionMigration/README.md",
+        "constraintId": "a8be089e-98b0-481f-a400-d8fac50610ca",
+        "message": "Unexpected file \"README.md\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionMigration/createExecutionMigrationService.ts",
+        "constraintId": "a8be089e-98b0-481f-a400-d8fac50610ca",
+        "message": "Unexpected file \"createExecutionMigrationService.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionMigration/index.ts",
+        "constraintId": "a8be089e-98b0-481f-a400-d8fac50610ca",
+        "message": "Unexpected file \"index.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionMigration/migrationSchemas.ts",
+        "constraintId": "a8be089e-98b0-481f-a400-d8fac50610ca",
+        "message": "Unexpected file \"migrationSchemas.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionMigration/tests",
+        "constraintId": "a8be089e-98b0-481f-a400-d8fac50610ca",
+        "message": "Unexpected directory \"tests\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionMigration/validateExecutionMigration.ts",
+        "constraintId": "a8be089e-98b0-481f-a400-d8fac50610ca",
+        "message": "Unexpected file \"validateExecutionMigration.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionPrompt/codexHome.ts",
+        "constraintId": "66e01321-211c-4672-9b61-48ac6b3cf86d",
+        "message": "Unexpected file \"codexHome.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionPrompt/codexHome.unit.test.ts",
+        "constraintId": "66e01321-211c-4672-9b61-48ac6b3cf86d",
+        "message": "Unexpected file \"codexHome.unit.test.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionPrompt/codexStream.ts",
+        "constraintId": "66e01321-211c-4672-9b61-48ac6b3cf86d",
+        "message": "Unexpected file \"codexStream.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionPrompt/codexStream.unit.test.ts",
+        "constraintId": "66e01321-211c-4672-9b61-48ac6b3cf86d",
+        "message": "Unexpected file \"codexStream.unit.test.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionPrompt/createExecutionPromptActor.ts",
+        "constraintId": "66e01321-211c-4672-9b61-48ac6b3cf86d",
+        "message": "Unexpected file \"createExecutionPromptActor.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionPrompt/errors.ts",
+        "constraintId": "66e01321-211c-4672-9b61-48ac6b3cf86d",
+        "message": "Unexpected file \"errors.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionPrompt/executionPrompt.live.test.ts",
+        "constraintId": "66e01321-211c-4672-9b61-48ac6b3cf86d",
+        "message": "Unexpected file \"executionPrompt.live.test.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionPrompt/executionPrompt.unit.test.ts",
+        "constraintId": "66e01321-211c-4672-9b61-48ac6b3cf86d",
+        "message": "Unexpected file \"executionPrompt.unit.test.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionPrompt/fixtureCodex.cs",
+        "constraintId": "66e01321-211c-4672-9b61-48ac6b3cf86d",
+        "message": "Unexpected file \"fixtureCodex.cs\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionPrompt/index.ts",
+        "constraintId": "66e01321-211c-4672-9b61-48ac6b3cf86d",
+        "message": "Unexpected file \"index.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionPrompt/testSupport.ts",
+        "constraintId": "66e01321-211c-4672-9b61-48ac6b3cf86d",
+        "message": "Unexpected file \"testSupport.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionPrompt/types.ts",
+        "constraintId": "66e01321-211c-4672-9b61-48ac6b3cf86d",
+        "message": "Unexpected file \"types.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/jobLease/index.ts",
+        "constraintId": "02792b82-b427-4fde-9943-3c788d23418c",
+        "message": "Unexpected file \"index.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/jobLease/jobLease.ts",
+        "constraintId": "02792b82-b427-4fde-9943-3c788d23418c",
+        "message": "Unexpected file \"jobLease.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/jobLease/jobLease.unit.test.ts",
+        "constraintId": "02792b82-b427-4fde-9943-3c788d23418c",
+        "message": "Unexpected file \"jobLease.unit.test.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/archived/bestPracticesBulkService",
+        "constraintId": "483a6ab9-144e-4200-ad90-30dd78a02f46",
+        "message": "Unexpected directory \"bestPracticesBulkService\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/archived/bestPracticesService",
+        "constraintId": "483a6ab9-144e-4200-ad90-30dd78a02f46",
+        "message": "Unexpected directory \"bestPracticesService\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/archived/checklistService",
+        "constraintId": "483a6ab9-144e-4200-ad90-30dd78a02f46",
+        "message": "Unexpected directory \"checklistService\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/archived/codeSnippetsService",
+        "constraintId": "483a6ab9-144e-4200-ad90-30dd78a02f46",
+        "message": "Unexpected directory \"codeSnippetsService\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/archived/rulesService",
+        "constraintId": "483a6ab9-144e-4200-ad90-30dd78a02f46",
+        "message": "Unexpected directory \"rulesService\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      }
+    ],
+    "summary": {
+      "block": 0,
+      "warn": 0,
+      "allow": 61
+    },
+    "conforms": true
+  },
+  "leafContracts": [
+    {
+      "role": "method",
+      "conforms": true,
+      "standardSpecRequired": true,
+      "implementationRequired": true,
+      "unknownAssetBlocked": true
+    },
+    {
+      "role": "helper",
+      "conforms": true,
+      "standardSpecRequired": true,
+      "implementationRequired": true,
+      "unknownAssetBlocked": true
+    }
+  ],
+  "impact": {
+    "before": {
+      "block": 27,
+      "warn": 0,
+      "allow": 0
+    },
+    "after": {
+      "block": 0,
+      "warn": 0,
+      "allow": 61
+    },
+    "newBlocks": []
+  },
+  "invariants": {
+    "globalPoliciesRemainBlock": true,
+    "unknownRootBlocked": true,
+    "unknownRootSymlinkBlocked": true,
+    "missingLeafSpecBlocked": true,
+    "scenarioAccepted": true,
+    "unknownLeafBlocked": true,
+    "declaredAssetsAccepted": true,
+    "unknownAssetsBlocked": true,
+    "methodAndHelperContractsEnforced": true,
+    "serviceScopePreserved": true
+  }
+}

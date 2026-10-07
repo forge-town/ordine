@@ -31,7 +31,12 @@
 
 ## Service 与 tRPC
 
-- Service 一域一文件，通过依赖注入使用 DAO，返回 `ResultAsync`，不得直接导入数据库连接 `db`。
+- 每个领域保留独立的 `<name>Service/` 目录和公开工厂 API；`index.ts` 导出 `<name>.service.ts`，Service 入口只组装依赖、共享状态与业务方法。通过依赖注入使用 DAO，沿用既有返回契约；新业务方法返回 `ResultAsync`，不得直接导入数据库连接 `db`。
+- 业务方法位于 `methods/<method>/`，包含 `index.ts`、`<method>.method.ts` 和相邻的 `<method>.method.spec.ts`；辅助责任位于 `helpers/<helper>/`，采用对应的 `.helper.ts` 与 `.helper.spec.ts`。集合目录各有 `index.ts`，共享契约按需放在 Service 根目录的 `contracts.ts`。
+- 不在 Service 入口旁放聚合 `.service.spec.ts`。现有测试按实际方法或辅助责任归属，保留原断言、fixtures、mock、真实 LLM 测试和执行入口，不以伪造叶子或删减覆盖满足结构检查。
+- 需要保留 Vitest 文件级 mock 隔离的真实模型、平台或集成场景，可在对应叶子增加 `<scenario>.scenario.spec.ts`；它不能替代必需的标准 method/helper spec，也不能把真实模型测试并入会 mock 模型调用的测试文件。
+- 测试快照保留在对应叶子的 `__snapshots__/`，文件名随 spec 路径同步为 `.spec.ts.snap`；PDF 测试输入保留在对应叶子的 `fixtures/`。移动资产保留原内容，不能通过更新快照改变预期。
+- 包级配置、`serviceFactory.ts` 等公共组合文件以及 execution、canvasExecution、jobLease 等支持模块保留各自职责，不套用业务 Service 的叶子模板。保留 `@repo/services` 公开入口及 `./execution`、`./execution-migration` 子路径，文件移动时同步必要消费者引用。
 - tRPC 路由只负责输入校验、Service 调用和边界错误映射，不放业务逻辑。
 - 用户输入用 Zod 校验；涉及认证或权限的变更验证相应边界。
 

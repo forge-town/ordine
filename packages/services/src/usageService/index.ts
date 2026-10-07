@@ -1,1 +1,1 @@
-export * from "./createUsageService";
+export * from "./usage.service";

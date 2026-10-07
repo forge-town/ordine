@@ -1,1 +1,1 @@
-export * from "./createAgentsService";
+export * from "./agents.service";

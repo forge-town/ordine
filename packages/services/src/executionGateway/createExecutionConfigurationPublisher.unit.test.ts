@@ -10,7 +10,7 @@ import {
 } from "@repo/schemas";
 import { createExecutionConfigurationPublisher } from "./createExecutionConfigurationPublisher";
 import { ExecutionGatewayError, type createExecutionGateway } from "./createExecutionGateway";
-import { resolveNodeExecution } from "../executionService/resolveNodeExecution";
+import { resolveNodeExecution } from "../executionService/helpers/resolveNodeExecution";
 import { gatewayFixture, json } from "./gatewayTestFixture";
 
 const runtime = (id: string) =>

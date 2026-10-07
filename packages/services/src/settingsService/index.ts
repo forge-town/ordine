@@ -1,2 +1,2 @@
-export * from "./createSettingsService";
-export * from "./normalizeSettingsRecord";
+export * from "./settings.service";
+export * from "./helpers";

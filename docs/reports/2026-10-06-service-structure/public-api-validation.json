@@ -1,0 +1,6191 @@
+{
+  "note": "This check compares exported symbol names, value/type roles, and function parameter declarations. It does not prove return-type or behavior equivalence; those require consumer type checks, preserved scenario tests, and code review.",
+  "base": "03721ab082172699479690714b15c342c0144382",
+  "entryPoints": ["src/index.ts", "src/execution/index.ts", "src/executionMigration/index.ts"],
+  "unchanged": true,
+  "changes": [],
+  "before": {
+    "src/index.ts": {
+      "AgentControlExecutionPorts": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "AgentControlModeUnsupportedError": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": [
+          {
+            "parameters": [
+              {
+                "name": "runtime",
+                "optional": false,
+                "rest": false,
+                "annotation": "AgentRuntime"
+              }
+            ],
+            "typeParameters": []
+          }
+        ]
+      },
+      "AgentControlRunEventPort": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "AgentControlServiceOptions": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "agentRunCapabilityStore": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": []
+      },
+      "AgentRunCapabilityStore": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": [
+          {
+            "parameters": [],
+            "typeParameters": []
+          }
+        ]
+      },
+      "AgentRuntimeNotFoundError": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": [
+          {
+            "parameters": [
+              {
+                "name": "runtimeConfigId",
+                "optional": true,
+                "rest": false,
+                "annotation": "string"
+              }
+            ],
+            "typeParameters": []
+          }
+        ]
+      },
+      "AgentRunTransientFactory": {
+        "kind": "type",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "runId",
+                "optional": false,
+                "rest": false,
+                "annotation": "string"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "AgentRunTransientLease": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "AgentRunTransientOptions": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "ArtifactStoreError": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": [
+          {
+            "parameters": [
+              {
+                "name": "code",
+                "optional": false,
+                "rest": false,
+                "annotation": "string"
+              },
+              {
+                "name": "message",
+                "optional": false,
+                "rest": false,
+                "annotation": "string"
+              },
+              {
+                "name": "stagedArtifactId",
+                "optional": true,
+                "rest": false,
+                "annotation": "string"
+              }
+            ],
+            "typeParameters": []
+          }
+        ]
+      },
+      "assertArtifactNotAborted": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "signal",
+                "optional": true,
+                "rest": false,
+                "annotation": "AbortSignal"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "buildClaudeMcpInjection": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "connectors",
+                "optional": false,
+                "rest": false,
+                "annotation": "ConnectorLike[]"
+              },
+              {
+                "name": "selectedToolNames",
+                "optional": true,
+                "rest": false,
+                "annotation": "readonly string[]"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "buildMcpConnectorInjection": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "connectors",
+                "optional": false,
+                "rest": false,
+                "annotation": "ConnectorLike[]"
+              },
+              {
+                "name": "selectedToolNames",
+                "optional": true,
+                "rest": false,
+                "annotation": "readonly string[]"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "buildMcpServerKey": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "connectorId",
+                "optional": false,
+                "rest": false,
+                "annotation": "string"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "buildMcpToolReference": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "serverKey",
+                "optional": false,
+                "rest": false,
+                "annotation": "string"
+              },
+              {
+                "name": "toolName",
+                "optional": false,
+                "rest": false,
+                "annotation": "string"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "CanvasExecutionConversion": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "CanvasExecutionDiagnostic": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "CanvasExecutionDiagnosticSchema": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": []
+      },
+      "canvasOutputMimeTypes": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": []
+      },
+      "CapabilityCatalogProjectionInput": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "CapabilityCatalogServiceDependencies": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "CapabilityCatalogServiceOptions": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "CapabilityCatalogValidationError": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": [
+          {
+            "parameters": [
+              {
+                "name": "issues",
+                "optional": false,
+                "rest": false,
+                "annotation": "CapabilityCatalogValidationIssue[]"
+              }
+            ],
+            "typeParameters": []
+          }
+        ]
+      },
+      "CapabilityHarvestInput": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "CapabilityHarvestResult": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "CapabilityHarvestServiceOptions": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "CapabilityVerification": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "CatalogConnector": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "CatalogRiskOverride": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "CatalogSkill": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "checkPipelineOperationReferences": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "{\n  nodes,\n  operationsDao,\n  pipelineId,\n}",
+                "optional": false,
+                "rest": false,
+                "annotation": "{\n  nodes: readonly PipelineNode[];\n  operationsDao: Pick<ReturnType<typeof createOperationsDao>, \"findById\">;\n  pipelineId: string;\n}"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "ClaudeMcpInjection": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "clearProposeProgressStore": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "commitAgentRunEventBeforeBroadcast": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "persist",
+                "optional": false,
+                "rest": false,
+                "annotation": "() => Promise<T>"
+              },
+              {
+                "name": "broadcast",
+                "optional": false,
+                "rest": false,
+                "annotation": "(committed: T) => Promise<void>"
+              }
+            ],
+            "typeParameters": ["T"]
+          }
+        ],
+        "constructors": []
+      },
+      "compileCanvasExecution": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "input",
+                "optional": false,
+                "rest": false,
+                "annotation": "{\n  pipeline: PipelineData;\n  operations: readonly Operation[];\n  operationRevisions: Readonly<Record<string, number>>;\n}"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "configureAgentRunController": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "controller",
+                "optional": false,
+                "rest": false,
+                "annotation": "AgentRunController | null"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "ConflictError": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": [
+          {
+            "parameters": [
+              {
+                "name": "message",
+                "optional": false,
+                "rest": false,
+                "annotation": "string"
+              }
+            ],
+            "typeParameters": []
+          }
+        ]
+      },
+      "ConnectConnectorOptions": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "ConnectorCredentialHydrationOptions": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "ConnectorLike": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "ConnectorsServiceOptions": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "convertCanvasDraftToExecution": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "{\n  pipeline,\n  operations,\n  operationRevisions,\n  externalInputs,\n}",
+                "optional": false,
+                "rest": false,
+                "annotation": "{\n  pipeline: PipelineData;\n  operations: readonly Operation[];\n  operationRevisions: Readonly<Record<string, number>>;\n  externalInputs?: { ports: ExecutionPortDefinition[]; edges: RuntimeEdge[] };\n}"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createAgentControlService": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "db",
+                "optional": false,
+                "rest": false,
+                "annotation": "DbConnection"
+              },
+              {
+                "name": "options",
+                "optional": true,
+                "rest": false,
+                "annotation": "AgentControlServiceOptions"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createAgentRunController": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "agentRunsService",
+                "optional": false,
+                "rest": false,
+                "annotation": "AgentRunsService"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createAgentRunsService": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "db",
+                "optional": false,
+                "rest": false,
+                "annotation": "DbConnection"
+              },
+              {
+                "name": "dependencies",
+                "optional": true,
+                "rest": false,
+                "annotation": "AgentRunsServiceDependencies"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createAgentRuntimesService": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "db",
+                "optional": false,
+                "rest": false,
+                "annotation": "DbConnection"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createAgentsService": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "db",
+                "optional": false,
+                "rest": false,
+                "annotation": "DbConnection"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createAgentThreadsService": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "db",
+                "optional": false,
+                "rest": false,
+                "annotation": "DbConnection"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createCanvasExecutionPublisher": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "options",
+                "optional": false,
+                "rest": false,
+                "annotation": "{\n  gateway: Gateway;\n  readPipeline: (id: string) => Promise<unknown>;\n  readOperations: () => Promise<unknown>;\n  publishConfiguration?: PublishExecutionConfiguration;\n}"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createCapabilityCatalogService": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "db",
+                "optional": false,
+                "rest": false,
+                "annotation": "DbExecutor"
+              },
+              {
+                "name": "options",
+                "optional": true,
+                "rest": false,
+                "annotation": "CapabilityCatalogServiceOptions"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createCapabilityHarvestService": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "db",
+                "optional": false,
+                "rest": false,
+                "annotation": "DbConnection"
+              },
+              {
+                "name": "options",
+                "optional": false,
+                "rest": false,
+                "annotation": "CapabilityHarvestServiceOptions"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createConnectorsService": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "db",
+                "optional": false,
+                "rest": false,
+                "annotation": "DbConnection"
+              },
+              {
+                "name": "options",
+                "optional": true,
+                "rest": false,
+                "annotation": "ConnectorsServiceOptions"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createConversationMessagesService": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "db",
+                "optional": false,
+                "rest": false,
+                "annotation": "DbConnection"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createCredentialCipher": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "secret",
+                "optional": false,
+                "rest": false,
+                "annotation": "string"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createDistillationsService": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "db",
+                "optional": false,
+                "rest": false,
+                "annotation": "DbConnection"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createExecutionActors": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "dependencies",
+                "optional": false,
+                "rest": false,
+                "annotation": "ExecutionActorDependencies"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createExecutionApiService": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "deps",
+                "optional": false,
+                "rest": false,
+                "annotation": "{\n  repository: ExecutionRepository;\n  jobs: ExecutionJobRepository;\n  artifactStore: ArtifactStore;\n  preparation: ExecutionPreparationService;\n}"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createExecutionArtifactStore": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "options",
+                "optional": false,
+                "rest": false,
+                "annotation": "ArtifactStoreOptions"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createExecutionConfigurationPublisher": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "options",
+                "optional": false,
+                "rest": false,
+                "annotation": "{\n  gateway: Pick<\n    ReturnType<typeof createExecutionGateway>,\n    \"listRuntimeConfigs\" | \"saveRuntimeConfig\" | \"getWorkspaceSettings\" | \"saveWorkspaceSettings\"\n  >;\n  readRuntimes: () => Promise<unknown>;\n  readSettings: () => Promise<unknown>;\n}"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createExecutionDispatcher": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "deps",
+                "optional": false,
+                "rest": false,
+                "annotation": "{\n  principal: ExecutionPrincipal;\n  instanceId: string;\n  jobs: ExecutionJobRepository;\n  requests: Pick<ExecutionRepository, \"expirePendingApprovals\">;\n  runner: ExecutionJobRunner;\n  maxJobs?: number;\n  leaseMs?: number;\n  pollMs?: number;\n}"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createExecutionGateway": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "options",
+                "optional": false,
+                "rest": false,
+                "annotation": "{\n  target?: string;\n  readToken: () => Promise<string>;\n  fetcher?: typeof fetch;\n}"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createExecutionJobRunner": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "deps",
+                "optional": false,
+                "rest": false,
+                "annotation": "Dependencies"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createExecutionPreparationService": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "deps",
+                "optional": false,
+                "rest": false,
+                "annotation": "Dependencies"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createGithubProjectsService": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "db",
+                "optional": false,
+                "rest": false,
+                "annotation": "DbConnection"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createJobLeaseController": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "{\n  jobsDao,\n  jobId,\n  options,\n  leaseOwnerId = crypto.randomUUID(),\n  now = () => new Date(),\n}",
+                "optional": false,
+                "rest": false,
+                "annotation": "{\n  jobsDao: JobsDao;\n  jobId: string;\n  options?: JobLeaseTimingOptions;\n  leaseOwnerId?: string;\n  now?: () => Date;\n}"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createJobsService": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "db",
+                "optional": false,
+                "rest": false,
+                "annotation": "DbConnection"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createMcpSignature": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "config",
+                "optional": false,
+                "rest": false,
+                "annotation": "McpConnectorConfig"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createOperationExecutionPublisher": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "options",
+                "optional": false,
+                "rest": false,
+                "annotation": "{\n  gateway: ReturnType<typeof createExecutionGateway>;\n  readOperations: () => Promise<unknown>;\n  publishConfiguration?: PublishExecutionConfiguration;\n}"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createOperationOutputItemTemplatesService": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "db",
+                "optional": false,
+                "rest": false,
+                "annotation": "DbConnection"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createOperationRunnerService": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "db",
+                "optional": false,
+                "rest": false,
+                "annotation": "DbConnection"
+              },
+              {
+                "name": "jobLeaseOptions",
+                "optional": true,
+                "rest": false,
+                "annotation": "JobLeaseTimingOptions"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createOperationsService": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "db",
+                "optional": false,
+                "rest": false,
+                "annotation": "DbConnection"
+              },
+              {
+                "name": "options",
+                "optional": true,
+                "rest": false,
+                "annotation": "OperationsServiceOptions"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createPipelineAgentSessionsService": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "db",
+                "optional": false,
+                "rest": false,
+                "annotation": "DbConnection"
+              },
+              {
+                "name": "dependencies",
+                "optional": true,
+                "rest": false,
+                "annotation": "PipelineAgentSessionsServiceDependencies"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createPipelineAssetsService": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "db",
+                "optional": false,
+                "rest": false,
+                "annotation": "DbConnection"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createPipelineRunnerService": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "db",
+                "optional": false,
+                "rest": false,
+                "annotation": "DbConnection"
+              },
+              {
+                "name": "options",
+                "optional": true,
+                "rest": false,
+                "annotation": "PipelineRunnerServiceOptions"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createPipelinesService": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "db",
+                "optional": false,
+                "rest": false,
+                "annotation": "DbConnection"
+              },
+              {
+                "name": "options",
+                "optional": true,
+                "rest": false,
+                "annotation": "PipelinesServiceOptions"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createProjectsService": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "db",
+                "optional": false,
+                "rest": false,
+                "annotation": "DbConnection"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createRefinementsService": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "db",
+                "optional": false,
+                "rest": false,
+                "annotation": "DbConnection"
+              },
+              {
+                "name": "options",
+                "optional": true,
+                "rest": false,
+                "annotation": "PipelineRunnerServiceOptions"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createRoutineScheduler": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "deps",
+                "optional": false,
+                "rest": false,
+                "annotation": "RoutineSchedulerDeps"
+              },
+              {
+                "name": "options",
+                "optional": true,
+                "rest": false,
+                "annotation": "{ graceWindowMs?: number }"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createRoutineSchedulerService": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "db",
+                "optional": false,
+                "rest": false,
+                "annotation": "DbConnection"
+              },
+              {
+                "name": "deps",
+                "optional": false,
+                "rest": false,
+                "annotation": "{\n    startRun: RoutineStartRun;\n  }"
+              },
+              {
+                "name": "options",
+                "optional": true,
+                "rest": false,
+                "annotation": "{\n    pollIntervalMs?: number;\n  }"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createRoutinesService": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "db",
+                "optional": false,
+                "rest": false,
+                "annotation": "DbConnection"
+              },
+              {
+                "name": "deps",
+                "optional": false,
+                "rest": false,
+                "annotation": "{\n    startRun: RoutineStartRun;\n  }"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createSettingsService": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "db",
+                "optional": false,
+                "rest": false,
+                "annotation": "DbConnection"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createSkillsService": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "db",
+                "optional": false,
+                "rest": false,
+                "annotation": "DbConnection"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createUsageService": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "db",
+                "optional": false,
+                "rest": false,
+                "annotation": "DbConnection"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "CredentialCipher": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "CredentialCipherError": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": [
+          {
+            "parameters": [
+              {
+                "name": "message",
+                "optional": false,
+                "rest": false,
+                "annotation": "string"
+              },
+              {
+                "name": "cause",
+                "optional": true,
+                "rest": false,
+                "annotation": "unknown"
+              }
+            ],
+            "typeParameters": []
+          }
+        ]
+      },
+      "DEFAULT_GRACE_WINDOW_MS": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": []
+      },
+      "DEFAULT_JOB_HEARTBEAT_INTERVAL_MS": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": []
+      },
+      "DEFAULT_JOB_LEASE_DURATION_MS": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": []
+      },
+      "DEFAULT_POLL_INTERVAL_MS": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": []
+      },
+      "digestAgentControlArguments": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "input",
+                "optional": false,
+                "rest": false,
+                "annotation": "unknown"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "DirectoryEntry": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "ExecutionActorContext": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "ExecutionActorDependencies": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "ExecutionActorLimits": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "ExecutionActorLimitsSchema": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": []
+      },
+      "ExecutionApiService": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "ExecutionArtifactContext": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "ExecutionArtifactFingerprint": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "ExecutionArtifactJobContext": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "ExecutionArtifactPersistence": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "ExecutionArtifactRead": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "ExecutionDispatcher": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "executionFailure": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "code",
+                "optional": false,
+                "rest": false,
+                "annotation": "string"
+              },
+              {
+                "name": "message",
+                "optional": false,
+                "rest": false,
+                "annotation": "string"
+              },
+              {
+                "name": "field",
+                "optional": true,
+                "rest": false,
+                "annotation": "string"
+              },
+              {
+                "name": "stage",
+                "optional": true,
+                "rest": false,
+                "annotation": "ExecutionError[\"stage\"]"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "ExecutionGatewayError": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": [
+          {
+            "parameters": [
+              {
+                "name": "message",
+                "optional": false,
+                "rest": false,
+                "annotation": "string"
+              },
+              {
+                "name": "statusCode",
+                "optional": false,
+                "rest": false,
+                "annotation": "number"
+              }
+            ],
+            "typeParameters": []
+          }
+        ]
+      },
+      "ExecutionJobRunner": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "ExecutionPreparationService": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "ExecutionProducedArtifactContext": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "ExecutionServiceFailure": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": [
+          {
+            "parameters": [
+              {
+                "name": "detail",
+                "optional": false,
+                "rest": false,
+                "annotation": "ExecutionError"
+              }
+            ],
+            "typeParameters": []
+          }
+        ]
+      },
+      "executionServiceResult": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "operation",
+                "optional": false,
+                "rest": false,
+                "annotation": "() => Promise<T>"
+              }
+            ],
+            "typeParameters": ["T"]
+          }
+        ],
+        "constructors": []
+      },
+      "FilesystemError": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "fingerprintExecutable": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "path",
+                "optional": false,
+                "rest": false,
+                "annotation": "string"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "getCanvasExecutionInputs": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "pipeline",
+                "optional": false,
+                "rest": false,
+                "annotation": "PipelineData"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "getCanvasExecutionOperationIds": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "pipeline",
+                "optional": false,
+                "rest": false,
+                "annotation": "PipelineData"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "getProposeProgress": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "token",
+                "optional": false,
+                "rest": false,
+                "annotation": "string"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "GRACE_WINDOW_FACTOR": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": []
+      },
+      "hydrateConnectorCredentials": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "connector",
+                "optional": false,
+                "rest": false,
+                "annotation": "ConnectorWithCredentials"
+              },
+              {
+                "name": "options",
+                "optional": true,
+                "rest": false,
+                "annotation": "ConnectorCredentialHydrationOptions"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "inferCapabilityRiskTier": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "value",
+                "optional": false,
+                "rest": false,
+                "annotation": "string"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "InvalidJobStatusError": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": [
+          {
+            "parameters": [
+              {
+                "name": "action",
+                "optional": false,
+                "rest": false,
+                "annotation": "string"
+              },
+              {
+                "name": "jobId",
+                "optional": false,
+                "rest": false,
+                "annotation": "string"
+              },
+              {
+                "name": "status",
+                "optional": false,
+                "rest": false,
+                "annotation": "string"
+              },
+              {
+                "name": "allowed",
+                "optional": false,
+                "rest": false,
+                "annotation": "readonly string[]"
+              }
+            ],
+            "typeParameters": []
+          }
+        ]
+      },
+      "JobLeaseTimingOptions": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "JobNotFoundError": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": [
+          {
+            "parameters": [
+              {
+                "name": "jobId",
+                "optional": false,
+                "rest": false,
+                "annotation": "string"
+              }
+            ],
+            "typeParameters": []
+          }
+        ]
+      },
+      "listDirectory": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "dirPath",
+                "optional": true,
+                "rest": false,
+                "annotation": "string"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "listDirTree": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "rootDir",
+                "optional": false,
+                "rest": false,
+                "annotation": "string"
+              },
+              {
+                "name": "options",
+                "optional": true,
+                "rest": false,
+                "annotation": "ListDirTreeOptions"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "ListDirTreeOptions": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "NodeExecutionResolutionError": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": [
+          {
+            "parameters": [
+              {
+                "name": "code",
+                "optional": false,
+                "rest": false,
+                "annotation": "NodeExecutionResolutionErrorCode"
+              },
+              {
+                "name": "field",
+                "optional": false,
+                "rest": false,
+                "annotation": "string"
+              },
+              {
+                "name": "message",
+                "optional": false,
+                "rest": false,
+                "annotation": "string"
+              }
+            ],
+            "typeParameters": []
+          }
+        ]
+      },
+      "NodeExecutionResolutionErrorCode": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "NodeExecutionResolutionErrorCodeSchema": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": []
+      },
+      "normalizeSettingsRecord": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "record",
+                "optional": false,
+                "rest": false,
+                "annotation": "T"
+              }
+            ],
+            "typeParameters": ["T extends { defaultAgentRuntime: unknown }"]
+          }
+        ],
+        "constructors": []
+      },
+      "NotFoundError": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": [
+          {
+            "parameters": [
+              {
+                "name": "resource",
+                "optional": false,
+                "rest": false,
+                "annotation": "string"
+              },
+              {
+                "name": "id",
+                "optional": false,
+                "rest": false,
+                "annotation": "string"
+              }
+            ],
+            "typeParameters": []
+          }
+        ]
+      },
+      "omitEncryptedConnectorCredentials": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "connector",
+                "optional": false,
+                "rest": false,
+                "annotation": "T"
+              }
+            ],
+            "typeParameters": ["T extends { encryptedCredentials: unknown }"]
+          }
+        ],
+        "constructors": []
+      },
+      "OperationCapabilityValidationInput": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "OperationConfigShapeValidationIssue": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "OperationConfigValidationError": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": [
+          {
+            "parameters": [
+              {
+                "name": "issues",
+                "optional": false,
+                "rest": false,
+                "annotation": "OperationConfigShapeValidationIssue[]"
+              }
+            ],
+            "typeParameters": []
+          }
+        ]
+      },
+      "OperationInUseConflictError": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": [
+          {
+            "parameters": [
+              {
+                "name": "operationId",
+                "optional": false,
+                "rest": false,
+                "annotation": "string"
+              },
+              {
+                "name": "pipelineIds",
+                "optional": false,
+                "rest": false,
+                "annotation": "string[]"
+              }
+            ],
+            "typeParameters": []
+          }
+        ]
+      },
+      "OperationNotFoundError": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": [
+          {
+            "parameters": [
+              {
+                "name": "operationId",
+                "optional": false,
+                "rest": false,
+                "annotation": "string"
+              }
+            ],
+            "typeParameters": []
+          }
+        ]
+      },
+      "OperationsServiceOptions": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "PendingOperationInput": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "PIPELINE_AGENT_MAX_ATTACHMENT_BYTES": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": []
+      },
+      "PipelineNotFoundError": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": [
+          {
+            "parameters": [
+              {
+                "name": "pipelineId",
+                "optional": false,
+                "rest": false,
+                "annotation": "string"
+              }
+            ],
+            "typeParameters": []
+          }
+        ]
+      },
+      "PipelineOperationReferencesError": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": [
+          {
+            "parameters": [
+              {
+                "name": "diagnostic",
+                "optional": false,
+                "rest": false,
+                "annotation": "PipelineOperationReferenceDiagnostic"
+              }
+            ],
+            "typeParameters": []
+          }
+        ]
+      },
+      "PipelineRunnerServiceOptions": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "PipelinesServiceOptions": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "prepareCapabilityHarvest": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "{\n  mcpScan,\n  skillScan,\n  cipher,\n  now,\n}",
+                "optional": false,
+                "rest": false,
+                "annotation": "{\n  mcpScan: McpCapabilityScanResult;\n  skillScan: SkillCapabilityScanResult;\n  cipher: CredentialCipher;\n  now: Date;\n}"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "projectCapabilityCatalog": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "{\n  connectors,\n  skills,\n  overrides,\n}",
+                "optional": false,
+                "rest": false,
+                "annotation": "CapabilityCatalogProjectionInput"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "proposeActions": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "deps",
+                "optional": false,
+                "rest": false,
+                "annotation": "ProposeActionsDeps"
+              },
+              {
+                "name": "opts",
+                "optional": false,
+                "rest": false,
+                "annotation": "ProposeActionsOptions"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "ProposeActionsDeps": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "ProposeActionsOptions": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "ProposeActionsResult": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "ProposeProgressStage": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "PublishExecutionConfiguration": {
+        "kind": "type",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "operations",
+                "optional": false,
+                "rest": false,
+                "annotation": "readonly OperationRevision[]"
+              },
+              {
+                "name": "executionOverrides",
+                "optional": false,
+                "rest": false,
+                "annotation": "ExecutionOverrides"
+              },
+              {
+                "name": "nodeOverrides",
+                "optional": true,
+                "rest": false,
+                "annotation": "readonly NodeExecutionOverrides[]"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "readProjectFiles": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "rootDir",
+                "optional": false,
+                "rest": false,
+                "annotation": "string"
+              },
+              {
+                "name": "options",
+                "optional": true,
+                "rest": false,
+                "annotation": "ReadProjectFilesOptions"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "ReadProjectFilesOptions": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "redactSensitiveText": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "value",
+                "optional": false,
+                "rest": false,
+                "annotation": "string"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "requireExecutionScope": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "input",
+                "optional": false,
+                "rest": false,
+                "annotation": "ExecutionPrincipal"
+              },
+              {
+                "name": "scope",
+                "optional": false,
+                "rest": false,
+                "annotation": "ExecutionScope"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "ResolvedMcpConnector": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "ResolvedMcpTool": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "resolveMcpConnectors": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "connectors",
+                "optional": false,
+                "rest": false,
+                "annotation": "ConnectorLike[]"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "resolveMcpConnectorTools": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "connectors",
+                "optional": false,
+                "rest": false,
+                "annotation": "ConnectorLike[]"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "resolveNodeExecution": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "input",
+                "optional": false,
+                "rest": false,
+                "annotation": "ResolveNodeExecutionInput"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "ResolveNodeExecutionInput": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "ResolveNodeExecutionInputSchema": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": []
+      },
+      "resolveRuntimeExecutable": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "{\n  runtime,\n  configuredPath,\n  configuredVersion,\n  detectedPath,\n  detectedVersion,\n  readExecutable,\n  probeCapabilities,\n}",
+                "optional": false,
+                "rest": false,
+                "annotation": "RuntimeExecutableResolutionInput"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "RoutineSchedulerDeps": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "RoutineStartRun": {
+        "kind": "type",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "opts",
+                "optional": false,
+                "rest": false,
+                "annotation": "{\n  inputs?: Record<string, string>;\n  jobId?: string;\n  pipelineId: string;\n  triggeredBy?: JobTriggeredBy;\n}"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "runNativeProcess": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "input",
+                "optional": false,
+                "rest": false,
+                "annotation": "{\n  context: ExecutionActorContext;\n  workspace: string;\n  arguments: string[];\n  environment?: Record<string, string>;\n  onStdout?: (chunk: Buffer) => Outcome<void, ExecutionError>;\n  hasFirstOutput?: () => boolean;\n  stdin: Uint8Array;\n  limits: ExecutionActorLimits;\n}"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "sanitizeAgentRunEvent": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "event",
+                "optional": false,
+                "rest": false,
+                "annotation": "AgentRunEvent"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "sanitizeRuntimeEvent": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "event",
+                "optional": false,
+                "rest": false,
+                "annotation": "RuntimeEvent"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "SchedulerRoutine": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "ScriptProcessOutcome": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "ScriptProcessReport": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "ScriptProcessReportSchema": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": []
+      },
+      "ServiceError": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": [
+          {
+            "parameters": [
+              {
+                "name": "message",
+                "optional": false,
+                "rest": false,
+                "annotation": "string"
+              },
+              {
+                "name": "cause",
+                "optional": true,
+                "rest": false,
+                "annotation": "unknown"
+              }
+            ],
+            "typeParameters": []
+          }
+        ]
+      },
+      "serviceFactory": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": []
+      },
+      "setProposeProgress": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "token",
+                "optional": false,
+                "rest": false,
+                "annotation": "string"
+              },
+              {
+                "name": "stage",
+                "optional": false,
+                "rest": false,
+                "annotation": "ProposeProgressStage"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "SkillImportCandidate": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "SkillImportPreview": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "SkippedJobInput": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "toArtifactStoreError": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "error",
+                "optional": false,
+                "rest": false,
+                "annotation": "unknown"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "toExecutionServiceError": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "error",
+                "optional": false,
+                "rest": false,
+                "annotation": "unknown"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "tokenizeCapabilityName": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "value",
+                "optional": false,
+                "rest": false,
+                "annotation": "string"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "toServiceError": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "error",
+                "optional": false,
+                "rest": false,
+                "annotation": "unknown"
+              },
+              {
+                "name": "action",
+                "optional": false,
+                "rest": false,
+                "annotation": "string"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "verifyPreparedExecutable": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "context",
+                "optional": false,
+                "rest": false,
+                "annotation": "ExecutionActorContext"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      }
+    },
+    "src/execution/index.ts": {
+      "ArtifactStoreError": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": [
+          {
+            "parameters": [
+              {
+                "name": "code",
+                "optional": false,
+                "rest": false,
+                "annotation": "string"
+              },
+              {
+                "name": "message",
+                "optional": false,
+                "rest": false,
+                "annotation": "string"
+              },
+              {
+                "name": "stagedArtifactId",
+                "optional": true,
+                "rest": false,
+                "annotation": "string"
+              }
+            ],
+            "typeParameters": []
+          }
+        ]
+      },
+      "assertArtifactNotAborted": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "signal",
+                "optional": true,
+                "rest": false,
+                "annotation": "AbortSignal"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createExecutionActors": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "dependencies",
+                "optional": false,
+                "rest": false,
+                "annotation": "ExecutionActorDependencies"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createExecutionApiService": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "deps",
+                "optional": false,
+                "rest": false,
+                "annotation": "{\n  repository: ExecutionRepository;\n  jobs: ExecutionJobRepository;\n  artifactStore: ArtifactStore;\n  preparation: ExecutionPreparationService;\n}"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createExecutionArtifactStore": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "options",
+                "optional": false,
+                "rest": false,
+                "annotation": "ArtifactStoreOptions"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createExecutionDispatcher": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "deps",
+                "optional": false,
+                "rest": false,
+                "annotation": "{\n  principal: ExecutionPrincipal;\n  instanceId: string;\n  jobs: ExecutionJobRepository;\n  requests: Pick<ExecutionRepository, \"expirePendingApprovals\">;\n  runner: ExecutionJobRunner;\n  maxJobs?: number;\n  leaseMs?: number;\n  pollMs?: number;\n}"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createExecutionJobRunner": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "deps",
+                "optional": false,
+                "rest": false,
+                "annotation": "Dependencies"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createExecutionPreparationService": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "deps",
+                "optional": false,
+                "rest": false,
+                "annotation": "Dependencies"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createExecutionPromptActor": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "dependencies",
+                "optional": false,
+                "rest": false,
+                "annotation": "ExecutionPromptDependencies"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "ExecutionActorContext": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "ExecutionActorDependencies": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "ExecutionActorLimits": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "ExecutionActorLimitsSchema": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": []
+      },
+      "ExecutionApiService": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "ExecutionArtifactContext": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "ExecutionArtifactFingerprint": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "ExecutionArtifactJobContext": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "ExecutionArtifactPersistence": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "ExecutionArtifactRead": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "ExecutionDispatcher": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "executionFailure": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "code",
+                "optional": false,
+                "rest": false,
+                "annotation": "string"
+              },
+              {
+                "name": "message",
+                "optional": false,
+                "rest": false,
+                "annotation": "string"
+              },
+              {
+                "name": "field",
+                "optional": true,
+                "rest": false,
+                "annotation": "string"
+              },
+              {
+                "name": "stage",
+                "optional": true,
+                "rest": false,
+                "annotation": "ExecutionError[\"stage\"]"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "ExecutionJobRunner": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "ExecutionPreparationService": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "ExecutionProducedArtifactContext": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "ExecutionPromptDependencies": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "ExecutionPromptLimits": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "ExecutionPromptLimitsSchema": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": []
+      },
+      "ExecutionServiceFailure": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": [
+          {
+            "parameters": [
+              {
+                "name": "detail",
+                "optional": false,
+                "rest": false,
+                "annotation": "ExecutionError"
+              }
+            ],
+            "typeParameters": []
+          }
+        ]
+      },
+      "executionServiceResult": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "operation",
+                "optional": false,
+                "rest": false,
+                "annotation": "() => Promise<T>"
+              }
+            ],
+            "typeParameters": ["T"]
+          }
+        ],
+        "constructors": []
+      },
+      "fingerprintExecutable": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "path",
+                "optional": false,
+                "rest": false,
+                "annotation": "string"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "NodeExecutionResolutionError": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": [
+          {
+            "parameters": [
+              {
+                "name": "code",
+                "optional": false,
+                "rest": false,
+                "annotation": "NodeExecutionResolutionErrorCode"
+              },
+              {
+                "name": "field",
+                "optional": false,
+                "rest": false,
+                "annotation": "string"
+              },
+              {
+                "name": "message",
+                "optional": false,
+                "rest": false,
+                "annotation": "string"
+              }
+            ],
+            "typeParameters": []
+          }
+        ]
+      },
+      "NodeExecutionResolutionErrorCode": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "NodeExecutionResolutionErrorCodeSchema": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": []
+      },
+      "requireExecutionScope": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "input",
+                "optional": false,
+                "rest": false,
+                "annotation": "ExecutionPrincipal"
+              },
+              {
+                "name": "scope",
+                "optional": false,
+                "rest": false,
+                "annotation": "ExecutionScope"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "resolveNodeExecution": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "input",
+                "optional": false,
+                "rest": false,
+                "annotation": "ResolveNodeExecutionInput"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "ResolveNodeExecutionInput": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "ResolveNodeExecutionInputSchema": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": []
+      },
+      "runNativeProcess": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "input",
+                "optional": false,
+                "rest": false,
+                "annotation": "{\n  context: ExecutionActorContext;\n  workspace: string;\n  arguments: string[];\n  environment?: Record<string, string>;\n  onStdout?: (chunk: Buffer) => Outcome<void, ExecutionError>;\n  hasFirstOutput?: () => boolean;\n  stdin: Uint8Array;\n  limits: ExecutionActorLimits;\n}"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "ScriptProcessOutcome": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "ScriptProcessReport": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "ScriptProcessReportSchema": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": []
+      },
+      "toArtifactStoreError": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "error",
+                "optional": false,
+                "rest": false,
+                "annotation": "unknown"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "toExecutionServiceError": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "error",
+                "optional": false,
+                "rest": false,
+                "annotation": "unknown"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "verifyPreparedExecutable": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "context",
+                "optional": false,
+                "rest": false,
+                "annotation": "ExecutionActorContext"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      }
+    },
+    "src/executionMigration/index.ts": {
+      "createExecutionMigrationService": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "dependencies",
+                "optional": false,
+                "rest": false,
+                "annotation": "{\n  repository: ExecutionMigrationRepository;\n}"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "ExecutionMigrationBundle": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "ExecutionMigrationBundleSchema": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": []
+      },
+      "ExecutionMigrationValidationError": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": [
+          {
+            "parameters": [
+              {
+                "name": "code",
+                "optional": false,
+                "rest": false,
+                "annotation": "string"
+              },
+              {
+                "name": "objectIndex",
+                "optional": true,
+                "rest": false,
+                "annotation": "number"
+              }
+            ],
+            "typeParameters": []
+          }
+        ]
+      },
+      "migrationBytesSha256": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "bytes",
+                "optional": false,
+                "rest": false,
+                "annotation": "Uint8Array"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "MigrationDispositionSchema": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": []
+      },
+      "migrationLeafPaths": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "value",
+                "optional": false,
+                "rest": false,
+                "annotation": "unknown"
+              },
+              {
+                "name": "path",
+                "optional": true,
+                "rest": false,
+                "annotation": null
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "MigrationObjectKindSchema": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": []
+      },
+      "MigrationSource": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "MigrationSourceSchema": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": []
+      },
+      "parseMigrationJson": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "bytes",
+                "optional": false,
+                "rest": false,
+                "annotation": "Uint8Array"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "validateExecutionMigration": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "bundleInput",
+                "optional": false,
+                "rest": false,
+                "annotation": "unknown"
+              },
+              {
+                "name": "sourceBytes",
+                "optional": false,
+                "rest": false,
+                "annotation": "Uint8Array"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      }
+    }
+  },
+  "after": {
+    "src/index.ts": {
+      "AgentControlExecutionPorts": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "AgentControlModeUnsupportedError": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": [
+          {
+            "parameters": [
+              {
+                "name": "runtime",
+                "optional": false,
+                "rest": false,
+                "annotation": "AgentRuntime"
+              }
+            ],
+            "typeParameters": []
+          }
+        ]
+      },
+      "AgentControlRunEventPort": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "AgentControlServiceOptions": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "agentRunCapabilityStore": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": []
+      },
+      "AgentRunCapabilityStore": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": [
+          {
+            "parameters": [],
+            "typeParameters": []
+          }
+        ]
+      },
+      "AgentRuntimeNotFoundError": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": [
+          {
+            "parameters": [
+              {
+                "name": "runtimeConfigId",
+                "optional": true,
+                "rest": false,
+                "annotation": "string"
+              }
+            ],
+            "typeParameters": []
+          }
+        ]
+      },
+      "AgentRunTransientFactory": {
+        "kind": "type",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "runId",
+                "optional": false,
+                "rest": false,
+                "annotation": "string"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "AgentRunTransientLease": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "AgentRunTransientOptions": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "ArtifactStoreError": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": [
+          {
+            "parameters": [
+              {
+                "name": "code",
+                "optional": false,
+                "rest": false,
+                "annotation": "string"
+              },
+              {
+                "name": "message",
+                "optional": false,
+                "rest": false,
+                "annotation": "string"
+              },
+              {
+                "name": "stagedArtifactId",
+                "optional": true,
+                "rest": false,
+                "annotation": "string"
+              }
+            ],
+            "typeParameters": []
+          }
+        ]
+      },
+      "assertArtifactNotAborted": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "signal",
+                "optional": true,
+                "rest": false,
+                "annotation": "AbortSignal"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "buildClaudeMcpInjection": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "connectors",
+                "optional": false,
+                "rest": false,
+                "annotation": "ConnectorLike[]"
+              },
+              {
+                "name": "selectedToolNames",
+                "optional": true,
+                "rest": false,
+                "annotation": "readonly string[]"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "buildMcpConnectorInjection": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "connectors",
+                "optional": false,
+                "rest": false,
+                "annotation": "ConnectorLike[]"
+              },
+              {
+                "name": "selectedToolNames",
+                "optional": true,
+                "rest": false,
+                "annotation": "readonly string[]"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "buildMcpServerKey": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "connectorId",
+                "optional": false,
+                "rest": false,
+                "annotation": "string"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "buildMcpToolReference": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "serverKey",
+                "optional": false,
+                "rest": false,
+                "annotation": "string"
+              },
+              {
+                "name": "toolName",
+                "optional": false,
+                "rest": false,
+                "annotation": "string"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "CanvasExecutionConversion": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "CanvasExecutionDiagnostic": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "CanvasExecutionDiagnosticSchema": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": []
+      },
+      "canvasOutputMimeTypes": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": []
+      },
+      "CapabilityCatalogProjectionInput": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "CapabilityCatalogServiceDependencies": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "CapabilityCatalogServiceOptions": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "CapabilityCatalogValidationError": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": [
+          {
+            "parameters": [
+              {
+                "name": "issues",
+                "optional": false,
+                "rest": false,
+                "annotation": "CapabilityCatalogValidationIssue[]"
+              }
+            ],
+            "typeParameters": []
+          }
+        ]
+      },
+      "CapabilityHarvestInput": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "CapabilityHarvestResult": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "CapabilityHarvestServiceOptions": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "CapabilityVerification": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "CatalogConnector": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "CatalogRiskOverride": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "CatalogSkill": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "checkPipelineOperationReferences": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "{\n  nodes,\n  operationsDao,\n  pipelineId,\n}",
+                "optional": false,
+                "rest": false,
+                "annotation": "{\n  nodes: readonly PipelineNode[];\n  operationsDao: Pick<ReturnType<typeof createOperationsDao>, \"findById\">;\n  pipelineId: string;\n}"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "ClaudeMcpInjection": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "clearProposeProgressStore": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "commitAgentRunEventBeforeBroadcast": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "persist",
+                "optional": false,
+                "rest": false,
+                "annotation": "() => Promise<T>"
+              },
+              {
+                "name": "broadcast",
+                "optional": false,
+                "rest": false,
+                "annotation": "(committed: T) => Promise<void>"
+              }
+            ],
+            "typeParameters": ["T"]
+          }
+        ],
+        "constructors": []
+      },
+      "compileCanvasExecution": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "input",
+                "optional": false,
+                "rest": false,
+                "annotation": "{\n  pipeline: PipelineData;\n  operations: readonly Operation[];\n  operationRevisions: Readonly<Record<string, number>>;\n}"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "configureAgentRunController": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "controller",
+                "optional": false,
+                "rest": false,
+                "annotation": "AgentRunController | null"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "ConflictError": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": [
+          {
+            "parameters": [
+              {
+                "name": "message",
+                "optional": false,
+                "rest": false,
+                "annotation": "string"
+              }
+            ],
+            "typeParameters": []
+          }
+        ]
+      },
+      "ConnectConnectorOptions": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "ConnectorCredentialHydrationOptions": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "ConnectorLike": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "ConnectorsServiceOptions": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "convertCanvasDraftToExecution": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "{\n  pipeline,\n  operations,\n  operationRevisions,\n  externalInputs,\n}",
+                "optional": false,
+                "rest": false,
+                "annotation": "{\n  pipeline: PipelineData;\n  operations: readonly Operation[];\n  operationRevisions: Readonly<Record<string, number>>;\n  externalInputs?: { ports: ExecutionPortDefinition[]; edges: RuntimeEdge[] };\n}"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createAgentControlService": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "db",
+                "optional": false,
+                "rest": false,
+                "annotation": "DbConnection"
+              },
+              {
+                "name": "options",
+                "optional": true,
+                "rest": false,
+                "annotation": "AgentControlServiceOptions"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createAgentRunController": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "agentRunsService",
+                "optional": false,
+                "rest": false,
+                "annotation": "AgentRunsService"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createAgentRunsService": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "db",
+                "optional": false,
+                "rest": false,
+                "annotation": "DbConnection"
+              },
+              {
+                "name": "dependencies",
+                "optional": true,
+                "rest": false,
+                "annotation": "AgentRunsServiceDependencies"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createAgentRuntimesService": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "db",
+                "optional": false,
+                "rest": false,
+                "annotation": "DbConnection"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createAgentsService": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "db",
+                "optional": false,
+                "rest": false,
+                "annotation": "DbConnection"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createAgentThreadsService": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "db",
+                "optional": false,
+                "rest": false,
+                "annotation": "DbConnection"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createCanvasExecutionPublisher": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "options",
+                "optional": false,
+                "rest": false,
+                "annotation": "{\n  gateway: Gateway;\n  readPipeline: (id: string) => Promise<unknown>;\n  readOperations: () => Promise<unknown>;\n  publishConfiguration?: PublishExecutionConfiguration;\n}"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createCapabilityCatalogService": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "db",
+                "optional": false,
+                "rest": false,
+                "annotation": "DbExecutor"
+              },
+              {
+                "name": "options",
+                "optional": true,
+                "rest": false,
+                "annotation": "CapabilityCatalogServiceOptions"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createCapabilityHarvestService": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "db",
+                "optional": false,
+                "rest": false,
+                "annotation": "DbConnection"
+              },
+              {
+                "name": "options",
+                "optional": false,
+                "rest": false,
+                "annotation": "CapabilityHarvestServiceOptions"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createConnectorsService": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "db",
+                "optional": false,
+                "rest": false,
+                "annotation": "DbConnection"
+              },
+              {
+                "name": "options",
+                "optional": true,
+                "rest": false,
+                "annotation": "ConnectorsServiceOptions"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createConversationMessagesService": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "db",
+                "optional": false,
+                "rest": false,
+                "annotation": "DbConnection"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createCredentialCipher": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "secret",
+                "optional": false,
+                "rest": false,
+                "annotation": "string"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createDistillationsService": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "db",
+                "optional": false,
+                "rest": false,
+                "annotation": "DbConnection"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createExecutionActors": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "dependencies",
+                "optional": false,
+                "rest": false,
+                "annotation": "ExecutionActorDependencies"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createExecutionApiService": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "deps",
+                "optional": false,
+                "rest": false,
+                "annotation": "{\n  repository: ExecutionRepository;\n  jobs: ExecutionJobRepository;\n  artifactStore: ArtifactStore;\n  preparation: ExecutionPreparationService;\n}"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createExecutionArtifactStore": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "options",
+                "optional": false,
+                "rest": false,
+                "annotation": "ArtifactStoreOptions"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createExecutionConfigurationPublisher": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "options",
+                "optional": false,
+                "rest": false,
+                "annotation": "{\n  gateway: Pick<\n    ReturnType<typeof createExecutionGateway>,\n    \"listRuntimeConfigs\" | \"saveRuntimeConfig\" | \"getWorkspaceSettings\" | \"saveWorkspaceSettings\"\n  >;\n  readRuntimes: () => Promise<unknown>;\n  readSettings: () => Promise<unknown>;\n}"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createExecutionDispatcher": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "deps",
+                "optional": false,
+                "rest": false,
+                "annotation": "{\n  principal: ExecutionPrincipal;\n  instanceId: string;\n  jobs: ExecutionJobRepository;\n  requests: Pick<ExecutionRepository, \"expirePendingApprovals\">;\n  runner: ExecutionJobRunner;\n  maxJobs?: number;\n  leaseMs?: number;\n  pollMs?: number;\n}"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createExecutionGateway": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "options",
+                "optional": false,
+                "rest": false,
+                "annotation": "{\n  target?: string;\n  readToken: () => Promise<string>;\n  fetcher?: typeof fetch;\n}"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createExecutionJobRunner": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "deps",
+                "optional": false,
+                "rest": false,
+                "annotation": "Dependencies"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createExecutionPreparationService": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "deps",
+                "optional": false,
+                "rest": false,
+                "annotation": "Dependencies"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createGithubProjectsService": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "db",
+                "optional": false,
+                "rest": false,
+                "annotation": "DbConnection"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createJobLeaseController": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "{\n  jobsDao,\n  jobId,\n  options,\n  leaseOwnerId = crypto.randomUUID(),\n  now = () => new Date(),\n}",
+                "optional": false,
+                "rest": false,
+                "annotation": "{\n  jobsDao: JobsDao;\n  jobId: string;\n  options?: JobLeaseTimingOptions;\n  leaseOwnerId?: string;\n  now?: () => Date;\n}"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createJobsService": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "db",
+                "optional": false,
+                "rest": false,
+                "annotation": "DbConnection"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createMcpSignature": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "config",
+                "optional": false,
+                "rest": false,
+                "annotation": "McpConnectorConfig"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createOperationExecutionPublisher": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "options",
+                "optional": false,
+                "rest": false,
+                "annotation": "{\n  gateway: ReturnType<typeof createExecutionGateway>;\n  readOperations: () => Promise<unknown>;\n  publishConfiguration?: PublishExecutionConfiguration;\n}"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createOperationOutputItemTemplatesService": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "db",
+                "optional": false,
+                "rest": false,
+                "annotation": "DbConnection"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createOperationRunnerService": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "db",
+                "optional": false,
+                "rest": false,
+                "annotation": "DbConnection"
+              },
+              {
+                "name": "jobLeaseOptions",
+                "optional": true,
+                "rest": false,
+                "annotation": "JobLeaseTimingOptions"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createOperationsService": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "db",
+                "optional": false,
+                "rest": false,
+                "annotation": "DbConnection"
+              },
+              {
+                "name": "options",
+                "optional": true,
+                "rest": false,
+                "annotation": "OperationsServiceOptions"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createPipelineAgentSessionsService": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "db",
+                "optional": false,
+                "rest": false,
+                "annotation": "DbConnection"
+              },
+              {
+                "name": "dependencies",
+                "optional": true,
+                "rest": false,
+                "annotation": "PipelineAgentSessionsServiceDependencies"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createPipelineAssetsService": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "db",
+                "optional": false,
+                "rest": false,
+                "annotation": "DbConnection"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createPipelineRunnerService": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "db",
+                "optional": false,
+                "rest": false,
+                "annotation": "DbConnection"
+              },
+              {
+                "name": "options",
+                "optional": true,
+                "rest": false,
+                "annotation": "PipelineRunnerServiceOptions"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createPipelinesService": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "db",
+                "optional": false,
+                "rest": false,
+                "annotation": "DbConnection"
+              },
+              {
+                "name": "options",
+                "optional": true,
+                "rest": false,
+                "annotation": "PipelinesServiceOptions"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createProjectsService": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "db",
+                "optional": false,
+                "rest": false,
+                "annotation": "DbConnection"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createRefinementsService": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "db",
+                "optional": false,
+                "rest": false,
+                "annotation": "DbConnection"
+              },
+              {
+                "name": "options",
+                "optional": true,
+                "rest": false,
+                "annotation": "PipelineRunnerServiceOptions"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createRoutineScheduler": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "deps",
+                "optional": false,
+                "rest": false,
+                "annotation": "RoutineSchedulerDeps"
+              },
+              {
+                "name": "options",
+                "optional": true,
+                "rest": false,
+                "annotation": "{ graceWindowMs?: number }"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createRoutineSchedulerService": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "db",
+                "optional": false,
+                "rest": false,
+                "annotation": "DbConnection"
+              },
+              {
+                "name": "deps",
+                "optional": false,
+                "rest": false,
+                "annotation": "{\n    startRun: RoutineStartRun;\n  }"
+              },
+              {
+                "name": "options",
+                "optional": true,
+                "rest": false,
+                "annotation": "{\n    pollIntervalMs?: number;\n  }"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createRoutinesService": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "db",
+                "optional": false,
+                "rest": false,
+                "annotation": "DbConnection"
+              },
+              {
+                "name": "deps",
+                "optional": false,
+                "rest": false,
+                "annotation": "{\n    startRun: RoutineStartRun;\n  }"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createSettingsService": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "db",
+                "optional": false,
+                "rest": false,
+                "annotation": "DbConnection"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createSkillsService": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "db",
+                "optional": false,
+                "rest": false,
+                "annotation": "DbConnection"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createUsageService": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "db",
+                "optional": false,
+                "rest": false,
+                "annotation": "DbConnection"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "CredentialCipher": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "CredentialCipherError": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": [
+          {
+            "parameters": [
+              {
+                "name": "message",
+                "optional": false,
+                "rest": false,
+                "annotation": "string"
+              },
+              {
+                "name": "cause",
+                "optional": true,
+                "rest": false,
+                "annotation": "unknown"
+              }
+            ],
+            "typeParameters": []
+          }
+        ]
+      },
+      "DEFAULT_GRACE_WINDOW_MS": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": []
+      },
+      "DEFAULT_JOB_HEARTBEAT_INTERVAL_MS": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": []
+      },
+      "DEFAULT_JOB_LEASE_DURATION_MS": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": []
+      },
+      "DEFAULT_POLL_INTERVAL_MS": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": []
+      },
+      "digestAgentControlArguments": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "input",
+                "optional": false,
+                "rest": false,
+                "annotation": "unknown"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "DirectoryEntry": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "ExecutionActorContext": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "ExecutionActorDependencies": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "ExecutionActorLimits": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "ExecutionActorLimitsSchema": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": []
+      },
+      "ExecutionApiService": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "ExecutionArtifactContext": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "ExecutionArtifactFingerprint": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "ExecutionArtifactJobContext": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "ExecutionArtifactPersistence": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "ExecutionArtifactRead": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "ExecutionDispatcher": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "executionFailure": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "code",
+                "optional": false,
+                "rest": false,
+                "annotation": "string"
+              },
+              {
+                "name": "message",
+                "optional": false,
+                "rest": false,
+                "annotation": "string"
+              },
+              {
+                "name": "field",
+                "optional": true,
+                "rest": false,
+                "annotation": "string"
+              },
+              {
+                "name": "stage",
+                "optional": true,
+                "rest": false,
+                "annotation": "ExecutionError[\"stage\"]"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "ExecutionGatewayError": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": [
+          {
+            "parameters": [
+              {
+                "name": "message",
+                "optional": false,
+                "rest": false,
+                "annotation": "string"
+              },
+              {
+                "name": "statusCode",
+                "optional": false,
+                "rest": false,
+                "annotation": "number"
+              }
+            ],
+            "typeParameters": []
+          }
+        ]
+      },
+      "ExecutionJobRunner": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "ExecutionPreparationService": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "ExecutionProducedArtifactContext": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "ExecutionServiceFailure": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": [
+          {
+            "parameters": [
+              {
+                "name": "detail",
+                "optional": false,
+                "rest": false,
+                "annotation": "ExecutionError"
+              }
+            ],
+            "typeParameters": []
+          }
+        ]
+      },
+      "executionServiceResult": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "operation",
+                "optional": false,
+                "rest": false,
+                "annotation": "() => Promise<T>"
+              }
+            ],
+            "typeParameters": ["T"]
+          }
+        ],
+        "constructors": []
+      },
+      "FilesystemError": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "fingerprintExecutable": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "path",
+                "optional": false,
+                "rest": false,
+                "annotation": "string"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "getCanvasExecutionInputs": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "pipeline",
+                "optional": false,
+                "rest": false,
+                "annotation": "PipelineData"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "getCanvasExecutionOperationIds": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "pipeline",
+                "optional": false,
+                "rest": false,
+                "annotation": "PipelineData"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "getProposeProgress": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "token",
+                "optional": false,
+                "rest": false,
+                "annotation": "string"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "GRACE_WINDOW_FACTOR": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": []
+      },
+      "hydrateConnectorCredentials": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "connector",
+                "optional": false,
+                "rest": false,
+                "annotation": "ConnectorWithCredentials"
+              },
+              {
+                "name": "options",
+                "optional": true,
+                "rest": false,
+                "annotation": "ConnectorCredentialHydrationOptions"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "inferCapabilityRiskTier": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "value",
+                "optional": false,
+                "rest": false,
+                "annotation": "string"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "InvalidJobStatusError": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": [
+          {
+            "parameters": [
+              {
+                "name": "action",
+                "optional": false,
+                "rest": false,
+                "annotation": "string"
+              },
+              {
+                "name": "jobId",
+                "optional": false,
+                "rest": false,
+                "annotation": "string"
+              },
+              {
+                "name": "status",
+                "optional": false,
+                "rest": false,
+                "annotation": "string"
+              },
+              {
+                "name": "allowed",
+                "optional": false,
+                "rest": false,
+                "annotation": "readonly string[]"
+              }
+            ],
+            "typeParameters": []
+          }
+        ]
+      },
+      "JobLeaseTimingOptions": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "JobNotFoundError": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": [
+          {
+            "parameters": [
+              {
+                "name": "jobId",
+                "optional": false,
+                "rest": false,
+                "annotation": "string"
+              }
+            ],
+            "typeParameters": []
+          }
+        ]
+      },
+      "listDirectory": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "dirPath",
+                "optional": true,
+                "rest": false,
+                "annotation": "string"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "listDirTree": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "rootDir",
+                "optional": false,
+                "rest": false,
+                "annotation": "string"
+              },
+              {
+                "name": "options",
+                "optional": true,
+                "rest": false,
+                "annotation": "ListDirTreeOptions"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "ListDirTreeOptions": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "NodeExecutionResolutionError": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": [
+          {
+            "parameters": [
+              {
+                "name": "code",
+                "optional": false,
+                "rest": false,
+                "annotation": "NodeExecutionResolutionErrorCode"
+              },
+              {
+                "name": "field",
+                "optional": false,
+                "rest": false,
+                "annotation": "string"
+              },
+              {
+                "name": "message",
+                "optional": false,
+                "rest": false,
+                "annotation": "string"
+              }
+            ],
+            "typeParameters": []
+          }
+        ]
+      },
+      "NodeExecutionResolutionErrorCode": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "NodeExecutionResolutionErrorCodeSchema": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": []
+      },
+      "normalizeSettingsRecord": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "record",
+                "optional": false,
+                "rest": false,
+                "annotation": "T"
+              }
+            ],
+            "typeParameters": ["T extends { defaultAgentRuntime: unknown }"]
+          }
+        ],
+        "constructors": []
+      },
+      "NotFoundError": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": [
+          {
+            "parameters": [
+              {
+                "name": "resource",
+                "optional": false,
+                "rest": false,
+                "annotation": "string"
+              },
+              {
+                "name": "id",
+                "optional": false,
+                "rest": false,
+                "annotation": "string"
+              }
+            ],
+            "typeParameters": []
+          }
+        ]
+      },
+      "omitEncryptedConnectorCredentials": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "connector",
+                "optional": false,
+                "rest": false,
+                "annotation": "T"
+              }
+            ],
+            "typeParameters": ["T extends { encryptedCredentials: unknown }"]
+          }
+        ],
+        "constructors": []
+      },
+      "OperationCapabilityValidationInput": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "OperationConfigShapeValidationIssue": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "OperationConfigValidationError": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": [
+          {
+            "parameters": [
+              {
+                "name": "issues",
+                "optional": false,
+                "rest": false,
+                "annotation": "OperationConfigShapeValidationIssue[]"
+              }
+            ],
+            "typeParameters": []
+          }
+        ]
+      },
+      "OperationInUseConflictError": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": [
+          {
+            "parameters": [
+              {
+                "name": "operationId",
+                "optional": false,
+                "rest": false,
+                "annotation": "string"
+              },
+              {
+                "name": "pipelineIds",
+                "optional": false,
+                "rest": false,
+                "annotation": "string[]"
+              }
+            ],
+            "typeParameters": []
+          }
+        ]
+      },
+      "OperationNotFoundError": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": [
+          {
+            "parameters": [
+              {
+                "name": "operationId",
+                "optional": false,
+                "rest": false,
+                "annotation": "string"
+              }
+            ],
+            "typeParameters": []
+          }
+        ]
+      },
+      "OperationsServiceOptions": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "PendingOperationInput": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "PIPELINE_AGENT_MAX_ATTACHMENT_BYTES": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": []
+      },
+      "PipelineNotFoundError": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": [
+          {
+            "parameters": [
+              {
+                "name": "pipelineId",
+                "optional": false,
+                "rest": false,
+                "annotation": "string"
+              }
+            ],
+            "typeParameters": []
+          }
+        ]
+      },
+      "PipelineOperationReferencesError": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": [
+          {
+            "parameters": [
+              {
+                "name": "diagnostic",
+                "optional": false,
+                "rest": false,
+                "annotation": "PipelineOperationReferenceDiagnostic"
+              }
+            ],
+            "typeParameters": []
+          }
+        ]
+      },
+      "PipelineRunnerServiceOptions": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "PipelinesServiceOptions": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "prepareCapabilityHarvest": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "{\n  mcpScan,\n  skillScan,\n  cipher,\n  now,\n}",
+                "optional": false,
+                "rest": false,
+                "annotation": "{\n  mcpScan: McpCapabilityScanResult;\n  skillScan: SkillCapabilityScanResult;\n  cipher: CredentialCipher;\n  now: Date;\n}"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "projectCapabilityCatalog": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "{\n  connectors,\n  skills,\n  overrides,\n}",
+                "optional": false,
+                "rest": false,
+                "annotation": "CapabilityCatalogProjectionInput"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "proposeActions": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "deps",
+                "optional": false,
+                "rest": false,
+                "annotation": "ProposeActionsDeps"
+              },
+              {
+                "name": "opts",
+                "optional": false,
+                "rest": false,
+                "annotation": "ProposeActionsOptions"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "ProposeActionsDeps": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "ProposeActionsOptions": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "ProposeActionsResult": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "ProposeProgressStage": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "PublishExecutionConfiguration": {
+        "kind": "type",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "operations",
+                "optional": false,
+                "rest": false,
+                "annotation": "readonly OperationRevision[]"
+              },
+              {
+                "name": "executionOverrides",
+                "optional": false,
+                "rest": false,
+                "annotation": "ExecutionOverrides"
+              },
+              {
+                "name": "nodeOverrides",
+                "optional": true,
+                "rest": false,
+                "annotation": "readonly NodeExecutionOverrides[]"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "readProjectFiles": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "rootDir",
+                "optional": false,
+                "rest": false,
+                "annotation": "string"
+              },
+              {
+                "name": "options",
+                "optional": true,
+                "rest": false,
+                "annotation": "ReadProjectFilesOptions"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "ReadProjectFilesOptions": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "redactSensitiveText": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "value",
+                "optional": false,
+                "rest": false,
+                "annotation": "string"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "requireExecutionScope": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "input",
+                "optional": false,
+                "rest": false,
+                "annotation": "ExecutionPrincipal"
+              },
+              {
+                "name": "scope",
+                "optional": false,
+                "rest": false,
+                "annotation": "ExecutionScope"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "ResolvedMcpConnector": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "ResolvedMcpTool": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "resolveMcpConnectors": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "connectors",
+                "optional": false,
+                "rest": false,
+                "annotation": "ConnectorLike[]"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "resolveMcpConnectorTools": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "connectors",
+                "optional": false,
+                "rest": false,
+                "annotation": "ConnectorLike[]"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "resolveNodeExecution": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "input",
+                "optional": false,
+                "rest": false,
+                "annotation": "ResolveNodeExecutionInput"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "ResolveNodeExecutionInput": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "ResolveNodeExecutionInputSchema": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": []
+      },
+      "resolveRuntimeExecutable": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "{\n  runtime,\n  configuredPath,\n  configuredVersion,\n  detectedPath,\n  detectedVersion,\n  readExecutable,\n  probeCapabilities,\n}",
+                "optional": false,
+                "rest": false,
+                "annotation": "RuntimeExecutableResolutionInput"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "RoutineSchedulerDeps": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "RoutineStartRun": {
+        "kind": "type",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "opts",
+                "optional": false,
+                "rest": false,
+                "annotation": "{\n  inputs?: Record<string, string>;\n  jobId?: string;\n  pipelineId: string;\n  triggeredBy?: JobTriggeredBy;\n}"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "runNativeProcess": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "input",
+                "optional": false,
+                "rest": false,
+                "annotation": "{\n  context: ExecutionActorContext;\n  workspace: string;\n  arguments: string[];\n  environment?: Record<string, string>;\n  onStdout?: (chunk: Buffer) => Outcome<void, ExecutionError>;\n  hasFirstOutput?: () => boolean;\n  stdin: Uint8Array;\n  limits: ExecutionActorLimits;\n}"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "sanitizeAgentRunEvent": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "event",
+                "optional": false,
+                "rest": false,
+                "annotation": "AgentRunEvent"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "sanitizeRuntimeEvent": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "event",
+                "optional": false,
+                "rest": false,
+                "annotation": "RuntimeEvent"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "SchedulerRoutine": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "ScriptProcessOutcome": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "ScriptProcessReport": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "ScriptProcessReportSchema": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": []
+      },
+      "ServiceError": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": [
+          {
+            "parameters": [
+              {
+                "name": "message",
+                "optional": false,
+                "rest": false,
+                "annotation": "string"
+              },
+              {
+                "name": "cause",
+                "optional": true,
+                "rest": false,
+                "annotation": "unknown"
+              }
+            ],
+            "typeParameters": []
+          }
+        ]
+      },
+      "serviceFactory": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": []
+      },
+      "setProposeProgress": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "token",
+                "optional": false,
+                "rest": false,
+                "annotation": "string"
+              },
+              {
+                "name": "stage",
+                "optional": false,
+                "rest": false,
+                "annotation": "ProposeProgressStage"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "SkillImportCandidate": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "SkillImportPreview": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "SkippedJobInput": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "toArtifactStoreError": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "error",
+                "optional": false,
+                "rest": false,
+                "annotation": "unknown"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "toExecutionServiceError": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "error",
+                "optional": false,
+                "rest": false,
+                "annotation": "unknown"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "tokenizeCapabilityName": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "value",
+                "optional": false,
+                "rest": false,
+                "annotation": "string"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "toServiceError": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "error",
+                "optional": false,
+                "rest": false,
+                "annotation": "unknown"
+              },
+              {
+                "name": "action",
+                "optional": false,
+                "rest": false,
+                "annotation": "string"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "verifyPreparedExecutable": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "context",
+                "optional": false,
+                "rest": false,
+                "annotation": "ExecutionActorContext"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      }
+    },
+    "src/execution/index.ts": {
+      "ArtifactStoreError": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": [
+          {
+            "parameters": [
+              {
+                "name": "code",
+                "optional": false,
+                "rest": false,
+                "annotation": "string"
+              },
+              {
+                "name": "message",
+                "optional": false,
+                "rest": false,
+                "annotation": "string"
+              },
+              {
+                "name": "stagedArtifactId",
+                "optional": true,
+                "rest": false,
+                "annotation": "string"
+              }
+            ],
+            "typeParameters": []
+          }
+        ]
+      },
+      "assertArtifactNotAborted": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "signal",
+                "optional": true,
+                "rest": false,
+                "annotation": "AbortSignal"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createExecutionActors": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "dependencies",
+                "optional": false,
+                "rest": false,
+                "annotation": "ExecutionActorDependencies"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createExecutionApiService": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "deps",
+                "optional": false,
+                "rest": false,
+                "annotation": "{\n  repository: ExecutionRepository;\n  jobs: ExecutionJobRepository;\n  artifactStore: ArtifactStore;\n  preparation: ExecutionPreparationService;\n}"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createExecutionArtifactStore": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "options",
+                "optional": false,
+                "rest": false,
+                "annotation": "ArtifactStoreOptions"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createExecutionDispatcher": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "deps",
+                "optional": false,
+                "rest": false,
+                "annotation": "{\n  principal: ExecutionPrincipal;\n  instanceId: string;\n  jobs: ExecutionJobRepository;\n  requests: Pick<ExecutionRepository, \"expirePendingApprovals\">;\n  runner: ExecutionJobRunner;\n  maxJobs?: number;\n  leaseMs?: number;\n  pollMs?: number;\n}"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createExecutionJobRunner": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "deps",
+                "optional": false,
+                "rest": false,
+                "annotation": "Dependencies"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createExecutionPreparationService": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "deps",
+                "optional": false,
+                "rest": false,
+                "annotation": "Dependencies"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "createExecutionPromptActor": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "dependencies",
+                "optional": false,
+                "rest": false,
+                "annotation": "ExecutionPromptDependencies"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "ExecutionActorContext": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "ExecutionActorDependencies": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "ExecutionActorLimits": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "ExecutionActorLimitsSchema": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": []
+      },
+      "ExecutionApiService": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "ExecutionArtifactContext": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "ExecutionArtifactFingerprint": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "ExecutionArtifactJobContext": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "ExecutionArtifactPersistence": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "ExecutionArtifactRead": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "ExecutionDispatcher": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "executionFailure": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "code",
+                "optional": false,
+                "rest": false,
+                "annotation": "string"
+              },
+              {
+                "name": "message",
+                "optional": false,
+                "rest": false,
+                "annotation": "string"
+              },
+              {
+                "name": "field",
+                "optional": true,
+                "rest": false,
+                "annotation": "string"
+              },
+              {
+                "name": "stage",
+                "optional": true,
+                "rest": false,
+                "annotation": "ExecutionError[\"stage\"]"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "ExecutionJobRunner": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "ExecutionPreparationService": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "ExecutionProducedArtifactContext": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "ExecutionPromptDependencies": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "ExecutionPromptLimits": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "ExecutionPromptLimitsSchema": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": []
+      },
+      "ExecutionServiceFailure": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": [
+          {
+            "parameters": [
+              {
+                "name": "detail",
+                "optional": false,
+                "rest": false,
+                "annotation": "ExecutionError"
+              }
+            ],
+            "typeParameters": []
+          }
+        ]
+      },
+      "executionServiceResult": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "operation",
+                "optional": false,
+                "rest": false,
+                "annotation": "() => Promise<T>"
+              }
+            ],
+            "typeParameters": ["T"]
+          }
+        ],
+        "constructors": []
+      },
+      "fingerprintExecutable": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "path",
+                "optional": false,
+                "rest": false,
+                "annotation": "string"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "NodeExecutionResolutionError": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": [
+          {
+            "parameters": [
+              {
+                "name": "code",
+                "optional": false,
+                "rest": false,
+                "annotation": "NodeExecutionResolutionErrorCode"
+              },
+              {
+                "name": "field",
+                "optional": false,
+                "rest": false,
+                "annotation": "string"
+              },
+              {
+                "name": "message",
+                "optional": false,
+                "rest": false,
+                "annotation": "string"
+              }
+            ],
+            "typeParameters": []
+          }
+        ]
+      },
+      "NodeExecutionResolutionErrorCode": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "NodeExecutionResolutionErrorCodeSchema": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": []
+      },
+      "requireExecutionScope": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "input",
+                "optional": false,
+                "rest": false,
+                "annotation": "ExecutionPrincipal"
+              },
+              {
+                "name": "scope",
+                "optional": false,
+                "rest": false,
+                "annotation": "ExecutionScope"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "resolveNodeExecution": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "input",
+                "optional": false,
+                "rest": false,
+                "annotation": "ResolveNodeExecutionInput"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "ResolveNodeExecutionInput": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "ResolveNodeExecutionInputSchema": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": []
+      },
+      "runNativeProcess": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "input",
+                "optional": false,
+                "rest": false,
+                "annotation": "{\n  context: ExecutionActorContext;\n  workspace: string;\n  arguments: string[];\n  environment?: Record<string, string>;\n  onStdout?: (chunk: Buffer) => Outcome<void, ExecutionError>;\n  hasFirstOutput?: () => boolean;\n  stdin: Uint8Array;\n  limits: ExecutionActorLimits;\n}"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "ScriptProcessOutcome": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "ScriptProcessReport": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "ScriptProcessReportSchema": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": []
+      },
+      "toArtifactStoreError": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "error",
+                "optional": false,
+                "rest": false,
+                "annotation": "unknown"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "toExecutionServiceError": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "error",
+                "optional": false,
+                "rest": false,
+                "annotation": "unknown"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "verifyPreparedExecutable": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "context",
+                "optional": false,
+                "rest": false,
+                "annotation": "ExecutionActorContext"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      }
+    },
+    "src/executionMigration/index.ts": {
+      "createExecutionMigrationService": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "dependencies",
+                "optional": false,
+                "rest": false,
+                "annotation": "{\n  repository: ExecutionMigrationRepository;\n}"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "ExecutionMigrationBundle": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "ExecutionMigrationBundleSchema": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": []
+      },
+      "ExecutionMigrationValidationError": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": [
+          {
+            "parameters": [
+              {
+                "name": "code",
+                "optional": false,
+                "rest": false,
+                "annotation": "string"
+              },
+              {
+                "name": "objectIndex",
+                "optional": true,
+                "rest": false,
+                "annotation": "number"
+              }
+            ],
+            "typeParameters": []
+          }
+        ]
+      },
+      "migrationBytesSha256": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "bytes",
+                "optional": false,
+                "rest": false,
+                "annotation": "Uint8Array"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "MigrationDispositionSchema": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": []
+      },
+      "migrationLeafPaths": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "value",
+                "optional": false,
+                "rest": false,
+                "annotation": "unknown"
+              },
+              {
+                "name": "path",
+                "optional": true,
+                "rest": false,
+                "annotation": null
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "MigrationObjectKindSchema": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": []
+      },
+      "MigrationSource": {
+        "kind": "type",
+        "parameters": [],
+        "constructors": []
+      },
+      "MigrationSourceSchema": {
+        "kind": "value",
+        "parameters": [],
+        "constructors": []
+      },
+      "parseMigrationJson": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "bytes",
+                "optional": false,
+                "rest": false,
+                "annotation": "Uint8Array"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      },
+      "validateExecutionMigration": {
+        "kind": "value",
+        "parameters": [
+          {
+            "parameters": [
+              {
+                "name": "bundleInput",
+                "optional": false,
+                "rest": false,
+                "annotation": "unknown"
+              },
+              {
+                "name": "sourceBytes",
+                "optional": false,
+                "rest": false,
+                "annotation": "Uint8Array"
+              }
+            ],
+            "typeParameters": []
+          }
+        ],
+        "constructors": []
+      }
+    }
+  }
+}

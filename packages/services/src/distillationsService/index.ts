@@ -1,1 +1,1 @@
-export * from "./createDistillationsService";
+export * from "./distillations.service";

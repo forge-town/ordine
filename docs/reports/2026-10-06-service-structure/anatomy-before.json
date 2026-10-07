@@ -1,0 +1,85 @@
+{
+  "name": "Service Package",
+  "purpose": "以 packages/services 文件夹为根，按 Package → Service 单元分层；src 入口属于包，Service 单元的内部结构由 Service 单元 Anatomy 负责。本定义只管理源文件结构，扫描目标应排除依赖和构建产物。仅检查目录、文件名及数量，不验证文件内容、桶导出、事务或依赖语义。占位符表示名称模式，不保证不同文件的前缀一致。",
+  "structure": {
+    "schemaVersion": 2,
+    "defaultPolicies": {
+      "missingRequired": "block",
+      "unexpectedEntry": "block",
+      "nameMismatch": "block",
+      "nestingMismatch": "block"
+    },
+    "root": {
+      "children": [
+        {
+          "id": "4b3344d0-4867-4c80-a4e0-93eef9baa6c3",
+          "name": {
+            "type": "literal",
+            "value": "services"
+          },
+          "quantity": "exactly_one",
+          "policyOverrides": {},
+          "kind": "directory",
+          "children": [
+            {
+              "id": "be573837-1b7d-4f02-8139-2356f0c1cf46",
+              "name": {
+                "type": "literal",
+                "value": "package.json"
+              },
+              "quantity": "exactly_one",
+              "policyOverrides": {},
+              "kind": "file"
+            },
+            {
+              "id": "4c20e2f5-8938-4eb8-9d4f-0fd926a3118d",
+              "name": {
+                "type": "literal",
+                "value": "tsconfig.json"
+              },
+              "quantity": "exactly_one",
+              "policyOverrides": {},
+              "kind": "file"
+            },
+            {
+              "id": "488f9db1-6702-4282-b32b-dbd9b5e0dde1",
+              "name": {
+                "type": "literal",
+                "value": "src"
+              },
+              "quantity": "exactly_one",
+              "policyOverrides": {},
+              "kind": "directory",
+              "children": [
+                {
+                  "id": "fb2d4c94-1009-4f32-afe0-ea73073dcbc1",
+                  "name": {
+                    "type": "literal",
+                    "value": "index.ts"
+                  },
+                  "quantity": "exactly_one",
+                  "policyOverrides": {},
+                  "kind": "file"
+                },
+                {
+                  "id": "e61c655c-767d-4d0c-93b3-a3162921e935",
+                  "kind": "composition",
+                  "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+                  "mountName": "<name>Service",
+                  "quantity": "one_or_more",
+                  "policyOverrides": {}
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "rootMode": "entry"
+  },
+  "id": "f3e455f6-1a28-401c-963f-efc36bcf1652",
+  "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849",
+  "revision": 1,
+  "createdAt": "2026-09-19T17:51:57.170Z",
+  "updatedAt": "2026-09-19T17:51:57.170Z"
+}

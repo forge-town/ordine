@@ -1,2 +1,3 @@
-export * from "./createConnectorsService";
-export * from "./buildClaudeMcpInjection";
+export * from "./connectors.service";
+export * from "./contracts";
+export * from "./helpers/buildClaudeMcpInjection";

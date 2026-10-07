@@ -1,1 +1,2 @@
-export * from "./createSkillsService";
+export * from "./skills.service";
+export * from "./contracts";

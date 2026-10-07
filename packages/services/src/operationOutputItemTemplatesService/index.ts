@@ -1,1 +1,1 @@
-export * from "./createOperationOutputItemTemplatesService";
+export * from "./operationOutputItemTemplates.service";

@@ -1,0 +1,58 @@
+import { describe, it, expect, vi } from "vitest";
+import type { DbConnection } from "@repo/models";
+
+const mockDao = {
+  get: vi.fn().mockResolvedValue({
+    defaultAgentRuntime: "codex",
+    defaultApiKey: "key",
+    defaultModel: "gpt-4",
+    createdAt: new Date(0),
+    updatedAt: new Date(0),
+  }),
+  update: vi.fn().mockResolvedValue({
+    defaultAgentRuntime: "codex",
+    defaultApiKey: "new-key",
+    createdAt: new Date(0),
+    updatedAt: new Date(0),
+  }),
+};
+
+vi.mock("@repo/models", () => ({
+  createSettingsDao: () => mockDao,
+}));
+
+import { createSettingsService } from "../../settings.service";
+
+// The DAO factory is mocked above, so the service only needs a typed db token.
+const mockDb = {} as DbConnection;
+
+describe("createSettingsService", () => {
+  it("normalizes invalid stored agent runtime", async () => {
+    mockDao.get.mockResolvedValueOnce({
+      defaultAgentRuntime: "kimi",
+      defaultApiKey: "key",
+      defaultModel: "kimi-for-coding/k2p6",
+      createdAt: new Date(0),
+      updatedAt: new Date(0),
+    });
+
+    const svc = createSettingsService({} as never);
+    const result = await svc.get();
+
+    expect(result.defaultAgentRuntime).toBe("mastra");
+  });
+  it("normalizes Hermes out of workspace default runtime", async () => {
+    mockDao.get.mockResolvedValueOnce({
+      defaultAgentRuntime: "hermes",
+      defaultApiKey: "key",
+      defaultModel: "kimi-for-coding/k2p6",
+      createdAt: new Date(0),
+      updatedAt: new Date(0),
+    });
+
+    const svc = createSettingsService({} as never);
+    const result = await svc.get();
+
+    expect(result.defaultAgentRuntime).toBe("mastra");
+  });
+});

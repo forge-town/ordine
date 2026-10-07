@@ -1,0 +1,40 @@
+import type { createAgentRuntimesDao } from "@repo/models";
+import { mapWithMeta, type AgentRuntimeConfig } from "@repo/schemas";
+
+export const createSyncAllMethod =
+  (dao: ReturnType<typeof createAgentRuntimesDao>) => async (incoming: AgentRuntimeConfig[]) => {
+    const existing = await dao.findMany();
+    const existingIds = new Set(existing.map((r) => r.id));
+    const toCreate = incoming.filter((r) => !existingIds.has(r.id));
+    const toUpdate = incoming.filter((r) => existingIds.has(r.id));
+    // Runtime discovery is evidence, not a destructive source of truth. A CLI can disappear
+    // temporarily because a desktop-launched process inherited a different PATH, so rescan only
+    // upserts positive detections and keeps missing local/manual/remote configurations intact.
+
+    await Promise.all([
+      ...toCreate.map((r) => dao.create(r)),
+      ...toUpdate.map((r) => {
+        const existingRuntime = existing.find((runtime) => runtime.id === r.id);
+        // Discovery never changes an explicitly saved executable or its model selection.
+        if (existingRuntime?.connection.mode === "local" && existingRuntime.connection.path) return;
+        const connection =
+          r.connection.mode === "local" &&
+          existingRuntime?.connection.mode === "local" &&
+          existingRuntime.connection.models !== undefined
+            ? {
+                ...r.connection,
+                models: existingRuntime.connection.models,
+                ...(existingRuntime.connection.modelsSource
+                  ? { modelsSource: existingRuntime.connection.modelsSource }
+                  : {}),
+              }
+            : r.connection;
+
+        return dao.update(r.id, { name: r.name, type: r.type, connection });
+      }),
+    ]);
+
+    const updated = await dao.findMany();
+
+    return mapWithMeta(updated);
+  };

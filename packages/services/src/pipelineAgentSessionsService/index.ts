@@ -1,1 +1,1 @@
-export * from "./createPipelineAgentSessionsService";
+export * from "./pipelineAgentSessions.service";

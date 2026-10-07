@@ -1,0 +1,31 @@
+{
+  "savedAt": "2026-10-07T06:09:34.811Z",
+  "anatomies": [
+    {
+      "id": "1054274d-005e-4554-84c2-b0459e89c849",
+      "name": "Service Package",
+      "revision": 2,
+      "updatedAt": "2026-10-07T06:08:34.069Z"
+    },
+    {
+      "id": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+      "name": "Service 单元",
+      "revision": 7,
+      "updatedAt": "2026-10-06T12:22:10.722Z"
+    },
+    {
+      "id": "c9e8b402-e926-4ba5-b04c-2086a39db531",
+      "name": "Service Method 单元",
+      "revision": 2,
+      "updatedAt": "2026-10-07T06:07:53.243Z"
+    },
+    {
+      "id": "824299ac-1cde-47c4-b866-a99a29059ba2",
+      "name": "Service Helper 单元",
+      "revision": 2,
+      "updatedAt": "2026-10-07T06:08:04.653Z"
+    }
+  ],
+  "structuralValidation": "structural-validation.json",
+  "concurrency": "all four were read before save; package expectedRevision=1, service-unit expectedRevision=7; method/helper saved before package"
+}

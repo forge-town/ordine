@@ -1,1 +1,1 @@
-export * from "./createPipelineAssetsService";
+export * from "./pipelineAssets.service";

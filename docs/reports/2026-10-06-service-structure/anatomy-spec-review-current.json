@@ -1,0 +1,1298 @@
+{
+  "target": "/Users/amin/projects/ordine-service-structure/packages/services",
+  "baseline": {
+    "conforms": false,
+    "summary": {
+      "block": 166,
+      "warn": 0,
+      "allow": 0
+    }
+  },
+  "current": {
+    "issues": [
+      {
+        "code": "missing_required",
+        "severity": "block",
+        "path": "services/src/agentControlService",
+        "constraintId": "7a71a974-8606-4f88-9786-0ed91909182f",
+        "message": "Expected exactly_one file \"<name>.service.ts\" but found 0",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/agentControlService/argumentDigest.unit.test.ts",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected file \"argumentDigest.unit.test.ts\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/agentControlService/canvasControl.ts",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected file \"canvasControl.ts\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/agentControlService/controlRunEvent.ts",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected file \"controlRunEvent.ts\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/agentControlService/controlRunEvent.unit.test.ts",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected file \"controlRunEvent.unit.test.ts\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/agentControlService/createAgentControlService.ts",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected file \"createAgentControlService.ts\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/agentControlService/createAgentThreadsService.ts",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected file \"createAgentThreadsService.ts\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/agentControlService/executionPreflight.ts",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected file \"executionPreflight.ts\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/agentControlService/notifyCommittedChangeSet.ts",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected file \"notifyCommittedChangeSet.ts\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/agentControlService/notifyCommittedChangeSet.unit.test.ts",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected file \"notifyCommittedChangeSet.unit.test.ts\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/agentControlService/preparedSubmission.integration.test.ts",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected file \"preparedSubmission.integration.test.ts\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/agentControlService/resourceControl.ts",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected file \"resourceControl.ts\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/agentControlService/runCapabilityStore.ts",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected file \"runCapabilityStore.ts\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/agentControlService/runCapabilityStore.unit.test.ts",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected file \"runCapabilityStore.unit.test.ts\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "missing_required",
+        "severity": "block",
+        "path": "services/src/agentRunsService",
+        "constraintId": "7a71a974-8606-4f88-9786-0ed91909182f",
+        "message": "Expected exactly_one file \"<name>.service.ts\" but found 0",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/agentRunsService/agentRunsService.windows.integration.test.ts",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected file \"agentRunsService.windows.integration.test.ts\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/agentRunsService/agentRunsShutdown.unit.test.ts",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected file \"agentRunsShutdown.unit.test.ts\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/agentRunsService/configureAgentRunController.ts",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected file \"configureAgentRunController.ts\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/agentRunsService/createAgentRunController.ts",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected file \"createAgentRunController.ts\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/agentRunsService/createAgentRunController.unit.test.ts",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected file \"createAgentRunController.unit.test.ts\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/agentRunsService/createAgentRunsService.ts",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected file \"createAgentRunsService.ts\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/agentRunsService/createAgentRunsService.unit.test.ts",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected file \"createAgentRunsService.unit.test.ts\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/agentRunsService/recoverInterruptedRuns.unit.test.ts",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected file \"recoverInterruptedRuns.unit.test.ts\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/agentRunsService/sanitizeAgentRunData.ts",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected file \"sanitizeAgentRunData.ts\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "missing_required",
+        "severity": "block",
+        "path": "services/src/executionService",
+        "constraintId": "7a71a974-8606-4f88-9786-0ed91909182f",
+        "message": "Expected exactly_one file \"<name>.service.ts\" but found 0",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/executionService/authoringDatabase.integration.test.ts",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected file \"authoringDatabase.integration.test.ts\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/executionService/createExecutionApiService.ts",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected file \"createExecutionApiService.ts\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/executionService/createExecutionDispatcher.ts",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected file \"createExecutionDispatcher.ts\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/executionService/createExecutionJobRunner.ts",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected file \"createExecutionJobRunner.ts\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/executionService/createExecutionPreparationService.ts",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected file \"createExecutionPreparationService.ts\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/executionService/createExecutionPreparationService.unit.test.ts",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected file \"createExecutionPreparationService.unit.test.ts\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/executionService/createExecutionProcessLimiter.ts",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected file \"createExecutionProcessLimiter.ts\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/executionService/createExecutionProcessLimiter.unit.test.ts",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected file \"createExecutionProcessLimiter.unit.test.ts\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/executionService/errors.ts",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected file \"errors.ts\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/executionService/executionJobSummary.unit.test.ts",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected file \"executionJobSummary.unit.test.ts\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/executionService/executionRuntime.integration.test.ts",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected file \"executionRuntime.integration.test.ts\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/executionService/fingerprintExecutable.ts",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected file \"fingerprintExecutable.ts\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/executionService/resolveNodeExecution.ts",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected file \"resolveNodeExecution.ts\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/executionService/resolveNodeExecution.unit.test.ts",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected file \"resolveNodeExecution.unit.test.ts\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/executionService/serviceResult.ts",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected file \"serviceResult.ts\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "missing_required",
+        "severity": "block",
+        "path": "services/src/pipelineAgentSessionsService",
+        "constraintId": "7a71a974-8606-4f88-9786-0ed91909182f",
+        "message": "Expected exactly_one file \"<name>.service.ts\" but found 0",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/pipelineAgentSessionsService/createPipelineAgentSessionsService.ts",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected file \"createPipelineAgentSessionsService.ts\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/pipelineAgentSessionsService/createPipelineAgentSessionsService.unit.test.ts",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected file \"createPipelineAgentSessionsService.unit.test.ts\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/pipelineAgentSessionsService/fixtures",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"fixtures\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/pipelineAgentSessionsService/parsePlanningResult.ts",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected file \"parsePlanningResult.ts\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/pipelineAgentSessionsService/parsePlanningResult.unit.test.ts",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected file \"parsePlanningResult.unit.test.ts\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/pipelineAgentSessionsService/streamPlanningPreview.ts",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected file \"streamPlanningPreview.ts\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/pipelineAgentSessionsService/streamPlanningPreview.unit.test.ts",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected file \"streamPlanningPreview.unit.test.ts\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "missing_required",
+        "severity": "block",
+        "path": "services/src/pipelineRunnerService",
+        "constraintId": "7a71a974-8606-4f88-9786-0ed91909182f",
+        "message": "Expected exactly_one file \"<name>.service.ts\" but found 0",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/pipelineRunnerService/agentRunner",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"agentRunner\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/pipelineRunnerService/createPipelineRunnerService",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"createPipelineRunnerService\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/pipelineRunnerService/engineDeps",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"engineDeps\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/pipelineRunnerService/loopEvaluator",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"loopEvaluator\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/pipelineRunnerService/promptExecutor",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"promptExecutor\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/pipelineRunnerService/resolveCwd.ts",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected file \"resolveCwd.ts\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/pipelineRunnerService/resolveCwd.unit.test.ts",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected file \"resolveCwd.unit.test.ts\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/pipelineRunnerService/runControl",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"runControl\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/pipelineRunnerService/runPipeline",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"runPipeline\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/pipelineRunnerService/skillExecutor",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"skillExecutor\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/pipelineRunnerService/structuredOutput",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"structuredOutput\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "missing_required",
+        "severity": "block",
+        "path": "services/src/pipelinesService",
+        "constraintId": "7a71a974-8606-4f88-9786-0ed91909182f",
+        "message": "Expected exactly_one file \"<name>.service.ts\" but found 0",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/pipelinesService/__snapshots__",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"__snapshots__\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/pipelinesService/analyzeIntent.unit.test.ts",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected file \"analyzeIntent.unit.test.ts\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/pipelinesService/capabilityAssignment",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"capabilityAssignment\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/pipelinesService/checkPipelineOperationReferences.ts",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected file \"checkPipelineOperationReferences.ts\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/pipelinesService/createPipelinesService.ts",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected file \"createPipelinesService.ts\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/pipelinesService/createPipelinesService.unit.test.ts",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected file \"createPipelinesService.unit.test.ts\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/pipelinesService/generateStructure.unit.test.ts",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected file \"generateStructure.unit.test.ts\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/pipelinesService/pipelineCanvasSkillContext.ts",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected file \"pipelineCanvasSkillContext.ts\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/pipelinesService/promptText.ts",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected file \"promptText.ts\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/pipelinesService/prompts.snapshot.unit.test.ts",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected file \"prompts.snapshot.unit.test.ts\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/pipelinesService/prompts.ts",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected file \"prompts.ts\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/pipelinesService/proposeActions",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected directory \"proposeActions\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "missing_required",
+        "severity": "block",
+        "path": "services/src/refinementsService",
+        "constraintId": "7a71a974-8606-4f88-9786-0ed91909182f",
+        "message": "Expected exactly_one file \"<name>.service.ts\" but found 0",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/src/refinementsService/createRefinementsService.ts",
+        "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+        "message": "Unexpected file \"createRefinementsService.ts\"",
+        "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+        "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/canvasExecution/canvasAuthoringSchema.ts",
+        "constraintId": "b7201fe9-2323-4e8b-a998-002e1b389a54",
+        "message": "Unexpected file \"canvasAuthoringSchema.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/canvasExecution/compileCanvasExecution.ts",
+        "constraintId": "b7201fe9-2323-4e8b-a998-002e1b389a54",
+        "message": "Unexpected file \"compileCanvasExecution.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/canvasExecution/compileCanvasExecution.unit.test.ts",
+        "constraintId": "b7201fe9-2323-4e8b-a998-002e1b389a54",
+        "message": "Unexpected file \"compileCanvasExecution.unit.test.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/canvasExecution/convertCanvasDraftToExecution.ts",
+        "constraintId": "b7201fe9-2323-4e8b-a998-002e1b389a54",
+        "message": "Unexpected file \"convertCanvasDraftToExecution.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/canvasExecution/convertCanvasDraftToExecution.unit.test.ts",
+        "constraintId": "b7201fe9-2323-4e8b-a998-002e1b389a54",
+        "message": "Unexpected file \"convertCanvasDraftToExecution.unit.test.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/canvasExecution/index.ts",
+        "constraintId": "b7201fe9-2323-4e8b-a998-002e1b389a54",
+        "message": "Unexpected file \"index.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/execution/index.ts",
+        "constraintId": "a66adead-1025-4ba2-bf8e-fd72421a18ba",
+        "message": "Unexpected file \"index.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionActors/createExecutionActors.ts",
+        "constraintId": "a636e84c-ce21-4589-989b-70311ab68d5d",
+        "message": "Unexpected file \"createExecutionActors.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionActors/errors.ts",
+        "constraintId": "a636e84c-ce21-4589-989b-70311ab68d5d",
+        "message": "Unexpected file \"errors.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionActors/executionActors.unit.test.ts",
+        "constraintId": "a636e84c-ce21-4589-989b-70311ab68d5d",
+        "message": "Unexpected file \"executionActors.unit.test.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionActors/index.ts",
+        "constraintId": "a636e84c-ce21-4589-989b-70311ab68d5d",
+        "message": "Unexpected file \"index.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionActors/runNativeProcess.ts",
+        "constraintId": "a636e84c-ce21-4589-989b-70311ab68d5d",
+        "message": "Unexpected file \"runNativeProcess.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionActors/runScriptProcess.ts",
+        "constraintId": "a636e84c-ce21-4589-989b-70311ab68d5d",
+        "message": "Unexpected file \"runScriptProcess.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionActors/runWindowsScript.ps1",
+        "constraintId": "a636e84c-ce21-4589-989b-70311ab68d5d",
+        "message": "Unexpected file \"runWindowsScript.ps1\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionActors/types.ts",
+        "constraintId": "a636e84c-ce21-4589-989b-70311ab68d5d",
+        "message": "Unexpected file \"types.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionActors/verifyPreparedExecutable.ts",
+        "constraintId": "a636e84c-ce21-4589-989b-70311ab68d5d",
+        "message": "Unexpected file \"verifyPreparedExecutable.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionArtifacts/content.ts",
+        "constraintId": "2fedbfef-f5ea-4a54-923c-53c321026dd0",
+        "message": "Unexpected file \"content.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionArtifacts/createExecutionArtifactStore.ts",
+        "constraintId": "2fedbfef-f5ea-4a54-923c-53c321026dd0",
+        "message": "Unexpected file \"createExecutionArtifactStore.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionArtifacts/createExecutionArtifactStore.unit.test.ts",
+        "constraintId": "2fedbfef-f5ea-4a54-923c-53c321026dd0",
+        "message": "Unexpected file \"createExecutionArtifactStore.unit.test.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionArtifacts/errors.ts",
+        "constraintId": "2fedbfef-f5ea-4a54-923c-53c321026dd0",
+        "message": "Unexpected file \"errors.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionArtifacts/fileSystem.ts",
+        "constraintId": "2fedbfef-f5ea-4a54-923c-53c321026dd0",
+        "message": "Unexpected file \"fileSystem.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionArtifacts/fileSystem.unit.test.ts",
+        "constraintId": "2fedbfef-f5ea-4a54-923c-53c321026dd0",
+        "message": "Unexpected file \"fileSystem.unit.test.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionArtifacts/index.ts",
+        "constraintId": "2fedbfef-f5ea-4a54-923c-53c321026dd0",
+        "message": "Unexpected file \"index.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionArtifacts/types.ts",
+        "constraintId": "2fedbfef-f5ea-4a54-923c-53c321026dd0",
+        "message": "Unexpected file \"types.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionGateway/createCanvasExecutionPublisher.ts",
+        "constraintId": "e2f72379-f2fc-481e-8e1b-e9100de29ae4",
+        "message": "Unexpected file \"createCanvasExecutionPublisher.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionGateway/createCanvasExecutionPublisher.unit.test.ts",
+        "constraintId": "e2f72379-f2fc-481e-8e1b-e9100de29ae4",
+        "message": "Unexpected file \"createCanvasExecutionPublisher.unit.test.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionGateway/createExecutionConfigurationPublisher.ts",
+        "constraintId": "e2f72379-f2fc-481e-8e1b-e9100de29ae4",
+        "message": "Unexpected file \"createExecutionConfigurationPublisher.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionGateway/createExecutionConfigurationPublisher.unit.test.ts",
+        "constraintId": "e2f72379-f2fc-481e-8e1b-e9100de29ae4",
+        "message": "Unexpected file \"createExecutionConfigurationPublisher.unit.test.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionGateway/createExecutionGateway.ts",
+        "constraintId": "e2f72379-f2fc-481e-8e1b-e9100de29ae4",
+        "message": "Unexpected file \"createExecutionGateway.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionGateway/createExecutionGateway.unit.test.ts",
+        "constraintId": "e2f72379-f2fc-481e-8e1b-e9100de29ae4",
+        "message": "Unexpected file \"createExecutionGateway.unit.test.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionGateway/createOperationExecutionPublisher.ts",
+        "constraintId": "e2f72379-f2fc-481e-8e1b-e9100de29ae4",
+        "message": "Unexpected file \"createOperationExecutionPublisher.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionGateway/createOperationExecutionPublisher.unit.test.ts",
+        "constraintId": "e2f72379-f2fc-481e-8e1b-e9100de29ae4",
+        "message": "Unexpected file \"createOperationExecutionPublisher.unit.test.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionGateway/gatewayTestFixture.ts",
+        "constraintId": "e2f72379-f2fc-481e-8e1b-e9100de29ae4",
+        "message": "Unexpected file \"gatewayTestFixture.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionGateway/index.ts",
+        "constraintId": "e2f72379-f2fc-481e-8e1b-e9100de29ae4",
+        "message": "Unexpected file \"index.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionGateway/submissionRecovery.ts",
+        "constraintId": "e2f72379-f2fc-481e-8e1b-e9100de29ae4",
+        "message": "Unexpected file \"submissionRecovery.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionMigration/README.md",
+        "constraintId": "a8be089e-98b0-481f-a400-d8fac50610ca",
+        "message": "Unexpected file \"README.md\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionMigration/createExecutionMigrationService.ts",
+        "constraintId": "a8be089e-98b0-481f-a400-d8fac50610ca",
+        "message": "Unexpected file \"createExecutionMigrationService.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionMigration/index.ts",
+        "constraintId": "a8be089e-98b0-481f-a400-d8fac50610ca",
+        "message": "Unexpected file \"index.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionMigration/migrationSchemas.ts",
+        "constraintId": "a8be089e-98b0-481f-a400-d8fac50610ca",
+        "message": "Unexpected file \"migrationSchemas.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionMigration/tests",
+        "constraintId": "a8be089e-98b0-481f-a400-d8fac50610ca",
+        "message": "Unexpected directory \"tests\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionMigration/validateExecutionMigration.ts",
+        "constraintId": "a8be089e-98b0-481f-a400-d8fac50610ca",
+        "message": "Unexpected file \"validateExecutionMigration.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionPrompt/codexHome.ts",
+        "constraintId": "66e01321-211c-4672-9b61-48ac6b3cf86d",
+        "message": "Unexpected file \"codexHome.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionPrompt/codexHome.unit.test.ts",
+        "constraintId": "66e01321-211c-4672-9b61-48ac6b3cf86d",
+        "message": "Unexpected file \"codexHome.unit.test.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionPrompt/codexStream.ts",
+        "constraintId": "66e01321-211c-4672-9b61-48ac6b3cf86d",
+        "message": "Unexpected file \"codexStream.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionPrompt/codexStream.unit.test.ts",
+        "constraintId": "66e01321-211c-4672-9b61-48ac6b3cf86d",
+        "message": "Unexpected file \"codexStream.unit.test.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionPrompt/createExecutionPromptActor.ts",
+        "constraintId": "66e01321-211c-4672-9b61-48ac6b3cf86d",
+        "message": "Unexpected file \"createExecutionPromptActor.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionPrompt/errors.ts",
+        "constraintId": "66e01321-211c-4672-9b61-48ac6b3cf86d",
+        "message": "Unexpected file \"errors.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionPrompt/executionPrompt.live.test.ts",
+        "constraintId": "66e01321-211c-4672-9b61-48ac6b3cf86d",
+        "message": "Unexpected file \"executionPrompt.live.test.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionPrompt/executionPrompt.unit.test.ts",
+        "constraintId": "66e01321-211c-4672-9b61-48ac6b3cf86d",
+        "message": "Unexpected file \"executionPrompt.unit.test.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionPrompt/fixtureCodex.cs",
+        "constraintId": "66e01321-211c-4672-9b61-48ac6b3cf86d",
+        "message": "Unexpected file \"fixtureCodex.cs\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionPrompt/index.ts",
+        "constraintId": "66e01321-211c-4672-9b61-48ac6b3cf86d",
+        "message": "Unexpected file \"index.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionPrompt/testSupport.ts",
+        "constraintId": "66e01321-211c-4672-9b61-48ac6b3cf86d",
+        "message": "Unexpected file \"testSupport.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/executionPrompt/types.ts",
+        "constraintId": "66e01321-211c-4672-9b61-48ac6b3cf86d",
+        "message": "Unexpected file \"types.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/jobLease/index.ts",
+        "constraintId": "02792b82-b427-4fde-9943-3c788d23418c",
+        "message": "Unexpected file \"index.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/jobLease/jobLease.ts",
+        "constraintId": "02792b82-b427-4fde-9943-3c788d23418c",
+        "message": "Unexpected file \"jobLease.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/src/jobLease/jobLease.unit.test.ts",
+        "constraintId": "02792b82-b427-4fde-9943-3c788d23418c",
+        "message": "Unexpected file \"jobLease.unit.test.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/archived/bestPracticesBulkService",
+        "constraintId": "483a6ab9-144e-4200-ad90-30dd78a02f46",
+        "message": "Unexpected directory \"bestPracticesBulkService\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/archived/bestPracticesService",
+        "constraintId": "483a6ab9-144e-4200-ad90-30dd78a02f46",
+        "message": "Unexpected directory \"bestPracticesService\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/archived/checklistService",
+        "constraintId": "483a6ab9-144e-4200-ad90-30dd78a02f46",
+        "message": "Unexpected directory \"checklistService\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/archived/codeSnippetsService",
+        "constraintId": "483a6ab9-144e-4200-ad90-30dd78a02f46",
+        "message": "Unexpected directory \"codeSnippetsService\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      },
+      {
+        "code": "unexpected_entry",
+        "severity": "allow",
+        "path": "services/archived/rulesService",
+        "constraintId": "483a6ab9-144e-4200-ad90-30dd78a02f46",
+        "message": "Unexpected directory \"rulesService\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      }
+    ],
+    "summary": {
+      "block": 75,
+      "warn": 0,
+      "allow": 61
+    },
+    "conforms": false
+  },
+  "leafContracts": [
+    {
+      "role": "method",
+      "conforms": true,
+      "standardSpecRequired": true,
+      "implementationRequired": true,
+      "unknownAssetBlocked": true
+    },
+    {
+      "role": "helper",
+      "conforms": true,
+      "standardSpecRequired": true,
+      "implementationRequired": true,
+      "unknownAssetBlocked": true
+    }
+  ],
+  "impact": {
+    "before": {
+      "block": 91,
+      "warn": 0,
+      "allow": 0
+    },
+    "after": {
+      "block": 75,
+      "warn": 0,
+      "allow": 61
+    },
+    "newBlocks": []
+  },
+  "invariants": {
+    "globalPoliciesRemainBlock": true,
+    "unknownRootBlocked": true,
+    "missingLeafSpecBlocked": true,
+    "scenarioAccepted": true,
+    "unknownLeafBlocked": true,
+    "declaredAssetsAccepted": true,
+    "unknownAssetsBlocked": true,
+    "methodAndHelperContractsEnforced": true
+  }
+}
