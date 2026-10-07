@@ -99,10 +99,10 @@
 - [x] **Step 2: 格式检查受影响文件、`git diff --check`，以及最终整体代码审查。**
   - 命令：`bunx oxfmt --config packages/oxc-formatter-config/oxfmt.json --check <changed-files>`。
   - 未运行的真实模型、数据库或平台检查单独披露。
-- [ ] **Step 3: 核对最终分支和用户已有工作，推送原仓库并创建 Draft PR。**
+- [x] **Step 3: 核对最终分支和用户已有工作，推送原仓库并创建 Draft PR。**
   - 用户明确覆盖 Ordine AGENTS 的 fork 推送限制；不得改推 fork。
   - PR 说明包含结构变化、公开兼容性、测试结果及剩余验证边界。
-- [ ] **Step 4: 附加 PR，读取 head、base、Draft 状态和 CI，报告实际结果。**
+- [x] **Step 4: 附加 PR，读取 head、base、Draft 状态和 CI，报告实际结果。**
   - Finding 不因 PR 创建自动标为 resolved；不合并或部署。
 
 ## 验收追踪
