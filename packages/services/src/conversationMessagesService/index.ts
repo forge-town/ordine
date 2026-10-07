@@ -1,1 +1,1 @@
-export * from "./createConversationMessagesService";
+export * from "./conversationMessages.service";

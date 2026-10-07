@@ -1,1 +1,1 @@
-export * from "./createGithubProjectsService";
+export * from "./githubProjects.service";

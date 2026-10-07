@@ -1,1 +1,2 @@
-export * from "./filesystemService";
+export * from "./filesystem.service";
+export * from "./contracts";

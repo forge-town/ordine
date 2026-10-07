@@ -1,1 +1,1 @@
-export * from "./createAgentRuntimesService";
+export * from "./agentRuntimes.service";

@@ -1,0 +1,59 @@
+{
+  "base": "03721ab082172699479690714b15c342c0144382",
+  "protected": [
+    {
+      "path": "packages/services/package.json",
+      "unchanged": true,
+      "baselineSha256": "76c06b92e45897109f9bc3bfc867a90bc8c518a75b9389498040d3601c7dd83b",
+      "currentSha256": "76c06b92e45897109f9bc3bfc867a90bc8c518a75b9389498040d3601c7dd83b"
+    },
+    {
+      "path": "packages/services/tsconfig.json",
+      "unchanged": true,
+      "baselineSha256": "21f1c948c9358dc5ccadcb2c681e197ee5756fabc0f90904a25c5c2d357b372d",
+      "currentSha256": "21f1c948c9358dc5ccadcb2c681e197ee5756fabc0f90904a25c5c2d357b372d"
+    },
+    {
+      "path": "packages/services/vitest.config.ts",
+      "unchanged": true,
+      "baselineSha256": "97530de66b8fab9640cd98324f14b21e394d6107ce3ddd56815dc8dece9bca97",
+      "currentSha256": "97530de66b8fab9640cd98324f14b21e394d6107ce3ddd56815dc8dece9bca97"
+    },
+    {
+      "path": "packages/services/.oxlintrc.json",
+      "unchanged": true,
+      "baselineSha256": "ec29d4e21d78421f86f92c40cf541a625918966a2c1453e29fc7abb6adb02737",
+      "currentSha256": "ec29d4e21d78421f86f92c40cf541a625918966a2c1453e29fc7abb6adb02737"
+    },
+    {
+      "path": "packages/services/CHANGELOG.md",
+      "unchanged": true,
+      "baselineSha256": "0c687270edc678f997093552c25e89d0b44c904440517969d808d4b9082ef27a",
+      "currentSha256": "0c687270edc678f997093552c25e89d0b44c904440517969d808d4b9082ef27a"
+    },
+    {
+      "path": "packages/services/src/index.ts",
+      "unchanged": true,
+      "baselineSha256": "f537edc21332524a0e281172cdb6e4844c73a3f359febe87338fd3953f03fb37",
+      "currentSha256": "f537edc21332524a0e281172cdb6e4844c73a3f359febe87338fd3953f03fb37"
+    },
+    {
+      "path": "packages/services/src/serviceFactory.ts",
+      "unchanged": true,
+      "baselineSha256": "0796de6b826a78571eba2661cd8fc4dd8bbdf7c8a91effb9cff2c9cbe22fb71f",
+      "currentSha256": "0796de6b826a78571eba2661cd8fc4dd8bbdf7c8a91effb9cff2c9cbe22fb71f"
+    },
+    {
+      "path": "packages/services/src/serviceErrors.ts",
+      "unchanged": true,
+      "baselineSha256": "bcebcbdeeecb83f92004de2ae13e5453372ee08eac87bc9b62c73064a033156c",
+      "currentSha256": "bcebcbdeeecb83f92004de2ae13e5453372ee08eac87bc9b62c73064a033156c"
+    },
+    {
+      "path": "packages/services/src/text-imports.d.ts",
+      "unchanged": true,
+      "baselineSha256": "0c68b0f383ec05b9f1b082e1479b08f80ea850f0bc2f4a9d8e52178c140bedea",
+      "currentSha256": "0c68b0f383ec05b9f1b082e1479b08f80ea850f0bc2f4a9d8e52178c140bedea"
+    }
+  ]
+}

@@ -30,7 +30,8 @@ import { err, ok } from "neverthrow";
 import { executionGateway } from "./integrations/executionGateway";
 
 export const agentsService = createAgentsService(db);
-export const agentRunsService = createAgentRunsService(db);
+export const agentRunsService: ReturnType<typeof createAgentRunsService> =
+  createAgentRunsService(db);
 const agentRunController = createAgentRunController(agentRunsService);
 configureAgentRunController(agentRunController);
 export const agentRuntimesService = createAgentRuntimesService(db);

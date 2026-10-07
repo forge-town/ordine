@@ -1,0 +1,27 @@
+{
+  "base": "03721ab082172699479690714b15c342c0144382",
+  "assets": [
+    {
+      "original": "packages/services/src/pipelineAgentSessionsService/fixtures/simple.pdf",
+      "sha256": "09811b6eeda62674fcbe9b4fd18f69264455bd6415b790919d737151ccd66b0a",
+      "preservedAt": [
+        "packages/services/src/pipelineAgentSessionsService/helpers/extractPdfText/fixtures/simple.pdf"
+      ]
+    },
+    {
+      "original": "packages/services/src/pipelinesService/__snapshots__/prompts.snapshot.unit.test.ts.snap",
+      "sha256": "5a0c71727020d2282838c2139d7fb2e7f9556baef306e50d2407c42545931ae4",
+      "preservedAt": [
+        "packages/services/src/pipelinesService/helpers/prompts/__snapshots__/prompts.helper.spec.ts.snap"
+      ]
+    },
+    {
+      "original": "packages/services/src/pipelinesService/proposeActions/__snapshots__/buildProposePrompt.snapshot.unit.test.ts.snap",
+      "sha256": "567626fd567d7865e3628139f726c80dbd0373deab9b71c78fda0796967983ef",
+      "preservedAt": [
+        "packages/services/src/pipelinesService/helpers/buildProposePrompt/__snapshots__/buildProposePrompt.helper.spec.ts.snap"
+      ]
+    }
+  ],
+  "allPreserved": true
+}

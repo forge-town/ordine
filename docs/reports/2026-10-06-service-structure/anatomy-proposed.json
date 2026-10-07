@@ -1,0 +1,267 @@
+{
+  "name": "Service Package",
+  "purpose": "以 packages/services 文件夹为根，按 Package → Service 单元分层；src 入口属于包，业务 Service 的内部结构由 Service 单元 Anatomy 负责。包级 lint、Vitest 配置、CHANGELOG 与 archived 可选；src 的 serviceFactory.ts、serviceErrors.ts、text-imports.d.ts、m2Services.unit.test.ts，以及 canvasExecution、execution、executionActors、executionArtifacts、executionGateway、executionMigration、executionPrompt、jobLease 是明确声明的可选支持结构。归档和这些非 Service 支持目录的内部结构不套用业务 Service 模板，本定义仅声明其固定目录边界；其内部行为与公开入口由各自类型、Lint 和测试验证。未知根条目仍按 block 处理；Service 叶子实现与共置 spec 继续必需。扫描目标排除依赖和构建产物。仅检查目录、文件名、数量及组合，不验证文件内容或业务语义。",
+  "structure": {
+    "schemaVersion": 2,
+    "defaultPolicies": {
+      "missingRequired": "block",
+      "unexpectedEntry": "block",
+      "nameMismatch": "block",
+      "nestingMismatch": "block"
+    },
+    "root": {
+      "children": [
+        {
+          "id": "4b3344d0-4867-4c80-a4e0-93eef9baa6c3",
+          "name": {
+            "type": "literal",
+            "value": "services"
+          },
+          "quantity": "exactly_one",
+          "policyOverrides": {},
+          "kind": "directory",
+          "children": [
+            {
+              "id": "be573837-1b7d-4f02-8139-2356f0c1cf46",
+              "name": {
+                "type": "literal",
+                "value": "package.json"
+              },
+              "quantity": "exactly_one",
+              "policyOverrides": {},
+              "kind": "file"
+            },
+            {
+              "id": "4c20e2f5-8938-4eb8-9d4f-0fd926a3118d",
+              "name": {
+                "type": "literal",
+                "value": "tsconfig.json"
+              },
+              "quantity": "exactly_one",
+              "policyOverrides": {},
+              "kind": "file"
+            },
+            {
+              "id": "488f9db1-6702-4282-b32b-dbd9b5e0dde1",
+              "name": {
+                "type": "literal",
+                "value": "src"
+              },
+              "quantity": "exactly_one",
+              "policyOverrides": {},
+              "kind": "directory",
+              "children": [
+                {
+                  "id": "fb2d4c94-1009-4f32-afe0-ea73073dcbc1",
+                  "name": {
+                    "type": "literal",
+                    "value": "index.ts"
+                  },
+                  "quantity": "exactly_one",
+                  "policyOverrides": {},
+                  "kind": "file"
+                },
+                {
+                  "id": "e61c655c-767d-4d0c-93b3-a3162921e935",
+                  "kind": "composition",
+                  "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+                  "mountName": "<name>Service",
+                  "quantity": "one_or_more",
+                  "policyOverrides": {}
+                },
+                {
+                  "id": "2956f7d1-91ef-4f66-b1c7-dced740a0edb",
+                  "name": {
+                    "type": "literal",
+                    "value": "serviceFactory.ts"
+                  },
+                  "quantity": "optional",
+                  "policyOverrides": {},
+                  "kind": "file"
+                },
+                {
+                  "id": "6058abf0-1e17-4969-97ce-3aeb240305f2",
+                  "name": {
+                    "type": "literal",
+                    "value": "serviceErrors.ts"
+                  },
+                  "quantity": "optional",
+                  "policyOverrides": {},
+                  "kind": "file"
+                },
+                {
+                  "id": "d596ee1c-1925-458c-b317-d21424fe1e54",
+                  "name": {
+                    "type": "literal",
+                    "value": "text-imports.d.ts"
+                  },
+                  "quantity": "optional",
+                  "policyOverrides": {},
+                  "kind": "file"
+                },
+                {
+                  "id": "9486d541-1e10-4b39-806d-ee5b26dc29d5",
+                  "name": {
+                    "type": "literal",
+                    "value": "m2Services.unit.test.ts"
+                  },
+                  "quantity": "optional",
+                  "policyOverrides": {},
+                  "kind": "file"
+                },
+                {
+                  "id": "b7201fe9-2323-4e8b-a998-002e1b389a54",
+                  "name": {
+                    "type": "literal",
+                    "value": "canvasExecution"
+                  },
+                  "quantity": "optional",
+                  "policyOverrides": {
+                    "unexpectedEntry": "allow"
+                  },
+                  "kind": "directory",
+                  "children": []
+                },
+                {
+                  "id": "a66adead-1025-4ba2-bf8e-fd72421a18ba",
+                  "name": {
+                    "type": "literal",
+                    "value": "execution"
+                  },
+                  "quantity": "optional",
+                  "policyOverrides": {
+                    "unexpectedEntry": "allow"
+                  },
+                  "kind": "directory",
+                  "children": []
+                },
+                {
+                  "id": "a636e84c-ce21-4589-989b-70311ab68d5d",
+                  "name": {
+                    "type": "literal",
+                    "value": "executionActors"
+                  },
+                  "quantity": "optional",
+                  "policyOverrides": {
+                    "unexpectedEntry": "allow"
+                  },
+                  "kind": "directory",
+                  "children": []
+                },
+                {
+                  "id": "2fedbfef-f5ea-4a54-923c-53c321026dd0",
+                  "name": {
+                    "type": "literal",
+                    "value": "executionArtifacts"
+                  },
+                  "quantity": "optional",
+                  "policyOverrides": {
+                    "unexpectedEntry": "allow"
+                  },
+                  "kind": "directory",
+                  "children": []
+                },
+                {
+                  "id": "e2f72379-f2fc-481e-8e1b-e9100de29ae4",
+                  "name": {
+                    "type": "literal",
+                    "value": "executionGateway"
+                  },
+                  "quantity": "optional",
+                  "policyOverrides": {
+                    "unexpectedEntry": "allow"
+                  },
+                  "kind": "directory",
+                  "children": []
+                },
+                {
+                  "id": "a8be089e-98b0-481f-a400-d8fac50610ca",
+                  "name": {
+                    "type": "literal",
+                    "value": "executionMigration"
+                  },
+                  "quantity": "optional",
+                  "policyOverrides": {
+                    "unexpectedEntry": "allow"
+                  },
+                  "kind": "directory",
+                  "children": []
+                },
+                {
+                  "id": "66e01321-211c-4672-9b61-48ac6b3cf86d",
+                  "name": {
+                    "type": "literal",
+                    "value": "executionPrompt"
+                  },
+                  "quantity": "optional",
+                  "policyOverrides": {
+                    "unexpectedEntry": "allow"
+                  },
+                  "kind": "directory",
+                  "children": []
+                },
+                {
+                  "id": "02792b82-b427-4fde-9943-3c788d23418c",
+                  "name": {
+                    "type": "literal",
+                    "value": "jobLease"
+                  },
+                  "quantity": "optional",
+                  "policyOverrides": {
+                    "unexpectedEntry": "allow"
+                  },
+                  "kind": "directory",
+                  "children": []
+                }
+              ]
+            },
+            {
+              "id": "1fe87e49-f8a0-4b40-bd44-ba16262b17fd",
+              "name": {
+                "type": "literal",
+                "value": ".oxlintrc.json"
+              },
+              "quantity": "optional",
+              "policyOverrides": {},
+              "kind": "file"
+            },
+            {
+              "id": "996ad590-2e77-48cb-9f0a-7a08e6c69c58",
+              "name": {
+                "type": "literal",
+                "value": "CHANGELOG.md"
+              },
+              "quantity": "optional",
+              "policyOverrides": {},
+              "kind": "file"
+            },
+            {
+              "id": "c4f6364b-5663-4dc1-b552-cac4a9d0419f",
+              "name": {
+                "type": "literal",
+                "value": "vitest.config.ts"
+              },
+              "quantity": "optional",
+              "policyOverrides": {},
+              "kind": "file"
+            },
+            {
+              "id": "483a6ab9-144e-4200-ad90-30dd78a02f46",
+              "name": {
+                "type": "literal",
+                "value": "archived"
+              },
+              "quantity": "optional",
+              "policyOverrides": {
+                "unexpectedEntry": "allow"
+              },
+              "kind": "directory",
+              "children": []
+            }
+          ]
+        }
+      ]
+    },
+    "rootMode": "entry"
+  }
+}

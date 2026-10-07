@@ -1,1 +1,1 @@
-export * from "./createRoutinesService";
+export * from "./routines.service";

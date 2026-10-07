@@ -1,0 +1,1457 @@
+{
+  "allPassed": true,
+  "results": [
+    {
+      "name": "method: valid canonical, scenarios and assets",
+      "expectedConforms": true,
+      "conforms": true,
+      "passes": true,
+      "issues": []
+    },
+    {
+      "name": "method: wrong implementation binding",
+      "expectedConforms": false,
+      "conforms": false,
+      "passes": true,
+      "issues": [
+        {
+          "code": "binding_consistency_mismatch",
+          "severity": "block",
+          "path": "alpha/beta.method.ts",
+          "constraintId": "e390bd74-f112-4345-a7ad-64f0716343aa",
+          "message": "Placeholder <method> expected \"alpha\" but found \"beta\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        }
+      ]
+    },
+    {
+      "name": "method: wrong canonical spec binding",
+      "expectedConforms": false,
+      "conforms": false,
+      "passes": true,
+      "issues": [
+        {
+          "code": "binding_consistency_mismatch",
+          "severity": "block",
+          "path": "alpha/beta.method.spec.ts",
+          "constraintId": "dd34d7c5-dbe7-40ba-84a8-4b26112c5ff0",
+          "message": "Placeholder <method> expected \"alpha\" but found \"beta\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        }
+      ]
+    },
+    {
+      "name": "method: dotted scenario",
+      "expectedConforms": false,
+      "conforms": false,
+      "passes": true,
+      "issues": [
+        {
+          "code": "unexpected_entry",
+          "severity": "block",
+          "path": "alpha/alpha.realLlm.scenario.spec.ts",
+          "constraintId": "ef067cfa-06c2-41ac-937d-4654d6610227",
+          "message": "Unexpected file \"alpha.realLlm.scenario.spec.ts\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        }
+      ]
+    },
+    {
+      "name": "method: missing .method.ts despite scenarios",
+      "expectedConforms": false,
+      "conforms": false,
+      "passes": true,
+      "issues": [
+        {
+          "code": "missing_required",
+          "severity": "block",
+          "path": "alpha",
+          "constraintId": "e390bd74-f112-4345-a7ad-64f0716343aa",
+          "message": "Expected exactly_one file \"<method>.method.ts\" but found 0",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        }
+      ]
+    },
+    {
+      "name": "method: missing .method.spec.ts despite scenarios",
+      "expectedConforms": false,
+      "conforms": false,
+      "passes": true,
+      "issues": [
+        {
+          "code": "missing_required",
+          "severity": "block",
+          "path": "alpha",
+          "constraintId": "dd34d7c5-dbe7-40ba-84a8-4b26112c5ff0",
+          "message": "Expected exactly_one file \"<method>.method.spec.ts\" but found 0",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        }
+      ]
+    },
+    {
+      "name": "method: wrong canonical snapshot binding",
+      "expectedConforms": false,
+      "conforms": false,
+      "passes": true,
+      "issues": [
+        {
+          "code": "binding_consistency_mismatch",
+          "severity": "block",
+          "path": "alpha/__snapshots__/beta.method.spec.ts.snap",
+          "constraintId": "070aab3d-4a63-4a4b-8d0e-87e635ad06b6",
+          "message": "Placeholder <method> expected \"alpha\" but found \"beta\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        }
+      ]
+    },
+    {
+      "name": "method: unknown fixtures asset",
+      "expectedConforms": false,
+      "conforms": false,
+      "passes": true,
+      "issues": [
+        {
+          "code": "unexpected_entry",
+          "severity": "block",
+          "path": "alpha/fixtures/unknown.png",
+          "constraintId": "e0c5e149-aa18-4e1f-8cca-3915ec29a576",
+          "message": "Unexpected file \"unknown.png\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        }
+      ]
+    },
+    {
+      "name": "method: unknown __snapshots__ asset",
+      "expectedConforms": false,
+      "conforms": false,
+      "passes": true,
+      "issues": [
+        {
+          "code": "unexpected_entry",
+          "severity": "block",
+          "path": "alpha/__snapshots__/unknown.txt",
+          "constraintId": "50450646-46a1-4a92-8edb-8e6a2c444359",
+          "message": "Unexpected file \"unknown.txt\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        }
+      ]
+    },
+    {
+      "name": "helper: valid canonical, scenarios and assets",
+      "expectedConforms": true,
+      "conforms": true,
+      "passes": true,
+      "issues": []
+    },
+    {
+      "name": "helper: wrong implementation binding",
+      "expectedConforms": false,
+      "conforms": false,
+      "passes": true,
+      "issues": [
+        {
+          "code": "binding_consistency_mismatch",
+          "severity": "block",
+          "path": "alpha/beta.helper.ts",
+          "constraintId": "dd241f81-6120-4bc5-9c48-362d47530f02",
+          "message": "Placeholder <helper> expected \"alpha\" but found \"beta\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        }
+      ]
+    },
+    {
+      "name": "helper: wrong canonical spec binding",
+      "expectedConforms": false,
+      "conforms": false,
+      "passes": true,
+      "issues": [
+        {
+          "code": "binding_consistency_mismatch",
+          "severity": "block",
+          "path": "alpha/beta.helper.spec.ts",
+          "constraintId": "ab4f6a42-0b35-4981-8756-33cd869670f7",
+          "message": "Placeholder <helper> expected \"alpha\" but found \"beta\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        }
+      ]
+    },
+    {
+      "name": "helper: dotted scenario",
+      "expectedConforms": false,
+      "conforms": false,
+      "passes": true,
+      "issues": [
+        {
+          "code": "unexpected_entry",
+          "severity": "block",
+          "path": "alpha/alpha.realLlm.scenario.spec.ts",
+          "constraintId": "427f59f0-be70-4875-bcd8-d26f563c83cc",
+          "message": "Unexpected file \"alpha.realLlm.scenario.spec.ts\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        }
+      ]
+    },
+    {
+      "name": "helper: missing .helper.ts despite scenarios",
+      "expectedConforms": false,
+      "conforms": false,
+      "passes": true,
+      "issues": [
+        {
+          "code": "missing_required",
+          "severity": "block",
+          "path": "alpha",
+          "constraintId": "dd241f81-6120-4bc5-9c48-362d47530f02",
+          "message": "Expected exactly_one file \"<helper>.helper.ts\" but found 0",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        }
+      ]
+    },
+    {
+      "name": "helper: missing .helper.spec.ts despite scenarios",
+      "expectedConforms": false,
+      "conforms": false,
+      "passes": true,
+      "issues": [
+        {
+          "code": "missing_required",
+          "severity": "block",
+          "path": "alpha",
+          "constraintId": "ab4f6a42-0b35-4981-8756-33cd869670f7",
+          "message": "Expected exactly_one file \"<helper>.helper.spec.ts\" but found 0",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        }
+      ]
+    },
+    {
+      "name": "helper: wrong canonical snapshot binding",
+      "expectedConforms": false,
+      "conforms": false,
+      "passes": true,
+      "issues": [
+        {
+          "code": "binding_consistency_mismatch",
+          "severity": "block",
+          "path": "alpha/__snapshots__/beta.helper.spec.ts.snap",
+          "constraintId": "ed97db5b-730c-406f-a47b-cec49f01950a",
+          "message": "Placeholder <helper> expected \"alpha\" but found \"beta\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        }
+      ]
+    },
+    {
+      "name": "helper: unknown fixtures asset",
+      "expectedConforms": false,
+      "conforms": false,
+      "passes": true,
+      "issues": [
+        {
+          "code": "unexpected_entry",
+          "severity": "block",
+          "path": "alpha/fixtures/unknown.png",
+          "constraintId": "d7e3e4a4-2820-418f-a2a5-72e2f521a9ec",
+          "message": "Unexpected file \"unknown.png\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        }
+      ]
+    },
+    {
+      "name": "helper: unknown __snapshots__ asset",
+      "expectedConforms": false,
+      "conforms": false,
+      "passes": true,
+      "issues": [
+        {
+          "code": "unexpected_entry",
+          "severity": "block",
+          "path": "alpha/__snapshots__/unknown.txt",
+          "constraintId": "24844754-8e7e-48e8-ab56-70bdbc83ea48",
+          "message": "Unexpected file \"unknown.txt\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        }
+      ]
+    },
+    {
+      "name": "package: all named support boundaries",
+      "expectedConforms": true,
+      "conforms": true,
+      "passes": true,
+      "issues": [
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/canvasExecution/internal",
+          "constraintId": "b7201fe9-2323-4e8b-a998-002e1b389a54",
+          "message": "Unexpected directory \"internal\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/canvasExecution/roleSpecific.ts",
+          "constraintId": "b7201fe9-2323-4e8b-a998-002e1b389a54",
+          "message": "Unexpected file \"roleSpecific.ts\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/execution/internal",
+          "constraintId": "a66adead-1025-4ba2-bf8e-fd72421a18ba",
+          "message": "Unexpected directory \"internal\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/execution/roleSpecific.ts",
+          "constraintId": "a66adead-1025-4ba2-bf8e-fd72421a18ba",
+          "message": "Unexpected file \"roleSpecific.ts\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/executionActors/internal",
+          "constraintId": "a636e84c-ce21-4589-989b-70311ab68d5d",
+          "message": "Unexpected directory \"internal\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/executionActors/roleSpecific.ts",
+          "constraintId": "a636e84c-ce21-4589-989b-70311ab68d5d",
+          "message": "Unexpected file \"roleSpecific.ts\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/executionArtifacts/internal",
+          "constraintId": "2fedbfef-f5ea-4a54-923c-53c321026dd0",
+          "message": "Unexpected directory \"internal\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/executionArtifacts/roleSpecific.ts",
+          "constraintId": "2fedbfef-f5ea-4a54-923c-53c321026dd0",
+          "message": "Unexpected file \"roleSpecific.ts\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/executionGateway/internal",
+          "constraintId": "e2f72379-f2fc-481e-8e1b-e9100de29ae4",
+          "message": "Unexpected directory \"internal\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/executionGateway/roleSpecific.ts",
+          "constraintId": "e2f72379-f2fc-481e-8e1b-e9100de29ae4",
+          "message": "Unexpected file \"roleSpecific.ts\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/executionMigration/internal",
+          "constraintId": "a8be089e-98b0-481f-a400-d8fac50610ca",
+          "message": "Unexpected directory \"internal\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/executionMigration/roleSpecific.ts",
+          "constraintId": "a8be089e-98b0-481f-a400-d8fac50610ca",
+          "message": "Unexpected file \"roleSpecific.ts\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/executionPrompt/internal",
+          "constraintId": "66e01321-211c-4672-9b61-48ac6b3cf86d",
+          "message": "Unexpected directory \"internal\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/executionPrompt/roleSpecific.ts",
+          "constraintId": "66e01321-211c-4672-9b61-48ac6b3cf86d",
+          "message": "Unexpected file \"roleSpecific.ts\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/jobLease/internal",
+          "constraintId": "02792b82-b427-4fde-9943-3c788d23418c",
+          "message": "Unexpected directory \"internal\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/jobLease/roleSpecific.ts",
+          "constraintId": "02792b82-b427-4fde-9943-3c788d23418c",
+          "message": "Unexpected file \"roleSpecific.ts\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/archived/historic.ts",
+          "constraintId": "483a6ab9-144e-4200-ad90-30dd78a02f46",
+          "message": "Unexpected file \"historic.ts\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        }
+      ]
+    },
+    {
+      "name": "package: unknown package file",
+      "expectedConforms": false,
+      "conforms": false,
+      "passes": true,
+      "issues": [
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/canvasExecution/internal",
+          "constraintId": "b7201fe9-2323-4e8b-a998-002e1b389a54",
+          "message": "Unexpected directory \"internal\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/canvasExecution/roleSpecific.ts",
+          "constraintId": "b7201fe9-2323-4e8b-a998-002e1b389a54",
+          "message": "Unexpected file \"roleSpecific.ts\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/execution/internal",
+          "constraintId": "a66adead-1025-4ba2-bf8e-fd72421a18ba",
+          "message": "Unexpected directory \"internal\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/execution/roleSpecific.ts",
+          "constraintId": "a66adead-1025-4ba2-bf8e-fd72421a18ba",
+          "message": "Unexpected file \"roleSpecific.ts\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/executionActors/internal",
+          "constraintId": "a636e84c-ce21-4589-989b-70311ab68d5d",
+          "message": "Unexpected directory \"internal\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/executionActors/roleSpecific.ts",
+          "constraintId": "a636e84c-ce21-4589-989b-70311ab68d5d",
+          "message": "Unexpected file \"roleSpecific.ts\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/executionArtifacts/internal",
+          "constraintId": "2fedbfef-f5ea-4a54-923c-53c321026dd0",
+          "message": "Unexpected directory \"internal\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/executionArtifacts/roleSpecific.ts",
+          "constraintId": "2fedbfef-f5ea-4a54-923c-53c321026dd0",
+          "message": "Unexpected file \"roleSpecific.ts\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/executionGateway/internal",
+          "constraintId": "e2f72379-f2fc-481e-8e1b-e9100de29ae4",
+          "message": "Unexpected directory \"internal\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/executionGateway/roleSpecific.ts",
+          "constraintId": "e2f72379-f2fc-481e-8e1b-e9100de29ae4",
+          "message": "Unexpected file \"roleSpecific.ts\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/executionMigration/internal",
+          "constraintId": "a8be089e-98b0-481f-a400-d8fac50610ca",
+          "message": "Unexpected directory \"internal\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/executionMigration/roleSpecific.ts",
+          "constraintId": "a8be089e-98b0-481f-a400-d8fac50610ca",
+          "message": "Unexpected file \"roleSpecific.ts\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/executionPrompt/internal",
+          "constraintId": "66e01321-211c-4672-9b61-48ac6b3cf86d",
+          "message": "Unexpected directory \"internal\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/executionPrompt/roleSpecific.ts",
+          "constraintId": "66e01321-211c-4672-9b61-48ac6b3cf86d",
+          "message": "Unexpected file \"roleSpecific.ts\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/jobLease/internal",
+          "constraintId": "02792b82-b427-4fde-9943-3c788d23418c",
+          "message": "Unexpected directory \"internal\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/jobLease/roleSpecific.ts",
+          "constraintId": "02792b82-b427-4fde-9943-3c788d23418c",
+          "message": "Unexpected file \"roleSpecific.ts\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/archived/historic.ts",
+          "constraintId": "483a6ab9-144e-4200-ad90-30dd78a02f46",
+          "message": "Unexpected file \"historic.ts\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "block",
+          "path": "services/unapproved.ts",
+          "constraintId": "4b3344d0-4867-4c80-a4e0-93eef9baa6c3",
+          "message": "Unexpected file \"unapproved.ts\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        }
+      ]
+    },
+    {
+      "name": "package: unknown src directory",
+      "expectedConforms": false,
+      "conforms": false,
+      "passes": true,
+      "issues": [
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/canvasExecution/internal",
+          "constraintId": "b7201fe9-2323-4e8b-a998-002e1b389a54",
+          "message": "Unexpected directory \"internal\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/canvasExecution/roleSpecific.ts",
+          "constraintId": "b7201fe9-2323-4e8b-a998-002e1b389a54",
+          "message": "Unexpected file \"roleSpecific.ts\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/execution/internal",
+          "constraintId": "a66adead-1025-4ba2-bf8e-fd72421a18ba",
+          "message": "Unexpected directory \"internal\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/execution/roleSpecific.ts",
+          "constraintId": "a66adead-1025-4ba2-bf8e-fd72421a18ba",
+          "message": "Unexpected file \"roleSpecific.ts\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/executionActors/internal",
+          "constraintId": "a636e84c-ce21-4589-989b-70311ab68d5d",
+          "message": "Unexpected directory \"internal\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/executionActors/roleSpecific.ts",
+          "constraintId": "a636e84c-ce21-4589-989b-70311ab68d5d",
+          "message": "Unexpected file \"roleSpecific.ts\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/executionArtifacts/internal",
+          "constraintId": "2fedbfef-f5ea-4a54-923c-53c321026dd0",
+          "message": "Unexpected directory \"internal\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/executionArtifacts/roleSpecific.ts",
+          "constraintId": "2fedbfef-f5ea-4a54-923c-53c321026dd0",
+          "message": "Unexpected file \"roleSpecific.ts\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/executionGateway/internal",
+          "constraintId": "e2f72379-f2fc-481e-8e1b-e9100de29ae4",
+          "message": "Unexpected directory \"internal\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/executionGateway/roleSpecific.ts",
+          "constraintId": "e2f72379-f2fc-481e-8e1b-e9100de29ae4",
+          "message": "Unexpected file \"roleSpecific.ts\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/executionMigration/internal",
+          "constraintId": "a8be089e-98b0-481f-a400-d8fac50610ca",
+          "message": "Unexpected directory \"internal\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/executionMigration/roleSpecific.ts",
+          "constraintId": "a8be089e-98b0-481f-a400-d8fac50610ca",
+          "message": "Unexpected file \"roleSpecific.ts\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/executionPrompt/internal",
+          "constraintId": "66e01321-211c-4672-9b61-48ac6b3cf86d",
+          "message": "Unexpected directory \"internal\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/executionPrompt/roleSpecific.ts",
+          "constraintId": "66e01321-211c-4672-9b61-48ac6b3cf86d",
+          "message": "Unexpected file \"roleSpecific.ts\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/jobLease/internal",
+          "constraintId": "02792b82-b427-4fde-9943-3c788d23418c",
+          "message": "Unexpected directory \"internal\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/jobLease/roleSpecific.ts",
+          "constraintId": "02792b82-b427-4fde-9943-3c788d23418c",
+          "message": "Unexpected file \"roleSpecific.ts\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "block",
+          "path": "services/src/executionExtra",
+          "constraintId": "488f9db1-6702-4282-b32b-dbd9b5e0dde1",
+          "message": "Unexpected directory \"executionExtra\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/archived/historic.ts",
+          "constraintId": "483a6ab9-144e-4200-ad90-30dd78a02f46",
+          "message": "Unexpected file \"historic.ts\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        }
+      ]
+    },
+    {
+      "name": "package: unknown service file",
+      "expectedConforms": false,
+      "conforms": false,
+      "passes": true,
+      "issues": [
+        {
+          "code": "unexpected_entry",
+          "severity": "block",
+          "path": "services/src/alphaService/unapproved.ts",
+          "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+          "message": "Unexpected file \"unapproved.ts\"",
+          "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+          "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+          "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/canvasExecution/internal",
+          "constraintId": "b7201fe9-2323-4e8b-a998-002e1b389a54",
+          "message": "Unexpected directory \"internal\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/canvasExecution/roleSpecific.ts",
+          "constraintId": "b7201fe9-2323-4e8b-a998-002e1b389a54",
+          "message": "Unexpected file \"roleSpecific.ts\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/execution/internal",
+          "constraintId": "a66adead-1025-4ba2-bf8e-fd72421a18ba",
+          "message": "Unexpected directory \"internal\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/execution/roleSpecific.ts",
+          "constraintId": "a66adead-1025-4ba2-bf8e-fd72421a18ba",
+          "message": "Unexpected file \"roleSpecific.ts\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/executionActors/internal",
+          "constraintId": "a636e84c-ce21-4589-989b-70311ab68d5d",
+          "message": "Unexpected directory \"internal\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/executionActors/roleSpecific.ts",
+          "constraintId": "a636e84c-ce21-4589-989b-70311ab68d5d",
+          "message": "Unexpected file \"roleSpecific.ts\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/executionArtifacts/internal",
+          "constraintId": "2fedbfef-f5ea-4a54-923c-53c321026dd0",
+          "message": "Unexpected directory \"internal\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/executionArtifacts/roleSpecific.ts",
+          "constraintId": "2fedbfef-f5ea-4a54-923c-53c321026dd0",
+          "message": "Unexpected file \"roleSpecific.ts\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/executionGateway/internal",
+          "constraintId": "e2f72379-f2fc-481e-8e1b-e9100de29ae4",
+          "message": "Unexpected directory \"internal\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/executionGateway/roleSpecific.ts",
+          "constraintId": "e2f72379-f2fc-481e-8e1b-e9100de29ae4",
+          "message": "Unexpected file \"roleSpecific.ts\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/executionMigration/internal",
+          "constraintId": "a8be089e-98b0-481f-a400-d8fac50610ca",
+          "message": "Unexpected directory \"internal\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/executionMigration/roleSpecific.ts",
+          "constraintId": "a8be089e-98b0-481f-a400-d8fac50610ca",
+          "message": "Unexpected file \"roleSpecific.ts\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/executionPrompt/internal",
+          "constraintId": "66e01321-211c-4672-9b61-48ac6b3cf86d",
+          "message": "Unexpected directory \"internal\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/executionPrompt/roleSpecific.ts",
+          "constraintId": "66e01321-211c-4672-9b61-48ac6b3cf86d",
+          "message": "Unexpected file \"roleSpecific.ts\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/jobLease/internal",
+          "constraintId": "02792b82-b427-4fde-9943-3c788d23418c",
+          "message": "Unexpected directory \"internal\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/jobLease/roleSpecific.ts",
+          "constraintId": "02792b82-b427-4fde-9943-3c788d23418c",
+          "message": "Unexpected file \"roleSpecific.ts\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/archived/historic.ts",
+          "constraintId": "483a6ab9-144e-4200-ad90-30dd78a02f46",
+          "message": "Unexpected file \"historic.ts\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        }
+      ]
+    },
+    {
+      "name": "package: aggregate spec",
+      "expectedConforms": false,
+      "conforms": false,
+      "passes": true,
+      "issues": [
+        {
+          "code": "unexpected_entry",
+          "severity": "block",
+          "path": "services/src/alphaService/alpha.service.spec.ts",
+          "constraintId": "18a237eb-8c4d-456b-b7e5-23019cf05d08",
+          "message": "Unexpected file \"alpha.service.spec.ts\"",
+          "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+          "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+          "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/canvasExecution/internal",
+          "constraintId": "b7201fe9-2323-4e8b-a998-002e1b389a54",
+          "message": "Unexpected directory \"internal\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/canvasExecution/roleSpecific.ts",
+          "constraintId": "b7201fe9-2323-4e8b-a998-002e1b389a54",
+          "message": "Unexpected file \"roleSpecific.ts\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/execution/internal",
+          "constraintId": "a66adead-1025-4ba2-bf8e-fd72421a18ba",
+          "message": "Unexpected directory \"internal\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/execution/roleSpecific.ts",
+          "constraintId": "a66adead-1025-4ba2-bf8e-fd72421a18ba",
+          "message": "Unexpected file \"roleSpecific.ts\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/executionActors/internal",
+          "constraintId": "a636e84c-ce21-4589-989b-70311ab68d5d",
+          "message": "Unexpected directory \"internal\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/executionActors/roleSpecific.ts",
+          "constraintId": "a636e84c-ce21-4589-989b-70311ab68d5d",
+          "message": "Unexpected file \"roleSpecific.ts\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/executionArtifacts/internal",
+          "constraintId": "2fedbfef-f5ea-4a54-923c-53c321026dd0",
+          "message": "Unexpected directory \"internal\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/executionArtifacts/roleSpecific.ts",
+          "constraintId": "2fedbfef-f5ea-4a54-923c-53c321026dd0",
+          "message": "Unexpected file \"roleSpecific.ts\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/executionGateway/internal",
+          "constraintId": "e2f72379-f2fc-481e-8e1b-e9100de29ae4",
+          "message": "Unexpected directory \"internal\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/executionGateway/roleSpecific.ts",
+          "constraintId": "e2f72379-f2fc-481e-8e1b-e9100de29ae4",
+          "message": "Unexpected file \"roleSpecific.ts\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/executionMigration/internal",
+          "constraintId": "a8be089e-98b0-481f-a400-d8fac50610ca",
+          "message": "Unexpected directory \"internal\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/executionMigration/roleSpecific.ts",
+          "constraintId": "a8be089e-98b0-481f-a400-d8fac50610ca",
+          "message": "Unexpected file \"roleSpecific.ts\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/executionPrompt/internal",
+          "constraintId": "66e01321-211c-4672-9b61-48ac6b3cf86d",
+          "message": "Unexpected directory \"internal\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/executionPrompt/roleSpecific.ts",
+          "constraintId": "66e01321-211c-4672-9b61-48ac6b3cf86d",
+          "message": "Unexpected file \"roleSpecific.ts\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/jobLease/internal",
+          "constraintId": "02792b82-b427-4fde-9943-3c788d23418c",
+          "message": "Unexpected directory \"internal\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/jobLease/roleSpecific.ts",
+          "constraintId": "02792b82-b427-4fde-9943-3c788d23418c",
+          "message": "Unexpected file \"roleSpecific.ts\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/archived/historic.ts",
+          "constraintId": "483a6ab9-144e-4200-ad90-30dd78a02f46",
+          "message": "Unexpected file \"historic.ts\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        }
+      ]
+    },
+    {
+      "name": "package: wrong service implementation binding",
+      "expectedConforms": false,
+      "conforms": false,
+      "passes": true,
+      "issues": [
+        {
+          "code": "binding_consistency_mismatch",
+          "severity": "block",
+          "path": "services/src/alphaService/beta.service.ts",
+          "constraintId": "7a71a974-8606-4f88-9786-0ed91909182f",
+          "message": "Placeholder <name> expected \"alpha\" but found \"beta\"",
+          "anatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+          "sourceAnatomyId": "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e",
+          "parentAnatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/canvasExecution/internal",
+          "constraintId": "b7201fe9-2323-4e8b-a998-002e1b389a54",
+          "message": "Unexpected directory \"internal\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/canvasExecution/roleSpecific.ts",
+          "constraintId": "b7201fe9-2323-4e8b-a998-002e1b389a54",
+          "message": "Unexpected file \"roleSpecific.ts\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/execution/internal",
+          "constraintId": "a66adead-1025-4ba2-bf8e-fd72421a18ba",
+          "message": "Unexpected directory \"internal\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/execution/roleSpecific.ts",
+          "constraintId": "a66adead-1025-4ba2-bf8e-fd72421a18ba",
+          "message": "Unexpected file \"roleSpecific.ts\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/executionActors/internal",
+          "constraintId": "a636e84c-ce21-4589-989b-70311ab68d5d",
+          "message": "Unexpected directory \"internal\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/executionActors/roleSpecific.ts",
+          "constraintId": "a636e84c-ce21-4589-989b-70311ab68d5d",
+          "message": "Unexpected file \"roleSpecific.ts\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/executionArtifacts/internal",
+          "constraintId": "2fedbfef-f5ea-4a54-923c-53c321026dd0",
+          "message": "Unexpected directory \"internal\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/executionArtifacts/roleSpecific.ts",
+          "constraintId": "2fedbfef-f5ea-4a54-923c-53c321026dd0",
+          "message": "Unexpected file \"roleSpecific.ts\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/executionGateway/internal",
+          "constraintId": "e2f72379-f2fc-481e-8e1b-e9100de29ae4",
+          "message": "Unexpected directory \"internal\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/executionGateway/roleSpecific.ts",
+          "constraintId": "e2f72379-f2fc-481e-8e1b-e9100de29ae4",
+          "message": "Unexpected file \"roleSpecific.ts\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/executionMigration/internal",
+          "constraintId": "a8be089e-98b0-481f-a400-d8fac50610ca",
+          "message": "Unexpected directory \"internal\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/executionMigration/roleSpecific.ts",
+          "constraintId": "a8be089e-98b0-481f-a400-d8fac50610ca",
+          "message": "Unexpected file \"roleSpecific.ts\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/executionPrompt/internal",
+          "constraintId": "66e01321-211c-4672-9b61-48ac6b3cf86d",
+          "message": "Unexpected directory \"internal\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/executionPrompt/roleSpecific.ts",
+          "constraintId": "66e01321-211c-4672-9b61-48ac6b3cf86d",
+          "message": "Unexpected file \"roleSpecific.ts\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/jobLease/internal",
+          "constraintId": "02792b82-b427-4fde-9943-3c788d23418c",
+          "message": "Unexpected directory \"internal\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/jobLease/roleSpecific.ts",
+          "constraintId": "02792b82-b427-4fde-9943-3c788d23418c",
+          "message": "Unexpected file \"roleSpecific.ts\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/archived/historic.ts",
+          "constraintId": "483a6ab9-144e-4200-ad90-30dd78a02f46",
+          "message": "Unexpected file \"historic.ts\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        }
+      ]
+    },
+    {
+      "name": "package: support wrong kind",
+      "expectedConforms": false,
+      "conforms": false,
+      "passes": true,
+      "issues": [
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/canvasExecution/internal",
+          "constraintId": "b7201fe9-2323-4e8b-a998-002e1b389a54",
+          "message": "Unexpected directory \"internal\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/canvasExecution/roleSpecific.ts",
+          "constraintId": "b7201fe9-2323-4e8b-a998-002e1b389a54",
+          "message": "Unexpected file \"roleSpecific.ts\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "nesting_mismatch",
+          "severity": "block",
+          "path": "services/src/execution",
+          "constraintId": "a66adead-1025-4ba2-bf8e-fd72421a18ba",
+          "message": "Expected directory \"execution\" but found file",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/executionActors/internal",
+          "constraintId": "a636e84c-ce21-4589-989b-70311ab68d5d",
+          "message": "Unexpected directory \"internal\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/executionActors/roleSpecific.ts",
+          "constraintId": "a636e84c-ce21-4589-989b-70311ab68d5d",
+          "message": "Unexpected file \"roleSpecific.ts\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/executionArtifacts/internal",
+          "constraintId": "2fedbfef-f5ea-4a54-923c-53c321026dd0",
+          "message": "Unexpected directory \"internal\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/executionArtifacts/roleSpecific.ts",
+          "constraintId": "2fedbfef-f5ea-4a54-923c-53c321026dd0",
+          "message": "Unexpected file \"roleSpecific.ts\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/executionGateway/internal",
+          "constraintId": "e2f72379-f2fc-481e-8e1b-e9100de29ae4",
+          "message": "Unexpected directory \"internal\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/executionGateway/roleSpecific.ts",
+          "constraintId": "e2f72379-f2fc-481e-8e1b-e9100de29ae4",
+          "message": "Unexpected file \"roleSpecific.ts\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/executionMigration/internal",
+          "constraintId": "a8be089e-98b0-481f-a400-d8fac50610ca",
+          "message": "Unexpected directory \"internal\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/executionMigration/roleSpecific.ts",
+          "constraintId": "a8be089e-98b0-481f-a400-d8fac50610ca",
+          "message": "Unexpected file \"roleSpecific.ts\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/executionPrompt/internal",
+          "constraintId": "66e01321-211c-4672-9b61-48ac6b3cf86d",
+          "message": "Unexpected directory \"internal\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/executionPrompt/roleSpecific.ts",
+          "constraintId": "66e01321-211c-4672-9b61-48ac6b3cf86d",
+          "message": "Unexpected file \"roleSpecific.ts\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/jobLease/internal",
+          "constraintId": "02792b82-b427-4fde-9943-3c788d23418c",
+          "message": "Unexpected directory \"internal\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/jobLease/roleSpecific.ts",
+          "constraintId": "02792b82-b427-4fde-9943-3c788d23418c",
+          "message": "Unexpected file \"roleSpecific.ts\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/archived/historic.ts",
+          "constraintId": "483a6ab9-144e-4200-ad90-30dd78a02f46",
+          "message": "Unexpected file \"historic.ts\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        }
+      ]
+    },
+    {
+      "name": "package: support wrong case",
+      "expectedConforms": false,
+      "conforms": false,
+      "passes": true,
+      "issues": [
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/canvasExecution/internal",
+          "constraintId": "b7201fe9-2323-4e8b-a998-002e1b389a54",
+          "message": "Unexpected directory \"internal\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/canvasExecution/roleSpecific.ts",
+          "constraintId": "b7201fe9-2323-4e8b-a998-002e1b389a54",
+          "message": "Unexpected file \"roleSpecific.ts\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "name_mismatch",
+          "severity": "block",
+          "path": "services/src/Execution",
+          "constraintId": "a66adead-1025-4ba2-bf8e-fd72421a18ba",
+          "message": "Expected name \"execution\" but found \"Execution\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/executionActors/internal",
+          "constraintId": "a636e84c-ce21-4589-989b-70311ab68d5d",
+          "message": "Unexpected directory \"internal\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/executionActors/roleSpecific.ts",
+          "constraintId": "a636e84c-ce21-4589-989b-70311ab68d5d",
+          "message": "Unexpected file \"roleSpecific.ts\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/executionArtifacts/internal",
+          "constraintId": "2fedbfef-f5ea-4a54-923c-53c321026dd0",
+          "message": "Unexpected directory \"internal\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/executionArtifacts/roleSpecific.ts",
+          "constraintId": "2fedbfef-f5ea-4a54-923c-53c321026dd0",
+          "message": "Unexpected file \"roleSpecific.ts\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/executionGateway/internal",
+          "constraintId": "e2f72379-f2fc-481e-8e1b-e9100de29ae4",
+          "message": "Unexpected directory \"internal\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/executionGateway/roleSpecific.ts",
+          "constraintId": "e2f72379-f2fc-481e-8e1b-e9100de29ae4",
+          "message": "Unexpected file \"roleSpecific.ts\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/executionMigration/internal",
+          "constraintId": "a8be089e-98b0-481f-a400-d8fac50610ca",
+          "message": "Unexpected directory \"internal\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/executionMigration/roleSpecific.ts",
+          "constraintId": "a8be089e-98b0-481f-a400-d8fac50610ca",
+          "message": "Unexpected file \"roleSpecific.ts\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/executionPrompt/internal",
+          "constraintId": "66e01321-211c-4672-9b61-48ac6b3cf86d",
+          "message": "Unexpected directory \"internal\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/executionPrompt/roleSpecific.ts",
+          "constraintId": "66e01321-211c-4672-9b61-48ac6b3cf86d",
+          "message": "Unexpected file \"roleSpecific.ts\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/jobLease/internal",
+          "constraintId": "02792b82-b427-4fde-9943-3c788d23418c",
+          "message": "Unexpected directory \"internal\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/src/jobLease/roleSpecific.ts",
+          "constraintId": "02792b82-b427-4fde-9943-3c788d23418c",
+          "message": "Unexpected file \"roleSpecific.ts\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        },
+        {
+          "code": "unexpected_entry",
+          "severity": "allow",
+          "path": "services/archived/historic.ts",
+          "constraintId": "483a6ab9-144e-4200-ad90-30dd78a02f46",
+          "message": "Unexpected file \"historic.ts\"",
+          "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+        }
+      ]
+    }
+  ]
+}

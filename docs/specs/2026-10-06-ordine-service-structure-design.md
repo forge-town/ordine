@@ -20,6 +20,10 @@ Service 工厂继续接受原有依赖并返回同样的服务能力；Service �
 
 Service 实现命名为 `<name>.service.ts`。集合目录使用现有生产 Anatomy 声明的 `methods` 和 `helpers`，各自包含集合入口 `index.ts`；叶子分别包含入口、`<method>.method.ts` 与 `<method>.method.spec.ts`，或入口、`<helper>.helper.ts` 与 `<helper>.helper.spec.ts`。按业务职责迁移测试，保留原有断言、fixtures、mock 和边界场景，不将整个聚合测试机械改名后留在入口旁。
 
+需要保留 Vitest 文件级 mock 隔离的真实模型、平台或集成场景，可在对应叶子增加 `<scenario>.scenario.spec.ts`。该明确的可选文件模式不替代必需的标准叶子 spec；未知文件继续阻断。
+
+现有测试快照及 PDF 输入迁移到所属叶子的可选 `__snapshots__/` 与 `fixtures/`，保留原内容。快照名称同步为标准叶子或独立场景的 `.spec.ts.snap`；fixtures 只声明具名 `.pdf` 输入，其他资产不默认放行。
+
 公共包入口 `packages/services/src/index.ts` 与 `package.json` 声明的 `./execution`、`./execution-migration` 子路径保持兼容。组合入口 `serviceFactory.ts`、公共错误定义和文本导入声明保留其现有职责。更新所有受迁移影响的相对导入、桶导出、构建脚本和公开入口引用。
 
 ## 4. 支持结构与规范边界
@@ -89,6 +93,10 @@ The selected approach adopts the shared Service unit structure while retaining r
 Service factories retain their existing dependencies and return the same capabilities. The Service implementation assembles dependencies; business methods and helpers move into their own units. Preserve existing Service directory identifiers and public symbols such as `createXxxService` to avoid unrelated renaming.
 
 Service implementations use `<name>.service.ts`. Collection directories use `methods` and `helpers`, as declared by the current production Anatomy, each with an `index.ts`. Method leaves contain an entry, `<method>.method.ts`, and `<method>.method.spec.ts`; helper leaves contain an entry, `<helper>.helper.ts`, and `<helper>.helper.spec.ts`. Move tests according to business responsibility, preserving assertions, fixtures, mocks, and boundary cases. Do not mechanically rename an aggregate test and leave it beside the aggregate entry.
+
+Real-model, platform, or integration scenarios that need Vitest file-level mock isolation may add `<scenario>.scenario.spec.ts` in the corresponding leaf. This explicit optional file pattern does not replace the required canonical leaf spec; unknown files remain blocked.
+
+Existing snapshots and PDF inputs move into optional `__snapshots__/` and `fixtures/` directories in their owning leaves without content changes. Snapshot names follow the canonical or scenario `.spec.ts.snap` file names; fixtures explicitly declare named `.pdf` inputs, while other assets remain blocked by default.
 
 Preserve compatibility of `packages/services/src/index.ts` and the `./execution` and `./execution-migration` subpaths declared in `package.json`. Keep the existing responsibilities of `serviceFactory.ts`, shared errors, and text-import declarations. Update all affected relative imports, barrel exports, build scripts, and public-entry references.
 

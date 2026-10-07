@@ -1,0 +1,1 @@
+export * from "./resourceControlTestConnector.method";

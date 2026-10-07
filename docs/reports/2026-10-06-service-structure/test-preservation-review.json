@@ -1,0 +1,249 @@
+{
+  "base": "03721ab082172699479690714b15c342c0144382",
+  "note": "Textual AST comparison is a review aid. Missing expressions require manual scenario review; equivalent renamed assertions can differ. Passing this check alone does not establish behavior preservation.",
+  "results": [
+    {
+      "service": "agentControlService",
+      "originalFiles": 5,
+      "currentFiles": 95,
+      "originalAssertions": 42,
+      "currentAssertions": 156,
+      "missingAssertions": [],
+      "missingTitles": []
+    },
+    {
+      "service": "agentRunsService",
+      "originalFiles": 5,
+      "currentFiles": 44,
+      "originalAssertions": 82,
+      "currentAssertions": 146,
+      "missingAssertions": [],
+      "missingTitles": []
+    },
+    {
+      "service": "agentRuntimesService",
+      "originalFiles": 1,
+      "currentFiles": 6,
+      "originalAssertions": 17,
+      "currentAssertions": 17,
+      "missingAssertions": [],
+      "missingTitles": []
+    },
+    {
+      "service": "agentsService",
+      "originalFiles": 1,
+      "currentFiles": 5,
+      "originalAssertions": 6,
+      "currentAssertions": 6,
+      "missingAssertions": [],
+      "missingTitles": []
+    },
+    {
+      "service": "capabilityCatalogService",
+      "originalFiles": 3,
+      "currentFiles": 18,
+      "originalAssertions": 27,
+      "currentAssertions": 47,
+      "missingAssertions": [],
+      "missingTitles": []
+    },
+    {
+      "service": "capabilityHarvestService",
+      "originalFiles": 4,
+      "currentFiles": 5,
+      "originalAssertions": 48,
+      "currentAssertions": 48,
+      "missingAssertions": [],
+      "missingTitles": []
+    },
+    {
+      "service": "connectorsService",
+      "originalFiles": 2,
+      "currentFiles": 13,
+      "originalAssertions": 84,
+      "currentAssertions": 110,
+      "missingAssertions": [],
+      "missingTitles": []
+    },
+    {
+      "service": "conversationMessagesService",
+      "originalFiles": 0,
+      "currentFiles": 7,
+      "originalAssertions": 0,
+      "currentAssertions": 32,
+      "missingAssertions": [],
+      "missingTitles": []
+    },
+    {
+      "service": "distillationsService",
+      "originalFiles": 1,
+      "currentFiles": 10,
+      "originalAssertions": 10,
+      "currentAssertions": 31,
+      "missingAssertions": [],
+      "missingTitles": []
+    },
+    {
+      "service": "executionService",
+      "originalFiles": 6,
+      "currentFiles": 65,
+      "originalAssertions": 119,
+      "currentAssertions": 207,
+      "missingAssertions": [],
+      "missingTitles": []
+    },
+    {
+      "service": "filesystemService",
+      "originalFiles": 1,
+      "currentFiles": 3,
+      "originalAssertions": 27,
+      "currentAssertions": 33,
+      "missingAssertions": [],
+      "missingTitles": []
+    },
+    {
+      "service": "githubProjectsService",
+      "originalFiles": 1,
+      "currentFiles": 5,
+      "originalAssertions": 6,
+      "currentAssertions": 6,
+      "missingAssertions": [],
+      "missingTitles": []
+    },
+    {
+      "service": "jobsService",
+      "originalFiles": 1,
+      "currentFiles": 11,
+      "originalAssertions": 6,
+      "currentAssertions": 16,
+      "missingAssertions": [],
+      "missingTitles": []
+    },
+    {
+      "service": "operationOutputItemTemplatesService",
+      "originalFiles": 0,
+      "currentFiles": 5,
+      "originalAssertions": 0,
+      "currentAssertions": 10,
+      "missingAssertions": [],
+      "missingTitles": []
+    },
+    {
+      "service": "operationRunnerService",
+      "originalFiles": 1,
+      "currentFiles": 3,
+      "originalAssertions": 8,
+      "currentAssertions": 11,
+      "missingAssertions": [],
+      "missingTitles": []
+    },
+    {
+      "service": "operationsService",
+      "originalFiles": 1,
+      "currentFiles": 5,
+      "originalAssertions": 13,
+      "currentAssertions": 13,
+      "missingAssertions": [],
+      "missingTitles": []
+    },
+    {
+      "service": "pipelineAgentSessionsService",
+      "originalFiles": 3,
+      "currentFiles": 48,
+      "originalAssertions": 125,
+      "currentAssertions": 170,
+      "missingAssertions": [],
+      "missingTitles": []
+    },
+    {
+      "service": "pipelineAssetsService",
+      "originalFiles": 0,
+      "currentFiles": 10,
+      "originalAssertions": 0,
+      "currentAssertions": 41,
+      "missingAssertions": [],
+      "missingTitles": []
+    },
+    {
+      "service": "pipelineRunnerService",
+      "originalFiles": 11,
+      "currentFiles": 46,
+      "originalAssertions": 254,
+      "currentAssertions": 277,
+      "missingAssertions": [],
+      "missingTitles": []
+    },
+    {
+      "service": "pipelinesService",
+      "originalFiles": 18,
+      "currentFiles": 42,
+      "originalAssertions": 365,
+      "currentAssertions": 385,
+      "missingAssertions": [],
+      "missingTitles": []
+    },
+    {
+      "service": "projectsService",
+      "originalFiles": 0,
+      "currentFiles": 6,
+      "originalAssertions": 0,
+      "currentAssertions": 35,
+      "missingAssertions": [],
+      "missingTitles": []
+    },
+    {
+      "service": "refinementsService",
+      "originalFiles": 0,
+      "currentFiles": 8,
+      "originalAssertions": 0,
+      "currentAssertions": 23,
+      "missingAssertions": [],
+      "missingTitles": []
+    },
+    {
+      "service": "routineSchedulerService",
+      "originalFiles": 2,
+      "currentFiles": 7,
+      "originalAssertions": 42,
+      "currentAssertions": 44,
+      "missingAssertions": [],
+      "missingTitles": []
+    },
+    {
+      "service": "routinesService",
+      "originalFiles": 1,
+      "currentFiles": 11,
+      "originalAssertions": 41,
+      "currentAssertions": 48,
+      "missingAssertions": [],
+      "missingTitles": ["reads delegate to the dao and wrap meta"]
+    },
+    {
+      "service": "settingsService",
+      "originalFiles": 1,
+      "currentFiles": 3,
+      "originalAssertions": 5,
+      "currentAssertions": 5,
+      "missingAssertions": [],
+      "missingTitles": []
+    },
+    {
+      "service": "skillsService",
+      "originalFiles": 1,
+      "currentFiles": 18,
+      "originalAssertions": 18,
+      "currentAssertions": 33,
+      "missingAssertions": [],
+      "missingTitles": []
+    },
+    {
+      "service": "usageService",
+      "originalFiles": 1,
+      "currentFiles": 5,
+      "originalAssertions": 8,
+      "currentAssertions": 12,
+      "missingAssertions": [],
+      "missingTitles": []
+    }
+  ]
+}

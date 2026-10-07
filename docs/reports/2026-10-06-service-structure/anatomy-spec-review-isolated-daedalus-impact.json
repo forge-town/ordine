@@ -1,0 +1,46 @@
+{
+  "target": "/Users/amin/projects/daedalus/packages/services",
+  "originalPackageRevision": 1,
+  "originalDependencyRevisions": {
+    "45015e2f-5c8a-48dc-87ba-9e1accf0fc3e": 7,
+    "c9e8b402-e926-4ba5-b04c-2086a39db531": 1,
+    "824299ac-1cde-47c4-b866-a99a29059ba2": 1
+  },
+  "baseline": {
+    "summary": {
+      "block": 118,
+      "warn": 0,
+      "allow": 0
+    },
+    "conforms": false
+  },
+  "leavesOnly": {
+    "summary": {
+      "block": 118,
+      "warn": 0,
+      "allow": 0
+    },
+    "conforms": false,
+    "newBlocks": [],
+    "removedBlocks": []
+  },
+  "allProposed": {
+    "summary": {
+      "block": 117,
+      "warn": 0,
+      "allow": 0
+    },
+    "conforms": false,
+    "newBlocks": [],
+    "removedBlocks": [
+      {
+        "code": "unexpected_entry",
+        "severity": "block",
+        "path": "services/vitest.config.ts",
+        "constraintId": "4b3344d0-4867-4c80-a4e0-93eef9baa6c3",
+        "message": "Unexpected file \"vitest.config.ts\"",
+        "anatomyId": "1054274d-005e-4554-84c2-b0459e89c849"
+      }
+    ]
+  }
+}

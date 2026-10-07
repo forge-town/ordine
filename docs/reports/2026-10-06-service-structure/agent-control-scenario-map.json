@@ -1,0 +1,154 @@
+{
+  "base": "03721ab082172699479690714b15c342c0144382",
+  "originalFiles": 5,
+  "originalScenarios": 10,
+  "missing": [],
+  "assertionCountChanges": [],
+  "mappings": [
+    {
+      "originalFile": "packages/services/src/agentControlService/argumentDigest.unit.test.ts",
+      "title": "ignores retry metadata while binding the semantic tool arguments",
+      "assertions": 2,
+      "line": 5,
+      "destinations": [
+        {
+          "file": "packages/services/src/agentControlService/helpers/digestAgentControlArguments/digestAgentControlArguments.helper.spec.ts",
+          "line": 5,
+          "assertions": 2
+        }
+      ]
+    },
+    {
+      "originalFile": "packages/services/src/agentControlService/controlRunEvent.unit.test.ts",
+      "title": "rejects late events after a %s run",
+      "assertions": 1,
+      "line": 5,
+      "destinations": [
+        {
+          "file": "packages/services/src/agentControlService/helpers/controlRunEvent/controlRunEvent.helper.spec.ts",
+          "line": 5,
+          "assertions": 1
+        }
+      ]
+    },
+    {
+      "originalFile": "packages/services/src/agentControlService/controlRunEvent.unit.test.ts",
+      "title": "allows events while a control run is %s",
+      "assertions": 1,
+      "line": 12,
+      "destinations": [
+        {
+          "file": "packages/services/src/agentControlService/helpers/controlRunEvent/controlRunEvent.helper.spec.ts",
+          "line": 12,
+          "assertions": 1
+        }
+      ]
+    },
+    {
+      "originalFile": "packages/services/src/agentControlService/controlRunEvent.unit.test.ts",
+      "title": "rejects missing and non-control runs",
+      "assertions": 2,
+      "line": 19,
+      "destinations": [
+        {
+          "file": "packages/services/src/agentControlService/helpers/controlRunEvent/controlRunEvent.helper.spec.ts",
+          "line": 19,
+          "assertions": 2
+        }
+      ]
+    },
+    {
+      "originalFile": "packages/services/src/agentControlService/notifyCommittedChangeSet.unit.test.ts",
+      "title": "does not append to a completed Agent stream after the user applies its proposal",
+      "assertions": 1,
+      "line": 7,
+      "destinations": [
+        {
+          "file": "packages/services/src/agentControlService/helpers/notifyCommittedChangeSet/notifyCommittedChangeSet.helper.spec.ts",
+          "line": 7,
+          "assertions": 1
+        }
+      ]
+    },
+    {
+      "originalFile": "packages/services/src/agentControlService/notifyCommittedChangeSet.unit.test.ts",
+      "title": "keeps a durable Apply successful if the Agent finishes during notification",
+      "assertions": 2,
+      "line": 15,
+      "destinations": [
+        {
+          "file": "packages/services/src/agentControlService/helpers/notifyCommittedChangeSet/notifyCommittedChangeSet.helper.spec.ts",
+          "line": 15,
+          "assertions": 2
+        }
+      ]
+    },
+    {
+      "originalFile": "packages/services/src/agentControlService/preparedSubmission.integration.test.ts",
+      "title": "updates only supplied Operation fields through the real authoring service",
+      "assertions": 12,
+      "line": 15,
+      "destinations": [
+        {
+          "file": "packages/services/src/agentControlService/methods/resourceControlUpdate/resourceControlUpdate.method.spec.ts",
+          "line": 13,
+          "assertions": 12
+        }
+      ]
+    },
+    {
+      "originalFile": "packages/services/src/agentControlService/preparedSubmission.integration.test.ts",
+      "title": "persists one request identity and never creates an old approval or invents a Job",
+      "assertions": 13,
+      "line": 67,
+      "destinations": [
+        {
+          "file": "packages/services/src/agentControlService/methods/invoke/invoke.method.spec.ts",
+          "line": 14,
+          "assertions": 13
+        }
+      ]
+    },
+    {
+      "originalFile": "packages/services/src/agentControlService/runCapabilityStore.unit.test.ts",
+      "title": "mints 256-bit run-bound capabilities and never exposes a stored raw token",
+      "assertions": 3,
+      "line": 5,
+      "destinations": [
+        {
+          "file": "packages/services/src/agentControlService/helpers/runCapabilityStore/runCapabilityStore.helper.spec.ts",
+          "line": 5,
+          "assertions": 3
+        }
+      ]
+    },
+    {
+      "originalFile": "packages/services/src/agentControlService/runCapabilityStore.unit.test.ts",
+      "title": "denies forged, cross-run, out-of-scope, expired, and revoked capabilities",
+      "assertions": 5,
+      "line": 27,
+      "destinations": [
+        {
+          "file": "packages/services/src/agentControlService/helpers/runCapabilityStore/runCapabilityStore.helper.spec.ts",
+          "line": 27,
+          "assertions": 5
+        }
+      ]
+    }
+  ],
+  "mockHeaders": [
+    {
+      "file": "packages/services/src/agentControlService/helpers/canvasControl/canvasControl.helper.spec.ts",
+      "mocks": ["@repo/models"]
+    },
+    {
+      "file": "packages/services/src/agentControlService/helpers/agentThreads/agentThreads.helper.spec.ts",
+      "mocks": ["@repo/models"]
+    },
+    {
+      "file": "packages/services/src/agentControlService/helpers/executionPreflight/executionPreflight.helper.spec.ts",
+      "mocks": ["@repo/models", "../../../capabilityCatalogService"]
+    }
+  ],
+  "note": "Scenario-title and assertion counts are a locator/check aid, not a proof of behavior. Parent separately compares full original expect AST tokens. Existing hooks and mock factories were retained during moves; new factory smoke specs have their own local model mocks."
+}
